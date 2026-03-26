@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="fi">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SkySpotter ✈️</title>
+<title>Overhead — Live Flight Tracker</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   :root {
@@ -163,11 +163,11 @@
 
 <nav>
   <div class="nav-inner">
-    <div class="nav-logo"><span>✈️</span> SkySpotter</div>
+    <div class="nav-logo"><span>🛩</span> Overhead</div>
     <div class="nav-tabs">
-      <button class="tab-btn active" onclick="showTab('nearby')">Lähellä</button>
-      <button class="tab-btn" onclick="showTab('finder')">Konetyypit</button>
-      <button class="tab-btn" onclick="showTab('stats')">Tilastot</button>
+      <button class="tab-btn active" onclick="showTab('nearby')">Nearby</button>
+      <button class="tab-btn" onclick="showTab('finder')">Aircraft</button>
+      <button class="tab-btn" onclick="showTab('stats')">Stats</button>
     </div>
   </div>
 </nav>
@@ -179,23 +179,23 @@
 
     <!-- Location card -->
     <div class="location-card">
-      <div class="section-title">📍 Sijaintisi</div>
+      <div class="section-title">📍 Your Location</div>
       <div class="loc-row">
         <div class="input-group">
-          <label>Leveysaste (lat)</label>
+          <label>Latitude</label>
           <input type="number" id="lat" placeholder="60.4518" step="0.0001">
         </div>
         <div class="input-group">
-          <label>Pituusaste (lon)</label>
+          <label>Longitude</label>
           <input type="number" id="lon" placeholder="22.2666" step="0.0001">
         </div>
         <div class="input-group" style="max-width:120px">
-          <label>Säde (km)</label>
+          <label>Radius (km)</label>
           <input type="number" id="radius" value="150" min="10" max="500" step="10">
           <div class="radius-info">10–500 km</div>
         </div>
         <button class="btn-locate" onclick="geoLocate()" title="Käytä GPS-sijaintia">📡 GPS</button>
-        <button class="btn-primary" onclick="fetchFlights()">🔍 Hae lennot</button>
+        <button class="btn-primary" onclick="fetchFlights()">🔍 Find Flights</button>
       </div>
     </div>
 
@@ -203,7 +203,7 @@
     <div class="status-bar">
       <div class="stat-chip blue">
         <div class="val" id="countAll">–</div>
-        <div class="lbl"><span class="live-dot"></span>Lennot alueella</div>
+        <div class="lbl"><span class="live-dot"></span>Flights nearby</div>
       </div>
       <div class="stat-chip green">
         <div class="val" id="countOverhead">–</div>
@@ -211,7 +211,7 @@
       </div>
       <div class="stat-chip red">
         <div class="val" id="countGround">–</div>
-        <div class="lbl">🛬 Maassa</div>
+        <div class="lbl">🛬 On ground</div>
       </div>
     </div>
 
@@ -223,16 +223,16 @@
 
     <!-- Filter -->
     <div class="filter-card">
-      <label>🔎 Suodata:</label>
-      <input type="text" id="filterText" placeholder="Lentonumero, maa..." oninput="renderList()" style="flex:1;min-width:120px">
-      <label>Lajittele:</label>
+      <label>🔎 Filter:</label>
+      <input type="text" id="filterText" placeholder="Callsign, country..." oninput="renderList()" style="flex:1;min-width:120px">
+      <label>Sort by:</label>
       <select id="sortBy" onchange="renderList()">
-        <option value="dist">Etäisyys</option>
-        <option value="alt">Korkeus</option>
-        <option value="speed">Nopeus</option>
-        <option value="call">Lentonumero</option>
+        <option value="dist">Distance</option>
+        <option value="alt">Altitude</option>
+        <option value="speed">Speed</option>
+        <option value="call">Callsign</option>
       </select>
-      <label><input type="checkbox" id="hideGround" onchange="renderList()"> Piilota maassa olevat</label>
+      <label><input type="checkbox" id="hideGround" onchange="renderList()"> Hide ground olevat</label>
     </div>
 
     <!-- Detail panel -->
@@ -248,7 +248,7 @@
       <div id="d-type-banner" style="background:linear-gradient(135deg,#007aff 0%,#0051c3 100%);border-radius:12px;padding:14px 18px;margin-bottom:14px;display:flex;align-items:center;gap:14px">
         <div style="font-size:36px">✈️</div>
         <div>
-          <div style="color:rgba(255,255,255,0.7);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Konemalli</div>
+          <div style="color:rgba(255,255,255,0.7);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Aircraft</div>
           <div id="d-model" style="color:white;font-size:20px;font-weight:800;letter-spacing:-.3px">–</div>
           <div style="display:flex;gap:8px;margin-top:4px">
             <span id="d-typecode" style="background:rgba(255,255,255,0.2);color:white;font-size:12px;font-weight:700;padding:2px 8px;border-radius:20px">–</span>
@@ -259,14 +259,14 @@
       <!-- ETA banner -->
       <div id="d-eta-banner" style="display:none;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:14px;font-weight:700;text-align:center"></div>
       <div class="detail-grid">
-        <div class="detail-item"><div class="d-lbl">Korkeus</div><div class="d-val" id="d-alt">–</div></div>
-        <div class="detail-item"><div class="d-lbl">Nopeus</div><div class="d-val" id="d-spd">–</div></div>
-        <div class="detail-item"><div class="d-lbl">Suunta</div><div class="d-val" id="d-hdg">–</div></div>
-        <div class="detail-item"><div class="d-lbl">Nousu/lasku</div><div class="d-val" id="d-vrt">–</div></div>
-        <div class="detail-item"><div class="d-lbl">Etäisyys</div><div class="d-val" id="d-dst">–</div></div>
-        <div class="detail-item"><div class="d-lbl">Operaattori</div><div class="d-val" id="d-op" style="font-size:13px">–</div></div>
-        <div class="detail-item"><div class="d-lbl">📏 Pituus</div><div class="d-val" id="d-length">–</div></div>
-        <div class="detail-item" style="grid-column:1/-1"><div class="d-lbl">⚙️ Moottorit</div><div class="d-val" id="d-engines" style="font-size:13px;font-weight:600">–</div></div>
+        <div class="detail-item"><div class="d-lbl">Altitude</div><div class="d-val" id="d-alt">–</div></div>
+        <div class="detail-item"><div class="d-lbl">Speed</div><div class="d-val" id="d-spd">–</div></div>
+        <div class="detail-item"><div class="d-lbl">Heading</div><div class="d-val" id="d-hdg">–</div></div>
+        <div class="detail-item"><div class="d-lbl">Climb/Desc</div><div class="d-val" id="d-vrt">–</div></div>
+        <div class="detail-item"><div class="d-lbl">Distance</div><div class="d-val" id="d-dst">–</div></div>
+        <div class="detail-item"><div class="d-lbl">Operator</div><div class="d-val" id="d-op" style="font-size:13px">–</div></div>
+        <div class="detail-item"><div class="d-lbl">📏 Length</div><div class="d-val" id="d-length">–</div></div>
+        <div class="detail-item" style="grid-column:1/-1"><div class="d-lbl">⚙️ Engines</div><div class="d-val" id="d-engines" style="font-size:13px;font-weight:600">–</div></div>
         <div class="detail-item"><div class="d-lbl">ICAO24</div><div class="d-val" id="d-icao" style="font-size:13px;word-break:break-all">–</div></div>
         <div class="detail-item"><div class="d-lbl">Kategoria</div><div class="d-val" id="d-cat">–</div></div>
       </div>
@@ -275,12 +275,12 @@
     <!-- Map -->
     <div id="map">
       <div id="mapContainer"></div>
-      <div class="map-overlay" id="mapInfo">Aseta sijainti ja paina Hae lennot</div>
+      <div class="map-overlay" id="mapInfo">Set location and search flights</div>
       <div id="daynight-indicator" style="position:absolute;top:12px;right:48px;background:rgba(255,200,0,0.9);color:#333;border-radius:10px;padding:6px 12px;font-size:13px;font-weight:700;z-index:10;backdrop-filter:blur(6px)">☀️ Päivä</div>
       <div class="map-legend">
-        <div class="legend-item"><div class="legend-dot" style="background:#007aff"></div> Lentää</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#34c759"></div> Alle 50km</div>
-        <div class="legend-item"><div class="legend-dot" style="background:#ff9500"></div> Maassa</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#007aff"></div> In air</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#34c759"></div> Within 50km</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ff9500"></div> On ground</div>
       </div>
     </div>
 
@@ -288,7 +288,7 @@
     <div id="flightList">
       <div class="empty">
         <div class="empty-icon">🌤️</div>
-        <p>Syötä sijaintisi ja paina <strong>Hae lennot</strong></p>
+        <p>Enter your location and tap <strong>Find Flights</strong></p>
       </div>
     </div>
 
@@ -297,11 +297,11 @@
   <!-- AIRCRAFT FINDER TAB -->
   <div id="tab-finder" class="tab-content">
     <div class="aircraft-search-card">
-      <div class="section-title">🛩️ Etsi konetyyppejä</div>
+      <div class="section-title">🛩️ Search Aircraft Types</div>
       <p style="color:var(--sub);font-size:14px;margin-bottom:14px">Valitse konetyyppi tai kirjoita ICAO-konetyyppikoodi nähdäksesi lähialueellasi lentävät kyseisen tyyppiset koneet. Huom: OpenSky API ei palauta tyyppiä suoraan — alla haetaan callsign-prefiksien mukaan.</p>
       <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
         <input type="text" id="acTypeInput" placeholder="A320, B738, B77W..." style="padding:10px 14px;border-radius:10px;border:1.5px solid var(--border);font-size:15px;font-family:inherit;background:var(--bg);color:var(--text);outline:none;flex:1;min-width:150px" oninput="filterByType()">
-        <button class="btn-primary" onclick="filterByType()">Hae</button>
+        <button class="btn-primary" onclick="filterByType()">Search</button>
       </div>
       <div class="aircraft-types">
         <button class="ac-type-btn" onclick="setType('A320')">Airbus A320</button>
@@ -314,10 +314,10 @@
         <button class="ac-type-btn" onclick="setType('F100')">Fokker 100</button>
         <button class="ac-type-btn" onclick="setType('C172')">Cessna 172</button>
         <button class="ac-type-btn" onclick="setType('PC12')">Pilatus PC-12</button>
-        <button class="ac-type-btn" onclick="setType('H60')">Helikopteri</button>
+        <button class="ac-type-btn" onclick="setType('H60')">Helicopter</button>
       </div>
       <div class="ac-results" id="acResults">
-        <div class="empty"><div class="empty-icon">🔭</div><p>Hae ensin lennot "Lähellä"-välilehdeltä</p></div>
+        <div class="empty"><div class="empty-icon">🔭</div><p>Search flights in the Nearby tab first</p></div>
       </div>
     </div>
   </div>
@@ -325,9 +325,9 @@
   <!-- STATS TAB -->
   <div id="tab-stats" class="tab-content">
     <div class="aircraft-search-card">
-      <div class="section-title">📊 Tilastot alueelta</div>
+      <div class="section-title">📊 Area Statistics</div>
       <div id="statsContent">
-        <div class="empty"><div class="empty-icon">📈</div><p>Hae ensin lennot "Lähellä"-välilehdeltä</p></div>
+        <div class="empty"><div class="empty-icon">📈</div><p>Search flights in the Nearby tab first</p></div>
       </div>
     </div>
   </div>
@@ -403,13 +403,13 @@ function initMap() {
 // ---- GEO ----
 function geoLocate() {
   if (!navigator.geolocation) { toast('Selaimesi ei tue GPS:ää'); return; }
-  toast('📡 Haetaan sijaintia...');
+  toast('📡 Getting location...');
   navigator.geolocation.getCurrentPosition(pos => {
     document.getElementById('lat').value = pos.coords.latitude.toFixed(4);
     document.getElementById('lon').value = pos.coords.longitude.toFixed(4);
-    toast('✅ Sijainti asetettu!');
+    toast('✅ Location set!');
     fetchFlights();
-  }, () => toast('❌ GPS-haku epäonnistui'));
+  }, () => toast('❌ GPS failed'));
 }
 
 // ---- FETCH ----
@@ -421,9 +421,9 @@ async function fetchFlights() {
   userLon = parseFloat(lonEl.value);
   userRadius = parseFloat(radEl.value) || 150;
 
-  if (isNaN(userLat) || isNaN(userLon)) { toast('⚠️ Syötä sijainti ensin!'); return; }
+  if (isNaN(userLat) || isNaN(userLon)) { toast('⚠️ Enter your location first!'); return; }
 
-  document.getElementById('flightList').innerHTML = '<div class="loading"><div class="spinner"></div>Haetaan lentoja...</div>';
+  document.getElementById('flightList').innerHTML = '<div class="loading"><div class="spinner"></div>Finding flights...</div>';
   initMap();
 
   const deg = userRadius / 111.0;
@@ -444,11 +444,11 @@ async function fetchFlights() {
     resetLivePos();
     startAnimation();
     scheduleRefresh();
-    toast(`✈️ ${allFlights.length} lentoa löydetty!`);
+    toast(`✈️ ${allFlights.length} flights found!`);
     if (typeof updateDayNight === 'function') setTimeout(updateDayNight, 100);
   } catch(e) {
-    document.getElementById('flightList').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><p>${e.message}<br><small>OpenSky saattaa olla ylikuormittunut. Yritä uudelleen.</small></p></div>`;
-    toast('❌ Haku epäonnistui');
+    document.getElementById('flightList').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><p>${e.message}<br><small>OpenSky saattaa olla overloaded. Please try again.</small></p></div>`;
+    toast('❌ Search failed');
   }
 }
 
@@ -520,7 +520,7 @@ function renderList() {
   });
 
   if (flights.length === 0) {
-    document.getElementById('flightList').innerHTML = '<div class="empty"><div class="empty-icon">🔍</div><p>Ei tuloksia haulla</p></div>';
+    document.getElementById('flightList').innerHTML = '<div class="empty"><div class="empty-icon">🔍</div><p>No results haulla</p></div>';
     return;
   }
 
@@ -542,7 +542,7 @@ function buildFlightCard(f) {
   const planeDeg = f.track != null ? f.track : 0;
 
   const badges = [];
-  if (f.on_ground) badges.push(`<span class="badge badge-orange">🛬 Maassa</span>`);
+  if (f.on_ground) badges.push(`<span class="badge badge-orange">🛬 On ground</span>`);
   else if (isOverhead) badges.push(`<span class="badge badge-green">🎯 Ylitsesi nyt</span>`);
   // route ETA shown after clicking (requires API fetch)
   if (catLabel) badges.push(`<span class="badge badge-gray">${catLabel}</span>`);
@@ -561,9 +561,9 @@ function buildFlightCard(f) {
     </div>
     <div class="flight-stats">
       <div><span class="flight-stat-val">${distStr}</span></div>
-      <div class="flight-stat-lbl">etäisyys</div>
+      <div class="flight-stat-lbl">distance</div>
       <div><span class="flight-stat-val">${altStr}</span></div>
-      <div class="flight-stat-lbl">korkeus</div>
+      <div class="flight-stat-lbl">altitude</div>
     </div>
   </div>`;
 }
@@ -620,7 +620,7 @@ async function selectFlight(icao) {
   document.getElementById('d-cat').textContent = getCatLabel(f.category) || '–';
 
   // Aircraft type – show loading state
-  document.getElementById('d-model').textContent = '⏳ Ladataan...';
+  document.getElementById('d-model').textContent = '⏳ Loading...';
   document.getElementById('d-typecode').textContent = '⏳';
   document.getElementById('d-reg').textContent = '⏳';
   document.getElementById('d-op').textContent = '⏳';
@@ -654,7 +654,7 @@ async function selectFlight(icao) {
     f.acLength = acLen;
     refreshMarkerIcon(f);
   } else {
-    document.getElementById('d-model').textContent = 'Ei tietoja kannassa';
+    document.getElementById('d-model').textContent = 'No data available';
     document.getElementById('d-typecode').textContent = '–';
     document.getElementById('d-reg').textContent = '–';
     document.getElementById('d-op').textContent = '–';
@@ -678,23 +678,23 @@ async function selectFlight(icao) {
     if (!route) {
       etaBanner.style.background = '#e5e5ea';
       etaBanner.style.color = '#8e8e93';
-      etaBanner.textContent = '📡 Lentoreitti tuntematon — ylitystä ei voida arvioida';
+      etaBanner.textContent = '📡 Flight route unknown — ylitystä ei voida arvioida';
       etaBanner.style.display = 'block';
     } else if (etaResult && etaResult.willPass) {
       if (etaResult.etaMins <= 2) {
         etaBanner.style.background = '#34c759';
         etaBanner.style.color = 'white';
-        etaBanner.textContent = '🎯 Reitti kulkee ylitsesi — saapuu nyt!';
+        etaBanner.textContent = '🎯 Route passes over you — arriving now!';
       } else {
         etaBanner.style.background = '#34c759';
         etaBanner.style.color = 'white';
-        etaBanner.textContent = `✅ Reitti kulkee ylitsesi — arvioitu ylitys ~${etaResult.etaMins} min`;
+        etaBanner.textContent = `✅ Route passes over you — arvioitu ylitys ~${etaResult.etaMins} min`;
       }
       etaBanner.style.display = 'block';
     } else if (etaResult && !etaResult.willPass) {
       etaBanner.style.background = '#ff3b30';
       etaBanner.style.color = 'white';
-      etaBanner.textContent = `❌ Reitti ei kulje ylitsesi (lähin piste ~${etaResult.closestKm} km)`;
+      etaBanner.textContent = `❌ Route does not pass over you (lähin piste ~${etaResult.closestKm} km)`;
       etaBanner.style.display = 'block';
     } else {
       etaBanner.style.display = 'none';
@@ -713,8 +713,8 @@ async function selectFlight(icao) {
     const engines2 = meta?.engines || null;
     const etaStr2 = !route ? '' :
       etaResult && etaResult.willPass
-        ? `<span style="background:#34c759;color:white;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">✅ Ylittää sinut${etaResult.etaMins > 2 ? ' ~'+etaResult.etaMins+' min' : ' nyt!'}</span><br>`
-        : `<span style="background:#ff3b30;color:white;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">❌ Ei ylitä (${etaResult ? etaResult.closestKm+' km' : '?'})</span><br>`;
+        ? `<span style="background:#34c759;color:white;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">✅ Passes over you${etaResult.etaMins > 2 ? ' ~'+etaResult.etaMins+' min' : ' nyt!'}</span><br>`
+        : `<span style="background:#ff3b30;color:white;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">❌ Doesn't pass (${etaResult ? etaResult.closestKm+' km' : '?'})</span><br>`;
     flightMarkers[f.icao24].setPopupContent(
       `<b style="font-size:14px">${f.callsign}</b><br>` +
       (model ? `✈ <b style="color:#007aff">${model}</b>${type ? ' <span style="background:#e8f0fe;color:#007aff;padding:1px 5px;border-radius:8px;font-size:11px">${type}</span>' : ''}<br>` : '') +
@@ -743,7 +743,7 @@ function updateMap() {
 
   const userIcon = L.divIcon({ className:'', html:`<div style="background:#ff3b30;width:14px;height:14px;border-radius:50%;border:3px solid white;box-shadow:0 0 8px rgba(255,59,48,0.5)"></div>`, iconSize:[14,14], iconAnchor:[7,7] });
   userMarker = L.marker([userLat, userLon], {icon: userIcon}).addTo(map);
-  userMarker.bindPopup('<b>📍 Sijaintisi</b>');
+  userMarker.bindPopup('<b>📍 Your Location</b>');
 
   radiusCircle = L.circle([userLat, userLon], {
     radius: userRadius * 1000,
@@ -779,7 +779,7 @@ function updateMap() {
 
     const m = L.marker([f.lat, f.lon], {icon}).addTo(map);
     // Initial popup with loading state
-    m.bindPopup(`<b>${f.callsign}</b><br>✈ <span id="popup-model-${f.icao24}">⏳ Ladataan...</span><br>🌍 ${f.country}<br>↕ ${altStr}<br>💨 ${spdStr}<br>📏 ${f.dist ? f.dist.toFixed(0)+' km' : '–'}`, {maxWidth: 220});
+    m.bindPopup(`<b>${f.callsign}</b><br>✈ <span id="popup-model-${f.icao24}">⏳ Loading...</span><br>🌍 ${f.country}<br>↕ ${altStr}<br>💨 ${spdStr}<br>📏 ${f.dist ? f.dist.toFixed(0)+' km' : '–'}`, {maxWidth: 220});
     m.on('popupopen', async () => {
       const el = document.getElementById('popup-model-' + f.icao24);
       if (!el) return;
@@ -799,8 +799,8 @@ function updateMap() {
       const etaR = calcRouteETA(f, route);
       const etaStr = !route ? '' :
         etaR && etaR.willPass
-          ? `<span style="background:#34c759;color:white;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">✅ Ylittää sinut${etaR.etaMins > 2 ? ' ~'+etaR.etaMins+' min' : ' nyt!'}</span><br>`
-          : `<span style="background:#ff3b30;color:white;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">❌ Ei ylitä (${etaR ? etaR.closestKm+' km' : '?'})</span><br>`;
+          ? `<span style="background:#34c759;color:white;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">✅ Passes over you${etaR.etaMins > 2 ? ' ~'+etaR.etaMins+' min' : ' nyt!'}</span><br>`
+          : `<span style="background:#ff3b30;color:white;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">❌ Doesn't pass (${etaR ? etaR.closestKm+' km' : '?'})</span><br>`;
       m.setPopupContent(
         `<b style="font-size:14px">${f.callsign}</b><br>` +
         (model ? `✈ <b style="color:#007aff">${model}</b>${type ? ` <span style="background:#e8f0fe;color:#007aff;padding:1px 5px;border-radius:8px;font-size:11px">${type}</span>` : ''}<br>` : `✈ <i style="color:#999">Ei tietoja</i><br>`) +
@@ -815,7 +815,7 @@ function updateMap() {
     flightMarkers[f.icao24] = m;
   });
 
-  document.getElementById('mapInfo').innerHTML = `<span class="live-dot"></span>${allFlights.length} lennot live`;
+  document.getElementById('mapInfo').innerHTML = `<span class="live-dot"></span>${allFlights.length} flights live`;
 }
 
 // ---- STATS TAB ----
@@ -831,12 +831,12 @@ function renderStatsTab() {
 
   let html = `
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:20px">
-      <div class="detail-item"><div class="d-lbl">Yhteensä</div><div class="d-val" style="color:var(--accent)">${total}</div></div>
-      <div class="detail-item"><div class="d-lbl">Ilmassa</div><div class="d-val" style="color:var(--accent2)">${inAir}</div></div>
-      <div class="detail-item"><div class="d-lbl">Keskim. kork.</div><div class="d-val">${avgAlt ? Math.round(avgAlt).toLocaleString() + ' ft' : '–'}</div></div>
-      <div class="detail-item"><div class="d-lbl">Keskim. nopeus</div><div class="d-val">${avgSpd ? Math.round(avgSpd) + ' kt' : '–'}</div></div>
+      <div class="detail-item"><div class="d-lbl">Total</div><div class="d-val" style="color:var(--accent)">${total}</div></div>
+      <div class="detail-item"><div class="d-lbl">Airborne</div><div class="d-val" style="color:var(--accent2)">${inAir}</div></div>
+      <div class="detail-item"><div class="d-lbl">Avg altitude</div><div class="d-val">${avgAlt ? Math.round(avgAlt).toLocaleString() + ' ft' : '–'}</div></div>
+      <div class="detail-item"><div class="d-lbl">Avg speed</div><div class="d-val">${avgSpd ? Math.round(avgSpd) + ' kt' : '–'}</div></div>
     </div>
-    <div class="section-title" style="margin-bottom:10px">Top 10 maat</div>
+    <div class="section-title" style="margin-bottom:10px">Top 10 countries</div>
     <div style="display:flex;flex-direction:column;gap:8px">
   `;
   sorted.forEach(([c,n]) => {
@@ -860,17 +860,17 @@ function setType(code) {
 function filterByType() {
   const code = document.getElementById('acTypeInput').value.trim().toUpperCase();
   if (!code || allFlights.length === 0) {
-    document.getElementById('acResults').innerHTML = '<div class="empty"><div class="empty-icon">🔭</div><p>Hae ensin lennot "Lähellä"-välilehdeltä</p></div>';
+    document.getElementById('acResults').innerHTML = '<div class="empty"><div class="empty-icon">🔭</div><p>Search flights in the Nearby tab first</p></div>';
     return;
   }
   // Heuristic: match callsign prefix or known airline prefixes for aircraft types
   // Since OpenSky free API doesn't return aircraft type directly, we show a note
   const matching = allFlights.filter(f => f.callsign.toUpperCase().includes(code));
   if (matching.length === 0) {
-    document.getElementById('acResults').innerHTML = `<div class="empty"><div class="empty-icon">🔍</div><p>Ei löydetty lennon numerolla "${code}"<br><small style="color:var(--sub)">OpenSky perustaso ei palauta konetyyppiä suoraan. Kokeile lentonumeroprefixiä (esim. FIN, SAS, BAW)</small></p></div>`;
+    document.getElementById('acResults').innerHTML = `<div class="empty"><div class="empty-icon">🔍</div><p>Not found lennon numerolla "${code}"<br><small style="color:var(--sub)">OpenSky perustaso ei palauta konetyyppiä suoraan. Kokeile lentonumeroprefixiä (esim. FIN, SAS, BAW)</small></p></div>`;
     return;
   }
-  document.getElementById('acResults').innerHTML = `<div style="margin-bottom:10px;color:var(--sub);font-size:13px">${matching.length} tulosta haulle "${code}"</div>` + matching.map(f => buildFlightCard(f)).join('');
+  document.getElementById('acResults').innerHTML = `<div style="margin-bottom:10px;color:var(--sub);font-size:13px">${matching.length} results haulle "${code}"</div>` + matching.map(f => buildFlightCard(f)).join('');
 }
 
 // ---- ROUTE-BASED ETA ----
@@ -1064,7 +1064,7 @@ function getDir(track) {
 }
 
 function getCatLabel(cat) {
-  const labels = {2:'Kevyt',3:'Pieni',4:'Suuri',5:'B757',6:'Raskas',7:'Suorituskyky',8:'Helikopteri',9:'Purjekone',10:'Ilmalaiva',12:'UL/Riippupurje',14:'Drone'};
+  const labels = {2:'Kevyt',3:'Pieni',4:'Suuri',5:'B757',6:'Raskas',7:'Suorituskyky',8:'Helicopter',9:'Purjekone',10:'Ilmalaiva',12:'UL/Riippupurje',14:'Drone'};
   return labels[cat] || '';
 }
 
