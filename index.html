@@ -96,15 +96,22 @@
   .overhead-badge { background: var(--accent2); color: white; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 20px; }
 
   /* DETAIL PANEL */
-  #detail { background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); margin-bottom: 20px; display: none; }
+  #detail { background: var(--card); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); margin-bottom: 20px; display: none; }
   #detail.show { display: block; }
-  .detail-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
-  .detail-callsign { font-size: 26px; font-weight: 800; letter-spacing: -.5px; }
-  .detail-close { background: var(--bg); border: none; border-radius: 50%; width: 32px; height: 32px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--sub); }
-  .detail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
-  .detail-item { background: var(--bg); border-radius: 10px; padding: 12px; }
-  .detail-item .d-lbl { font-size: 11px; color: var(--sub); font-weight: 600; text-transform: uppercase; letter-spacing: .3px; }
-  .detail-item .d-val { font-size: 18px; font-weight: 700; margin-top: 4px; }
+  .detail-header { display: flex; justify-content: space-between; align-items: center; padding: 18px 20px 0; }
+  .detail-callsign { font-size: 28px; font-weight: 800; letter-spacing: -.6px; }
+  .detail-close { background: rgba(120,120,128,0.15); border: none; border-radius: 50%; width: 30px; height: 30px; font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--sub); transition: background .15s; }
+  .detail-close:hover { background: rgba(120,120,128,0.25); }
+  .detail-grid { display: flex; flex-direction: column; }
+  .d-section { padding: 6px 20px 2px; }
+  .d-section-title { font-size: 11px; font-weight: 600; color: var(--sub); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px; padding-left: 2px; }
+  .d-group { background: var(--bg); border-radius: 13px; overflow: hidden; margin-bottom: 14px; }
+  .detail-item { display: flex; justify-content: space-between; align-items: center; padding: 11px 16px; position: relative; }
+  .detail-item + .detail-item::before { content:''; position:absolute; top:0; left:16px; right:0; height:1px; background:rgba(0,0,0,0.06); }
+  .detail-item .d-lbl { font-size: 15px; color: var(--text); font-weight: 400; }
+  .detail-item .d-val { font-size: 15px; font-weight: 600; color: var(--sub); text-align: right; max-width: 60%; }
+  .detail-item.d-full { flex-direction: column; align-items: flex-start; gap: 2px; }
+  .detail-item.d-full .d-val { font-size: 14px; max-width: 100%; color: var(--text); font-weight: 500; }
 
   /* TABS */
   .tab-content { display: none; }
@@ -272,16 +279,35 @@
       <!-- ETA banner -->
       <div id="d-eta-banner" style="display:none;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:14px;font-weight:700;text-align:center"></div>
       <div class="detail-grid">
-        <div class="detail-item"><div class="d-lbl">Altitude</div><div class="d-val" id="d-alt">–</div></div>
-        <div class="detail-item"><div class="d-lbl">Speed</div><div class="d-val" id="d-spd">–</div></div>
-        <div class="detail-item"><div class="d-lbl">Heading</div><div class="d-val" id="d-hdg">–</div></div>
-        <div class="detail-item"><div class="d-lbl">Climb rate</div><div class="d-val" id="d-vrt">–</div></div>
-        <div class="detail-item"><div class="d-lbl">Distance</div><div class="d-val" id="d-dst">–</div></div>
-        <div class="detail-item"><div class="d-lbl">Operator</div><div class="d-val" id="d-op" style="font-size:13px">–</div></div>
-        <div class="detail-item"><div class="d-lbl">📏 Pituus</div><div class="d-val" id="d-length">–</div></div>
-        <div class="detail-item" style="grid-column:1/-1"><div class="d-lbl">⚙️ Moottorit</div><div class="d-val" id="d-engines" style="font-size:13px;font-weight:600">–</div></div>
-        <div class="detail-item"><div class="d-lbl">ICAO24</div><div class="d-val" id="d-icao" style="font-size:13px;word-break:break-all">–</div></div>
-        <div class="detail-item"><div class="d-lbl">Category</div><div class="d-val" id="d-cat">–</div></div>
+        <!-- Flight section -->
+        <div class="d-section">
+          <div class="d-section-title">Lento</div>
+          <div class="d-group">
+            <div class="detail-item"><div class="d-lbl">Altitude</div><div class="d-val" id="d-alt">–</div></div>
+            <div class="detail-item"><div class="d-lbl">Speed</div><div class="d-val" id="d-spd">–</div></div>
+            <div class="detail-item"><div class="d-lbl">Heading</div><div class="d-val" id="d-hdg">–</div></div>
+            <div class="detail-item"><div class="d-lbl">Climb rate</div><div class="d-val" id="d-vrt">–</div></div>
+            <div class="detail-item"><div class="d-lbl">Distance</div><div class="d-val" id="d-dst">–</div></div>
+          </div>
+        </div>
+        <!-- Aircraft section -->
+        <div class="d-section">
+          <div class="d-section-title">Kone</div>
+          <div class="d-group">
+            <div class="detail-item"><div class="d-lbl">Operator</div><div class="d-val" id="d-op">–</div></div>
+            <div class="detail-item"><div class="d-lbl">Pituus</div><div class="d-val" id="d-length">–</div></div>
+            <div class="detail-item d-full"><div class="d-lbl">Moottorit</div><div class="d-val" id="d-engines">–</div></div>
+            <div class="detail-item"><div class="d-lbl">Valmistusvuosi</div><div class="d-val" id="d-built">–</div></div>
+          </div>
+        </div>
+        <!-- Technical section -->
+        <div class="d-section">
+          <div class="d-section-title">Tekniset tiedot</div>
+          <div class="d-group">
+            <div class="detail-item"><div class="d-lbl">ICAO24</div><div class="d-val" id="d-icao" style="font-family:monospace;font-size:13px">–</div></div>
+            <div class="detail-item"><div class="d-lbl">Category</div><div class="d-val" id="d-cat">–</div></div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -633,7 +659,25 @@ async function fetchFlightRoute(callsign) {
 }
 
 // ---- SELECT FLIGHT ----
-async function selectFlight(icao) {
+  async function fetchBuiltYear(registration) {
+    const proxies = [
+      'https://api.allorigins.win/get?url=',
+      'https://corsproxy.io/?url=',
+    ];
+    const target = 'https://www.airport-data.com/aircraft/' + registration + '.html';
+    for (const proxy of proxies) {
+      try {
+        const res = await fetch(proxy + encodeURIComponent(target));
+        const data = await res.json();
+        const html = data.contents || data;
+        const match = (typeof html === 'string' ? html : '').match(/CONTENT="[^,]+,\s*(\d{4})\s+/);
+        if (match) return match[1];
+      } catch(e) {}
+    }
+    return null;
+  }
+
+  async function selectFlight(icao) {
   selectedIcao = icao;
   const f = allFlights.find(x => x.icao24 === icao);
   if (!f) return;
@@ -659,6 +703,7 @@ async function selectFlight(icao) {
   document.getElementById('d-typecode').textContent = '⏳';
   document.getElementById('d-reg').textContent = '⏳';
   document.getElementById('d-op').textContent = '⏳';
+  const _builtEl = document.getElementById('d-built'); if(_builtEl) _builtEl.textContent = '⏳';
 
   document.getElementById('detail').classList.add('show');
   renderList();
@@ -679,6 +724,13 @@ async function selectFlight(icao) {
     document.getElementById('d-typecode').textContent = meta.icao_type || '–';
     document.getElementById('d-reg').textContent = meta.registration || '–';
     document.getElementById('d-op').textContent = meta.registered_owner || '–';
+    // Built date via airport-data.com
+    const builtEl = document.getElementById('d-built');
+    if (builtEl && meta.registration) {
+      fetchBuiltYear(meta.registration).then(yr => {
+        builtEl.textContent = yr || '–';
+      });
+    }
     const engEl = document.getElementById('d-engines');
     if (engEl) engEl.textContent = meta.engines || '–';
     // Aircraft length
@@ -697,6 +749,8 @@ async function selectFlight(icao) {
     if (engEl) engEl.textContent = '–';
     const lenEl = document.getElementById('d-length');
     if (lenEl) lenEl.textContent = '–';
+    const builtEl2 = document.getElementById('d-built');
+    if (builtEl2) builtEl2.textContent = '–';
   }
 
   // Show route info
