@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="fi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SkySpotter ✈️</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --bg: #f2f2f7;
+    --card: #ffffff;
+    --accent: #007aff;
+    --accent2: #34c759;
+    --red: #ff3b30;
+    --text: #1c1c1e;
+    --sub: #8e8e93;
+    --border: #e5e5ea;
+    --shadow: 0 2px 20px rgba(0,0,0,0.08);
+    --radius: 16px;
+  }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+
+  /* NAV */
+  nav { background: rgba(255,255,255,0.85); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 100; padding: 0 20px; }
+  .nav-inner { max-width: 900px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 56px; }
+  .nav-logo { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; color: var(--accent); display: flex; align-items: center; gap: 8px; }
+  .nav-logo span { font-size: 24px; }
+  .nav-tabs { display: flex; gap: 4px; }
+  .tab-btn { padding: 7px 16px; border-radius: 20px; border: none; background: transparent; font-size: 14px; font-weight: 500; color: var(--sub); cursor: pointer; transition: all .2s; }
+  .tab-btn.active { background: var(--accent); color: white; }
+
+  /* MAIN */
+  main { max-width: 900px; margin: 0 auto; padding: 24px 20px; }
+
+  /* LOCATION CARD */
+  .location-card { background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); margin-bottom: 20px; }
+  .section-title { font-size: 13px; font-weight: 600; color: var(--sub); text-transform: uppercase; letter-spacing: .5px; margin-bottom: 14px; }
+  .loc-row { display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap; }
+  .input-group { flex: 1; min-width: 120px; }
+  .input-group label { display: block; font-size: 12px; color: var(--sub); margin-bottom: 5px; font-weight: 500; }
+  .input-group input { width: 100%; padding: 10px 14px; border-radius: 10px; border: 1.5px solid var(--border); font-size: 15px; font-family: inherit; background: var(--bg); color: var(--text); transition: border .2s; outline: none; }
+  .input-group input:focus { border-color: var(--accent); }
+  .radius-info { font-size: 12px; color: var(--sub); margin-top: 4px; }
+  .btn-primary { padding: 10px 20px; border-radius: 10px; background: var(--accent); color: white; border: none; font-size: 15px; font-weight: 600; cursor: pointer; transition: opacity .2s; white-space: nowrap; }
+  .btn-primary:hover { opacity: .85; }
+  .btn-locate { padding: 10px 16px; border-radius: 10px; background: var(--bg); color: var(--accent); border: 1.5px solid var(--border); font-size: 15px; font-weight: 600; cursor: pointer; transition: all .2s; }
+  .btn-locate:hover { background: var(--accent); color: white; border-color: var(--accent); }
+
+  /* STATUS BAR */
+  .status-bar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+  .stat-chip { background: var(--card); border-radius: 12px; padding: 14px 18px; box-shadow: var(--shadow); flex: 1; min-width: 130px; }
+  .stat-chip .val { font-size: 26px; font-weight: 700; }
+  .stat-chip .lbl { font-size: 12px; color: var(--sub); margin-top: 2px; font-weight: 500; }
+  .stat-chip.blue .val { color: var(--accent); }
+  .stat-chip.green .val { color: var(--accent2); }
+  .stat-chip.red .val { color: var(--red); }
+
+  /* FILTER CARD */
+  .filter-card { background: var(--card); border-radius: var(--radius); padding: 16px 20px; box-shadow: var(--shadow); margin-bottom: 20px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .filter-card input, .filter-card select { padding: 8px 12px; border-radius: 8px; border: 1.5px solid var(--border); font-size: 14px; font-family: inherit; background: var(--bg); color: var(--text); outline: none; transition: border .2s; }
+  .filter-card input:focus, .filter-card select:focus { border-color: var(--accent); }
+  .filter-card label { font-size: 13px; color: var(--sub); font-weight: 500; }
+
+  /* MAP */
+  #map { border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); margin-bottom: 20px; height: 420px; background: #e8f4f8; position: relative; }
+  #mapContainer { width: 100%; height: 100%; }
+  .map-overlay { position: absolute; top: 12px; left: 12px; background: rgba(255,255,255,0.92); border-radius: 10px; padding: 8px 12px; font-size: 13px; color: var(--sub); backdrop-filter: blur(8px); z-index: 10; }
+  .map-legend { position: absolute; bottom: 12px; right: 12px; background: rgba(255,255,255,0.92); border-radius: 10px; padding: 10px 14px; font-size: 12px; backdrop-filter: blur(8px); z-index: 10; }
+  .legend-item { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; color: var(--text); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+  /* FLIGHT LIST */
+  .flight-list { display: flex; flex-direction: column; gap: 10px; }
+  .flight-card { background: var(--card); border-radius: var(--radius); padding: 16px 18px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 14px; cursor: pointer; transition: transform .15s, box-shadow .15s; border: 2px solid transparent; }
+  .flight-card:hover { transform: translateY(-1px); box-shadow: 0 6px 28px rgba(0,0,0,0.12); }
+  .flight-card.selected { border-color: var(--accent); }
+  .flight-card.overhead { border-color: var(--accent2); }
+  .plane-icon { font-size: 28px; width: 44px; height: 44px; background: var(--bg); border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: transform .3s; }
+  .flight-main { flex: 1; min-width: 0; }
+  .flight-call { font-size: 17px; font-weight: 700; letter-spacing: -.2px; }
+  .flight-route { font-size: 13px; color: var(--sub); margin-top: 2px; }
+  .flight-badges { display: flex; gap: 6px; margin-top: 6px; flex-wrap: wrap; }
+  .badge { padding: 3px 9px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .badge-blue { background: #e8f0fe; color: var(--accent); }
+  .badge-green { background: #e6f9ee; color: var(--accent2); }
+  .badge-orange { background: #fff3e0; color: #ff9500; }
+  .badge-red { background: #ffe5e5; color: var(--red); }
+  .badge-gray { background: var(--bg); color: var(--sub); }
+  .flight-stats { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0; }
+  .flight-stat-val { font-size: 15px; font-weight: 600; }
+  .flight-stat-lbl { font-size: 11px; color: var(--sub); }
+  .overhead-badge { background: var(--accent2); color: white; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 20px; }
+
+  /* DETAIL PANEL */
+  #detail { background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); margin-bottom: 20px; display: none; }
+  #detail.show { display: block; }
+  .detail-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+  .detail-callsign { font-size: 26px; font-weight: 800; letter-spacing: -.5px; }
+  .detail-close { background: var(--bg); border: none; border-radius: 50%; width: 32px; height: 32px; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--sub); }
+  .detail-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 12px; }
+  .detail-item { background: var(--bg); border-radius: 10px; padding: 12px; }
+  .detail-item .d-lbl { font-size: 11px; color: var(--sub); font-weight: 600; text-transform: uppercase; letter-spacing: .3px; }
+  .detail-item .d-val { font-size: 18px; font-weight: 700; margin-top: 4px; }
+
+  /* TABS */
+  .tab-content { display: none; }
+  .tab-content.active { display: block; }
+
+  /* AIRCRAFT FINDER */
+  .aircraft-search-card { background: var(--card); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); margin-bottom: 20px; }
+  .aircraft-types { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; }
+  .ac-type-btn { padding: 10px 18px; border-radius: 12px; border: 2px solid var(--border); background: var(--bg); font-size: 14px; font-weight: 600; cursor: pointer; transition: all .2s; color: var(--text); }
+  .ac-type-btn:hover, .ac-type-btn.active { border-color: var(--accent); background: var(--accent); color: white; }
+  .ac-results { margin-top: 16px; }
+
+  /* LOADING */
+  .loading { text-align: center; padding: 40px; color: var(--sub); }
+  .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 12px; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* TOAST */
+  #toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: #1c1c1e; color: white; padding: 12px 24px; border-radius: 24px; font-size: 14px; font-weight: 500; z-index: 999; transition: transform .3s cubic-bezier(.34,1.56,.64,1); pointer-events: none; }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* EMPTY */
+  .empty { text-align: center; padding: 40px 20px; color: var(--sub); }
+  .empty .empty-icon { font-size: 48px; margin-bottom: 12px; }
+  .empty p { font-size: 15px; }
+
+  /* PULSE */
+  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+  .live-dot { width: 8px; height: 8px; background: var(--accent2); border-radius: 50%; animation: pulse 2s infinite; display: inline-block; margin-right: 6px; }
+
+  /* OVERHEAD ALERT */
+  .overhead-alert { background: linear-gradient(135deg, #34c759 0%, #30b953 100%); color: white; border-radius: var(--radius); padding: 14px 18px; margin-bottom: 16px; display: none; font-weight: 600; font-size: 14px; }
+  .overhead-alert.show { display: flex; align-items: center; gap: 10px; }
+
+  /* Dark popup for satellite map */
+  .leaflet-popup-content-wrapper {
+    background: rgba(15,20,40,0.95) !important;
+    color: #e8eaf0 !important;
+    border-radius: 14px !important;
+    border: 1px solid rgba(100,150,255,0.3) !important;
+    box-shadow: 0 4px 24px rgba(0,0,50,0.5) !important;
+    backdrop-filter: blur(10px);
+  }
+  .leaflet-popup-tip { background: rgba(15,20,40,0.95) !important; }
+  .leaflet-popup-content { font-family: -apple-system, BlinkMacSystemFont, sans-serif; font-size: 13px; line-height: 1.6; }
+  .leaflet-control-layers { background: rgba(255,255,255,0.92) !important; border-radius: 10px !important; }
+
+  @media(max-width: 600px) {
+    .loc-row { flex-direction: column; }
+    .stat-chip .val { font-size: 22px; }
+    #map { height: 300px; }
+    .detail-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/@joergdietrich/leaflet.terminator@1.1.0/L.Terminator.js"></script>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <div class="nav-logo"><span>✈️</span> SkySpotter</div>
+    <div class="nav-tabs">
+      <button class="tab-btn active" onclick="showTab('nearby')">Lähellä</button>
+      <button class="tab-btn" onclick="showTab('finder')">Konetyypit</button>
+      <button class="tab-btn" onclick="showTab('stats')">Tilastot</button>
+    </div>
+  </div>
+</nav>
+
+<main>
+
+  <!-- NEARBY TAB -->
+  <div id="tab-nearby" class="tab-content active">
+
+    <!-- Location card -->
+    <div class="location-card">
+      <div class="section-title">📍 Sijaintisi</div>
+      <div class="loc-row">
+        <div class="input-group">
+          <label>Leveysaste (lat)</label>
+          <input type="number" id="lat" placeholder="60.4518" step="0.0001">
+        </div>
+        <div class="input-group">
+          <label>Pituusaste (lon)</label>
+          <input type="number" id="lon" placeholder="22.2666" step="0.0001">
+        </div>
+        <div class="input-group" style="max-width:120px">
+          <label>Säde (km)</label>
+          <input type="number" id="radius" value="150" min="10" max="500" step="10">
+          <div class="radius-info">10–500 km</div>
+        </div>
+        <button class="btn-locate" onclick="geoLocate()" title="Käytä GPS-sijaintia">📡 GPS</button>
+        <button class="btn-primary" onclick="fetchFlights()">🔍 Hae lennot</button>
+      </div>
+    </div>
+
+    <!-- Status bar -->
+    <div class="status-bar">
+      <div class="stat-chip blue">
+        <div class="val" id="countAll">–</div>
+        <div class="lbl"><span class="live-dot"></span>Lennot alueella</div>
+      </div>
+      <div class="stat-chip green">
+        <div class="val" id="countOverhead">–</div>
+        <div class="lbl">✈ Suoraan yllä (&lt;50km)</div>
+      </div>
+      <div class="stat-chip red">
+        <div class="val" id="countGround">–</div>
+        <div class="lbl">🛬 Maassa</div>
+      </div>
+    </div>
+
+    <!-- Overhead alert -->
+    <div class="overhead-alert" id="overheadAlert">
+      <span style="font-size:20px">🎯</span>
+      <span id="overheadText">Lentokone lentää juuri ylitsesi!</span>
+    </div>
+
+    <!-- Filter -->
+    <div class="filter-card">
+      <label>🔎 Suodata:</label>
+      <input type="text" id="filterText" placeholder="Lentonumero, maa..." oninput="renderList()" style="flex:1;min-width:120px">
+      <label>Lajittele:</label>
+      <select id="sortBy" onchange="renderList()">
+        <option value="dist">Etäisyys</option>
+        <option value="alt">Korkeus</option>
+        <option value="speed">Nopeus</option>
+        <option value="call">Lentonumero</option>
+      </select>
+      <label><input type="checkbox" id="hideGround" onchange="renderList()"> Piilota maassa olevat</label>
+    </div>
+
+    <!-- Detail panel -->
+    <div id="detail">
+      <div class="detail-header">
+        <div>
+          <div class="detail-callsign" id="d-call">–</div>
+          <div style="color:var(--sub);font-size:13px;margin-top:2px" id="d-route">–</div>
+        </div>
+        <button class="detail-close" onclick="closeDetail()">✕</button>
+      </div>
+      <!-- Aircraft type banner -->
+      <div id="d-type-banner" style="background:linear-gradient(135deg,#007aff 0%,#0051c3 100%);border-radius:12px;padding:14px 18px;margin-bottom:14px;display:flex;align-items:center;gap:14px">
+        <div style="font-size:36px">✈️</div>
+        <div>
+          <div style="color:rgba(255,255,255,0.7);font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.5px">Konemalli</div>
+          <div id="d-model" style="color:white;font-size:20px;font-weight:800;letter-spacing:-.3px">–</div>
+          <div style="display:flex;gap:8px;margin-top:4px">
+            <span id="d-typecode" style="background:rgba(255,255,255,0.2);color:white;font-size:12px;font-weight:700;padding:2px 8px;border-radius:20px">–</span>
+            <span id="d-reg" style="background:rgba(255,255,255,0.2);color:white;font-size:12px;font-weight:700;padding:2px 8px;border-radius:20px">–</span>
+          </div>
+        </div>
+      </div>
+      <!-- ETA banner -->
+      <div id="d-eta-banner" style="display:none;border-radius:10px;padding:10px 14px;margin-bottom:12px;font-size:14px;font-weight:700;text-align:center"></div>
+      <div class="detail-grid">
+        <div class="detail-item"><div class="d-lbl">Korkeus</div><div class="d-val" id="d-alt">–</div></div>
+        <div class="detail-item"><div class="d-lbl">Nopeus</div><div class="d-val" id="d-spd">–</div></div>
+        <div class="detail-item"><div class="d-lbl">Suunta</div><div class="d-val" id="d-hdg">–</div></div>
+        <div class="detail-item"><div class="d-lbl">Nousu/lasku</div><div class="d-val" id="d-vrt">–</div></div>
+        <div class="detail-item"><div class="d-lbl">Etäisyys</div><div class="d-val" id="d-dst">–</div></div>
+        <div class="detail-item"><div class="d-lbl">Operaattori</div><div class="d-val" id="d-op" style="font-size:13px">–</div></div>
+        <div class="detail-item"><div class="d-lbl">📏 Pituus</div><div class="d-val" id="d-length">–</div></div>
+        <div class="detail-item" style="grid-column:1/-1"><div class="d-lbl">⚙️ Moottorit</div><div class="d-val" id="d-engines" style="font-size:13px;font-weight:600">–</div></div>
+        <div class="detail-item"><div class="d-lbl">ICAO24</div><div class="d-val" id="d-icao" style="font-size:13px;word-break:break-all">–</div></div>
+        <div class="detail-item"><div class="d-lbl">Kategoria</div><div class="d-val" id="d-cat">–</div></div>
+      </div>
+    </div>
+
+    <!-- Map -->
+    <div id="map">
+      <div id="mapContainer"></div>
+      <div class="map-overlay" id="mapInfo">Aseta sijainti ja paina Hae lennot</div>
+      <div id="daynight-indicator" style="position:absolute;top:12px;right:48px;background:rgba(255,200,0,0.9);color:#333;border-radius:10px;padding:6px 12px;font-size:13px;font-weight:700;z-index:10;backdrop-filter:blur(6px)">☀️ Päivä</div>
+      <div class="map-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#007aff"></div> Lentää</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#34c759"></div> Alle 50km</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#ff9500"></div> Maassa</div>
+      </div>
+    </div>
+
+    <!-- Flight list -->
+    <div id="flightList">
+      <div class="empty">
+        <div class="empty-icon">🌤️</div>
+        <p>Syötä sijaintisi ja paina <strong>Hae lennot</strong></p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- AIRCRAFT FINDER TAB -->
+  <div id="tab-finder" class="tab-content">
+    <div class="aircraft-search-card">
+      <div class="section-title">🛩️ Etsi konetyyppejä</div>
+      <p style="color:var(--sub);font-size:14px;margin-bottom:14px">Valitse konetyyppi tai kirjoita ICAO-konetyyppikoodi nähdäksesi lähialueellasi lentävät kyseisen tyyppiset koneet. Huom: OpenSky API ei palauta tyyppiä suoraan — alla haetaan callsign-prefiksien mukaan.</p>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <input type="text" id="acTypeInput" placeholder="A320, B738, B77W..." style="padding:10px 14px;border-radius:10px;border:1.5px solid var(--border);font-size:15px;font-family:inherit;background:var(--bg);color:var(--text);outline:none;flex:1;min-width:150px" oninput="filterByType()">
+        <button class="btn-primary" onclick="filterByType()">Hae</button>
+      </div>
+      <div class="aircraft-types">
+        <button class="ac-type-btn" onclick="setType('A320')">Airbus A320</button>
+        <button class="ac-type-btn" onclick="setType('A359')">Airbus A350</button>
+        <button class="ac-type-btn" onclick="setType('B738')">Boeing 737-800</button>
+        <button class="ac-type-btn" onclick="setType('B77W')">Boeing 777</button>
+        <button class="ac-type-btn" onclick="setType('B788')">Boeing 787</button>
+        <button class="ac-type-btn" onclick="setType('E190')">Embraer 190</button>
+        <button class="ac-type-btn" onclick="setType('AT75')">ATR 72</button>
+        <button class="ac-type-btn" onclick="setType('F100')">Fokker 100</button>
+        <button class="ac-type-btn" onclick="setType('C172')">Cessna 172</button>
+        <button class="ac-type-btn" onclick="setType('PC12')">Pilatus PC-12</button>
+        <button class="ac-type-btn" onclick="setType('H60')">Helikopteri</button>
+      </div>
+      <div class="ac-results" id="acResults">
+        <div class="empty"><div class="empty-icon">🔭</div><p>Hae ensin lennot "Lähellä"-välilehdeltä</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STATS TAB -->
+  <div id="tab-stats" class="tab-content">
+    <div class="aircraft-search-card">
+      <div class="section-title">📊 Tilastot alueelta</div>
+      <div id="statsContent">
+        <div class="empty"><div class="empty-icon">📈</div><p>Hae ensin lennot "Lähellä"-välilehdeltä</p></div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<div id="toast"></div>
+
+<script>
+// ---- STATE ----
+let userLat = null, userLon = null, userRadius = 150;
+let allFlights = [];
+let map = null, userMarker = null, radiusCircle = null;
+let flightMarkers = {};
+let selectedIcao = null;
+let autoRefreshTimer = null;
+
+// ---- MAP INIT ----
+function initMap() {
+  if (map) return;
+  map = L.map('mapContainer', { zoomControl: true }).setView([60.4518, 22.2666], 7);
+  const satellite = L.tileLayer(
+    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    { attribution: 'Tiles © Esri — Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN', maxZoom: 19 }
+  );
+  const streets = L.tileLayer(
+    'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
+    { attribution: '© OpenStreetMap contributors © CARTO', maxZoom: 19 }
+  );
+  const labels = L.tileLayer(
+    'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
+    { attribution: 'Labels © Esri', maxZoom: 19, opacity: 0.9 }
+  );
+
+  satellite.addTo(map);
+  labels.addTo(map);
+
+  // Day/night terminator
+  const terminator = L.terminator({
+    fillColor: '#000033',
+    fillOpacity: 0.35,
+    color: '#4488ff',
+    weight: 1,
+    opacity: 0.5
+  }).addTo(map);
+
+  // Update terminator every minute
+  setInterval(() => terminator.setTime(new Date()), 60000);
+
+  // Layer control
+  L.control.layers(
+    { '🛰️ Satelliitti': satellite, '🗺️ Kartta': streets },
+    { '🏷️ Nimet': labels }
+  ).addTo(map);
+
+  // Day/night indicator in corner — updated on load and every minute
+  function updateDayNight() {
+    if (!userLat && !userLon) return;
+    const lat = userLat || 60.45, lon = userLon || 22.27;
+    const now = new Date();
+    const isDaytime = getSunPosition(now, lat, lon);
+    const indicator = document.getElementById('daynight-indicator');
+    if (indicator) {
+      indicator.textContent = isDaytime ? '☀️ Päivä' : '🌙 Yö';
+      indicator.style.background = isDaytime ? 'rgba(255,200,0,0.9)' : 'rgba(0,20,60,0.9)';
+      indicator.style.color = isDaytime ? '#333' : '#aaddff';
+    }
+  }
+  setInterval(updateDayNight, 60000);
+  setTimeout(updateDayNight, 500);
+}
+
+// ---- GEO ----
+function geoLocate() {
+  if (!navigator.geolocation) { toast('Selaimesi ei tue GPS:ää'); return; }
+  toast('📡 Haetaan sijaintia...');
+  navigator.geolocation.getCurrentPosition(pos => {
+    document.getElementById('lat').value = pos.coords.latitude.toFixed(4);
+    document.getElementById('lon').value = pos.coords.longitude.toFixed(4);
+    toast('✅ Sijainti asetettu!');
+    fetchFlights();
+  }, () => toast('❌ GPS-haku epäonnistui'));
+}
+
+// ---- FETCH ----
+async function fetchFlights() {
+  const latEl = document.getElementById('lat');
+  const lonEl = document.getElementById('lon');
+  const radEl = document.getElementById('radius');
+  userLat = parseFloat(latEl.value);
+  userLon = parseFloat(lonEl.value);
+  userRadius = parseFloat(radEl.value) || 150;
+
+  if (isNaN(userLat) || isNaN(userLon)) { toast('⚠️ Syötä sijainti ensin!'); return; }
+
+  document.getElementById('flightList').innerHTML = '<div class="loading"><div class="spinner"></div>Haetaan lentoja...</div>';
+  initMap();
+
+  const deg = userRadius / 111.0;
+  const lamin = (userLat - deg).toFixed(4);
+  const lamax = (userLat + deg).toFixed(4);
+  const lomin = (userLon - deg).toFixed(4);
+  const lomax = (userLon + deg).toFixed(4);
+
+  const url = `https://opensky-network.org/api/states/all?lamin=${lamin}&lomin=${lomin}&lamax=${lamax}&lomax=${lomax}&extended=1`;
+
+  try {
+    const res = await fetch(url);
+    if (!res.ok) throw new Error('API-virhe: ' + res.status);
+    const data = await res.json();
+    allFlights = parseFlights(data.states || []);
+    renderAll();
+    updateMap();
+    resetLivePos();
+    startAnimation();
+    scheduleRefresh();
+    toast(`✈️ ${allFlights.length} lentoa löydetty!`);
+    if (typeof updateDayNight === 'function') setTimeout(updateDayNight, 100);
+  } catch(e) {
+    document.getElementById('flightList').innerHTML = `<div class="empty"><div class="empty-icon">⚠️</div><p>${e.message}<br><small>OpenSky saattaa olla ylikuormittunut. Yritä uudelleen.</small></p></div>`;
+    toast('❌ Haku epäonnistui');
+  }
+}
+
+function parseFlights(states) {
+  return states.map(s => {
+    const dist = s[5] != null && s[6] != null ? haversine(userLat, userLon, s[6], s[5]) : null;
+    return {
+      icao24: s[0],
+      callsign: (s[1] || '').trim() || s[0].toUpperCase(),
+      country: s[2] || '–',
+      lon: s[5],
+      lat: s[6],
+      baro_alt: s[7],
+      on_ground: s[8],
+      velocity: s[9],
+      track: s[10],
+      vertical_rate: s[11],
+      geo_alt: s[13],
+      squawk: s[14],
+      category: s[17],
+      dist: dist
+    };
+  }).filter(f => f.lat != null && f.lon != null);
+}
+
+// ---- RENDER ALL ----
+function renderAll() {
+  renderStats();
+  renderList();
+  renderStatsTab();
+}
+
+function renderStats() {
+  const inAir = allFlights.filter(f => !f.on_ground);
+  const overhead = allFlights.filter(f => f.dist != null && f.dist < 50);
+  const onGround = allFlights.filter(f => f.on_ground);
+
+  document.getElementById('countAll').textContent = inAir.length;
+  document.getElementById('countOverhead').textContent = overhead.length;
+  document.getElementById('countGround').textContent = onGround.length;
+
+  const alert = document.getElementById('overheadAlert');
+  if (overhead.length > 0) {
+    const calls = overhead.slice(0,3).map(f=>f.callsign).join(', ');
+    document.getElementById('overheadText').textContent = `${overhead.length} lentoa alle 50km päässä: ${calls}`;
+    alert.classList.add('show');
+  } else {
+    alert.classList.remove('show');
+  }
+}
+
+function renderList() {
+  const filter = document.getElementById('filterText').value.toLowerCase();
+  const sortBy = document.getElementById('sortBy').value;
+  const hideGround = document.getElementById('hideGround').checked;
+
+  let flights = allFlights.filter(f => {
+    if (hideGround && f.on_ground) return false;
+    if (filter) return f.callsign.toLowerCase().includes(filter) || f.country.toLowerCase().includes(filter);
+    return true;
+  });
+
+  flights.sort((a,b) => {
+    if (sortBy === 'dist') return (a.dist||9999) - (b.dist||9999);
+    if (sortBy === 'alt') return (b.baro_alt||0) - (a.baro_alt||0);
+    if (sortBy === 'speed') return (b.velocity||0) - (a.velocity||0);
+    if (sortBy === 'call') return a.callsign.localeCompare(b.callsign);
+    return 0;
+  });
+
+  if (flights.length === 0) {
+    document.getElementById('flightList').innerHTML = '<div class="empty"><div class="empty-icon">🔍</div><p>Ei tuloksia haulla</p></div>';
+    return;
+  }
+
+  const html = flights.map(f => buildFlightCard(f)).join('');
+  document.getElementById('flightList').innerHTML = html;
+}
+
+function buildFlightCard(f) {
+  const isOverhead = f.dist != null && f.dist < 50;
+  const altM = f.baro_alt != null ? f.baro_alt : (f.geo_alt || null);
+  const altFt = altM != null ? Math.round(altM * 3.28084) : null;
+  const spdKt = f.velocity != null ? Math.round(f.velocity * 1.94384) : null;
+  const catLabel = getCatLabel(f.category);
+  const dirLabel = getDir(f.track);
+  const distStr = f.dist != null ? f.dist.toFixed(0) + ' km' : '–';
+  const altStr = altFt != null ? altFt.toLocaleString() + ' ft' : '–';
+  const spdStr = spdKt != null ? spdKt + ' kt' : '–';
+  const vrStr = f.vertical_rate != null ? (f.vertical_rate > 0.5 ? '↑' : f.vertical_rate < -0.5 ? '↓' : '→') : '';
+  const planeDeg = f.track != null ? f.track : 0;
+
+  const badges = [];
+  if (f.on_ground) badges.push(`<span class="badge badge-orange">🛬 Maassa</span>`);
+  else if (isOverhead) badges.push(`<span class="badge badge-green">🎯 Ylitsesi nyt</span>`);
+  // route ETA shown after clicking (requires API fetch)
+  if (catLabel) badges.push(`<span class="badge badge-gray">${catLabel}</span>`);
+  if (f.squawk && f.squawk !== '0000') badges.push(`<span class="badge badge-gray">SQK ${f.squawk}</span>`);
+
+  const listColor = f.on_ground ? '#ff9500' : (isOverhead ? '#34c759' : '#007aff');
+  const listAcLen = f.acLength || null;
+  const listSz = Math.min(44, Math.max(20, lengthToIconSize(listAcLen)));
+  const listSvg = aircraftSVG(listColor, listSz);
+  return `<div class="flight-card${isOverhead?' overhead':''}${f.icao24===selectedIcao?' selected':''}" onclick="selectFlight('${f.icao24}')">
+    <div class="plane-icon" style="transform:rotate(${planeDeg}deg);background:transparent;width:44px;height:44px;display:flex;align-items:center;justify-content:center">${listSvg}</div>
+    <div class="flight-main">
+      <div class="flight-call">${f.callsign} ${vrStr}</div>
+      <div class="flight-route">🌍 ${f.country} &nbsp;·&nbsp; ${dirLabel}</div>
+      <div class="flight-badges">${badges.join('')}</div>
+    </div>
+    <div class="flight-stats">
+      <div><span class="flight-stat-val">${distStr}</span></div>
+      <div class="flight-stat-lbl">etäisyys</div>
+      <div><span class="flight-stat-val">${altStr}</span></div>
+      <div class="flight-stat-lbl">korkeus</div>
+    </div>
+  </div>`;
+}
+
+// ---- AIRCRAFT DB CACHE (adsbdb.com - CORS enabled) ----
+const acCache = {};
+
+async function fetchAircraftMeta(icao24) {
+  const key = icao24.toLowerCase();
+  if (key in acCache) return acCache[key];
+  acCache[key] = null; // prevent double fetch
+  try {
+    const res = await fetch(`https://api.adsbdb.com/v0/aircraft/${key}`);
+    if (!res.ok) return null;
+    const d = await res.json();
+    // adsbdb returns { response: { aircraft: { ... } } }
+    const ac = d?.response?.aircraft;
+    if (!ac) return null;
+    acCache[key] = ac;
+    return ac;
+  } catch(e) { return null; }
+}
+
+async function fetchFlightRoute(callsign) {
+  try {
+    const cs = callsign.trim().toUpperCase();
+    const res = await fetch(`https://api.adsbdb.com/v0/callsign/${cs}`);
+    if (!res.ok) return null;
+    const d = await res.json();
+    return d?.response?.flightroute || null;
+  } catch(e) { return null; }
+}
+
+// ---- SELECT FLIGHT ----
+async function selectFlight(icao) {
+  selectedIcao = icao;
+  const f = allFlights.find(x => x.icao24 === icao);
+  if (!f) return;
+
+  const altM = f.baro_alt != null ? f.baro_alt : (f.geo_alt || null);
+  const altFt = altM != null ? Math.round(altM * 3.28084) : null;
+  const spdKt = f.velocity != null ? Math.round(f.velocity * 1.94384) : null;
+  const spdKmh = f.velocity != null ? Math.round(f.velocity * 3.6) : null;
+
+  document.getElementById('d-call').textContent = f.callsign;
+  document.getElementById('d-route').textContent = f.country;
+  document.getElementById('d-alt').textContent = altFt != null ? altFt.toLocaleString() + ' ft (' + Math.round(altM) + ' m)' : '–';
+  document.getElementById('d-spd').textContent = spdKt ? `${spdKt} kt (${spdKmh} km/h)` : '–';
+  document.getElementById('d-hdg').textContent = f.track != null ? Math.round(f.track) + '° ' + getDir(f.track) : '–';
+  document.getElementById('d-vrt').textContent = f.vertical_rate != null ? (f.vertical_rate > 0 ? '+' : '') + Math.round(f.vertical_rate) + ' m/s' : '–';
+  document.getElementById('d-dst').textContent = f.dist != null ? f.dist.toFixed(1) + ' km' : '–';
+  document.getElementById('d-cty').textContent = f.country;
+  document.getElementById('d-icao').textContent = f.icao24.toUpperCase();
+  document.getElementById('d-cat').textContent = getCatLabel(f.category) || '–';
+
+  // Aircraft type – show loading state
+  document.getElementById('d-model').textContent = '⏳ Ladataan...';
+  document.getElementById('d-typecode').textContent = '⏳';
+  document.getElementById('d-reg').textContent = '⏳';
+  document.getElementById('d-op').textContent = '⏳';
+
+  document.getElementById('detail').classList.add('show');
+  renderList();
+
+  if (map && f.lat && f.lon) {
+    map.setView([f.lat, f.lon], 9);
+  }
+
+  // Fetch metadata + route async in parallel
+  const [meta, route] = await Promise.all([
+    fetchAircraftMeta(f.icao24),
+    fetchFlightRoute(f.callsign)
+  ]);
+
+  if (meta) {
+    const model = [meta.manufacturer, meta.type].filter(Boolean).join(' ') || '–';
+    document.getElementById('d-model').textContent = model;
+    document.getElementById('d-typecode').textContent = meta.icao_type || '–';
+    document.getElementById('d-reg').textContent = meta.registration || '–';
+    document.getElementById('d-op').textContent = meta.registered_owner || '–';
+    const engEl = document.getElementById('d-engines');
+    if (engEl) engEl.textContent = meta.engines || '–';
+    // Aircraft length
+    const acLen = getAircraftLength(meta.icao_type);
+    const lenEl = document.getElementById('d-length');
+    if (lenEl) lenEl.textContent = acLen ? acLen + ' m' : '–';
+    // Store length on flight object and refresh marker size
+    f.acLength = acLen;
+    refreshMarkerIcon(f);
+  } else {
+    document.getElementById('d-model').textContent = 'Ei tietoja kannassa';
+    document.getElementById('d-typecode').textContent = '–';
+    document.getElementById('d-reg').textContent = '–';
+    document.getElementById('d-op').textContent = '–';
+    const engEl = document.getElementById('d-engines');
+    if (engEl) engEl.textContent = '–';
+    const lenEl = document.getElementById('d-length');
+    if (lenEl) lenEl.textContent = '–';
+  }
+
+  // Show route info
+  if (route) {
+    const orig = route.origin ? `${route.origin.iata_code} ${route.origin.name}` : '–';
+    const dest = route.destination ? `${route.destination.iata_code} ${route.destination.name}` : '–';
+    document.getElementById('d-route').textContent = `${orig} → ${dest}`;
+  }
+
+  // ETA banner — route based
+  const etaResult = calcRouteETA(f, route);
+  const etaBanner = document.getElementById('d-eta-banner');
+  if (etaBanner) {
+    if (!route) {
+      etaBanner.style.background = '#e5e5ea';
+      etaBanner.style.color = '#8e8e93';
+      etaBanner.textContent = '📡 Lentoreitti tuntematon — ylitystä ei voida arvioida';
+      etaBanner.style.display = 'block';
+    } else if (etaResult && etaResult.willPass) {
+      if (etaResult.etaMins <= 2) {
+        etaBanner.style.background = '#34c759';
+        etaBanner.style.color = 'white';
+        etaBanner.textContent = '🎯 Reitti kulkee ylitsesi — saapuu nyt!';
+      } else {
+        etaBanner.style.background = '#34c759';
+        etaBanner.style.color = 'white';
+        etaBanner.textContent = `✅ Reitti kulkee ylitsesi — arvioitu ylitys ~${etaResult.etaMins} min`;
+      }
+      etaBanner.style.display = 'block';
+    } else if (etaResult && !etaResult.willPass) {
+      etaBanner.style.background = '#ff3b30';
+      etaBanner.style.color = 'white';
+      etaBanner.textContent = `❌ Reitti ei kulje ylitsesi (lähin piste ~${etaResult.closestKm} km)`;
+      etaBanner.style.display = 'block';
+    } else {
+      etaBanner.style.display = 'none';
+    }
+  }
+
+  // Update map popup
+  if (flightMarkers[f.icao24]) {
+    const altStr = f.baro_alt ? Math.round(f.baro_alt * 3.28084).toLocaleString() + ' ft' : '–';
+    const spdStr = f.velocity ? Math.round(f.velocity * 1.94384) + ' kt' : '–';
+    const model = meta ? [meta.manufacturer, meta.type].filter(Boolean).join(' ') : null;
+    const type = meta?.icao_type || null;
+    const reg = meta?.registration || null;
+    const orig = route?.origin?.iata_code;
+    const dest = route?.destination?.iata_code;
+    const engines2 = meta?.engines || null;
+    const etaStr2 = !route ? '' :
+      etaResult && etaResult.willPass
+        ? `<span style="background:#34c759;color:white;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">✅ Ylittää sinut${etaResult.etaMins > 2 ? ' ~'+etaResult.etaMins+' min' : ' nyt!'}</span><br>`
+        : `<span style="background:#ff3b30;color:white;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">❌ Ei ylitä (${etaResult ? etaResult.closestKm+' km' : '?'})</span><br>`;
+    flightMarkers[f.icao24].setPopupContent(
+      `<b style="font-size:14px">${f.callsign}</b><br>` +
+      (model ? `✈ <b style="color:#007aff">${model}</b>${type ? ' <span style="background:#e8f0fe;color:#007aff;padding:1px 5px;border-radius:8px;font-size:11px">${type}</span>' : ''}<br>` : '') +
+      (() => { const l2=meta?.icao_type?getAircraftLength(meta.icao_type):null; const e2=(meta?.icao_type?getAircraftEngines(meta.icao_type):null)||engines2; return (l2||e2) ? `📏 ${l2?l2+' m':'?'}${e2?'  ·  ⚙️ '+e2:''}<br>` : ''; })() +
+      (reg ? `🔖 ${reg}<br>` : '') +
+      (orig && dest ? `🛫 ${orig} → 🛬 ${dest}<br>` : '') +
+      etaStr2 +
+      `🌍 ${f.country}<br>↕ ${altStr}<br>💨 ${spdStr}<br>📏 ${f.dist ? f.dist.toFixed(0)+' km' : '–'}`
+    );
+  }
+}
+
+function closeDetail() {
+  document.getElementById('detail').classList.remove('show');
+  selectedIcao = null;
+  renderList();
+}
+
+// ---- MAP UPDATE ----
+function updateMap() {
+  if (!map) return;
+
+  // User marker
+  if (userMarker) map.removeLayer(userMarker);
+  if (radiusCircle) map.removeLayer(radiusCircle);
+
+  const userIcon = L.divIcon({ className:'', html:`<div style="background:#ff3b30;width:14px;height:14px;border-radius:50%;border:3px solid white;box-shadow:0 0 8px rgba(255,59,48,0.5)"></div>`, iconSize:[14,14], iconAnchor:[7,7] });
+  userMarker = L.marker([userLat, userLon], {icon: userIcon}).addTo(map);
+  userMarker.bindPopup('<b>📍 Sijaintisi</b>');
+
+  radiusCircle = L.circle([userLat, userLon], {
+    radius: userRadius * 1000,
+    color: '#007aff', weight: 1.5, opacity: 0.4,
+    fillColor: '#007aff', fillOpacity: 0.04
+  }).addTo(map);
+
+  map.setView([userLat, userLon], 7);
+
+  // Remove old markers
+  Object.values(flightMarkers).forEach(m => map.removeLayer(m));
+  flightMarkers = {};
+
+  // Add flight markers
+  allFlights.forEach(f => {
+    if (!f.lat || !f.lon) return;
+    const isOverhead = f.dist != null && f.dist < 50;
+    const color = f.on_ground ? '#ff9500' : isOverhead ? '#34c759' : '#007aff';
+    const rot = f.track != null ? f.track : 0;
+
+    // Use aircraft silhouette SVG scaled by aircraft length
+    const acLen = f.acLength || null; // set during renderAll if meta known, else null
+    const iconSz = lengthToIconSize(acLen);
+    const svg = aircraftSVG(color, iconSz);
+    const icon = L.divIcon({
+      className: '',
+      html: `<div style="transform:rotate(${rot}deg);transform-origin:center;width:${iconSz}px;height:${iconSz}px">${svg}</div>`,
+      iconSize: [iconSz, iconSz], iconAnchor: [iconSz/2, iconSz/2]
+    });
+
+    const altStr = f.baro_alt ? Math.round(f.baro_alt * 3.28084).toLocaleString() + ' ft' : '–';
+    const spdStr = f.velocity ? Math.round(f.velocity * 1.94384) + ' kt' : '–';
+
+    const m = L.marker([f.lat, f.lon], {icon}).addTo(map);
+    // Initial popup with loading state
+    m.bindPopup(`<b>${f.callsign}</b><br>✈ <span id="popup-model-${f.icao24}">⏳ Ladataan...</span><br>🌍 ${f.country}<br>↕ ${altStr}<br>💨 ${spdStr}<br>📏 ${f.dist ? f.dist.toFixed(0)+' km' : '–'}`, {maxWidth: 220});
+    m.on('popupopen', async () => {
+      const el = document.getElementById('popup-model-' + f.icao24);
+      if (!el) return;
+      const [meta, route] = await Promise.all([
+        fetchAircraftMeta(f.icao24),
+        fetchFlightRoute(f.callsign)
+      ]);
+      const altStr = f.baro_alt ? Math.round(f.baro_alt * 3.28084).toLocaleString() + ' ft' : '–';
+      const spdStr = f.velocity ? Math.round(f.velocity * 1.94384) + ' kt' : '–';
+      const model = meta ? [meta.manufacturer, meta.type].filter(Boolean).join(' ') : null;
+      const type = meta?.icao_type || null;
+      const reg = meta?.registration || null;
+      const orig = route?.origin?.iata_code;
+      const dest = route?.destination?.iata_code;
+      const engines = (type ? getAircraftEngines(type) : null) || meta?.engines || null;
+      const acLenPop = type ? getAircraftLength(type) : null;
+      const etaR = calcRouteETA(f, route);
+      const etaStr = !route ? '' :
+        etaR && etaR.willPass
+          ? `<span style="background:#34c759;color:white;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">✅ Ylittää sinut${etaR.etaMins > 2 ? ' ~'+etaR.etaMins+' min' : ' nyt!'}</span><br>`
+          : `<span style="background:#ff3b30;color:white;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700">❌ Ei ylitä (${etaR ? etaR.closestKm+' km' : '?'})</span><br>`;
+      m.setPopupContent(
+        `<b style="font-size:14px">${f.callsign}</b><br>` +
+        (model ? `✈ <b style="color:#007aff">${model}</b>${type ? ` <span style="background:#e8f0fe;color:#007aff;padding:1px 5px;border-radius:8px;font-size:11px">${type}</span>` : ''}<br>` : `✈ <i style="color:#999">Ei tietoja</i><br>`) +
+        (acLenPop ? `📏 ${acLenPop} m${engines ? '  ·  ⚙️ '+engines : ''}<br>` : (engines ? `⚙️ ${engines}<br>` : '')) +
+        (reg ? `🔖 <span style="color:#fff">${reg}</span><br>` : '') +
+        (orig && dest ? `🛫 ${orig} → 🛬 ${dest}<br>` : '') +
+        etaStr +
+        `🌍 <span style="color:#ddd">${f.country}</span><br>↕ <b style="color:#fff">${altStr}</b><br>💨 <b style="color:#fff">${spdStr}</b><br>📏 <span style="color:#ddd">${f.dist ? f.dist.toFixed(0)+' km' : '–'}</span>`
+      );
+    });
+    m.on('click', () => selectFlight(f.icao24));
+    flightMarkers[f.icao24] = m;
+  });
+
+  document.getElementById('mapInfo').innerHTML = `<span class="live-dot"></span>${allFlights.length} lennot live`;
+}
+
+// ---- STATS TAB ----
+function renderStatsTab() {
+  if (allFlights.length === 0) return;
+  const byCountry = {};
+  allFlights.forEach(f => { byCountry[f.country] = (byCountry[f.country]||0) + 1; });
+  const sorted = Object.entries(byCountry).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  const total = allFlights.length;
+  const inAir = allFlights.filter(f=>!f.on_ground).length;
+  const avgAlt = allFlights.filter(f=>f.baro_alt).reduce((s,f)=>s+(f.baro_alt*3.28084),0) / allFlights.filter(f=>f.baro_alt).length;
+  const avgSpd = allFlights.filter(f=>f.velocity).reduce((s,f)=>s+(f.velocity*1.94384),0) / allFlights.filter(f=>f.velocity).length;
+
+  let html = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:20px">
+      <div class="detail-item"><div class="d-lbl">Yhteensä</div><div class="d-val" style="color:var(--accent)">${total}</div></div>
+      <div class="detail-item"><div class="d-lbl">Ilmassa</div><div class="d-val" style="color:var(--accent2)">${inAir}</div></div>
+      <div class="detail-item"><div class="d-lbl">Keskim. kork.</div><div class="d-val">${avgAlt ? Math.round(avgAlt).toLocaleString() + ' ft' : '–'}</div></div>
+      <div class="detail-item"><div class="d-lbl">Keskim. nopeus</div><div class="d-val">${avgSpd ? Math.round(avgSpd) + ' kt' : '–'}</div></div>
+    </div>
+    <div class="section-title" style="margin-bottom:10px">Top 10 maat</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+  `;
+  sorted.forEach(([c,n]) => {
+    const pct = Math.round(n/total*100);
+    html += `<div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px"><span><b>${c}</b></span><span>${n} (${pct}%)</span></div>
+      <div style="background:var(--border);border-radius:6px;height:6px"><div style="background:var(--accent);border-radius:6px;height:6px;width:${pct}%;transition:width 1s"></div></div>
+    </div>`;
+  });
+  html += '</div>';
+  document.getElementById('statsContent').innerHTML = html;
+}
+
+// ---- AIRCRAFT FINDER TAB ----
+function setType(code) {
+  document.getElementById('acTypeInput').value = code;
+  document.querySelectorAll('.ac-type-btn').forEach(b => b.classList.toggle('active', b.textContent.includes(code)));
+  filterByType();
+}
+
+function filterByType() {
+  const code = document.getElementById('acTypeInput').value.trim().toUpperCase();
+  if (!code || allFlights.length === 0) {
+    document.getElementById('acResults').innerHTML = '<div class="empty"><div class="empty-icon">🔭</div><p>Hae ensin lennot "Lähellä"-välilehdeltä</p></div>';
+    return;
+  }
+  // Heuristic: match callsign prefix or known airline prefixes for aircraft types
+  // Since OpenSky free API doesn't return aircraft type directly, we show a note
+  const matching = allFlights.filter(f => f.callsign.toUpperCase().includes(code));
+  if (matching.length === 0) {
+    document.getElementById('acResults').innerHTML = `<div class="empty"><div class="empty-icon">🔍</div><p>Ei löydetty lennon numerolla "${code}"<br><small style="color:var(--sub)">OpenSky perustaso ei palauta konetyyppiä suoraan. Kokeile lentonumeroprefixiä (esim. FIN, SAS, BAW)</small></p></div>`;
+    return;
+  }
+  document.getElementById('acResults').innerHTML = `<div style="margin-bottom:10px;color:var(--sub);font-size:13px">${matching.length} tulosta haulle "${code}"</div>` + matching.map(f => buildFlightCard(f)).join('');
+}
+
+// ---- ROUTE-BASED ETA ----
+// routeCache: icao24 -> { willPass: bool, etaMins: int|null, closestKm: number }
+const etaCache = {};
+
+function calcRouteETA(f, route) {
+  // Returns { willPass, etaMins, closestKm } based on great-circle route
+  if (!userLat || !userLon || !f.lat || !f.lon || f.on_ground) return null;
+  if (!route || !route.origin || !route.destination) return null;
+
+  const origLat = route.origin.latitude, origLon = route.origin.longitude;
+  const destLat = route.destination.latitude, destLon = route.destination.longitude;
+  if (!origLat || !destLat) return null;
+
+  // Sample great-circle path in 60 steps, find closest point to user
+  const THRESHOLD = 60; // km — if route passes within this, "will pass"
+  let minDist = Infinity;
+  let minFrac = 0;
+
+  for (let i = 0; i <= 60; i++) {
+    const t = i / 60;
+    // Linear interpolation (good enough for segments under ~3000km)
+    const lat = origLat + (destLat - origLat) * t;
+    const lon = origLon + (destLon - origLon) * t;
+    const d = haversine(userLat, userLon, lat, lon);
+    if (d < minDist) { minDist = d; minFrac = t; }
+  }
+
+  if (minDist > THRESHOLD) return { willPass: false, etaMins: null, closestKm: Math.round(minDist) };
+
+  // Estimate ETA: distance from aircraft to closest point on route / speed
+  const closestLat = origLat + (destLat - origLat) * minFrac;
+  const closestLon = origLon + (destLon - origLon) * minFrac;
+  const distToClose = haversine(f.lat, f.lon, closestLat, closestLon);
+  const speedKmh = f.velocity ? f.velocity * 3.6 : 800;
+
+  // Check if aircraft is heading TOWARDS closest point or already past it
+  // Compare current dist to user vs closest dist
+  const currentDist = haversine(userLat, userLon, f.lat, f.lon);
+
+  // If aircraft is already past closest point (current dist > minDist + some margin)
+  // and moving away, mark as passed
+  const etaMins = Math.round((distToClose / speedKmh) * 60);
+
+  return { willPass: true, etaMins: etaMins <= 0 ? 0 : etaMins, closestKm: Math.round(minDist) };
+}
+
+// ---- AIRCRAFT SIZE DATABASE ----
+// Length in meters by ICAO type code
+const AC_LENGTH = {
+  // Small GA / turboprop
+  'C172':8,'C182':8,'C208':12,'C25A':14,'C25B':14,'C25C':14,
+  'PC12':14,'PC24':17,'TBM9':9,'TBM8':9,'P28A':7,'P28B':7,
+  'BE20':13,'BE40':14,'B190':17,'LJ31':15,'LJ45':17,'LJ60':17,
+  'CL30':17,'CL35':17,'CL60':19,'F2TH':19,'GL5T':30,'GLEX':30,
+  // Regional jets
+  'AT43':23,'AT45':23,'AT72':27,'AT75':27,'AT76':27,
+  'DH8A':22,'DH8B':26,'DH8C':26,'DH8D':32,
+  'E135':26,'E145':29,'E170':30,'E175':31,'E75L':32,'E75S':32,
+  'E190':36,'E195':38,'E290':36,'E295':41,
+  'CRJ1':24,'CRJ2':24,'CRJ7':32,'CRJ9':36,'CRJX':39,
+  'SF34':20,'JS41':26,
+  // Narrow body
+  'A318':31,'A319':34,'A320':38,'A321':45,'A20N':38,'A21N':45,
+  'B731':30,'B732':31,'B733':34,'B734':36,'B735':32,'B736':31,
+  'B737':34,'B738':40,'B739':42,'B37M':35,'B38M':40,'B39M':42,'B3XM':44,
+  'B752':47,'B753':54,'B762':48,
+  'MD11':61,'MD82':45,'MD83':45,'MD88':45,'DC93':36,
+  'F100':35,'F70':31,'F28':29,
+  // Wide body
+  'A310':46,'A300':54,'A332':59,'A333':64,'A338':59,'A339':64,
+  'A342':59,'A343':64,'A345':68,'A346':75,
+  'A359':67,'A35K':74,'A388':73,
+  'B763':55,'B764':57,'B772':64,'B773':74,'B77L':64,'B77W':74,
+  'B778':70,'B779':77,
+  'B788':57,'B789':63,'B78X':68,
+  'IL96':55,'IL86':60,
+  // Military / special
+  'A400':45,'C130':29,'C17':53,
+  // Helicopter
+  'H60':20,'EC35':13,'B06':9,'R44':9,'AS32':19,
+};
+
+// ---- ENGINE DATABASE by ICAO type code ----
+const AC_ENGINES = {
+  // Airbus narrow
+  'A318':'2× CFM56-5B','A319':'2× CFM56-5B','A320':'2× CFM56-5B / IAE V2527',
+  'A321':'2× CFM56-5B / IAE V2533','A20N':'2× CFM LEAP-1A','A21N':'2× CFM LEAP-1A',
+  // Airbus wide
+  'A310':'2× CF6-80 / JT9D','A300':'2× CF6-50 / JT9D',
+  'A332':'2× CF6-80E / Trent 700 / PW4000','A333':'2× CF6-80E / Trent 700 / PW4168',
+  'A338':'2× Trent 7000','A339':'2× Trent 7000',
+  'A342':'4× CFM56-5C','A343':'4× CFM56-5C','A345':'4× Trent 553','A346':'4× Trent 556',
+  'A359':'2× Trent XWB-84','A35K':'2× Trent XWB-97',
+  'A388':'4× GP7270 / Trent 970',
+  // Boeing narrow
+  'B731':'2× JT8D','B732':'2× JT8D','B733':'2× CFM56-3','B734':'2× CFM56-3',
+  'B735':'2× CFM56-3','B736':'2× CFM56-7B','B737':'2× CFM56-7B',
+  'B738':'2× CFM56-7B27','B739':'2× CFM56-7B27E',
+  'B37M':'2× CFM LEAP-1B','B38M':'2× CFM LEAP-1B','B39M':'2× CFM LEAP-1B','B3XM':'2× CFM LEAP-1B',
+  'B752':'2× RB211-535 / PW2040','B753':'2× RB211-535 / PW2040',
+  // Boeing wide
+  'B762':'2× CF6-80C2 / PW4052','B763':'2× CF6-80C2 / PW4060 / Trent 700',
+  'B764':'2× CF6-80C2 / PW4062 / Trent 700',
+  'B772':'2× GE90-77B','B773':'2× GE90-115B','B77L':'2× GE90-110B1','B77W':'2× GE90-115B1',
+  'B778':'2× GE9X-105B1A','B779':'2× GE9X-105B1A',
+  'B788':'2× Trent 1000 / GEnx-1B','B789':'2× Trent 1000 / GEnx-1B','B78X':'2× Trent 1000X / GEnx-1B',
+  // Embraer
+  'E170':'2× GE CF34-8E','E175':'2× GE CF34-8E','E75L':'2× GE CF34-8E5','E75S':'2× GE CF34-8E5',
+  'E190':'2× GE CF34-10E','E195':'2× GE CF34-10E','E290':'2× PW1700G','E295':'2× PW1900G',
+  'E135':'2× AE 3007','E145':'2× AE 3007',
+  // CRJ
+  'CRJ1':'2× GE CF34-3A1','CRJ2':'2× GE CF34-3B1','CRJ7':'2× GE CF34-8C5',
+  'CRJ9':'2× GE CF34-8C5','CRJX':'2× GE CF34-8C5',
+  // ATR
+  'AT43':'2× PW120 turboprop','AT45':'2× PW121 turboprop',
+  'AT72':'2× PW127F turboprop','AT75':'2× PW127M turboprop','AT76':'2× PW127M turboprop',
+  // Dash 8
+  'DH8A':'2× PW120A turboprop','DH8B':'2× PW123 turboprop',
+  'DH8C':'2× PW123 turboprop','DH8D':'2× PW150A turboprop',
+  // Business jets
+  'GL5T':'2× BR700-710A2-20','GLEX':'2× BR700-710A2-20',
+  'CL30':'2× HTF7000','CL35':'2× HTF7000','CL60':'2× HTF7350',
+  'F2TH':'2× CFE738-1-1B','LJ45':'2× TFE731-20','LJ60':'2× TFE731-60',
+  // GA / turboprop
+  'PC12':'1× PT6A-67P turboprop','C208':'1× PT6A-114A turboprop',
+  'BE20':'2× PT6A-41 turboprop','B190':'2× PT6A-67D turboprop',
+  // Military
+  'C130':'4× T56-A-15 turboprop','A400':'4× TP400-D6 turboprop',
+  // MD
+  'MD82':'2× JT8D-217','MD83':'2× JT8D-219','MD88':'2× JT8D-219',
+  'MD11':'3× PW4460 / CF6-80C2','F100':'2× Tay Mk650','F70':'2× Tay Mk620',
+};
+
+function getAircraftEngines(icaoType) {
+  if (!icaoType) return null;
+  return AC_ENGINES[icaoType.toUpperCase()] || null;
+}
+
+function getAircraftLength(icaoType) {
+  if (!icaoType) return null;
+  const t = icaoType.toUpperCase();
+  if (AC_LENGTH[t]) return AC_LENGTH[t];
+  // Fallback by prefix patterns
+  if (t.startsWith('A3')) return 55;
+  if (t.startsWith('B7')) return 50;
+  if (t.startsWith('E1')||t.startsWith('E7')) return 30;
+  if (t.startsWith('C')) return 10;
+  if (t.startsWith('P')) return 8;
+  return null;
+}
+
+// Map aircraft length (m) to icon pixel size
+function lengthToIconSize(lengthM) {
+  if (!lengthM) return 20; // default unknown
+  // Scale: 7m (tiny GA) = 14px, 77m (B777X) = 38px
+  return Math.round(14 + (lengthM - 7) / (77 - 7) * 24);
+}
+
+// SVG aircraft silhouette - top-down view, pointing UP (north)
+function aircraftSVG(color, size) {
+  const s = size;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${s}" height="${s}" viewBox="0 0 100 100" style="filter:drop-shadow(0 1px 4px rgba(0,0,0,0.4))">
+    <!-- Fuselage -->
+    <ellipse cx="50" cy="50" rx="6" ry="38" fill="${color}"/>
+    <!-- Nose cone -->
+    <ellipse cx="50" cy="14" rx="5" ry="8" fill="${color}"/>
+    <!-- Main wings -->
+    <path d="M50,42 Q30,30 8,52 Q16,56 50,50 Q84,56 92,52 Q70,30 50,42Z" fill="${color}"/>
+    <!-- Tail fins (horizontal stabilizer) -->
+    <path d="M50,76 Q38,72 28,82 Q34,84 50,80 Q66,84 72,82 Q62,72 50,76Z" fill="${color}"/>
+    <!-- Vertical tail -->
+    <ellipse cx="50" cy="78" rx="3" ry="8" fill="${color}" opacity="0.7"/>
+  </svg>`;
+}
+
+// ---- HELPERS ----
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2-lat1)*Math.PI/180;
+  const dLon = (lon2-lon1)*Math.PI/180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function getDir(track) {
+  if (track == null) return '';
+  const dirs = ['N','NE','E','SE','S','SW','W','NW','N'];
+  return dirs[Math.round(track/45)];
+}
+
+function getCatLabel(cat) {
+  const labels = {2:'Kevyt',3:'Pieni',4:'Suuri',5:'B757',6:'Raskas',7:'Suorituskyky',8:'Helikopteri',9:'Purjekone',10:'Ilmalaiva',12:'UL/Riippupurje',14:'Drone'};
+  return labels[cat] || '';
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function showTab(name) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+  if (name === 'finder') filterByType();
+  if (name === 'stats') renderStatsTab();
+}
+
+function refreshMarkerIcon(f) {
+  const marker = flightMarkers[f.icao24];
+  if (!marker) return;
+  const isOverhead = f.dist != null && f.dist < 50;
+  const color = f.on_ground ? '#ff9500' : isOverhead ? '#34c759' : '#007aff';
+  const rot = f.track != null ? f.track : 0;
+  const iconSz = lengthToIconSize(f.acLength || null);
+  const svg = aircraftSVG(color, iconSz);
+  const newIcon = L.divIcon({
+    className: '',
+    html: `<div style="transform:rotate(${rot}deg);transform-origin:center;width:${iconSz}px;height:${iconSz}px">${svg}</div>`,
+    iconSize: [iconSz, iconSz], iconAnchor: [iconSz/2, iconSz/2]
+  });
+  marker.setIcon(newIcon);
+}
+
+function scheduleRefresh() {
+  if (autoRefreshTimer) clearTimeout(autoRefreshTimer);
+  autoRefreshTimer = setTimeout(() => { if (userLat) fetchFlights(); }, 30000);
+}
+
+// ---- LIVE ANIMATION ----
+let animLastTime = null;
+let animFrameId = null;
+// Store interpolated positions separately
+const livePos = {}; // icao24 -> {lat, lon, lastUpdate}
+
+function startAnimation() {
+  if (animFrameId) cancelAnimationFrame(animFrameId);
+  animLastTime = null;
+  animFrame(performance.now());
+}
+
+function animFrame(now) {
+  animFrameId = requestAnimationFrame(animFrame);
+  if (!animLastTime) { animLastTime = now; return; }
+  const dtSec = Math.min((now - animLastTime) / 1000, 2); // cap at 2s
+  animLastTime = now;
+
+  allFlights.forEach(f => {
+    if (!f.lat || !f.lon || !f.velocity || !f.track || f.on_ground) return;
+    const marker = flightMarkers[f.icao24];
+    if (!marker) return;
+
+    // Init live position from flight data if not set or stale
+    if (!livePos[f.icao24]) {
+      livePos[f.icao24] = { lat: f.lat, lon: f.lon };
+    }
+
+    const pos = livePos[f.icao24];
+    const speedMs = f.velocity;
+    const trackRad = f.track * Math.PI / 180;
+    const distM = speedMs * dtSec;
+    pos.lat += (distM * Math.cos(trackRad)) / 111111;
+    pos.lon += (distM * Math.sin(trackRad)) / (111111 * Math.cos(pos.lat * Math.PI / 180));
+
+    marker.setLatLng([pos.lat, pos.lon]);
+  });
+}
+
+// Reset live positions when new data arrives
+function resetLivePos() {
+  allFlights.forEach(f => {
+    livePos[f.icao24] = { lat: f.lat, lon: f.lon };
+  });
+}
+
+// Init map on load
+window.addEventListener('load', () => {
+  initMap();
+  // Default Turku
+  document.getElementById('lat').value = '60.4518';
+  document.getElementById('lon').value = '22.2666';
+});
+</script>
+</body>
+</html>
