@@ -5,26 +5,26 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-<title>Overhead Ultra — Liquid Glass</title>
+<title>Overhead Ultra — Satellite Glass</title>
 
 <!-- LEAFLET -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<!-- THREE.JS & ORBIT CONTROLS (Korjattu ja varmistettu r128 versio!) -->
+<!-- THREE.JS & ORBIT CONTROLS -->
 <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
 <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
 <style>
 :root {
   /* APPLE LIQUID GLASS LIGHT THEME */
-  --bg: #F2F2F7;
-  --surface: rgba(255, 255, 255, 0.65);
-  --surface-solid: rgba(255, 255, 255, 0.85);
+  --bg: #000000; 
+  --surface: rgba(255, 255, 255, 0.76);
+  --surface-solid: rgba(255, 255, 255, 0.92);
   --glass-border: rgba(255, 255, 255, 0.6);
   --glass-highlight: inset 0 1px 1px rgba(255, 255, 255, 0.9);
   
-  --text: #1C1C1E;
+  --text: #000000;
   --text-2: #3C3C43;
   --text-3: #8E8E93;
   
@@ -32,7 +32,7 @@
   
   --blur: saturate(200%) blur(40px);
   --spring: cubic-bezier(.22, 1, .36, 1);
-  --shadow: 0 12px 36px rgba(0, 0, 0, 0.12);
+  --shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -40,7 +40,7 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 body { user-select: none; }
 
 #mapWrap { position: fixed; inset: 0; z-index: 1; transition: opacity .8s ease, transform .8s var(--spring); }
-#map { position: absolute; inset: 0; background: #E5E5EA; }
+#map { position: absolute; inset: 0; background: #000; }
 
 /* 3D GLOBE CANVAS */
 #globeWrap { position: fixed; inset: 0; z-index: 2; opacity: 0; pointer-events: none; transition: opacity .8s ease, transform .8s var(--spring); transform: scale(0.85); background: var(--bg); display: flex; justify-content: center; align-items: center; }
@@ -89,7 +89,7 @@ body { user-select: none; }
 .fab { width: 50px; height: 50px; border: none; border-radius: 25px; color: var(--text); cursor: pointer; background: var(--surface); border: 1px solid var(--glass-border); box-shadow: var(--shadow), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); font-weight: 800; font-size: 13px; }
 .fab:active { transform: scale(.93); }
 
-.sheet { position: fixed; left: 14px; right: 14px; bottom: 14px; z-index: 1800; border-radius: 36px; background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(240,240,245,0.95)); border: 1px solid var(--glass-border); box-shadow: 0 24px 60px rgba(0,0,0,0.15), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); overflow: hidden; transition: height .45s var(--spring); height: 182px; }
+.sheet { position: fixed; left: 14px; right: 14px; bottom: 14px; z-index: 1800; border-radius: 36px; background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(240,240,245,0.95)); border: 1px solid var(--glass-border); box-shadow: 0 24px 60px rgba(0,0,0,0.3), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); overflow: hidden; transition: height .45s var(--spring); height: 182px; }
 .sheet.expanded { height: min(72vh, 820px); }
 .sheet-grab { display: flex; justify-content: center; align-items: center; padding: 12px 0 4px; cursor: pointer; }
 .sheet-grab div { width: 48px; height: 6px; border-radius: 999px; background: rgba(0,0,0,0.15); }
@@ -100,7 +100,7 @@ body { user-select: none; }
 .sheet-list { height: calc(100% - 94px); overflow: auto; padding: 0 14px 14px; }
 .sheet-list::-webkit-scrollbar { display: none; }
 
-.card { display: flex; align-items: center; gap: 14px; padding: 12px; margin-bottom: 12px; border-radius: 24px; background: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.8); box-shadow: 0 4px 12px rgba(0,0,0,0.03); cursor: pointer; transition: transform .2s var(--spring), border .2s ease; }
+.card { display: flex; align-items: center; gap: 14px; padding: 12px; margin-bottom: 12px; border-radius: 24px; background: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.9); box-shadow: 0 4px 12px rgba(0,0,0,0.03); cursor: pointer; transition: transform .2s var(--spring), border .2s ease; }
 .card:active { transform: scale(.97); }
 .card.sel { border-color: var(--blue); background: rgba(10,132,255,.08); box-shadow: 0 0 0 1px var(--blue); }
 .plane-badge { width: 56px; height: 56px; border-radius: 20px; display: grid; place-items: center; background: rgba(0,0,0,0.04); flex: 0 0 auto; overflow: hidden; position: relative; border: 1px solid rgba(0,0,0,0.05); }
@@ -118,7 +118,7 @@ body { user-select: none; }
 .stat-big { font-size: 16px; font-weight: 900; color: var(--text); }
 .stat-small { font-size: 11px; color: var(--text-3); font-weight: 800; margin-top: 2px; text-transform: uppercase; }
 
-.detail { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -40%) scale(0.95); width: min(92%, 480px); max-height: 85vh; z-index: 3200; border-radius: 36px; background: var(--surface-solid); border: 1px solid var(--glass-border); box-shadow: 0 30px 80px rgba(0,0,0,0.2), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: transform .45s var(--spring), opacity .3s ease; }
+.detail { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -40%) scale(0.95); width: min(92%, 480px); max-height: 85vh; z-index: 3200; border-radius: 36px; background: var(--surface-solid); border: 1px solid var(--glass-border); box-shadow: 0 30px 80px rgba(0,0,0,0.3), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: transform .45s var(--spring), opacity .3s ease; }
 .detail.open { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
 .detail-close { position: absolute; right: 16px; top: 16px; width: 34px; height: 34px; border: none; border-radius: 17px; background: rgba(0,0,0,0.06); color: var(--text); cursor: pointer; z-index: 10; display: grid; place-items: center; font-size: 15px; font-weight: 800; }
 .detail-close:active { transform: scale(.9); }
@@ -141,7 +141,7 @@ body { user-select: none; }
 .i-label { font-size: 11px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; color: var(--text-3); }
 .i-value { margin-top: 6px; font-size: 16px; font-weight: 900; letter-spacing: -.02em; color: var(--text); }
 .i-sub { margin-top: 4px; font-size: 12px; font-weight: 700; color: var(--text-2); }
-.toast { position: fixed; left: 50%; bottom: 34px; transform: translate(-50%, 80px); z-index: 5000; opacity: 0; pointer-events: none; background: rgba(255,255,255,0.9); color: var(--text); padding: 14px 24px; border-radius: 999px; font-size: 15px; font-weight: 850; box-shadow: 0 12px 32px rgba(0,0,0,0.15); backdrop-filter: var(--blur); transition: transform .4s var(--spring), opacity .3s ease; border: 1px solid var(--glass-border); }
+.toast { position: fixed; left: 50%; bottom: 34px; transform: translate(-50%, 80px); z-index: 5000; opacity: 0; pointer-events: none; background: rgba(255,255,255,0.9); color: var(--text); padding: 14px 24px; border-radius: 999px; font-size: 15px; font-weight: 850; box-shadow: 0 16px 40px rgba(0,0,0,0.25); backdrop-filter: var(--blur); transition: transform .4s var(--spring), opacity .3s ease; border: 1px solid var(--glass-border); }
 .toast.show { opacity: 1; transform: translate(-50%, 0); }
 .empty { padding: 40px 20px; text-align: center; color: var(--text-3); font-weight: 700; font-size: 15px; }
 
@@ -186,7 +186,7 @@ body { user-select: none; }
   <div class="sheet-grab" id="sheetGrab"><div></div></div>
   <div class="sheet-head">
     <div><div class="sheet-title">Live Radar</div><div class="sheet-sub" id="sheetSub">0 tracked</div></div>
-    <div class="sheet-meta" id="sheetMeta">Liquid Engine</div>
+    <div class="sheet-meta" id="sheetMeta">Satellite Glass</div>
   </div>
   <div class="sheet-list" id="flightList"><div class="empty">Loading...</div></div>
 </div>
@@ -236,11 +236,11 @@ const state = {
   canvasLayer: null, ctx: null
 };
 
-// SVG Plane Icons
-const planeImgBlue = new Image(); planeImgBlue.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="6" ry="38" fill="%230A84FF"/><ellipse cx="50" cy="14" rx="5" ry="8" fill="%230A84FF"/><path d="M50,42 Q30,30 8,52 Q16,56 50,50 Q84,56 92,52 Q70,30 50,42Z" fill="%230A84FF"/><path d="M50,76 Q38,72 28,82 Q34,84 50,80 Q66,84 72,82 Q62,72 50,76Z" fill="%230A84FF"/></svg>';
-const planeImgPurple = new Image(); planeImgPurple.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="6" ry="38" fill="%23AF52DE"/><ellipse cx="50" cy="14" rx="5" ry="8" fill="%23AF52DE"/><path d="M50,42 Q30,30 8,52 Q16,56 50,50 Q84,56 92,52 Q70,30 50,42Z" fill="%23AF52DE"/><path d="M50,76 Q38,72 28,82 Q34,84 50,80 Q66,84 72,82 Q62,72 50,76Z" fill="%23AF52DE"/></svg>';
-const planeImgGreen = new Image(); planeImgGreen.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="6" ry="38" fill="%2334C759"/><ellipse cx="50" cy="14" rx="5" ry="8" fill="%2334C759"/><path d="M50,42 Q30,30 8,52 Q16,56 50,50 Q84,56 92,52 Q70,30 50,42Z" fill="%2334C759"/><path d="M50,76 Q38,72 28,82 Q34,84 50,80 Q66,84 72,82 Q62,72 50,76Z" fill="%2334C759"/></svg>';
-const planeImgOrange = new Image(); planeImgOrange.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="6" ry="38" fill="%23FF9F0A"/><ellipse cx="50" cy="14" rx="5" ry="8" fill="%23FF9F0A"/><path d="M50,42 Q30,30 8,52 Q16,56 50,50 Q84,56 92,52 Q70,30 50,42Z" fill="%23FF9F0A"/><path d="M50,76 Q38,72 28,82 Q34,84 50,80 Q66,84 72,82 Q62,72 50,76Z" fill="%23FF9F0A"/></svg>';
+// SATELLIITTI-YHTEENSOPIVAT IKONIT (Valkoinen paksu ääriviiva, jotta kone erottuu maastosta)
+const planeImgBlue = new Image(); planeImgBlue.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g stroke="%23FFFFFF" stroke-width="5" stroke-linejoin="round"><ellipse cx="50" cy="50" rx="8" ry="38" fill="%230A84FF"/><ellipse cx="50" cy="14" rx="7" ry="8" fill="%230A84FF"/><path d="M50,42 Q30,30 8,52 Q16,56 50,50 Q84,56 92,52 Q70,30 50,42Z" fill="%230A84FF"/><path d="M50,76 Q38,72 28,82 Q34,84 50,80 Q66,84 72,82 Q62,72 50,76Z" fill="%230A84FF"/></g></svg>';
+const planeImgPurple = new Image(); planeImgPurple.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g stroke="%23FFFFFF" stroke-width="5" stroke-linejoin="round"><ellipse cx="50" cy="50" rx="8" ry="38" fill="%23AF52DE"/><ellipse cx="50" cy="14" rx="7" ry="8" fill="%23AF52DE"/><path d="M50,42 Q30,30 8,52 Q16,56 50,50 Q84,56 92,52 Q70,30 50,42Z" fill="%23AF52DE"/><path d="M50,76 Q38,72 28,82 Q34,84 50,80 Q66,84 72,82 Q62,72 50,76Z" fill="%23AF52DE"/></g></svg>';
+const planeImgGreen = new Image(); planeImgGreen.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g stroke="%23FFFFFF" stroke-width="5" stroke-linejoin="round"><ellipse cx="50" cy="50" rx="8" ry="38" fill="%2334C759"/><ellipse cx="50" cy="14" rx="7" ry="8" fill="%2334C759"/><path d="M50,42 Q30,30 8,52 Q16,56 50,50 Q84,56 92,52 Q70,30 50,42Z" fill="%2334C759"/><path d="M50,76 Q38,72 28,82 Q34,84 50,80 Q66,84 72,82 Q62,72 50,76Z" fill="%2334C759"/></g></svg>';
+const planeImgOrange = new Image(); planeImgOrange.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g stroke="%23FFFFFF" stroke-width="5" stroke-linejoin="round"><ellipse cx="50" cy="50" rx="8" ry="38" fill="%23FF9F0A"/><ellipse cx="50" cy="14" rx="7" ry="8" fill="%23FF9F0A"/><path d="M50,42 Q30,30 8,52 Q16,56 50,50 Q84,56 92,52 Q70,30 50,42Z" fill="%23FF9F0A"/><path d="M50,76 Q38,72 28,82 Q34,84 50,80 Q66,84 72,82 Q62,72 50,76Z" fill="%23FF9F0A"/></g></svg>';
 
 const $ = id => document.getElementById(id);
 function toast(msg){ const el=$('toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),2400); }
@@ -267,14 +267,18 @@ function calculateOverhead(f) {
   return `Overhead in ${minAikaMins} min`;
 }
 
-// 1. LEAFLET KARTTA (APPLE LIGHT VECTOR -TYYLINEN)
+// 1. LEAFLET KARTTA (APPLE SATELLITE TYYLINEN)
 function initMap(){
   state.map = L.map('map', {zoomControl:false, attributionControl:false}).setView([state.userLat, state.userLon], 6);
   
-  // Vaalea puhdas "Apple Maps" -tyylinen karttapohja
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{maxZoom:19, subdomains:'abcd'}).addTo(state.map);
+  // Esri World Imagery: Yksityiskohtainen ja näyttävä satelliittikartta
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19}).addTo(state.map);
+  
+  // Esri Boundaries & Places: Piirtää kaupunkien nimet ja rajat satelliitin päälle
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{maxZoom:19, opacity:0.85}).addTo(state.map);
 
-  state.userMarker = L.circleMarker([state.userLat, state.userLon], {radius:6, color:'#fff', weight:2, fillColor:'#0A84FF', fillOpacity:1}).addTo(state.map);
+  // Oma sijainti on Liquid Glass -tyylinen kirkas pallo
+  state.userMarker = L.circleMarker([state.userLat, state.userLon], {radius:7, color:'#fff', weight:3, fillColor:'#0A84FF', fillOpacity:1}).addTo(state.map);
 
   state.map.on('zoomend', () => {
      if(state.map.getZoom() <= 3 && !state.isGlobe) {
@@ -343,19 +347,22 @@ function initMap(){
 
         if(zoom < 5) {
             this._ctx.beginPath();
-            this._ctx.arc(0, 0, isSel ? 6 : 2.5, 0, Math.PI * 2);
+            this._ctx.arc(0, 0, isSel ? 7 : 3.5, 0, Math.PI * 2);
             this._ctx.fillStyle = isSel ? '#34C759' : (f.on_ground ? '#FF9F0A' : (f.dist<40?'#AF52DE':'#0A84FF'));
             this._ctx.fill();
+            this._ctx.lineWidth = 1.5;
+            this._ctx.strokeStyle = '#fff';
+            this._ctx.stroke();
         } else {
             this._ctx.rotate((f.track || 0) * Math.PI / 180);
-            const w = isSel ? 38 : 28; 
-            const h = isSel ? 38 : 28;
+            const w = isSel ? 44 : 32; 
+            const h = isSel ? 44 : 32;
             
             if(imgToDraw.complete) {
-               // Hieno heittovarjo vaaleaan teemaan
-               this._ctx.shadowColor = 'rgba(0,0,0,0.2)';
-               this._ctx.shadowBlur = isSel ? 10 : 4;
-               this._ctx.shadowOffsetY = isSel ? 4 : 2;
+               // Raskas heittovarjo erottamaan kone satelliittipohjasta
+               this._ctx.shadowColor = 'rgba(0,0,0,0.6)';
+               this._ctx.shadowBlur = isSel ? 16 : 8;
+               this._ctx.shadowOffsetY = isSel ? 6 : 4;
                this._ctx.drawImage(imgToDraw, -w/2, -h/2, w, h);
             }
         }
@@ -372,7 +379,7 @@ function initMap(){
       for(const f of state.flights.values()) {
           const pt = state.map.latLngToContainerPoint([f.curLat, f.curLon]);
           const dist = Math.sqrt((pt.x-clickPt.x)**2 + (pt.y-clickPt.y)**2);
-          if(dist < 20 && dist < minDist) { minDist = dist; closest = f.icao24; }
+          if(dist < 22 && dist < minDist) { minDist = dist; closest = f.icao24; }
       }
       if(closest) openDetailUI(closest);
   });
@@ -384,12 +391,10 @@ function setUserLocation(lat, lon, zoom=6){
   if(state.map && !state.isGlobe) state.map.setView([lat, lon], zoom, {animate:true});
 }
 
-// 2. THREE.JS KORJATTU 3D PALLO
+// 2. THREE.JS 3D PALLO AVARUUDESSA
 function initThreeGlobe() {
     if(!window.THREE || !window.THREE.OrbitControls) {
-        console.warn("Three.js/OrbitControls not loaded yet. Retrying...");
-        setTimeout(initThreeGlobe, 200);
-        return;
+        setTimeout(initThreeGlobe, 200); return;
     }
 
     state.dummy = new THREE.Object3D();
@@ -399,8 +404,8 @@ function initThreeGlobe() {
     state.renderer.setSize(window.innerWidth, window.innerHeight);
 
     state.scene = new THREE.Scene();
-    // Vaalea Apple-tyylinen tausta globen taakse
-    state.scene.background = new THREE.Color(0xF2F2F7);
+    // Tumma avaruus-tausta Apple Satellite tyyliin
+    state.scene.background = new THREE.Color(0x000000);
 
     state.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
     state.camera.position.z = 2.5;
@@ -410,7 +415,7 @@ function initThreeGlobe() {
     state.controls.dampingFactor = 0.05;
     state.controls.enablePan = false;
     state.controls.minDistance = 1.05; 
-    state.controls.maxDistance = 15.0; // Pallo ei häviä kauas zoomatessa!
+    state.controls.maxDistance = 15.0; 
 
     state.controls.addEventListener('change', () => {
         if(!state.isGlobe) return;
@@ -430,27 +435,27 @@ function initThreeGlobe() {
         }
     });
 
-    // Upea tyylitelty "Light Mode" -maapallo
+    // Tyylikäs tumma "merellinen" kiiltävä pallo
     const earthGeo = new THREE.SphereGeometry(1, 64, 64);
     const earthMat = new THREE.MeshPhongMaterial({
-        color: 0xffffff, emissive: 0xaaccff, emissiveIntensity: 0.1, 
-        specular: 0x111111, shininess: 20
+        color: 0x051525, emissive: 0x020815, specular: 0x223344, shininess: 25
     });
     state.globeSphere = new THREE.Mesh(earthGeo, earthMat);
     state.scene.add(state.globeSphere);
 
     const atmosGeo = new THREE.SphereGeometry(1.03, 32, 32);
-    const atmosMat = new THREE.MeshBasicMaterial({ color: 0x0A84FF, transparent: true, opacity: 0.08, side: THREE.BackSide });
+    const atmosMat = new THREE.MeshBasicMaterial({ color: 0x0A84FF, transparent: true, opacity: 0.1, side: THREE.BackSide });
     state.scene.add(new THREE.Mesh(atmosGeo, atmosMat));
 
-    state.scene.add(new THREE.AmbientLight(0xffffff, 0.8));
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    state.scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
     dirLight.position.set(5, 3, 5);
     state.scene.add(dirLight);
 
-    const planeGeo = new THREE.ConeGeometry(0.004, 0.015, 4);
+    const planeGeo = new THREE.ConeGeometry(0.005, 0.018, 4);
     planeGeo.rotateX(Math.PI / 2);
-    const planeMat = new THREE.MeshPhongMaterial({ color: 0x1C1C1E }); // Tummat koneet kirkkaalla pallolla
+    // Valkoiset koneet pallolla (erottuvat tummasta taustasta hyvin)
+    const planeMat = new THREE.MeshPhongMaterial({ color: 0xffffff }); 
     
     state.instancedMesh = new THREE.InstancedMesh(planeGeo, planeMat, 5000);
     state.instancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
@@ -584,7 +589,7 @@ function startAnimation(){
   requestAnimationFrame(tick);
 }
 
-// 5. KÄYTTÖLIITTYMÄ (TUMMAT IKONIT)
+// 5. KÄYTTÖLIITTYMÄ 
 const DEF_SVG = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%231C1C1E"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>';
 
 function renderList(){
