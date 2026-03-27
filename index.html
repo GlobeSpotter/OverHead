@@ -196,6 +196,8 @@ input:checked + .slider:before { transform: translateX(20px); }
       top: -150%; left: -150%;
       transform-origin: center; will-change: transform;
       display: flex; flex-direction: column;
+      /* Force hardware acceleration */
+      transform: translateZ(0); 
     }
     .svs-sky {
       flex: 1; position: relative; overflow: hidden;
@@ -476,8 +478,13 @@ input:checked + .slider:before { transform: translateX(20px); }
         <div class="pfd-overlay"></div>
 
         <!-- PFD Data Overlays -->
+        
+        <!-- PFD Data Overlays -->
         <!-- Speed Tape Background -->
-        <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 50px; background: rgba(0,0,0,0.4); border-right: 2px solid rgba(255,255,255,0.2); z-index: 4;"></div>
+        <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 55px; background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.8) 30%, rgba(0,0,0,0.8) 70%, rgba(0,0,0,0) 100%); border-right: 2px solid rgba(255,255,255,0.2); z-index: 4;"></div>
+        <!-- Alt Tape Background -->
+        <div style="position: absolute; right: 0; top: 0; bottom: 0; width: 65px; background: linear-gradient(to bottom, rgba(0,0,0,0) 0%, rgba(0,0,0,0.8) 30%, rgba(0,0,0,0.8) 70%, rgba(0,0,0,0) 100%); border-left: 2px solid rgba(255,255,255,0.2); z-index: 4;"></div>
+
         <!-- Alt Tape Background -->
         <div style="position: absolute; right: 0; top: 0; bottom: 0; width: 60px; background: rgba(0,0,0,0.4); border-left: 2px solid rgba(255,255,255,0.2); z-index: 4;"></div>
 
