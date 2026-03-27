@@ -177,6 +177,38 @@ input:checked + .slider:before { transform: translateX(20px); }
     .cam-dot { width: 6px; height: 6px; background: #34c759; border-radius: 50%; box-shadow: 0 0 6px #34c759; animation: blink 1s infinite alternate; }
     @keyframes blink { 0% { opacity: 1; } 100% { opacity: 0.4; } }
 
+
+    @keyframes flow-dash { from { stroke-dashoffset: 20; } to { stroke-dashoffset: 0; } }
+    .glowing-line-blue { animation: flow-dash 1s linear infinite; }
+
+
+    /* PFD & Telemetry Grid */
+    .pfd-container {
+      width: 100%; height: 130px; border-radius: 20px; background: #000; overflow: hidden; position: relative;
+      box-shadow: inset 0 4px 15px rgba(0,0,0,0.8), 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 16px;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .pfd-horizon {
+      position: absolute; width: 400%; height: 400%;
+      background: linear-gradient(180deg, #0a84ff 50%, #8b572a 50%);
+      transform-origin: center; will-change: transform;
+    }
+    .pfd-pitch-line { position: absolute; left: 50%; width: 40px; height: 2px; background: rgba(255,255,255,0.8); transform: translateX(-50%); border-radius: 2px; }
+    .pfd-overlay { position: absolute; inset: 0; box-shadow: inset 0 0 30px rgba(0,0,0,0.8); z-index: 2; pointer-events: none; }
+
+    .telemetry-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;
+    }
+    .t-card {
+      background: #fff; border-radius: 16px; padding: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+      border: 1px solid rgba(0,0,0,0.03);
+    }
+    .t-card-title { font-size: 11px; font-weight: 800; color: #8e8e93; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+    .t-card-val { font-size: 18px; font-weight: 800; color: #1d1d1f; font-family: ui-monospace, SF Mono, Menlo, monospace; letter-spacing: -0.5px; }
+    .t-card-sub { font-size: 13px; color: #8e8e93; font-weight: 600; margin-top: 2px; }
+
+    .contrail-line { filter: drop-shadow(0 0 6px rgba(255,255,255,0.9)) blur(1px); animation: flow-dash 1s linear infinite; }
+
 </style>
 </head>
 <body style="overscroll-behavior-y: none;">
@@ -275,7 +307,12 @@ input:checked + .slider:before { transform: translateX(20px); }
   <div class="d-scroll">
     <div class="d-head" style="display: flex; justify-content: space-between; align-items: center;">
       <div>
+        
+      <div style="display: flex; align-items: center;">
         <div class="d-cs" id="dCs">FLIGHT</div>
+        <div id="btnTrack" style="margin-left: 12px; background: rgba(10,132,255,0.1); color: #0a84ff; padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 800; text-transform: uppercase; cursor: pointer; display: none;" onclick="resumeTracking()">RE-CENTER</div>
+      </div>
+
         <div class="d-sub" id="dSub">ROUTE</div>
         <div class="d-tags" id="dTags"></div>
       </div>
@@ -324,13 +361,51 @@ input:checked + .slider:before { transform: translateX(20px); }
     </div>
 
 
-    <div class="dsec">
-      <div class="dsec-t">Live Telemetry</div>
-      <div class="dr"><div class="dl">Altitude</div><div class="dv" id="dAl">–</div></div>
-      <div class="dr"><div class="dl">Speed</div><div class="dv" id="dSp">–</div></div>
-      <div class="dr"><div class="dl">Heading</div><div class="dv" id="dHd">–</div></div>
-      <div class="dr"><div class="dl">Vertical Rate</div><div class="dv" id="dVr">–</div></div>
-      <div class="dr"><div class="dl">Distance</div><div class="dv" id="dDs">–</div></div>
+    <div class="dsec" style="background: transparent; box-shadow: none; padding: 0; margin-bottom: 0;">
+      <div class="dsec-t" style="padding-left: 16px;">Live Glass Cockpit (PFD)</div>
+
+      <div class="pfd-container" id="pfdBox">
+        <div class="pfd-horizon" id="pfdHorizon">
+          <div class="pfd-pitch-line" style="top: calc(50% - 30px); width: 20px;"></div>
+          <div class="pfd-pitch-line" style="top: calc(50% - 60px);"></div>
+          <div class="pfd-pitch-line" style="top: calc(50% + 30px); width: 20px;"></div>
+          <div class="pfd-pitch-line" style="top: calc(50% + 60px);"></div>
+          <div class="pfd-pitch-line" style="top: 50%; width: 100vw; background: rgba(255,255,255,0.4);"></div>
+        </div>
+
+        <!-- Plane Crosshair -->
+        <div style="position: absolute; z-index: 3; display: flex; gap: 24px; align-items: center;">
+          <div style="width: 30px; height: 4px; background: #ffcc00; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.5);"></div>
+          <div style="width: 6px; height: 6px; background: #ffcc00; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.5);"></div>
+          <div style="width: 30px; height: 4px; background: #ffcc00; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.5);"></div>
+        </div>
+
+        <div class="pfd-overlay"></div>
+
+        <!-- PFD Data Overlays -->
+        <div style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); z-index: 4; background: rgba(0,0,0,0.6); padding: 4px 8px; border-radius: 6px; color: #34c759; font-weight: 800; font-family: ui-monospace, SF Mono, monospace; font-size: 14px; border-left: 3px solid #34c759; box-shadow: 0 2px 10px rgba(0,0,0,0.5);" id="pfdSpd">--- KT</div>
+
+        <div style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); z-index: 4; background: rgba(0,0,0,0.6); padding: 4px 8px; border-radius: 6px; color: #0a84ff; font-weight: 800; font-family: ui-monospace, SF Mono, monospace; font-size: 14px; border-right: 3px solid #0a84ff; box-shadow: 0 2px 10px rgba(0,0,0,0.5);" id="pfdAlt">--- FT</div>
+
+        <div style="position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 4; background: rgba(0,0,0,0.6); padding: 2px 12px; border-radius: 10px; color: #fff; font-weight: 800; font-family: ui-monospace, SF Mono, monospace; font-size: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.5);" id="pfdHdg">HDG ---</div>
+
+        <!-- Live G-Force & Mach -->
+        <div style="position: absolute; bottom: 8px; left: 12px; z-index: 4; color: #ff3b30; font-weight: 800; font-family: ui-monospace, SF Mono, monospace; font-size: 12px; text-shadow: 0 1px 3px #000;" id="dGf">1.00 G</div>
+        <div style="position: absolute; bottom: 8px; right: 12px; z-index: 4; color: #ffcc00; font-weight: 800; font-family: ui-monospace, SF Mono, monospace; font-size: 12px; text-shadow: 0 1px 3px #000;" id="dMach">M 0.00</div>
+      </div>
+
+      <div class="telemetry-grid">
+        <div class="t-card">
+          <div class="t-card-title">Altitude & Vertical</div>
+          <div class="t-card-val" id="dAlT">0 ft</div>
+          <div class="t-card-sub" id="dVrT">0 ft/min</div>
+        </div>
+        <div class="t-card">
+          <div class="t-card-title">Ground Speed</div>
+          <div class="t-card-val" id="dSpT">0 km/h</div>
+          <div class="t-card-sub" id="dSpS">0 kt</div>
+        </div>
+      </div>
     </div>
 
 
@@ -339,10 +414,17 @@ input:checked + .slider:before { transform: translateX(20px); }
     <div class="dsec" id="spotSec" style="display: none; background: linear-gradient(135deg, #1c1c1e, #2c2c2e); color: white;">
       <div class="dsec-t" style="color: rgba(255,255,255,0.6);">Live Spotter Guide (Uncensored)</div>
       <div style="display: flex; align-items: center; padding: 8px 4px;">
-        <div style="position: relative; width: 48px; height: 48px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);">
-          <div id="spotIcon" style="position: absolute; transform-origin: center; transition: transform 0.2s;">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="#34c759"><path d="M12 2L20 20L12 17L4 20L12 2Z"/></svg>
+        <div style="position: relative; width: 64px; height: 64px; background: rgba(0,0,0,0.4); border-radius: 50%; border: 2px solid rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; box-shadow: inset 0 4px 10px rgba(0,0,0,0.8), 0 2px 10px rgba(0,0,0,0.3); overflow: hidden;">
+          <div id="spotCompassRing" style="position: absolute; width: 100%; height: 100%; transition: transform 0.2s ease-out; font-family: ui-monospace, SF Mono, Menlo, monospace; font-size: 10px; font-weight: 800; color: rgba(255,255,255,0.4);">
+            <div style="position:absolute; top:4px; left:50%; transform:translateX(-50%); color: #ff3b30;">N</div>
+            <div style="position:absolute; bottom:4px; left:50%; transform:translateX(-50%);">S</div>
+            <div style="position:absolute; right:6px; top:50%; transform:translateY(-50%);">E</div>
+            <div style="position:absolute; left:6px; top:50%; transform:translateY(-50%);">W</div>
           </div>
+          <div id="spotIcon" style="position: absolute; transform-origin: center; transition: transform 0.2s ease-out; z-index: 2;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="#34c759" style="filter: drop-shadow(0 0 6px rgba(52,199,89,0.8));"><path d="M12 2L20 20L12 17L4 20L12 2Z"/></svg>
+          </div>
+          <div style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 6px solid transparent; border-right: 6px solid transparent; border-top: 8px solid #0a84ff; z-index: 3; filter: drop-shadow(0 0 4px #0a84ff);"></div>
         </div>
         <div style="flex: 1; padding-left: 16px;">
           <div id="spotText" style="font-weight: 800; font-size: 17px; letter-spacing: -0.5px;">–</div>
@@ -488,7 +570,7 @@ function doGPS(){
 }
 function updateUserMarker(){
   if(!userPos) return;
-  var html = '<div id="uCone" style="width:80px;height:80px;margin-left:-40px;margin-top:-40px;background:conic-gradient(from 150deg at 50% 50%, rgba(0,122,255,0) 0deg, rgba(0,122,255,0.2) 30deg, rgba(0,122,255,0) 60deg);border-radius:50%;transform:rotate('+userHeading+'deg);position:absolute;pointer-events:none;"></div><div style="width:16px;height:16px;background:#007aff;border:3px solid #fff;border-radius:50%;position:absolute;left:-8px;top:-8px;box-shadow:0 0 6px rgba(0,0,0,0.5);"></div>';
+  var html = '<div id="uCone" style="width:80px;height:80px;margin-left:-40px;margin-top:-40px;background:conic-gradient(from 330deg at 50% 50%, rgba(0,122,255,0) 0deg, rgba(0,122,255,0.2) 30deg, rgba(0,122,255,0) 60deg);border-radius:50%;transform:rotate('+userHeading+'deg);position:absolute;pointer-events:none;"></div><div style="width:16px;height:16px;background:#007aff;border:3px solid #fff;border-radius:50%;position:absolute;left:-8px;top:-8px;box-shadow:0 0 6px rgba(0,0,0,0.5);"></div>';
   if(!userMarker){
     userMarker = L.marker(userPos, {icon: L.divIcon({
       html: html, className: '', iconSize: [0,0]
@@ -545,6 +627,14 @@ async function quickFind(){
 function startLive(){
   if(liveTimer) clearInterval(liveTimer);
   liveTimer = setInterval(fetchLive, 5000);
+  
+  // Update flowing route lines in JS for Canvas renderer
+  var timeMs = now % 1000;
+  var offset = Math.floor((timeMs / 1000) * 20); // 20 is dash array total length (8+12)
+  if(futureRouteLine) {
+      futureRouteLine.setStyle({dashOffset: -offset + ''});
+  }
+
   requestAnimationFrame(animatePlanes);
 }
 function animatePlanes(){
@@ -615,24 +705,79 @@ function animatePlanes(){
          var px = map.project([cLat, cLon], map.getZoom());
          px.y += window.innerHeight * 0.15; // Shift map center south, so plane moves north (up) on screen
          var offsetLatLng = map.unproject(px, map.getZoom());
-         map.setView(offsetLatLng, map.getZoom(), {animate: false});
+         // Only apply if center is more than a pixel away to prevent micro-stutters
+         var curCenter = map.getCenter();
+         var cPx = map.project(curCenter, map.getZoom());
+         if(Math.abs(cPx.x - px.x) > 1 || Math.abs(cPx.y - px.y) > 1) {
+             map.setView(offsetLatLng, map.getZoom(), {animate: false});
+         }
       }
 
 
-      // LIVE ALTITUDE TICKING
-      if(f.altFt != null && f.vrMs != null && !f.ground) {
+
+      // LIVE ALTITUDE TICKING & PFD UPDATE
+      if(!f.ground && f.velMs > 20) {
           var liveAlt = f.altFt + (f.vrMs * 3.28084 * age_sec);
           var liveAltM = liveAlt * 0.3048;
-          var elAl = document.getElementById('dAl');
-          if(elAl) {
-              elAl.innerText = Math.round(liveAlt).toLocaleString() + ' ft  (' + Math.round(liveAltM) + ' m)';
-              elAl.style.fontFamily = 'ui-monospace, SF Mono, Menlo, monospace';
-              elAl.style.fontVariantNumeric = 'tabular-nums';
-              if(f.vrMs > 0.5) elAl.style.color = '#34c759';
-              else if(f.vrMs < -0.5) elAl.style.color = '#0a84ff';
-              else elAl.style.color = '#1d1d1f';
+
+          // PFD Data
+          var pitch = Math.atan2((f.vrMs || 0), f.velMs) * (180/Math.PI);
+          var visualPitch = pitch * 4; // Exaggerate for visual effect
+
+          var tDelta = (mk.f.track || 0) - (mk.oldTrack || 0);
+          if(tDelta > 180) tDelta -= 360;
+          if(tDelta < -180) tDelta += 360;
+          var targetRoll = (tDelta / 5) * 4; // Approx bank angle based on turn rate
+          if(targetRoll > 45) targetRoll = 45; if(targetRoll < -45) targetRoll = -45;
+
+          if(!mk.curRoll) mk.curRoll = 0;
+          mk.curRoll += (targetRoll - mk.curRoll) * 0.1; // Smooth ease
+
+          var pfd = document.getElementById('pfdHorizon');
+          if(pfd) {
+              pfd.style.transform = 'translateY(' + (visualPitch * 2) + 'px) rotate(' + mk.curRoll + 'deg)';
+              document.getElementById('pfdSpd').innerText = Math.round(f.velKt) + ' KT';
+              document.getElementById('pfdAlt').innerText = Math.round(liveAlt).toLocaleString() + ' FT';
+              document.getElementById('pfdHdg').innerText = 'HDG ' + Math.round(f.track) + '°';
+
+              var sos = 1225 - ((f.altFt||0)/1000)*4; 
+              if(sos < 1062) sos = 1062; // Stratosphere limit
+              var mach = (f.velKt * 1.852) / sos;
+              document.getElementById('dMach').innerText = mach > 0.3 ? 'M ' + mach.toFixed(2) : '';
+
+              var bankRad = mk.curRoll * (Math.PI/180);
+              var gForce = 1 / Math.cos(bankRad);
+              if(gForce > 2.5) gForce = 2.5;
+              document.getElementById('dGf').innerText = gForce.toFixed(2) + ' G';
+          }
+
+          // Update Grid Telemetry
+          var elAl = document.getElementById('dAlT');
+          if(elAl) elAl.innerText = Math.round(liveAlt).toLocaleString() + ' ft';
+
+          var elVr = document.getElementById('dVrT');
+          if(elVr) {
+              var fpm = f.vrMs * 196.85; // m/s to ft/min
+              elVr.innerText = (fpm > 0 ? '▲ +' : '▼ ') + Math.round(fpm).toLocaleString() + ' ft/min';
+              elVr.style.color = fpm > 100 ? '#34c759' : (fpm < -100 ? '#0a84ff' : '#8e8e93');
+          }
+
+          var elSpT = document.getElementById('dSpT');
+          if(elSpT) elSpT.innerText = Math.round(f.velKt * 1.852) + ' km/h';
+          var elSpS = document.getElementById('dSpS');
+          if(elSpS) elSpS.innerText = Math.round(f.velKt) + ' kt' + (mach > 0.3 ? '  •  M ' + mach.toFixed(2) : '');
+      } else {
+          // Reset PFD for ground / parked
+          var pfd = document.getElementById('pfdHorizon');
+          if(pfd) {
+              pfd.style.transform = 'translateY(0px) rotate(0deg)';
+              document.getElementById('pfdSpd').innerText = f.ground ? 'GS 0 KT' : '---';
+              document.getElementById('pfdAlt').innerText = f.ground ? 'GND' : '---';
+              document.getElementById('dMach').innerText = '';
+              document.getElementById('dGf').innerText = '1.00 G';
           }
       }
+
 
       // LIVE FUEL BURN & WEIGHT ESTIMATION (ULTIMATE FLEX)
       if (selRoute && !f.ground && f.velMs > 50) {
@@ -717,6 +862,14 @@ function animatePlanes(){
 
     }
   }
+  
+  // Update flowing route lines in JS for Canvas renderer
+  var timeMs = now % 1000;
+  var offset = Math.floor((timeMs / 1000) * 20); // 20 is dash array total length (8+12)
+  if(futureRouteLine) {
+      futureRouteLine.setStyle({dashOffset: -offset + ''});
+  }
+
   requestAnimationFrame(animatePlanes);
 }
 
@@ -929,10 +1082,6 @@ function setChip(v){
 }
 
 function updateDetailStats(f){
-  set('dAl',f.altFt!=null?(f.altFt.toLocaleString()+' ft  ('+f.altM+' m)'):(f.ground?'On Ground':'–'));
-  set('dSp',f.velKt!=null?(Math.round(f.velKt)+' kt  ('+Math.round(f.velKt*1.852)+' km/h)'):'–');
-  set('dHd',f.track!=null?(Math.round(f.track)+'°  '+dir(f.track)):'–');
-  set('dVr',f.vrMs!=null?((f.vrMs>0?'+':'')+Math.round(f.vrMs)+' m/s'):'–');
   set('dDs',f.dist!=null?f.dist.toFixed(1)+' km':'–');
 
   // SMART CONTEXT BANNER
@@ -966,6 +1115,11 @@ function updateDetailStats(f){
         relBear = bear - userHeading;
      }
      document.getElementById('spotIcon').style.transform = 'rotate(' + relBear + 'deg)';
+     if(userHeading) {
+         document.getElementById('spotCompassRing').style.transform = 'rotate(' + (-userHeading) + 'deg)';
+     } else {
+         document.getElementById('spotCompassRing').style.transform = 'rotate(0deg)';
+     }
 
      // Elevation math
      var distM = f.dist * 1000;
@@ -1037,6 +1191,15 @@ function updateDetailStats(f){
   }
 }
 
+
+function resumeTracking() {
+  if(!selId) return;
+  isCameraLocked = true;
+  document.getElementById('camBadge').classList.add('show');
+  var bT = document.getElementById('btnTrack'); if(bT) bT.style.display = 'none';
+  document.getElementById('btnTrack').style.display = 'none';
+}
+
 async function selFlight(id){
   if(navigator.vibrate) navigator.vibrate(50);
   selId=id;
@@ -1046,6 +1209,7 @@ async function selFlight(id){
   document.getElementById('det').classList.add('open');
   isCameraLocked = true;
   document.getElementById('camBadge').classList.add('show');
+  var bT = document.getElementById('btnTrack'); if(bT) bT.style.display = 'none';
   renderAll();
 
   set('dCs',f.cs||id);
