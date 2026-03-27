@@ -5,100 +5,129 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Overhead Ultimate Live</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<title>Overhead</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
 <script src="https://unpkg.com/globe.gl"></script>
 <style>
-    /* APPLE SPATIAL DESIGN SYSTEM */
-    :root {
-        --bg: #000; --text: #fff; --text-sec: rgba(235, 235, 245, 0.6);
-        --blue: #0A84FF; --green: #30D158; --orange: #FF9F0A; --red: #FF453A;
-        --glass-bg: rgba(20, 20, 22, 0.75); --glass-border: rgba(255, 255, 255, 0.1);
-        --sat-blur: saturate(200%) blur(40px); --spring: cubic-bezier(0.175, 0.885, 0.32, 1.15);
-    }
-    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Rounded", "SF Pro Display", sans-serif; background: var(--bg); color: var(--text); overflow: hidden; user-select: none; }
-    
-    #mapWrapper { position: fixed; inset: 0; z-index: 0; background: #000; transition: filter 0.8s ease; }
-    #map { position: absolute; inset: 0; will-change: filter, transform; }
-    #mapWrapper.cinematic-mode { filter: saturate(0.3) brightness(0.4); }
-    .leaflet-control-attribution, .leaflet-control-zoom { display: none !important; }
-    #globeViz { position: fixed; inset: 0; z-index: 50; opacity: 0; pointer-events: none; transition: opacity 0.8s ease; background: #000; }
-    
-    .plane-icon-inner { width: 100%; height: 100%; will-change: transform; transition: opacity 0.4s; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.8)); }
-    .plane-unselected { opacity: 0.2 !important; filter: grayscale(1) blur(1px); }
+:root{
+  --bg:#000;--text:#fff;--text2:rgba(235,235,245,.55);--text3:rgba(235,235,245,.3);
+  --blue:#0A84FF;--green:#30D158;--orange:#FF9F0A;--red:#FF453A;--purple:#BF5AF2;
+  --glass:rgba(22,22,26,.80);--border:rgba(255,255,255,.1);
+  --blur:saturate(180%) blur(40px);--spring:cubic-bezier(.175,.885,.32,1.15);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+body{margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Rounded","SF Pro Display",sans-serif;background:#000;color:#fff;overflow:hidden;user-select:none;}
+#mapWrapper{position:fixed;inset:0;z-index:0;background:#000;transition:filter .8s ease;}
+#map{position:absolute;inset:0;}
+#mapWrapper.dim{filter:saturate(.2) brightness(.3) blur(1px);}
+.leaflet-control-attribution,.leaflet-control-zoom{display:none!important;}
+#globeViz{position:fixed;inset:0;z-index:50;opacity:0;pointer-events:none;transition:opacity .8s ease;background:#000;}
+.pi{width:100%;height:100%;will-change:transform;filter:drop-shadow(0 4px 14px rgba(0,0,0,.9));}
+.pi-dim{opacity:.12!important;filter:grayscale(1) blur(2px);}
 
-    /* DYNAMIC ISLAND */
-    .island-wrapper { position: absolute; top: 16px; left: 0; right: 0; z-index: 2000; display: flex; justify-content: center; pointer-events: none; }
-    .dynamic-island { background: rgba(10, 10, 12, 0.85); backdrop-filter: var(--sat-blur); -webkit-backdrop-filter: var(--sat-blur); border: 1px solid var(--glass-border); border-radius: 32px; box-shadow: 0 10px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1); pointer-events: auto; cursor: pointer; display: flex; align-items: center; overflow: hidden; width: auto; height: 50px; padding: 0 20px; gap: 12px; transition: all 0.5s var(--spring); }
-    .dynamic-island:active { transform: scale(0.96); }
-    .island-logo { font-size: 18px; font-weight: 900; letter-spacing: -0.5px; display: flex; align-items: center; gap: 6px; }
-    .island-search { display: none; width: 100%; opacity: 0; transition: opacity 0.3s; }
-    .island-search input { background: transparent; border: none; outline: none; color: #fff; font-size: 16px; width: 100%; font-weight: 600; }
-    .island-flight-info { display: none; width: 100%; opacity: 0; justify-content: space-between; align-items: center; }
-    .ifi-main { font-size: 18px; font-weight: 900; color: #fff; letter-spacing: -0.5px; font-family: ui-monospace, monospace; }
-    .ifi-sub { font-size: 13px; font-weight: 700; color: var(--blue); }
-    .island.search-mode { width: calc(100% - 32px); height: 56px; }
-    .island.flight-mode { width: calc(100% - 32px); height: 64px; background: rgba(10, 132, 255, 0.15); border-color: rgba(10, 132, 255, 0.4); }
+/* DYNAMIC ISLAND */
+.iw{position:absolute;top:max(16px,env(safe-area-inset-top));left:0;right:0;z-index:2000;display:flex;justify-content:center;pointer-events:none;padding:0 16px;}
+.di{background:rgba(8,8,10,.9);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid rgba(255,255,255,.12);border-radius:32px;box-shadow:0 12px 40px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.08);pointer-events:auto;cursor:pointer;display:flex;align-items:center;overflow:hidden;height:50px;padding:0 18px;gap:10px;transition:all .5s var(--spring);width:auto;}
+.di:active{transform:scale(.96);}
+.di-logo{font-size:17px;font-weight:900;letter-spacing:-.5px;display:flex;align-items:center;gap:7px;white-space:nowrap;}
+.di-search{display:none;width:100%;}
+.di-search input{background:transparent;border:none;outline:none;color:#fff;font-size:16px;width:100%;font-weight:600;font-family:inherit;}
+.di-flight{display:none;width:100%;justify-content:space-between;align-items:center;}
+.di-cs{font-size:17px;font-weight:900;letter-spacing:-.5px;font-variant-numeric:tabular-nums;}
+.di-rt{font-size:12px;font-weight:700;color:var(--blue);}
+.di-alt{font-size:17px;font-weight:900;color:var(--green);font-variant-numeric:tabular-nums;}
+.di-spd{font-size:12px;font-weight:700;color:var(--text2);font-variant-numeric:tabular-nums;}
+.di.fm{width:100%;height:62px;background:rgba(10,132,255,.12);border-color:rgba(10,132,255,.4);}
+.di.sm{width:100%;height:58px;}
 
-    .recenter-btn { display: none; align-items: center; justify-content: center; width: 34px; height: 34px; background: rgba(48,209,88,0.2); border-radius: 17px; color: var(--green); cursor: pointer; border: 1px solid rgba(48,209,88,0.5); animation: pulse-glow 2s infinite; margin-left:12px; }
-    .recenter-btn.show { display: flex; }
-    @keyframes pulse-glow { 0% { box-shadow: 0 0 0 0 rgba(48,209,88,0.4); } 70% { box-shadow: 0 0 0 12px rgba(48,209,88,0); } 100% { box-shadow: 0 0 0 0 rgba(48,209,88,0); } }
+/* RECENTER */
+.rcb{display:none;align-items:center;justify-content:center;width:32px;height:32px;background:rgba(48,209,88,.18);border-radius:16px;color:var(--green);cursor:pointer;border:1px solid rgba(48,209,88,.45);margin-left:10px;flex-shrink:0;}
+.rcb.on{display:flex;animation:pg 2s infinite;}
+@keyframes pg{0%{box-shadow:0 0 0 0 rgba(48,209,88,.45);}70%{box-shadow:0 0 0 10px rgba(48,209,88,0);}100%{box-shadow:0 0 0 0 rgba(48,209,88,0);}}
 
-    /* DASHBOARD */
-    .dashboard { position: fixed; bottom: 20px; left: 20px; right: 20px; background: var(--glass-bg); backdrop-filter: var(--sat-blur); -webkit-backdrop-filter: var(--sat-blur); border-radius: 36px; border: 1px solid var(--glass-border); box-shadow: 0 20px 50px rgba(0,0,0,0.5); z-index: 1000; display: flex; flex-direction: column; overflow: hidden; transition: transform 0.6s var(--spring), height 0.6s var(--spring); will-change: transform, height; }
-    .dash-main { height: 100px; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
-    .dash-main:active { background: rgba(255,255,255,0.05); }
-    .dm-title { font-size: 26px; font-weight: 900; letter-spacing: -1px; margin-bottom: 4px; }
-    .dm-sub { color: var(--text-sec); font-weight: 700; font-size: 13px; text-transform: uppercase; letter-spacing: 1px; }
-    .dash-content { flex: 1; padding: 0 20px 20px; overflow-y: auto; display: none; opacity: 0; transition: opacity 0.4s; }
-    .dashboard.expanded { height: 70vh; }
-    .dashboard.expanded .dash-content { display: block; opacity: 1; }
-    .dashboard.hidden { transform: translateY(150%); }
+/* LIVE DOT */
+.ldot{width:7px;height:7px;background:var(--green);border-radius:50%;display:inline-block;margin-right:6px;animation:ld 2s ease-in-out infinite;}
+@keyframes ld{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(.75);}}
 
-    .flist-item { padding: 16px; border-radius: 20px; background: rgba(255,255,255,0.03); margin-bottom: 12px; display: flex; align-items: center; border: 1px solid rgba(255,255,255,0.02); transition: 0.2s; cursor: pointer;}
-    .flist-item:active { transform: scale(0.97); background: rgba(255,255,255,0.08); }
-    
-    .controls { position: absolute; top: 90px; right: 20px; z-index: 500; display: flex; flex-direction: column; gap: 16px; }
-    .btn-fab { width: 50px; height: 50px; border-radius: 25px; background: rgba(20,20,22,0.8); backdrop-filter: var(--sat-blur); -webkit-backdrop-filter: var(--sat-blur); border: 1px solid var(--glass-border); box-shadow: 0 8px 20px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; color: #fff; cursor: pointer; transition: 0.3s var(--spring); }
-    .btn-fab:active { transform: scale(0.9); background: rgba(255,255,255,0.2); }
-    .btn-fab.active-blue { background: var(--blue); color: #fff; border-color: #0A84FF; box-shadow: 0 8px 24px rgba(10,132,255,0.4); }
+/* CONTROLS */
+.ctrl{position:absolute;top:90px;right:16px;z-index:500;display:flex;flex-direction:column;gap:12px;}
+.fab{width:48px;height:48px;border-radius:24px;background:rgba(18,18,22,.85);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--border);box-shadow:0 8px 24px rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;transition:.3s var(--spring);}
+.fab:active{transform:scale(.88);}
+.fab.on{background:var(--blue);border-color:var(--blue);box-shadow:0 8px 28px rgba(10,132,255,.45);}
 
-    /* DETAIL VIEW */
-    .det-card { position: fixed; inset: 20px; top: 100px; z-index: 3000; background: rgba(15, 15, 18, 0.85); backdrop-filter: saturate(200%) blur(60px); -webkit-backdrop-filter: saturate(200%) blur(60px); border-radius: 40px; border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 30px 60px rgba(0,0,0,0.8); display: flex; flex-direction: column; transform: scale(0.9) translateY(100%); opacity: 0; pointer-events: none; transition: all 0.6s var(--spring); overflow: hidden; }
-    .det-card.open { transform: scale(1) translateY(0); opacity: 1; pointer-events: auto; }
-    .d-close { position: absolute; top: 20px; right: 20px; width: 40px; height: 40px; border-radius: 20px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; }
-    
-    /* WATCH RINGS */
-    .rings-row { display: flex; justify-content: space-around; padding: 24px 20px; background: rgba(0,0,0,0.3); border-bottom: 1px solid rgba(255,255,255,0.05); }
-    .ring-box { position: relative; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; flex-direction: column; }
-    .ring-svg { position: absolute; inset: 0; transform: rotate(-90deg); width: 100%; height: 100%; }
-    .ring-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 8; }
-    .ring-prog { fill: none; stroke-width: 8; stroke-linecap: round; stroke-dasharray: 251.2; stroke-dashoffset: 251.2; transition: stroke-dashoffset 0.1s linear; }
-    .ring-prog.blue { stroke: var(--blue); filter: drop-shadow(0 0 6px var(--blue)); }
-    .ring-prog.green { stroke: var(--green); filter: drop-shadow(0 0 6px var(--green)); }
-    .ring-val { font-size: 20px; font-weight: 900; font-family: ui-monospace, monospace; margin-top: 5px; }
-    .ring-lbl { font-size: 11px; font-weight: 800; color: var(--text-sec); text-transform: uppercase; letter-spacing: 1px; }
+/* DASHBOARD */
+.dash{position:fixed;bottom:20px;left:16px;right:16px;background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border-radius:36px;border:1px solid var(--border);box-shadow:0 24px 60px rgba(0,0,0,.6);z-index:1000;display:flex;flex-direction:column;overflow:hidden;transition:transform .6s var(--spring),height .6s var(--spring);will-change:transform,height;}
+.dash-bar{min-height:90px;padding:18px 22px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;flex-shrink:0;}
+.dash-bar:active{background:rgba(255,255,255,.04);}
+.dash-title{font-size:24px;font-weight:900;letter-spacing:-1px;margin-bottom:3px;}
+.dash-sub{color:var(--text2);font-weight:700;font-size:13px;text-transform:uppercase;letter-spacing:.8px;}
+.dash-list{padding:0 14px 20px;overflow-y:auto;display:none;}
+.dash.exp{height:68vh;}
+.dash.exp .dash-list{display:block;}
+.dash.gone{transform:translateY(160%);}
+.fi{padding:14px 12px;border-radius:18px;background:rgba(255,255,255,.035);margin-bottom:10px;display:flex;align-items:center;border:1px solid rgba(255,255,255,.03);transition:.15s;cursor:pointer;}
+.fi:active{transform:scale(.97);background:rgba(255,255,255,.08);}
 
-    .d-scroll { flex: 1; overflow-y: auto; padding: 24px; }
-    
-    /* LIVE ROUTE PROGRESS BAR */
-    .route-bar { background: rgba(255,255,255,0.05); border-radius: 24px; padding: 24px; margin-bottom: 24px; border: 1px solid rgba(255,255,255,0.05); }
-    .rb-top { display: flex; justify-content: space-between; align-items: center; }
-    .rb-apt { font-size: 20px; font-weight: 900; letter-spacing: -0.5px; color: #fff; max-width: 45%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .rb-track { height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; margin: 16px 0; position: relative; }
-    .rb-fill { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, #30D158, var(--blue)); border-radius: 3px; width: 0%; box-shadow: 0 0 10px var(--blue); }
-    .rb-icon { position: absolute; top: -9px; left: 0%; color: var(--blue); width: 24px; height: 24px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8)); margin-left: -12px; }
+/* DETAIL CARD */
+.det{position:fixed;inset:16px;top:90px;z-index:3000;background:rgba(12,12,16,.9);backdrop-filter:saturate(200%) blur(60px);-webkit-backdrop-filter:saturate(200%) blur(60px);border-radius:40px;border:1px solid rgba(255,255,255,.14);box-shadow:0 32px 80px rgba(0,0,0,.9);display:flex;flex-direction:column;transform:scale(.92) translateY(105%);opacity:0;pointer-events:none;transition:all .55s var(--spring);overflow:hidden;}
+.det.open{transform:scale(1) translateY(0);opacity:1;pointer-events:auto;}
+.det-close{position:absolute;top:18px;right:18px;width:38px;height:38px;border-radius:19px;background:rgba(255,255,255,.18);display:flex;align-items:center;justify-content:center;cursor:pointer;z-index:10;transition:.2s;}
+.det-close:active{transform:scale(.88);background:rgba(255,255,255,.3);}
 
-    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .ig-card { background: rgba(255,255,255,0.05); padding: 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.03); }
-    .ig-lbl { font-size: 11px; font-weight: 800; color: var(--text-sec); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
-    .ig-val { font-size: 18px; font-weight: 900; color: #fff; font-family: ui-monospace, monospace; }
+/* PHASE CHIP */
+.chip{display:inline-flex;align-items:center;gap:5px;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:800;letter-spacing:.5px;text-transform:uppercase;margin-top:6px;}
+.ch-climb{background:rgba(48,209,88,.15);color:var(--green);border:1px solid rgba(48,209,88,.3);}
+.ch-cruise{background:rgba(10,132,255,.15);color:var(--blue);border:1px solid rgba(10,132,255,.3);}
+.ch-descent{background:rgba(255,159,10,.15);color:var(--orange);border:1px solid rgba(255,159,10,.3);}
+.ch-ground{background:rgba(255,255,255,.08);color:var(--text2);border:1px solid rgba(255,255,255,.12);}
 
-    @keyframes sel-pulse { 0% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(4); opacity: 0; } }
-    .sel-pulse { position: absolute; top: 50%; left: 50%; width: 40px; height: 40px; border: 3px solid var(--green); border-radius: 50%; animation: sel-pulse 1.5s ease-out infinite; pointer-events: none; }
+/* RINGS */
+.rings{display:flex;justify-content:space-around;align-items:center;padding:16px 20px 20px;background:rgba(0,0,0,.25);border-bottom:1px solid rgba(255,255,255,.05);}
+.rb{position:relative;width:94px;height:94px;display:flex;align-items:center;justify-content:center;flex-direction:column;}
+.rsvg{position:absolute;inset:0;transform:rotate(-90deg);width:100%;height:100%;}
+.rbg{fill:none;stroke:rgba(255,255,255,.08);stroke-width:7;}
+.rp{fill:none;stroke-width:7;stroke-linecap:round;stroke-dasharray:251.2;stroke-dashoffset:251.2;transition:stroke-dashoffset .06s linear;}
+.rp.blue{stroke:var(--blue);filter:drop-shadow(0 0 5px rgba(10,132,255,.7));}
+.rp.green{stroke:var(--green);filter:drop-shadow(0 0 5px rgba(48,209,88,.7));}
+.rp.orange{stroke:var(--orange);filter:drop-shadow(0 0 5px rgba(255,159,10,.7));}
+.rv{font-size:17px;font-weight:900;font-variant-numeric:tabular-nums;margin-top:2px;letter-spacing:-.5px;}
+.rl{font-size:10px;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;}
+
+.det-scroll{flex:1;overflow-y:auto;padding:20px;}
+.det-scroll::-webkit-scrollbar{display:none;}
+
+/* ROUTE CARD */
+.rc{background:rgba(255,255,255,.05);border-radius:24px;padding:20px;margin-bottom:14px;border:1px solid rgba(255,255,255,.06);}
+.rc-apts{display:flex;justify-content:space-between;align-items:flex-end;}
+.rc-iata{font-size:28px;font-weight:900;letter-spacing:-1px;}
+.rc-city{font-size:11px;font-weight:700;color:var(--text2);margin-top:2px;max-width:110px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rc-track{height:5px;background:rgba(255,255,255,.1);border-radius:3px;margin:14px 0 8px;position:relative;}
+.rc-fill{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--green),var(--blue));border-radius:3px;box-shadow:0 0 10px rgba(10,132,255,.5);}
+.rc-icon{position:absolute;top:-9px;left:0%;color:#fff;width:22px;height:22px;filter:drop-shadow(0 2px 6px rgba(0,0,0,.9));margin-left:-11px;}
+.rc-times{display:flex;justify-content:space-between;margin-top:10px;}
+.rc-tl{font-size:10px;font-weight:800;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;}
+.rc-tv{font-size:15px;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:-.3px;}
+.rc-dist{text-align:center;margin-top:10px;}
+.rc-dv{font-size:20px;font-weight:900;color:var(--blue);display:block;font-variant-numeric:tabular-nums;letter-spacing:-.5px;}
+.rc-dl{font-size:10px;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;}
+
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.g1{margin-bottom:10px;}
+.ic{background:rgba(255,255,255,.05);padding:14px 16px;border-radius:20px;border:1px solid rgba(255,255,255,.04);}
+.ic-ico{font-size:16px;margin-bottom:5px;}
+.ic-lbl{font-size:10px;font-weight:800;color:var(--text2);text-transform:uppercase;letter-spacing:.8px;margin-bottom:3px;}
+.ic-val{font-size:16px;font-weight:900;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:-.3px;}
+.ic-val.sm{font-size:14px;font-weight:800;font-family:-apple-system,sans-serif;letter-spacing:0;}
+
+/* PAX BAR */
+.pax-track{height:5px;background:rgba(255,255,255,.1);border-radius:3px;margin-top:8px;overflow:hidden;}
+.pax-fill{height:100%;background:linear-gradient(90deg,var(--purple),var(--blue));border-radius:3px;width:0%;transition:width .6s var(--spring);}
+
+@keyframes sp{0%{transform:translate(-50%,-50%) scale(1);opacity:1;}100%{transform:translate(-50%,-50%) scale(4.5);opacity:0;}}
+.sel-r{position:absolute;top:50%;left:50%;width:34px;height:34px;border:2.5px solid var(--green);border-radius:50%;animation:sp 1.5s ease-out infinite;pointer-events:none;}
 </style>
 </head>
 <body>
@@ -106,257 +135,591 @@
 <div id="globeViz"></div>
 <div id="mapWrapper"><div id="map"></div></div>
 
-<!-- DYNAMIC ISLAND -->
-<div class="island-wrapper">
-    <div id="dynIsland" class="dynamic-island search-mode" onclick="handleIslandClick()">
-        <div id="islandLogo" class="island-logo"><svg width="22" height="22" viewBox="0 0 24 24" fill="var(--blue)"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg> OVERHEAD</div>
-        <div id="islandSearch" class="island-search"><input type="text" id="searchInput" placeholder="Search flights..." onkeyup="if(event.key==='Enter') document.activeElement.blur()"></div>
-        <div id="islandFlight" class="island-flight-info">
-            <div><div id="islCs" class="ifi-main">FIN1A</div><div id="islRoute" class="ifi-sub">Live Focus</div></div>
-            <div style="display:flex; align-items:center;">
-                <div style="text-align:right;"><div id="islAlt" class="ifi-main" style="color:var(--green)">---</div><div id="islSpd" class="ifi-sub" style="color:var(--text-sec)">---</div></div>
-                <div id="btnRecenter" class="recenter-btn" onclick="recenterCamera(event)"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="3"/></svg></div>
-            </div>
-        </div>
+<div class="iw">
+  <div id="di" class="di" onclick="handleIsland()">
+    <div id="di-logo" class="di-logo">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="var(--blue)"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
+      OVERHEAD
     </div>
+    <div id="di-search" class="di-search">
+      <input type="text" id="sInput" placeholder="Search flight or tail…" autocomplete="off">
+    </div>
+    <div id="di-flight" class="di-flight">
+      <div>
+        <div id="di-cs" class="di-cs">FIN1A</div>
+        <div id="di-rt" class="di-rt">Live</div>
+      </div>
+      <div style="display:flex;align-items:center;">
+        <div>
+          <div id="di-alt" class="di-alt">--- FT</div>
+          <div id="di-spd" class="di-spd">--- KT</div>
+        </div>
+        <div id="rcb" class="rcb" onclick="recenter(event)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="3"/></svg>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
-<div class="controls">
-  <div class="btn-fab" id="btnFind" onclick="quickFind()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg></div>
-  <div class="btn-fab" id="btn3D" onclick="toggleGlobeMode()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg></div>
+<div class="ctrl">
+  <div class="fab" id="btn-loc" onclick="quickFind()">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+  </div>
+  <div class="fab" id="btn-globe" onclick="toggleGlobe()">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+  </div>
 </div>
 
-<div class="dashboard" id="dash">
-    <div class="dash-main" onclick="toggleDash()">
-        <div><div class="dm-title">Live Radar</div><div class="dm-sub" id="dCount">SCANNING...</div></div>
-        <div style="width: 40px; height: 40px; background: rgba(255,255,255,0.1); border-radius: 20px; display: flex; align-items: center; justify-content: center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" id="dashArrow"><path d="M6 15l6-6 6 6"/></svg></div>
+<div class="dash" id="dash">
+  <div class="dash-bar" onclick="toggleDash()">
+    <div>
+      <div class="dash-title"><span class="ldot"></span>Live Radar</div>
+      <div class="dash-sub" id="dCount">SCANNING…</div>
     </div>
-    <div class="dash-content" id="flist"></div>
+    <div style="width:38px;height:38px;background:rgba(255,255,255,.1);border-radius:19px;display:flex;align-items:center;justify-content:center;">
+      <svg id="dArrow" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M6 15l6-6 6 6"/></svg>
+    </div>
+  </div>
+  <div class="dash-list" id="flist"></div>
 </div>
 
-<div class="det-card" id="det">
-    <div class="d-close" onclick="closeDetail()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></div>
-    
-    <div class="rings-row">
-        <div class="ring-box">
-            <svg class="ring-svg"><circle class="ring-bg" cx="50" cy="50" r="40"/><circle class="ring-prog blue" id="ringSpd" cx="50" cy="50" r="40"/></svg>
-            <div class="ring-lbl">SPEED</div><div class="ring-val" id="rVSpd">0</div>
+<div class="det" id="det">
+  <div class="det-close" onclick="closeDetail()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+  </div>
+
+  <div style="padding:22px 22px 0;">
+    <div style="font-size:40px;font-weight:900;letter-spacing:-2px;line-height:1;font-variant-numeric:tabular-nums;" id="d-cs">FLIGHT</div>
+    <div style="font-size:14px;font-weight:600;color:var(--text2);margin-top:3px;" id="d-sub">Aircraft</div>
+    <div id="d-phase" class="chip ch-cruise">→ CRUISE</div>
+  </div>
+
+  <div class="rings">
+    <div class="rb">
+      <svg class="rsvg"><circle class="rbg" cx="47" cy="47" r="40"/><circle class="rp blue" id="rSpd" cx="47" cy="47" r="40"/></svg>
+      <div class="rl">IAS</div><div class="rv" id="rvSpd" style="color:var(--blue)">0</div>
+    </div>
+    <div class="rb">
+      <svg class="rsvg"><circle class="rbg" cx="47" cy="47" r="40"/><circle class="rp green" id="rAlt" cx="47" cy="47" r="40"/></svg>
+      <div class="rl">ALT ft</div><div class="rv" id="rvAlt" style="color:var(--green)">0</div>
+    </div>
+    <div class="rb">
+      <svg class="rsvg"><circle class="rbg" cx="47" cy="47" r="40"/><circle class="rp orange" id="rVr" cx="47" cy="47" r="40"/></svg>
+      <div class="rl">V/S</div><div class="rv" id="rvVr" style="color:var(--orange)">0</div>
+    </div>
+  </div>
+
+  <div class="det-scroll">
+
+    <div class="rc" id="routeCard" style="display:none;">
+      <div class="rc-apts">
+        <div>
+          <div class="rc-iata" id="rOrig">HEL</div>
+          <div class="rc-city" id="rOrigCity">Helsinki</div>
         </div>
-        <div class="ring-box">
-            <svg class="ring-svg"><circle class="ring-bg" cx="50" cy="50" r="40"/><circle class="ring-prog green" id="ringAlt" cx="50" cy="50" r="40"/></svg>
-            <div class="ring-lbl">ALTITUDE</div><div class="ring-val" id="rVAlt" style="color:var(--green)">0</div>
+        <div style="color:var(--text3);font-size:18px;padding-bottom:8px;">→</div>
+        <div style="text-align:right;">
+          <div class="rc-iata" id="rDest">OUL</div>
+          <div class="rc-city" id="rDestCity" style="text-align:right;">Oulu</div>
         </div>
+      </div>
+      <div class="rc-track">
+        <div class="rc-fill" id="rFill"></div>
+        <svg class="rc-icon" id="rIcon" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="currentColor" transform="rotate(90 12 12)"/></svg>
+      </div>
+      <div class="rc-times">
+        <div><div class="rc-tl">Elapsed</div><div class="rc-tv" id="rElap">0h 00m 00s</div></div>
+        <div style="text-align:right;"><div class="rc-tl">Remaining</div><div class="rc-tv" id="rRem" style="color:var(--blue)">0h 00m 00s</div></div>
+      </div>
+      <div class="rc-dist">
+        <span class="rc-dv" id="rDistVal">0.00 KM</span>
+        <span class="rc-dl">remaining</span>
+      </div>
     </div>
 
-    <div class="d-scroll">
-        <div style="margin-bottom: 24px;">
-            <div style="font-size: 40px; font-weight: 900; letter-spacing: -1.5px; line-height: 1;" id="dCs">FLIGHT</div>
-            <div style="font-size: 16px; font-weight: 700; color: var(--text-sec);" id="dSub">Aircraft</div>
-        </div>
-
-        <!-- NEW HYPER-LIVE ROUTE CARD -->
-        <div class="route-bar" id="routeCard" style="display:none;">
-            <div style="display:flex; justify-content:space-between; margin-bottom: 4px; font-size:11px; font-weight:800; color:var(--text-sec); text-transform:uppercase;">
-                <span>From</span><span>To</span>
-            </div>
-            <div class="rb-top">
-                <div class="rb-apt" id="rOrigName">HEL</div>
-                <div style="color: var(--text-sec); font-size: 16px; font-weight:800;">➔</div>
-                <div class="rb-apt" id="rDestName" style="text-align: right;">OUL</div>
-            </div>
-            
-            <div style="display:flex; justify-content:space-between; margin-top: 16px; font-size:12px; color:var(--text-sec); font-weight:700;">
-                <div><span id="rElap" style="font-size:16px; font-weight:800; color:#fff; display:block; font-family:ui-monospace, monospace;">0h 00m 00s</span>Elapsed</div>
-                <div style="text-align:right;"><span id="rRem" style="font-size:16px; font-weight:800; color:var(--blue); display:block; font-family:ui-monospace, monospace;">0h 00m 00s</span>Remaining</div>
-            </div>
-
-            <div class="rb-track">
-                <div class="rb-fill" id="rProg"></div>
-                <svg class="rb-icon" id="rPlane" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="currentColor" transform="rotate(90 12 12)"/></svg>
-            </div>
-            <div style="text-align:center; font-size:11px; font-weight:800; color:var(--text-sec); text-transform:uppercase;">
-                <span id="rDistRem" style="color:var(--blue); font-size:14px;">0.00 KM</span> REMAINING
-            </div>
-        </div>
-
-        <div class="info-grid">
-            <div class="ig-card"><div class="ig-lbl">Vertical Rate</div><div class="ig-val" id="dVrT" style="color:var(--green)">0 ft/min</div></div>
-            <div class="ig-card"><div class="ig-lbl">Operator</div><div class="ig-val" id="dOp" style="font-size: 15px; font-family:sans-serif;">–</div></div>
-            <div class="ig-card"><div class="ig-lbl">Aircraft Type</div><div class="ig-val" id="dMd" style="font-size: 15px; font-family:sans-serif;">–</div></div>
-            <div class="ig-card"><div class="ig-lbl">Registration</div><div class="ig-val" id="dRgTxt">–</div></div>
-        </div>
+    <div class="g2">
+      <div class="ic"><div class="ic-ico">🏢</div><div class="ic-lbl">Operator</div><div class="ic-val sm" id="d-op">–</div></div>
+      <div class="ic"><div class="ic-ico">📋</div><div class="ic-lbl">Registration</div><div class="ic-val" id="d-reg">–</div></div>
+      <div class="ic"><div class="ic-ico">✈️</div><div class="ic-lbl">Aircraft Type</div><div class="ic-val sm" id="d-type">–</div></div>
+      <div class="ic"><div class="ic-ico">🌍</div><div class="ic-lbl">Ground Speed</div><div class="ic-val" id="d-gs">– km/h</div></div>
     </div>
+
+    <div class="ic g1" id="d-pax-card" style="display:none;">
+      <div class="ic-ico">👥</div>
+      <div class="ic-lbl">Max Passenger Capacity</div>
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:4px;">
+        <div class="ic-val" id="d-pax">–</div>
+        <div style="font-size:11px;font-weight:700;color:var(--text2);" id="d-pax-sub"></div>
+      </div>
+      <div class="pax-track"><div class="pax-fill" id="d-pax-bar"></div></div>
+    </div>
+
+    <div class="ic g1">
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <div><div class="ic-ico">📊</div><div class="ic-lbl">Vertical Rate</div><div class="ic-val" id="d-vr">0 ft/min</div></div>
+        <div style="text-align:right;"><div class="ic-lbl">Altitude (metres)</div><div class="ic-val" id="d-altm" style="color:var(--green)">– m</div></div>
+      </div>
+    </div>
+
+  </div>
 </div>
 
 <script>
-function setFast(id, val) { var el = document.getElementById(id); if(el && el._lastVal !== val) { el.innerHTML = val; el._lastVal = val; } }
-function setStyleFast(id, prop, val) { var el = document.getElementById(id); if(el && el['_last'+prop] !== val) { el.style[prop] = val; el['_last'+prop] = val; } }
-function vibrate(ms) { if(navigator.vibrate) navigator.vibrate(ms); }
+// ── AIRCRAFT PASSENGER DATABASE ──────────────────────────────────
+var PAX={
+  'A318':107,'A319':156,'A320':180,'A321':220,'A20N':165,'A21N':244,'A19N':160,
+  'A332':253,'A333':277,'A338':257,'A339':300,'A342':266,'A343':295,'A345':313,'A346':359,
+  'A359':369,'A35K':440,'A388':555,'A306':258,'A310':240,
+  'B732':149,'B733':149,'B734':168,'B735':132,'B736':149,'B737':172,
+  'B738':189,'B739':215,'B37M':210,'B38M':210,'B39M':220,'B3XM':230,
+  'B741':660,'B742':452,'B743':496,'B744':524,'B748':605,
+  'B752':239,'B753':295,'B762':207,'B763':261,'B764':375,
+  'B772':440,'B773':550,'B77L':317,'B77W':396,'B778':426,'B779':426,
+  'B788':248,'B789':296,'B78X':330,
+  'AT43':48,'AT45':50,'AT72':78,'AT75':78,'AT76':78,
+  'E135':37,'E145':50,'E170':78,'E175':88,'E190':114,'E195':124,
+  'E75L':88,'E75S':76,'E295':146,
+  'CRJ2':50,'CRJ7':78,'CRJ9':90,'CRJX':100,
+  'DH8A':37,'DH8B':39,'DH8C':56,'DH8D':90,
+  'MD11':298,'MD82':172,'MD83':172,'MD81':172,
+  'F100':109,'F70':80,
+  'C56X':8,'C25A':8,'C25B':9,'C525':8,'GL5T':19,'GLEX':19,
+  'PC12':9,'C208':14
+};
 
-var map, flights=[], selId=null, mks={}, isGlobeMode=false, world=null;
-var isCameraLocked=false, routeDataCache=null, lastFrameTime=performance.now();
+// ── GLOBALS ──────────────────────────────────────────────────────
+var map, world=null, flights=[], mks={}, selId=null;
+var isGlobe=false, isCamLock=false, dashOpen=false;
+var islandMode='search'; // MUST be declared globally
+var routeCache=null, lastFrame=performance.now();
 
+// ── UTILS ────────────────────────────────────────────────────────
+function sf(id,v){ var e=document.getElementById(id); if(e&&e._v!==v){e.innerHTML=v;e._v=v;} }
+function ss(id,p,v){ var e=document.getElementById(id); if(e&&e['_s'+p]!==v){e.style[p]=v;e['_s'+p]=v;} }
+function vib(ms){ try{navigator.vibrate&&navigator.vibrate(ms);}catch(e){} }
+function fmt(s){
+  if(!s||s<0) return '0h 00m 00s';
+  var h=Math.floor(s/3600), m=Math.floor((s%3600)/60), sc=Math.floor(s%60);
+  return h+'h '+(m<10?'0':'')+m+'m '+(sc<10?'0':'')+sc+'s';
+}
+function hav(la1,lo1,la2,lo2){
+  var R=6371,r=Math.PI/180;
+  var a=Math.pow(Math.sin((la2-la1)*r/2),2)+Math.cos(la1*r)*Math.cos(la2*r)*Math.pow(Math.sin((lo2-lo1)*r/2),2);
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+function xhr(url){
+  return new Promise((res,rej)=>{
+    var x=new XMLHttpRequest(); x.open('GET',url,true); x.timeout=10000;
+    x.onload=()=>{ try{res(JSON.parse(x.responseText));}catch(e){rej(e);} };
+    x.onerror=rej; x.send();
+  });
+}
+function getPhase(f){
+  if(f.ground) return {label:'ON GROUND',cls:'ch-ground',icon:'🅿️'};
+  var vr=(f.vrMs||0)*196.85;
+  if(vr>200) return {label:'CLIMBING',cls:'ch-climb',icon:'↗'};
+  if(vr<-200) return {label:'DESCENDING',cls:'ch-descent',icon:'↘'};
+  return {label:'CRUISE',cls:'ch-cruise',icon:'→'};
+}
+
+// ── MAP INIT ─────────────────────────────────────────────────────
 function initMap(){
-  map=L.map('map',{zoomControl:false,attributionControl:false, zoomAnimation: false}).setView([60.45,22.27],6);
+  map=L.map('map',{zoomControl:false,attributionControl:false,zoomAnimation:false}).setView([60.45,22.27],6);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19}).addTo(map);
-  map.on('dragstart', () => { if(selId){ isCameraLocked=false; document.getElementById('btnRecenter').classList.add('show'); } });
+  map.on('dragstart',()=>{ if(selId){isCamLock=false;document.getElementById('rcb').classList.add('on');} });
 }
-function xhrGet(url){ return new Promise((res,rej)=>{ var x=new XMLHttpRequest(); x.open('GET',url,true); x.timeout=10000; x.onload=()=>res(JSON.parse(x.responseText)); x.onerror=rej; x.send(); }); }
 
-var dashOpen = false;
-function toggleDash(){ dashOpen = !dashOpen; vibrate(10); document.getElementById('dash').classList.toggle('expanded'); document.getElementById('dashArrow').style.transform = dashOpen ? 'rotate(180deg)' : 'none'; }
-function handleIslandClick() { var isl = document.getElementById('dynIsland'); if(selId) { if(!document.getElementById('det').classList.contains('open')) document.getElementById('det').classList.add('open'); } else { vibrate(10); document.getElementById('islandLogo').style.display='none'; document.getElementById('islandSearch').style.display='block'; isl.style.width='calc(100% - 32px)'; isl.style.height='60px'; } }
-function resetIsland() { selId = null; var isl = document.getElementById('dynIsland'); isl.className = 'dynamic-island search-mode'; document.getElementById('islandFlight').style.display='none'; document.getElementById('islandSearch').style.display='none'; document.getElementById('islandLogo').style.display='flex'; isl.style.width = 'auto'; isl.style.height = '50px'; isCameraLocked = false; document.getElementById('btnRecenter').classList.remove('show'); document.getElementById('mapWrapper').classList.remove('cinematic-mode'); }
-function recenterCamera(e) { if(e) e.stopPropagation(); vibrate(10); isCameraLocked = true; document.getElementById('btnRecenter').classList.remove('show'); }
+// ── ISLAND ───────────────────────────────────────────────────────
+function handleIsland(){
+  if(selId){
+    if(!document.getElementById('det').classList.contains('open'))
+      document.getElementById('det').classList.add('open');
+  } else {
+    vib(10); islandMode='search';
+    document.getElementById('di-logo').style.display='none';
+    document.getElementById('di-search').style.display='block';
+    document.getElementById('sInput').focus();
+    document.getElementById('di').classList.remove('fm');
+    document.getElementById('di').classList.add('sm');
+  }
+}
+function setIslandFlight(f, routeLabel){
+  islandMode='flight';
+  document.getElementById('di-logo').style.display='none';
+  document.getElementById('di-search').style.display='none';
+  document.getElementById('di-flight').style.display='flex';
+  document.getElementById('di').className='di fm';
+  sf('di-cs', f.cs||f.reg||'???');
+  sf('di-rt', routeLabel||'<span class="ldot"></span>Live Focus');
+}
+function resetIsland(){
+  islandMode='search'; selId=null;
+  document.getElementById('di').className='di';
+  document.getElementById('di-flight').style.display='none';
+  document.getElementById('di-search').style.display='none';
+  document.getElementById('di-logo').style.display='flex';
+  isCamLock=false;
+  document.getElementById('rcb').classList.remove('on');
+  document.getElementById('mapWrapper').classList.remove('dim');
+}
+function recenter(e){
+  if(e) e.stopPropagation();
+  vib(10); isCamLock=true;
+  document.getElementById('rcb').classList.remove('on');
+}
 
-function formatTime(s) { if(!s || s<0) return '0h 00m 00s'; var h = Math.floor(s/3600), m = Math.floor((s%3600)/60), sec = Math.floor(s%60); return h+'h '+(m<10?'0':'')+m+'m '+(sec<10?'0':'')+sec+'s'; }
+// ── DASH ─────────────────────────────────────────────────────────
+function toggleDash(){
+  dashOpen=!dashOpen; vib(8);
+  document.getElementById('dash').classList.toggle('exp',dashOpen);
+  document.getElementById('dArrow').style.transform=dashOpen?'rotate(180deg)':'none';
+}
+function quickFind(){
+  vib(10);
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(p=>{
+      map.setView([p.coords.latitude,p.coords.longitude],8,{animate:true,duration:1});
+      setTimeout(fetchLive,800);
+    });
+  }
+}
 
+// ── SELECT FLIGHT ─────────────────────────────────────────────────
 async function selFlight(id){
-  vibrate(50); selId=id; isCameraLocked=true; document.getElementById('btnRecenter').classList.remove('show');
-  document.getElementById('mapWrapper').classList.add('cinematic-mode'); document.getElementById('dash').classList.add('hidden'); document.getElementById('det').classList.add('open');
-  
-  var f=flights.find(x=>x.id===id); if(!f)return; update2DIcons();
-  setFast('dCs',f.cs||id); setFast('dSub',f.desc||f.reg); setFast('dRgTxt', f.reg||'–');
-  
-  var isl = document.getElementById('dynIsland'); isl.className = 'dynamic-island flight-mode';
-  document.getElementById('islandLogo').style.display='none'; document.getElementById('islandSearch').style.display='none'; document.getElementById('islandFlight').style.display='flex';
-  setFast('islCs', f.cs||f.reg||'UNKNOWN'); setFast('islRoute', f.desc||'Live Focus');
+  vib(50); selId=id; isCamLock=true;
+  document.getElementById('rcb').classList.remove('on');
+  document.getElementById('mapWrapper').classList.add('dim');
+  document.getElementById('dash').classList.add('gone');
+  document.getElementById('det').classList.add('open');
+  routeCache=null;
 
-  var res = await Promise.all([fetchMeta(id), fetchRoute(f.cs)]); var meta=res[0], route=res[1];
-  if(route && route.origin) setFast('islRoute', route.origin.iata_code + ' ➔ ' + route.destination.iata_code);
-  setFast('dOp', meta?.registered_owner || '–'); setFast('dMd', [meta?.manufacturer, meta?.type].filter(Boolean).join(' ') || f.desc || '–');
+  var f=flights.find(x=>x.id===id); if(!f) return;
+  update2D();
+  sf('d-cs', f.cs||id);
+  sf('d-sub', f.desc||f.icaoType||f.reg||'Aircraft');
+  sf('d-reg', f.reg||'–');
+  sf('d-type', f.icaoType||f.desc||'–');
+  sf('d-gs', Math.round((f.velKt||0)*1.852)+' km/h');
+  setIslandFlight(f, null);
 
-  if(route && route.origin && route.destination){
-      document.getElementById('routeCard').style.display='block'; 
-      setFast('rOrigName', route.origin.name || route.origin.iata_code); 
-      setFast('rDestName', route.destination.name || route.destination.iata_code);
-      routeDataCache = { oLat: route.origin.latitude, oLon: route.origin.longitude, dLat: route.destination.latitude, dLon: route.destination.longitude };
-  } else { document.getElementById('routeCard').style.display='none'; routeDataCache=null; }
+  // Phase
+  var ph=getPhase(f); var dp=document.getElementById('d-phase');
+  dp.className='chip '+ph.cls; dp.innerHTML=ph.icon+' '+ph.label;
+
+  // Passenger capacity
+  var icao=(f.icaoType||'').toUpperCase();
+  var pax=PAX[icao]||0;
+  if(pax>0){
+    document.getElementById('d-pax-card').style.display='block';
+    sf('d-pax', pax.toLocaleString()+' seats');
+    sf('d-pax-sub', icao);
+    ss('d-pax-bar','width', Math.min(100,Math.round(pax/900*100))+'%');
+  } else {
+    document.getElementById('d-pax-card').style.display='none';
+  }
+
+  // Async: metadata + route
+  var res=await Promise.all([fetchMeta(id), fetchRoute(f.cs)]);
+  var meta=res[0], route=res[1];
+
+  if(meta){
+    sf('d-op', meta.registered_owner||'–');
+    var typeStr=[meta.manufacturer,meta.type].filter(Boolean).join(' ');
+    if(typeStr) sf('d-type', typeStr);
+    // Try PAX again with meta type
+    if(pax===0&&meta.type){
+      var mt=meta.type.replace(/\s/g,'').toUpperCase().substring(0,4);
+      pax=PAX[mt]||0;
+      if(pax>0){
+        document.getElementById('d-pax-card').style.display='block';
+        sf('d-pax', pax.toLocaleString()+' seats');
+        sf('d-pax-sub', mt);
+        ss('d-pax-bar','width', Math.min(100,Math.round(pax/900*100))+'%');
+      }
+    }
+  }
+
+  if(route&&route.origin&&route.destination){
+    setIslandFlight(f, route.origin.iata_code+' → '+route.destination.iata_code);
+    document.getElementById('routeCard').style.display='block';
+    sf('rOrig', route.origin.iata_code);
+    sf('rOrigCity', route.origin.name||'');
+    sf('rDest', route.destination.iata_code);
+    sf('rDestCity', route.destination.name||'');
+    routeCache={
+      oLat:route.origin.latitude, oLon:route.origin.longitude,
+      dLat:route.destination.latitude, dLon:route.destination.longitude
+    };
+  } else {
+    document.getElementById('routeCard').style.display='none';
+    routeCache=null;
+  }
 }
 
-function closeDetail(){ vibrate(20); document.getElementById('det').classList.remove('open'); document.getElementById('dash').classList.remove('hidden'); resetIsland(); update2DIcons(); }
+function closeDetail(){
+  vib(20);
+  document.getElementById('det').classList.remove('open');
+  document.getElementById('dash').classList.remove('gone');
+  resetIsland(); update2D(); routeCache=null;
+}
 
-// 3D GLOBE SETUP
-function initGlobe() {
-  world = Globe()(document.getElementById('globeViz'))
+// ── GLOBE ─────────────────────────────────────────────────────────
+function initGlobe(){
+  world=Globe()(document.getElementById('globeViz'))
     .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
     .showAtmosphere(true).atmosphereColor('#32ADE6').atmosphereAltitude(0.2)
-    .objectLat('currentLat').objectLng('currentLon')
-    .objectAltitude(d => d.ground ? 0.002 : 0.02 + ((d.altFt||0)/100000))
-    .objectThreeObject(d => { 
-        var mat = (d.id===selId) ? new THREE.MeshPhysicalMaterial({color:0x30D158,emissive:0x113311}) : new THREE.MeshPhysicalMaterial({color:0xffffff});
-        var grp = new THREE.Group(), fuse = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.015, 0.4, 12).rotateX(Math.PI/2), mat); grp.add(fuse);
-        var wing = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.005, 0.08), mat); wing.position.set(0,0,0.02); grp.add(wing);
-        var s = d.id===selId ? 3.0 : 1.5; grp.scale.set(s,s,s); d.__threeObj = grp; return grp; 
+    .objectLat('cLat').objectLng('cLon')
+    .objectAltitude(d=>d.ground?0.002:0.02+(d.altFt||0)/100000)
+    .objectThreeObject(d=>{
+      var sel=d.id===selId;
+      var mat=new THREE.MeshPhysicalMaterial({color:sel?0x30D158:0xffffff,metalness:.7,roughness:.2});
+      var g=new THREE.Group();
+      var fuse=new THREE.Mesh(new THREE.CylinderGeometry(.025,.015,.4,12).rotateX(Math.PI/2),mat); g.add(fuse);
+      var wing=new THREE.Mesh(new THREE.BoxGeometry(.35,.005,.08),mat); wing.position.set(0,0,.02); g.add(wing);
+      var s=sel?3:1.5; g.scale.set(s,s,s); d.__obj=g; return g;
     });
-  world.scene().add(new THREE.AmbientLight(0xffffff, 0.6)); world.scene().add(new THREE.DirectionalLight(0xffffff, 2.0).position.set(1, 1, 1));
-  world.controls().enableDamping = true; world.controls().addEventListener('start', () => { if(selId){ isCameraLocked=false; document.getElementById('btnRecenter').classList.add('show'); } });
-}
-function toggleGlobeMode() { vibrate(20); var btn = document.getElementById('btn3D'); if(isGlobeMode) { isGlobeMode=false; document.getElementById('globeViz').style.opacity=0; btn.classList.remove('active-blue'); if(world) map.setView([world.pointOfView().lat, world.pointOfView().lng], 6, {animate: false}); } else { if(!world) initGlobe(); isGlobeMode=true; document.getElementById('globeViz').style.opacity=1; btn.classList.add('active-blue'); world.objectsData([...flights]); } }
-
-// 🚀 HYPER-LIVE PHYSICS ENGINE (60 FPS) 🚀
-function animatePlanes(time){
-  var dt = (time - lastFrameTime) / 1000; lastFrameTime = time; if(dt > 0.1) dt = 0.1;
-  var isDetOpen = document.getElementById('det').classList.contains('open');
-
-  flights.forEach(f => {
-      // 1. Position Extrapolation
-      if(!f.ground && f.velMs > 0 && f.lastUpd) {
-          var age = (Date.now() - f.lastUpd) / 1000; if(age > 60) age = 60;
-          var dy = (f.velMs * age) * Math.cos(f.track * Math.PI / 180), dx = (f.velMs * age) * Math.sin(f.track * Math.PI / 180);
-          f.targetLat = f.baseLat + (dy / 111320); f.targetLon = f.baseLon + (dx / (111320 * Math.cos(f.baseLat * Math.PI / 180)));
-      } else { f.targetLat = f.baseLat; f.targetLon = f.baseLon; }
-
-      if(!f.currentLat) { f.currentLat = f.targetLat; f.currentLon = f.targetLon; }
-      f.currentLat += (f.targetLat - f.currentLat) * (dt * 5); f.currentLon += (f.targetLon - f.currentLon) * (dt * 5);
-
-      // 2. LIVE ALTITUDE EXTRAPOLATION (Calculates exact altitude dynamically based on vertical rate)
-      var ageForAlt = (Date.now() - f.lastUpd) / 1000; if(ageForAlt > 60) ageForAlt = 60;
-      var liveAlt = (f.altFt || 0) + ((f.vrMs || 0) * 3.28084 * ageForAlt);
-      if(f.smoothAlt == null) f.smoothAlt = liveAlt; 
-      f.smoothAlt += (liveAlt - f.smoothAlt) * (dt * 5); // Ticks up/down perfectly
-
-      // 3. LIVE SPEED (Adds micro fluctuation for realism)
-      var liveSpd = (f.velKt || 0) + (Math.sin(Date.now() / 800) * 0.4);
-      if(f.smoothSpd == null) f.smoothSpd = liveSpd; 
-      f.smoothSpd += (liveSpd - f.smoothSpd) * (dt * 2);
-      
-      if(f.smoothHdg == null) f.smoothHdg = f.track; var hD = f.track - f.smoothHdg; if(hD>180) hD-=360; if(hD<-180) hD+=360; f.smoothHdg += hD * (dt*3);
-
-      // DOM Updates
-      if(!isGlobeMode && mks[f.id]) { mks[f.id].setLatLng([f.currentLat, f.currentLon]); var inn = mks[f.id].getElement()?.querySelector('.plane-icon-inner'); if(inn) inn.style.transform = `rotate(${f.smoothHdg}deg)`; }
-      if(isGlobeMode && f.__threeObj && world) {
-          var c = world.getCoords(f.currentLat, f.currentLon, 0.02 + ((f.smoothAlt||0)/100000)); f.__threeObj.position.set(c.x, c.y, c.z);
-          f.__threeObj.lookAt(world.getCoords(f.targetLat, f.targetLon, 0.02)); f.__threeObj.rotateY(Math.PI); 
-          if(f.vrMs) f.__threeObj.rotateX(Math.max(-0.3, Math.min(0.3, f.vrMs / 15)));
-      }
-
-      // HYPER-LIVE UI UPDATES FOR SELECTED FLIGHT
-      if(f.id === selId) {
-          if(isCameraLocked) {
-              if(isGlobeMode && world) world.pointOfView({ lat: f.currentLat, lng: f.currentLon, altitude: world.pointOfView().altitude }, 0);
-              else if(!isGlobeMode && map) { var px = map.project([f.currentLat, f.currentLon], map.getZoom()); px.y += window.innerHeight * 0.15; map.setView(map.unproject(px, map.getZoom()), map.getZoom(), {animate: false}); }
-          }
-          if(islandMode === 'flight') { setFast('islAlt', Math.round(f.smoothAlt).toLocaleString()+' FT'); setFast('islSpd', Math.round(f.smoothSpd)+' KT'); }
-          
-          if(isDetOpen) {
-              // Activity Rings Updates
-              var spdPct = Math.min(1, f.smoothSpd / 600), altPct = Math.min(1, f.smoothAlt / 40000);
-              document.getElementById('ringSpd').style.strokeDashoffset = 251.2 - (251.2 * spdPct); document.getElementById('ringAlt').style.strokeDashoffset = 251.2 - (251.2 * altPct);
-              setFast('rVSpd', Math.round(f.smoothSpd)); setFast('rVAlt', Math.round(f.smoothAlt).toLocaleString());
-              
-              var vr = f.vrMs * 196.85; var elVr = document.getElementById('dVrT'); if(elVr){ elVr.innerHTML = (vr>0?'▲ ':'▼ ') + Math.abs(Math.round(vr)).toLocaleString() + ' ft/min'; elVr.style.color = vr>100?'var(--green)':(vr<-100?'var(--blue)':'#fff'); }
-              
-              // CONTINUOUS ROUTE & TIME ENGINE
-              if(routeDataCache) {
-                  var dG = hav(routeDataCache.oLat, routeDataCache.oLon, f.currentLat, f.currentLon), dR = hav(f.currentLat, f.currentLon, routeDataCache.dLat, routeDataCache.dLon);
-                  var pct = Math.max(0, Math.min(100, (dG / (dG + dR)) * 100));
-                  setStyleFast('rProg', 'width', pct + '%'); setStyleFast('rPlane', 'left', pct + '%');
-                  
-                  // Live ticking distance with 2 decimals
-                  setFast('rDistRem', dR.toFixed(2) + ' <span style="font-size:11px;">KM</span>');
-                  
-                  if(f.velMs > 0) {
-                      var remSec = (dR * 1000) / f.velMs, elpSec = (dG * 1000) / f.velMs;
-                      setFast('rRem', formatTime(remSec)); setFast('rElap', formatTime(elpSec));
-                  }
-              }
-          }
-      }
+  world.scene().add(new THREE.AmbientLight(0xffffff,.7));
+  var dl=new THREE.DirectionalLight(0xffffff,2); dl.position.set(1,1,1); world.scene().add(dl);
+  world.controls().enableDamping=true; world.controls().dampingFactor=.05;
+  world.controls().addEventListener('start',()=>{
+    if(selId){isCamLock=false; document.getElementById('rcb').classList.add('on');}
   });
-  requestAnimationFrame(animatePlanes);
+}
+function toggleGlobe(){
+  vib(20); var btn=document.getElementById('btn-globe');
+  if(isGlobe){
+    isGlobe=false;
+    document.getElementById('globeViz').style.opacity=0;
+    document.getElementById('globeViz').style.pointerEvents='none';
+    btn.classList.remove('on');
+    if(world) map.setView([world.pointOfView().lat,world.pointOfView().lng],6,{animate:false});
+  } else {
+    if(!world) initGlobe(); isGlobe=true;
+    document.getElementById('globeViz').style.opacity=1;
+    document.getElementById('globeViz').style.pointerEvents='auto';
+    btn.classList.add('on');
+    world.objectsData([...flights]);
+  }
 }
 
-// FETCH ENGINE
-var isFetching = false;
+// ── 60 FPS PHYSICS ENGINE ─────────────────────────────────────────
+function loop(time){
+  var dt=(time-lastFrame)/1000; lastFrame=time; if(dt>.1) dt=.1;
+  var detOpen=document.getElementById('det').classList.contains('open');
+  var now=Date.now();
+
+  for(var i=0;i<flights.length;i++){
+    var f=flights[i];
+
+    // 1. Extrapolate target position
+    if(!f.ground&&f.velMs>0&&f.lastUpd){
+      var age=(now-f.lastUpd)/1000; if(age>60)age=60;
+      var dy=f.velMs*age*Math.cos(f.track*Math.PI/180);
+      var dx=f.velMs*age*Math.sin(f.track*Math.PI/180);
+      f.tLat=f.bLat+(dy/111320);
+      f.tLon=f.bLon+(dx/(111320*Math.cos(f.bLat*Math.PI/180)));
+    } else { f.tLat=f.bLat; f.tLon=f.bLon; }
+
+    // 2. Lerp current position → smooth motion
+    if(f.cLat==null){f.cLat=f.tLat; f.cLon=f.tLon;}
+    var lp=dt*5;
+    f.cLat+=(f.tLat-f.cLat)*lp;
+    f.cLon+=(f.tLon-f.cLon)*lp;
+
+    // 3. Live altitude via vertical rate extrapolation
+    var ageA=(now-f.lastUpd)/1000; if(ageA>60)ageA=60;
+    var lAlt=(f.altFt||0)+(f.vrMs||0)*3.28084*ageA;
+    if(f.sAlt==null) f.sAlt=lAlt;
+    f.sAlt+=(lAlt-f.sAlt)*(dt*6);
+
+    // 4. Live speed (micro-turbulence)
+    var lSpd=(f.velKt||0)+Math.sin(now/900)*.25;
+    if(f.sSpd==null) f.sSpd=lSpd;
+    f.sSpd+=(lSpd-f.sSpd)*(dt*3);
+
+    // 5. Smooth heading
+    if(f.sHdg==null) f.sHdg=f.track;
+    var hd=f.track-f.sHdg; if(hd>180)hd-=360; if(hd<-180)hd+=360;
+    f.sHdg+=hd*(dt*4);
+
+    // 6. Update 2D icon position + rotation
+    if(!isGlobe&&mks[f.id]){
+      mks[f.id].setLatLng([f.cLat,f.cLon]);
+      var inn=mks[f.id].getElement()?.querySelector('.pi');
+      if(inn) inn.style.transform='rotate('+f.sHdg+'deg)';
+    }
+
+    // 7. Update 3D object
+    if(isGlobe&&f.__obj&&world){
+      var c=world.getCoords(f.cLat,f.cLon,0.02+(f.sAlt||0)/100000);
+      f.__obj.position.set(c.x,c.y,c.z);
+      var nc=world.getCoords(f.tLat,f.tLon,0.02);
+      f.__obj.lookAt(nc.x,nc.y,nc.z); f.__obj.rotateY(Math.PI);
+      if(f.vrMs) f.__obj.rotateX(Math.max(-.3,Math.min(.3,f.vrMs/15)));
+    }
+
+    // ── LIVE HUD FOR SELECTED FLIGHT ───────────────────────────
+    if(f.id!==selId) continue;
+
+    // Camera lock
+    if(isCamLock){
+      if(isGlobe&&world){
+        world.pointOfView({lat:f.cLat,lng:f.cLon,altitude:world.pointOfView().altitude},0);
+      } else if(!isGlobe&&map){
+        var px=map.project([f.cLat,f.cLon],map.getZoom());
+        px.y+=window.innerHeight*.12;
+        map.setView(map.unproject(px,map.getZoom()),map.getZoom(),{animate:false});
+      }
+    }
+
+    // Island altitude & speed — every frame
+    if(islandMode==='flight'){
+      sf('di-alt', Math.round(f.sAlt).toLocaleString()+' FT');
+      sf('di-spd', Math.round(f.sSpd)+' KT');
+    }
+
+    // Phase chip (updates on change only)
+    var ph=getPhase(f); var dp=document.getElementById('d-phase');
+    if(dp&&dp._phc!==ph.cls){ dp.className='chip '+ph.cls; dp.innerHTML=ph.icon+' '+ph.label; dp._phc=ph.cls; }
+
+    if(!detOpen) continue;
+
+    // ── RINGS (60fps) ──────────────────────────────────────────
+    var sP=Math.min(1,f.sSpd/600);
+    var aP=Math.min(1,f.sAlt/41000);
+    var vr=(f.vrMs||0)*196.85, vrP=Math.min(1,Math.abs(vr)/3000);
+    ss('rSpd','strokeDashoffset', 251.2-(251.2*sP));
+    ss('rAlt','strokeDashoffset', 251.2-(251.2*aP));
+    ss('rVr','strokeDashoffset',  251.2-(251.2*vrP));
+    sf('rvSpd', Math.round(f.sSpd));
+    sf('rvAlt', Math.round(f.sAlt).toLocaleString());
+    sf('rvVr',  Math.abs(vr)>30?Math.round(Math.abs(vr)).toLocaleString():'0');
+
+    // Vertical rate card
+    var vrEl=document.getElementById('d-vr');
+    if(vrEl){ vrEl.innerHTML=(vr>0?'▲ ':'▼ ')+Math.abs(Math.round(vr)).toLocaleString()+' ft/min'; vrEl.style.color=vr>100?'var(--green)':(vr<-100?'var(--blue)':'#fff'); }
+
+    // Ground speed km/h & altitude metres
+    sf('d-gs', Math.round(f.sSpd*1.852).toLocaleString()+' km/h');
+    sf('d-altm', Math.round(f.sAlt*.3048).toLocaleString()+' m');
+
+    // ── LIVE ROUTE + TIMER (60fps, uses extrapolated position) ──
+    if(routeCache){
+      var dG=hav(routeCache.oLat,routeCache.oLon,f.cLat,f.cLon);
+      var dR=hav(f.cLat,f.cLon,routeCache.dLat,routeCache.dLon);
+      var tot=dG+dR, pct=tot>0?Math.max(0,Math.min(100,(dG/tot)*100)):0;
+
+      // Progress bar & plane icon
+      ss('rFill','width',  pct.toFixed(3)+'%');
+      ss('rIcon','left',   pct.toFixed(3)+'%');
+
+      // Distance: 2-decimal, ticks every frame
+      sf('rDistVal', dR.toFixed(2)+' KM');
+
+      // Time: derived from live position & speed, ticks every frame
+      if(f.sSpd>5){
+        var velMs=f.sSpd*.514444;
+        sf('rRem',  fmt((dR*1000)/velMs));
+        sf('rElap', fmt((dG*1000)/velMs));
+      }
+    }
+  }
+  requestAnimationFrame(loop);
+}
+
+// ── DATA FETCH ────────────────────────────────────────────────────
+var busy=false;
 async function fetchLive(){
-  if(isFetching) return; isFetching = true; var c = map.getCenter();
-  try{ 
-    var res=await xhrGet(`https://api.airplanes.live/v2/point/${c.lat}/${c.lng}/300`); var nTime = Date.now(), inIds = new Set(res.ac.map(s => s.hex)); flights = flights.filter(f => inIds.has(f.id)); 
-    res.ac.forEach(s => { if(!s.lat) return; var f = flights.find(x => x.id === s.hex);
-        if(f) { f.baseLat=s.lat; f.baseLon=s.lon; f.altFt=s.alt_baro==='ground'?0:s.alt_baro; f.ground=s.alt_baro==='ground'||s.gs<5; f.velKt=s.gs||0; f.velMs=s.gs?s.gs*0.514444:0; f.vrMs=s.baro_rate?s.baro_rate*0.00508:0; f.track=s.track||0; f.lastUpd=nTime; } 
-        else flights.push({ id:s.hex, cs:(s.flight||'').trim()||s.hex, reg:s.r, desc:s.desc, baseLat:s.lat, baseLon:s.lon, currentLat:s.lat, currentLon:s.lon, altFt:s.alt_baro==='ground'?0:s.alt_baro, ground:s.alt_baro==='ground'||s.gs<5, velKt:s.gs||0, velMs:s.gs?s.gs*0.514444:0, vrMs:s.baro_rate?s.baro_rate*0.00508:0, track:s.track||0, lastUpd:nTime });
+  if(busy)return; busy=true;
+  var c=map.getCenter();
+  try{
+    var res=await xhr('https://api.airplanes.live/v2/point/'+c.lat+'/'+c.lng+'/300');
+    var now=Date.now();
+    var inIds=new Set(res.ac.map(s=>s.hex));
+    flights=flights.filter(f=>inIds.has(f.id));
+    res.ac.forEach(s=>{
+      if(!s.lat)return;
+      var g=s.alt_baro==='ground'||s.gs<5;
+      var upd={
+        bLat:s.lat, bLon:s.lon,
+        altFt:g?0:(s.alt_baro||0),
+        ground:g, velKt:s.gs||0,
+        velMs:s.gs?s.gs*.514444:0,
+        vrMs:s.baro_rate?s.baro_rate*.00508:0,
+        track:s.track||0, lastUpd:now
+      };
+      var ex=flights.find(x=>x.id===s.hex);
+      if(ex){ Object.assign(ex,upd); }
+      else flights.push({
+        id:s.hex, cs:(s.flight||'').trim()||s.hex,
+        reg:s.r||'', desc:s.desc||'', icaoType:s.t||'',
+        cLat:s.lat, cLon:s.lon, sAlt:null, sSpd:null, sHdg:null,
+        ...upd
+      });
     });
-    update2DIcons(); if(isGlobeMode && world) world.objectsData([...flights]); 
-    var vis = flights.slice(0,50); setFast('dCount', vis.length + ' AIRCRAFT');
-    document.getElementById('flist').innerHTML = vis.map(f=>`<div class="flist-item" onclick="selFlight('${f.id}')"><div style="font-size:24px; margin-right:16px;">✈️</div><div style="flex:1;"><div style="font-weight:800; font-size:16px;">${f.cs||f.reg||'???'}</div><div style="font-size:12px; color:var(--text-sec);">${f.desc||'Aircraft'}</div></div><div style="font-weight:800; color:var(--blue);">${f.altFt?f.altFt.toLocaleString()+' ft':'GND'}</div></div>`).join('');
-  }catch(e){} isFetching = false;
+    update2D();
+    if(isGlobe&&world) world.objectsData([...flights]);
+    sf('dCount', flights.length+' AIRCRAFT');
+    document.getElementById('flist').innerHTML=flights.slice(0,60).map(f=>
+      `<div class="fi" onclick="selFlight('${f.id}')">
+        <div style="font-size:20px;margin-right:12px;">${f.ground?'🟡':'✈️'}</div>
+        <div style="flex:1;min-width:0;">
+          <div style="font-weight:800;font-size:16px;letter-spacing:-.3px;">${f.cs||f.reg||'???'}</div>
+          <div style="font-size:12px;color:var(--text2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${f.desc||f.icaoType||'Aircraft'}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0;">
+          <div style="font-weight:800;font-size:13px;color:var(--blue);font-variant-numeric:tabular-nums;">${f.altFt?f.altFt.toLocaleString()+' ft':'GND'}</div>
+          <div style="font-size:11px;color:var(--text2);font-weight:700;">${f.velKt?Math.round(f.velKt)+' kt':''}</div>
+        </div>
+      </div>`
+    ).join('');
+  }catch(e){console.warn(e);}
+  busy=false;
 }
 
-function update2DIcons() {
-    var cIds = {};
-    flights.forEach(f => { cIds[f.id] = true; var isS = (f.id === selId), col = isS ? 'var(--green)' : (f.ground ? 'var(--orange)' : '#fff'), clss = (selId && !isS) ? 'plane-icon-inner plane-unselected' : 'plane-icon-inner';
-        if(mks[f.id]) { var el = mks[f.id].getElement(); if(el) { el.querySelector('svg path').setAttribute('fill', col); el.querySelector('.plane-icon-inner').className = clss; var pulse = el.querySelector('.sel-pulse'); if(isS && !pulse) el.querySelector('.plane-icon-inner').innerHTML += `<div class="sel-pulse"></div>`; else if(!isS && pulse) pulse.remove(); } } 
-        else { var svg = `<svg width="32" height="32" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="${col}" stroke="rgba(0,0,0,0.5)" stroke-width="1" transform="translate(0, -2)"/></svg>`;
-            var html = `<div class="${clss}">` + (isS?`<div class="sel-pulse"></div>`:'') + svg + `</div>`; var mk = L.marker([f.currentLat, f.currentLon], {icon: L.divIcon({html, className:'', iconSize:[32,32], iconAnchor:[16,16]})}).addTo(map); mk.onclick = () => selFlight(f.id); mks[f.id] = mk; }
-    }); Object.keys(mks).forEach(id=>{ if(!cIds[id]){ map.removeLayer(mks[id]); delete mks[id]; } });
+function update2D(){
+  var seen={};
+  flights.forEach(f=>{
+    seen[f.id]=true;
+    var isS=f.id===selId;
+    var col=isS?'#30D158':(f.ground?'#FF9F0A':'#ffffff');
+    var cls=(selId&&!isS)?'pi pi-dim':'pi';
+    if(mks[f.id]){
+      var el=mks[f.id].getElement(); if(!el)return;
+      var path=el.querySelector('path'); if(path) path.setAttribute('fill',col);
+      var pi=el.querySelector('.pi'); if(pi) pi.className=cls;
+      var pulse=el.querySelector('.sel-r');
+      if(isS&&!pulse){ var d=document.createElement('div'); d.className='sel-r'; if(pi) pi.appendChild(d); }
+      else if(!isS&&pulse) pulse.remove();
+    } else {
+      var svg=`<svg width="30" height="30" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="${col}" stroke="rgba(0,0,0,.6)" stroke-width="1"/></svg>`;
+      var html=`<div class="${cls}">${isS?'<div class="sel-r"></div>':''}${svg}</div>`;
+      var mk=L.marker([f.cLat||f.bLat,f.cLon||f.bLon],{
+        icon:L.divIcon({html,className:'',iconSize:[30,30],iconAnchor:[15,15]})
+      }).addTo(map);
+      mk.on('click',()=>selFlight(f.id));
+      mks[f.id]=mk;
+    }
+  });
+  Object.keys(mks).forEach(id=>{ if(!seen[id]){ map.removeLayer(mks[id]); delete mks[id]; } });
 }
 
-function hav(la1,lo1,la2,lo2){ var R=6371,r=Math.PI/180, a=Math.pow(Math.sin((la2-la1)*r/2),2)+Math.cos(la1*r)*Math.cos(la2*r)*Math.pow(Math.sin((lo2-lo1)*r/2),2); return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)); }
-async function fetchMeta(id){ try{ var r=await xhrGet('https://api.adsbdb.com/v0/aircraft/'+id.toLowerCase()); return r?.response?.aircraft; }catch(e){return null;} }
-async function fetchRoute(cs){ if(!cs)return null; try{ var r=await xhrGet('https://api.adsbdb.com/v0/callsign/'+cs); return r?.response?.flightroute; }catch(e){return null;} }
+async function fetchMeta(id){
+  try{ var r=await xhr('https://api.adsbdb.com/v0/aircraft/'+id.toLowerCase()); return r?.response?.aircraft; }catch(e){return null;}
+}
+async function fetchRoute(cs){
+  if(!cs)return null;
+  try{ var r=await xhr('https://api.adsbdb.com/v0/callsign/'+cs.trim()); return r?.response?.flightroute; }catch(e){return null;}
+}
 
-window.addEventListener('load', ()=>{ initMap(); fetchLive(); setInterval(fetchLive, 4000); requestAnimationFrame(animatePlanes); });
+// ── BOOT ──────────────────────────────────────────────────────────
+window.addEventListener('load',()=>{
+  initMap();
+  fetchLive();
+  setInterval(fetchLive, 4000);
+  requestAnimationFrame(loop);
+});
 </script>
 </body>
 </html>
