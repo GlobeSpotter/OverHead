@@ -145,6 +145,35 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 .glowing-line { filter: drop-shadow(0 0 4px rgba(255, 149, 0, 0.8)); }
 .glowing-line-blue { filter: drop-shadow(0 0 4px rgba(10, 132, 255, 0.6)); }
+
+    #map { filter: saturate(1.2) contrast(1.1); } /* 8K HDR Feel */
+    @keyframes pulse-ring {
+      0% { transform: translate(-50%, -50%) scale(0.8); opacity: 1; }
+      100% { transform: translate(-50%, -50%) scale(3.5); opacity: 0; }
+    }
+    .sel-pulse {
+      position: absolute; top: 50%; left: 50%;
+      width: 24px; height: 24px;
+      background: rgba(10, 132, 255, 0.4);
+      border: 2px solid #0a84ff;
+      border-radius: 50%;
+      animation: pulse-ring 1.5s cubic-bezier(0.215, 0.61, 0.355, 1) infinite;
+      pointer-events: none;
+      z-index: -1;
+    }
+    .cam-badge {
+      position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.6); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      color: #34c759; font-weight: 800; font-size: 11px; padding: 6px 12px;
+      border-radius: 16px; letter-spacing: 1px; text-transform: uppercase;
+      display: flex; align-items: center; gap: 6px; z-index: 2500;
+      opacity: 0; transition: opacity 0.3s; pointer-events: none;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+    .cam-badge.show { opacity: 1; }
+    .cam-dot { width: 6px; height: 6px; background: #34c759; border-radius: 50%; box-shadow: 0 0 6px #34c759; animation: blink 1s infinite alternate; }
+    @keyframes blink { 0% { opacity: 1; } 100% { opacity: 0.4; } }
+
 </style>
 </head>
 <body style="overscroll-behavior-y: none;">
@@ -233,6 +262,7 @@ input:checked + .slider:before { transform: translateX(20px); }
     <div class="d-top-grad"></div>
     <div class="d-close" onclick="closeDetail()">✕</div>
     <div class="d-cr" id="dCr"></div>
+    <div class="cam-badge" id="camBadge"><div class="cam-dot"></div>CINEMATIC TRACKING</div>
   </div>
   <div class="d-scroll">
     <div class="d-head" style="display: flex; justify-content: space-between; align-items: center;">
@@ -554,6 +584,27 @@ function animatePlanes(){
         }
       }
 
+      
+      // CAMERA LOCK 
+      if(isCameraLocked) {
+         map.setView([cLat, cLon], map.getZoom(), {animate: false});
+      }
+
+      // LIVE ALTITUDE TICKING
+      if(f.altFt != null && f.vrMs != null && !f.ground) {
+          var liveAlt = f.altFt + (f.vrMs * 3.28084 * age_sec);
+          var liveAltM = liveAlt * 0.3048;
+          var elAl = document.getElementById('dAl');
+          if(elAl) {
+              elAl.innerText = Math.round(liveAlt).toLocaleString() + ' ft  (' + Math.round(liveAltM) + ' m)';
+              elAl.style.fontFamily = 'ui-monospace, SF Mono, Menlo, monospace';
+              elAl.style.fontVariantNumeric = 'tabular-nums';
+              if(f.vrMs > 0.5) elAl.style.color = '#34c759';
+              else if(f.vrMs < -0.5) elAl.style.color = '#0a84ff';
+              else elAl.style.color = '#1d1d1f';
+          }
+      }
+
       // 1000FPS REALTIME PROGRESS BAR UPDATE
       if(selRoute && !f.ground) {
         var o = selRoute.origin, dest = selRoute.destination;
@@ -834,7 +885,9 @@ function updateDetailStats(f){
         document.getElementById('pBar').style.width = progress + '%';
         document.getElementById('pPlane').style.left = progress + '%';
 
-        document.getElementById('tTotalDist').innerText = Math.round(totalDist).toLocaleString() + ' km Direct Route';
+        
+            document.getElementById('tTotalDist').innerHTML = '<span style="color:#0a84ff; font-weight:800; font-family: ui-monospace, SF Mono, Menlo, monospace; font-variant-numeric: tabular-nums; font-size: 14px;">' + distRem.toFixed(2) + ' km</span> REMAINING';
+
 
         var vKmh = f.velKt ? (f.velKt * 1.852) : (f.velMs ? f.velMs * 3.6 : 800);
         if(vKmh < 150) vKmh = 800;
@@ -863,6 +916,8 @@ async function selFlight(id){
   if(!f)return;
   closeSheet();
   document.getElementById('det').classList.add('open');
+  isCameraLocked = true;
+  document.getElementById('camBadge').classList.add('show');
   renderAll();
 
   set('dCs',f.cs||id);
@@ -1004,7 +1059,9 @@ async function selFlight(id){
         document.getElementById('pBar').style.width = progress + '%';
         document.getElementById('pPlane').style.left = progress + '%';
 
-        document.getElementById('tTotalDist').innerText = Math.round(totalDist).toLocaleString() + ' km Direct Route';
+        
+            document.getElementById('tTotalDist').innerHTML = '<span style="color:#0a84ff; font-weight:800; font-family: ui-monospace, SF Mono, Menlo, monospace; font-variant-numeric: tabular-nums; font-size: 14px;">' + distRem.toFixed(2) + ' km</span> REMAINING';
+
 
         var vKmh = f.velKt ? (f.velKt * 1.852) : (f.velMs ? f.velMs * 3.6 : 800);
         if(vKmh < 150) vKmh = 800; // rough cruise avg if no valid speed or taxiing mid air
