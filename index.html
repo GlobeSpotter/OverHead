@@ -132,7 +132,7 @@ body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "S
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
     Locate Me
   </button>
-  <button class="btn" onclick="document.getElementById('cfg').classList.add('open')">
+  <button class="btn" onclick="document.getElementById('cfg').classList.remove('hidden')">
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
     Radar Range
   </button>
@@ -236,9 +236,8 @@ function initMap(){
   // Update data when user moves the map
   
 map.on('click', function(){
-  if(!sheetCollapsed){
-    toggleSheet();
-  }
+  if(!sheetCollapsed) toggleSheet();
+  closeCfg();
 });
 map.on('moveend', function(){
     renderAll();
@@ -440,7 +439,12 @@ async function fetchLive(forceShowSheet){
   var center = map.getCenter();
   var zoom = map.getZoom();
 
-  var directUrl = 'https://api.airplanes.live/v2/point/'+center.lat+'/'+center.lng+'/' + searchRadius;
+  // If searchRadius is very large or zoom is zoomed out, /all is much faster than /point.
+  // The API servers cache /all heavily and it responds in 50ms.
+  // We just fetch /all and let our local JS filter it by bounds and radius!
+  var directUrl = searchRadius > 400 || zoom < 7 
+    ? 'https://api.airplanes.live/v2/all' 
+    : 'https://api.airplanes.live/v2/point/'+center.lat+'/'+center.lng+'/' + searchRadius;
 
   var ac=null;
   try{
@@ -493,8 +497,13 @@ function hav(la1,lo1,la2,lo2){
 }
 
 function renderAll(){
-  var bnds = map.getBounds().pad(0.5);
-  var visible = flights.filter(function(f){ return bnds.contains([f.lat, f.lon]); });
+  var center = map.getCenter();
+  var bnds = map.getBounds().pad(0.8);
+  var visible = flights.filter(function(f){ 
+    if(!bnds.contains([f.lat, f.lon])) return false;
+    var d = hav(center.lat, center.lng, f.lat, f.lon);
+    return d <= searchRadius;
+  });
   visible.sort(function(a,b){return (a.dist||0)-(b.dist||0);});
 
   var list=visible;
@@ -878,6 +887,38 @@ window.addEventListener('load',function(){
   initMap();
   fetchLive();
   startLive();
+
+var cfgY = 0;
+var cfgStartY = 0;
+var cfgDragging = false;
+
+document.getElementById('cfg').addEventListener('touchstart', function(e){
+  if(e.target.closest('.sh-drag-area')){
+    cfgStartY = e.touches[0].clientY;
+    cfgDragging = true;
+    document.getElementById('cfg').style.transition = 'none';
+  }
+});
+
+document.getElementById('cfg').addEventListener('touchmove', function(e){
+  if(!cfgDragging) return;
+  var delta = e.touches[0].clientY - cfgStartY;
+  if(delta > 0){
+    document.getElementById('cfg').style.transform = 'translateY(' + delta + 'px)';
+  }
+});
+
+document.getElementById('cfg').addEventListener('touchend', function(e){
+  if(!cfgDragging) return;
+  cfgDragging = false;
+  document.getElementById('cfg').style.transition = 'transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)';
+  document.getElementById('cfg').style.transform = '';
+
+  var delta = e.changedTouches[0].clientY - cfgStartY;
+  if(delta > 50){
+    closeCfg();
+  }
+});
 
 var sheetY = 0;
 var startY = 0;
