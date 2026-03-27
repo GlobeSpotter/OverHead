@@ -267,11 +267,31 @@ input:checked + .slider:before { transform: translateX(20px); }
         -webkit-text-fill-color: transparent;
     }
 
+
+    #mapWrapper {
+      position: fixed; inset: 0; z-index: 0;
+      perspective: 1000px;
+      overflow: hidden;
+      background: #0d1f0d; /* deep dark green/black */
+    }
+    #map {
+      position: absolute; inset: 0;
+      transform-style: preserve-3d;
+      transform-origin: 50% 70%;
+      will-change: transform;
+    }
+    .plane-icon-inner {
+      width: 100%; height: 100%;
+      transform: var(--icon-pitch, rotateX(0deg));
+      transform-style: preserve-3d;
+      transition: transform 0.1s linear;
+    }
+
 </style>
 </head>
 <body style="overscroll-behavior-y: none;">
 
-<div id="map"></div>
+<div id="mapWrapper"><div id="map"></div></div>
 
     
     <!-- OVERHEAD BRAND LOGO -->
@@ -578,6 +598,55 @@ var map, flights=[], selId=null, mks={}, chip='all', mcache={}, liveTimer=null;
 var lastFetchTime=0, isFetching=false, userPos=null, userHeading=0, userMarker=null, pastRouteLine=null, futureRouteLine=null;
 
 
+
+// --- 3D MAP PITCH LOGIC ---
+var currentPitch = 0;
+var mapPitching = false;
+var initialTouchY = 0;
+
+window.addEventListener('load', function() {
+  var mapWrapper = document.getElementById('mapWrapper');
+  if(mapWrapper) {
+    mapWrapper.addEventListener('touchstart', function(e) {
+      if(e.touches.length === 2) {
+        mapPitching = true;
+        initialTouchY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      }
+    }, {passive: false});
+
+    mapWrapper.addEventListener('touchmove', function(e) {
+      if(mapPitching && e.touches.length === 2) {
+        e.preventDefault();
+        var currentY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+        var deltaY = currentY - initialTouchY;
+
+        currentPitch -= deltaY * 0.5;
+        if(currentPitch < 0) currentPitch = 0;
+        if(currentPitch > 65) currentPitch = 65;
+
+        initialTouchY = currentY;
+
+        var mapEl = document.getElementById('map');
+        if(currentPitch > 0) {
+          var scale = 1 + (currentPitch / 80);
+          var yOffset = currentPitch * 2.5; 
+          mapEl.style.transform = 'translateY(' + yOffset + 'px) rotateX(' + currentPitch + 'deg) scale(' + scale + ')';
+          document.documentElement.style.setProperty('--icon-pitch', 'rotateX(' + (-currentPitch) + 'deg)');
+        } else {
+          mapEl.style.transform = 'none';
+          document.documentElement.style.setProperty('--icon-pitch', 'rotateX(0deg)');
+        }
+      }
+    }, {passive: false});
+
+    mapWrapper.addEventListener('touchend', function(e) {
+      if(e.touches.length < 2) {
+        mapPitching = false;
+      }
+    });
+  }
+});
+
 function initMap(){
   if(map)return;
   map=L.map('map',{
@@ -734,14 +803,6 @@ async function quickFind(){
 function startLive(){
   if(liveTimer) clearInterval(liveTimer);
   liveTimer = setInterval(fetchLive, 5000);
-  
-  // Update flowing route lines in JS for Canvas renderer
-  var timeMs = now % 1000;
-  var offset = Math.floor((timeMs / 1000) * 20); // 20 is dash array total length (8+12)
-  if(futureRouteLine) {
-      futureRouteLine.setStyle({dashOffset: -offset + ''});
-  }
-
   requestAnimationFrame(animatePlanes);
 }
 function animatePlanes(){
