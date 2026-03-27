@@ -115,8 +115,50 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:0 16px;height:52px;
 
 
 
+
 .sheet, .det {
-  background: rgba(255, 255, 255, 0.85) !important;
+  background: rgba(255, 255, 255, 0.75) !important;
+  backdrop-filter: blur(40px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(40px) saturate(200%) !important;
+  border-top-left-radius: 32px;
+  border-top-right-radius: 32px;
+  box-shadow: 0 -10px 50px rgba(0,0,0,0.15) !important;
+  border-top: 1px solid rgba(255,255,255,0.6);
+}
+.dhr { 
+  background: transparent !important; 
+  border-bottom: 1px solid rgba(0,0,0,0.06) !important; 
+  padding: 24px 24px 22px !important;
+}
+.dcs { font-weight: 800; font-size: 32px; letter-spacing: -0.8px; }
+.fc { 
+  background: rgba(255, 255, 255, 0.8) !important; 
+  box-shadow: 0 4px 15px rgba(0,0,0,0.04) !important; 
+  border: 1px solid rgba(0,0,0,0.03) !important; 
+  border-radius: 20px !important; 
+  margin: 0 16px 12px !important;
+  padding: 16px !important;
+  transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1) !important; 
+}
+.fc:active { 
+  transform: scale(0.96) !important; 
+  background: rgba(255,255,255,1) !important; 
+  box-shadow: 0 2px 8px rgba(0,0,0,0.02) !important;
+}
+.btnp { 
+  font-weight: 600 !important; 
+  letter-spacing: -0.3px !important; 
+  border-radius: 20px !important; 
+  background: #007aff !important;
+  color: white !important;
+  box-shadow: 0 4px 14px rgba(0,122,255,0.3) !important;
+}
+.dph {
+  border-top-left-radius: 32px;
+  border-top-right-radius: 32px;
+}
+
+/* 
   backdrop-filter: blur(35px) saturate(200%) !important;
   -webkit-backdrop-filter: blur(35px) saturate(200%) !important;
   border-top-left-radius: 24px;
@@ -128,6 +170,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:0 16px;height:52px;
 .fc:active { transform: scale(0.97); background: rgba(255,255,255,0.9) !important; }
 .btnp { font-weight: 600 !important; letter-spacing: -0.3px !important; border-radius: 18px !important; }
 .dph-ic { font-size: 80px; color: rgba(0,0,0,0.08); text-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+*/
 .fcb { font-weight: 600 !important; letter-spacing: -0.2px !important; }
 
 </style>
@@ -371,24 +414,35 @@ function animatePlanes(){
   for(var i=0; i<ids.length; i++){
     var mk = mks[ids[i]];
     var f = mk.f;
-    if(!f || f.ground || !f.velMs) continue;
+    if(!f || !f.lat || !f.lon) continue;
 
-    var dt = now - mk.startTime;
-    var progress = dt / 5000;
+    var cLat = f.lat, cLon = f.lon;
 
-    var cLat, cLon;
-    if(progress <= 1 && mk.startLat!=null && mk.targetLat!=null){
-      cLat = mk.startLat + (mk.targetLat - mk.startLat) * progress;
-      cLon = mk.startLon + (mk.targetLon - mk.startLon) * progress;
-    } else {
-      var extraTime = (dt - 5000) / 1000;
-      if(extraTime < 0) extraTime = 0;
-      if(extraTime > 60) continue; 
-      var d = f.velMs * extraTime;
-      var dy = d * Math.cos(f.track * Math.PI / 180);
-      var dx = d * Math.sin(f.track * Math.PI / 180);
-      cLat = mk.targetLat + (dy / 111320);
-      cLon = mk.targetLon + (dx / (111320 * Math.cos(mk.targetLat * Math.PI / 180)));
+    if(!f.ground && f.velMs != null && f.lastUpd != null){
+      var age_sec = (now - f.lastUpd) / 1000;
+      if(age_sec > 0 && age_sec < 60){
+        // Extrapolate current real position
+        var d = f.velMs * age_sec;
+        var dy = d * Math.cos(f.track * Math.PI / 180);
+        var dx = d * Math.sin(f.track * Math.PI / 180);
+        cLat = f.lat + (dy / 111320);
+        cLon = f.lon + (dx / (111320 * Math.cos(f.lat * Math.PI / 180)));
+
+        // If we just got new data, smooth the jump over 2 seconds
+        var tSinceNewData = now - mk.startTime;
+        if(tSinceNewData < 2000 && mk.startLat != null && mk.startLon != null){
+          var blend = tSinceNewData / 2000; // 0 to 1
+          // Extrapolate where the OLD trajectory would be right now
+          var dOld = f.velMs * ((now - mk.oldDataTime) / 1000);
+          var dyOld = dOld * Math.cos(mk.oldTrack * Math.PI / 180);
+          var dxOld = dOld * Math.sin(mk.oldTrack * Math.PI / 180);
+          var oldLat = mk.oldLat + (dyOld / 111320);
+          var oldLon = mk.oldLon + (dxOld / (111320 * Math.cos(mk.oldLat * Math.PI / 180)));
+
+          cLat = oldLat + (cLat - oldLat) * blend;
+          cLon = oldLon + (cLon - oldLon) * blend;
+        }
+      }
     }
 
     mk.setLatLng([cLat, cLon]);
@@ -505,17 +559,18 @@ function renderAll(){
     var col=f.ground?'#ff9500':ov?'#34c759':'#FFCC00';
     var isHeli = f.cat==='A7';
     var iconSvg = isHeli 
-      ? '<svg width="22" height="22" viewBox="0 0 24 24" style="filter:drop-shadow(0 1px 3px rgba(0,0,0,.4))"><path transform-origin="12 12" transform="rotate('+f.track+')" d="M12 2L12 10M12 10L14 14H10L12 10ZM8 4H16M11 22H13" stroke="'+col+'" stroke-width="2" fill="none"/></svg>'
-      : '<svg width="22" height="22" viewBox="0 0 24 24" style="filter:drop-shadow(0 1px 3px rgba(0,0,0,.4))"><path transform-origin="12 12" transform="rotate('+f.track+')" d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="'+col+'"/></svg>';
+      ? '<svg width="22" height="22" viewBox="0 0 24 24" style="filter:drop-shadow(0 1px 3px rgba(0,0,0,.4))"><g transform="rotate('+f.track+' 12 12)"><path d="M12 2L12 10M12 10L14 14H10L12 10ZM8 4H16M11 22H13" stroke="'+col+'" stroke-width="2" fill="none"/></g></svg>'
+      : '<svg width="22" height="22" viewBox="0 0 24 24" style="filter:drop-shadow(0 1px 3px rgba(0,0,0,.4))"><g transform="rotate('+f.track+' 12 12)"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="'+col+'"/></g></svg>';
 
     if(mks[f.id]){
       var mk = mks[f.id];
-      // Only reset tween if API actually gave a new coordinate!
-      if(mk.targetLat !== f.lat || mk.targetLon !== f.lon){
+      if(mk.f.lastUpd !== f.lastUpd){
+        mk.oldLat = mk.f.lat;
+        mk.oldLon = mk.f.lon;
+        mk.oldTrack = mk.f.track;
+        mk.oldDataTime = mk.f.lastUpd;
         mk.startLat = mk.getLatLng().lat;
         mk.startLon = mk.getLatLng().lng;
-        mk.targetLat = f.lat;
-        mk.targetLon = f.lon;
         mk.startTime = Date.now();
       }
       mk.f = f;
@@ -528,11 +583,9 @@ function renderAll(){
       })}).addTo(map);
       mk.on('click',function(){selFlight(f.id);});
       mk.f = f;
-      mk.startLat = f.lat;
-      mk.startLon = f.lon;
-      mk.targetLat = f.lat;
-      mk.targetLon = f.lon;
-      mk.startTime = Date.now();
+      mk.oldLat = f.lat; mk.oldLon = f.lon; mk.oldTrack = f.track; mk.oldDataTime = f.lastUpd;
+      mk.startLat = f.lat; mk.startLon = f.lon;
+      mk.startTime = 0; // Don't blend on first spawn
       mks[f.id]=mk;
     }
   });
@@ -589,12 +642,28 @@ async function selFlight(id){
 
   var img=document.getElementById('dImg');
   img.classList.remove('ok');img.src='';img.style.display='block';
-  fetchPhoto(id).then(function(p){if(p){img.onload=function(){img.classList.add('ok');};img.src=p.src;set('dCr',p.credit);}});
+  set('dCr','');
+
+  var photoLoaded = false;
+  fetchPhoto(id).then(function(p){
+    if(p && !photoLoaded){
+      photoLoaded = true;
+      img.onload=function(){img.classList.add('ok');};
+      img.src=p.src;
+      set('dCr',p.credit);
+    }
+  });
 
   var results=await Promise.all([fetchMeta(id),fetchRoute(f.cs)]);
   var meta=results[0],route=results[1];
 
   if(meta){
+    if(!photoLoaded && (meta.url_photo || meta.url_photo_thumbnail)){
+      photoLoaded = true;
+      img.onload=function(){img.classList.add('ok');};
+      img.src = meta.url_photo || meta.url_photo_thumbnail;
+      set('dCr', '📷 Airport-Data.com');
+    }
     var mdl=[meta.manufacturer,meta.type].filter(Boolean).join(' ')||f.desc||'–';
     set('dOp',meta.registered_owner||'–');
     var tags2=[];
@@ -734,8 +803,8 @@ function card(f){
   else if(ov)badge='<span class="fcb" style="background:rgba(52,199,89,.12);color:#34c759">🎯 Overhead</span>';
   var isHeli = f.cat==='A7';
   var plane = isHeli 
-    ? '<svg width="28" height="28" viewBox="0 0 24 24"><path transform-origin="12 12" transform="rotate('+f.track+')" d="M12 2L12 10M12 10L14 14H10L12 10ZM8 4H16M11 22H13" stroke="'+col+'" stroke-width="2" fill="none"/></svg>'
-    : '<svg width="28" height="28" viewBox="0 0 24 24"><path transform-origin="12 12" transform="rotate('+f.track+')" d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="'+col+'"/></svg>';
+    ? '<svg width="28" height="28" viewBox="0 0 24 24"><g transform="rotate('+f.track+' 12 12)"><path d="M12 2L12 10M12 10L14 14H10L12 10ZM8 4H16M11 22H13" stroke="'+col+'" stroke-width="2" fill="none"/></g></svg>'
+    : '<svg width="28" height="28" viewBox="0 0 24 24"><g transform="rotate('+f.track+' 12 12)"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="'+col+'"/></g></svg>';
 
   return '<div class="fc'+(f.id===selId?' sel':'')+'" onclick="selFlight(\''+f.id+'\')">'+
     '<div class="fci">'+plane+'</div>'+
