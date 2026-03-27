@@ -172,6 +172,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 </div>
 
 <!-- Settings Modal -->
+<div id="cfgOv" style="position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 2999; display: none; opacity: 0; transition: opacity 0.4s;" onclick="closeCfg()"></div>
 <div class="sheet hidden" id="cfg" style="z-index: 3000; height: auto; transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);">
   <div class="sh-drag-area" onclick="closeCfg()">
     <div class="sh-handle"></div>
@@ -1051,7 +1052,10 @@ function openCfg(){g('cfg').classList.add('open');g('cfgov').style.display='bloc
 
 function openCfg(e){
   if(e) e.stopPropagation();
+  if(navigator.vibrate) navigator.vibrate(30);
   document.getElementById('cfg').classList.remove('hidden');
+  var ov = document.getElementById('cfgOv');
+  if(ov) { ov.style.display = 'block'; setTimeout(function(){ ov.style.opacity = '1'; }, 10); }
 }
 function closeCfg(){g('cfg').classList.remove('open');g('cfgov').style.display='none';}
 function closeDetail(){
