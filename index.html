@@ -147,7 +147,7 @@ input:checked + .slider:before { transform: translateX(20px); }
 .glowing-line-blue { filter: drop-shadow(0 0 4px rgba(10, 132, 255, 0.6)); }
 </style>
 </head>
-<body>
+<body style="overscroll-behavior-y: none;">
 
 <div id="map"></div>
 
@@ -274,16 +274,24 @@ input:checked + .slider:before { transform: translateX(20px); }
     </div>
 
 
+    
     <div class="dsec">
       <div class="dsec-t">Aircraft Info</div>
       <div class="dr"><div class="dl">Operator</div><div class="dv" id="dOp">–</div></div>
-      <div class="dr"><div class="dl">Model</div><div class="dv" id="dMd" style="max-width: 60%; line-height: 1.3; text-align: right;">–</div></div>
+      <div class="dr"><div class="dl">Model</div><div class="dv" id="dMd" style="max-width: 60%; line-height: 1.3; text-align: right; color: #1d1d1f; font-weight: 500;">–</div></div>
       <div class="dr"><div class="dl">Length</div><div class="dv" id="dLn">–</div></div>
-      <div class="dr"><div class="dl">Engines</div><div class="dv" id="dEn" style="max-width: 60%; line-height: 1.3; text-align: right;">–</div></div>
-
       <div class="dr"><div class="dl">Year Built</div><div class="dv" id="dBy">–</div></div>
-      <div class="dr"><div class="dl">Model Released</div><div class="dv" id="dRl">–</div></div>
     </div>
+
+    <div class="dsec" id="perfSec">
+      <div class="dsec-t">Performance & Specs</div>
+      <div class="dr"><div class="dl">Engines</div><div class="dv" id="dEn" style="max-width: 60%; line-height: 1.3; text-align: right; color: #1d1d1f; font-weight: 500;">–</div></div>
+      <div class="dr"><div class="dl">Max Range</div><div class="dv" id="dRg" style="color: #0a84ff;">–</div></div>
+      <div class="dr"><div class="dl">Max Takeoff Weight</div><div class="dv" id="dTw">–</div></div>
+      <div class="dr"><div class="dl">Empty Weight</div><div class="dv" id="dEw">–</div></div>
+      <div class="dr"><div class="dl">Fuel Capacity</div><div class="dv" id="dFc">–</div></div>
+    </div>
+
 
     <div class="dsec">
       <div class="dsec-t">Technical</div>
@@ -312,7 +320,9 @@ function initMap(){
     maxBounds:[[-90,-180],[90,180]],
     maxBoundsViscosity:1.0,
     minZoom: 3,
-    bounceAtZoomLimits: true
+    bounceAtZoomLimits: true,
+    preferCanvas: true, // ULTIMATE FPS BOOST for vector graphics
+    wheelPxPerZoomLevel: 120, updateWhenIdle: true, updateWhenZooming: false
   }).setView([60.45,22.27],6);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{
     maxZoom:19, 
@@ -461,12 +471,18 @@ function startLive(){
   requestAnimationFrame(animatePlanes);
 }
 function animatePlanes(){
+
   var now = Date.now();
+  var bnds = map.getBounds().pad(0.2); // Only animate what is visible + slight margin
   var ids = Object.keys(mks);
   for(var i=0; i<ids.length; i++){
     var mk = mks[ids[i]];
     var f = mk.f;
     if(!f || !f.lat || !f.lon) continue;
+
+    // Quick bounds check
+    if(!bnds.contains([f.lat, f.lon]) && f.id !== selId) continue;
+
 
     var cLat = f.lat, cLon = f.lon;
 
@@ -805,7 +821,7 @@ async function selFlight(id){
     var t=(meta.icao_type||f.type||'').toUpperCase();
     set('dLn',ACLEN[t]?ACLEN[t]+' m':'–');
     set('dEn',ACENG[t]||meta.engines||'–');
-    set('dRl',ACREL[t]?ACREL[t]:'–');
+    
     if(meta.registration)fetchBuiltYear(meta.registration).then(function(yr){set('dBy',yr||'–');});
   }else{
     set('dOp','–'); set('dMd', f.desc || '–');
@@ -1005,6 +1021,52 @@ function card(f){
 }
 
 var ACLEN={A318:31.4,A319:33.8,A320:37.6,A321:44.5,A20N:37.6,A21N:44.5,A332:58.8,A333:63.7,A338:63.7,A339:63.7,A359:66.8,A35K:73.8,A388:72.7,B736:31.1,B737:33.6,B738:39.5,B739:42.1,B744:70.7,B748:76.3,B752:47.3,B753:54.5,B762:48.5,B763:54.9,B764:61.4,B772:63.7,B77L:64.8,B77W:73.9,B77X:76.7,B788:57,B789:63,B78X:68.3,E170:29.9,E175:31.7,E190:36.2,E195:38.7,CRJ2:24.4,CRJ7:32.5,CRJ9:36.2,DH8D:32.8,AT72:27.2};
+
+
+var ACSPECS = {
+  // Narrowbodies
+  'A319': [6950, 75500, 40800, 24210],
+  'A320': [6100, 78000, 42600, 24210],
+  'A321': [5950, 93500, 47500, 24050],
+  'A20N': [6300, 79000, 44300, 26730], // A320neo
+  'A21N': [7400, 97000, 50100, 32940], // A321neo (LR)
+  'A221': [6390, 60781, 35290, 21508], // CS100
+  'A223': [6204, 67585, 37080, 21508], // CS300
+  'B737': [4600, 68000, 32900, 20100], // 737-700
+  'B738': [5436, 79010, 41413, 26020], // 737-800
+  'B739': [5460, 85130, 44676, 26020], // 737-900ER
+  'B38M': [6570, 82190, 45070, 25816], // 737 MAX 8
+  'B39M': [6570, 88314, 47490, 25816], // 737 MAX 9
+  // Widebodies
+  'A332': [13450, 242000, 119600, 139090],
+  'A333': [11750, 242000, 124500, 139090],
+  'A339': [13334, 251000, 137000, 139090], // A330-900neo
+  'A359': [15372, 280000, 142400, 141000], // A350-900
+  'A35K': [16100, 319000, 155000, 159000], // A350-1000
+  'A388': [14800, 575000, 276800, 320000],
+  'B763': [11070, 186880, 90010, 91370],
+  'B772': [13080, 297550, 135870, 171170],
+  'B77W': [13649, 351534, 167829, 181283], // 777-300ER
+  'B788': [13620, 227930, 119500, 126206],
+  'B789': [14140, 254011, 128850, 126206],
+  'B78X': [11910, 254011, 135500, 126206],
+  'B744': [13450, 396890, 183500, 216840],
+  'B748': [14310, 447700, 220100, 238610],
+  // Regional & Turboprops
+  'E170': [3982, 38600, 21140, 9335],
+  'E175': [4074, 40370, 21810, 9335],
+  'E190': [4537, 51800, 27837, 16250],
+  'E195': [4260, 52290, 28667, 16250],
+  'E290': [5278, 56400, 33000, 13690],
+  'E295': [4815, 61500, 35700, 13690],
+  'CRJ2': [3148, 24040, 13835, 8081],
+  'CRJ7': [2553, 34019, 19731, 7492],
+  'CRJ9': [2870, 38330, 21433, 8822],
+  'DH8D': [2040, 29257, 17185, 5776], // Q400
+  'AT72': [1528, 23000, 13311, 5000],
+  'AT75': [1528, 23000, 13311, 5000],
+  'AT76': [1528, 23000, 13311, 5000]
+};
 
 var ACREL={
 A318:2003,A319:1996,A320:1988,A321:1994,A20N:2017,A21N:2018,A332:1998,A333:1994,A338:2020,A339:2018,
