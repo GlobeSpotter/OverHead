@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-<title>Overhead Ultra — Liquid Flat</title>
+<title>Overhead Ultra — True Live</title>
 
 <!-- LEAFLET -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -16,11 +16,9 @@
   /* EXTREME LIQUID GLASS LIGHT THEME */
   --bg: #F2F2F7;
   
-  /* Erittäin läpinäkyvä huurrelasi */
   --surface: rgba(255, 255, 255, 0.45);
   --surface-solid: rgba(255, 255, 255, 0.85);
   
-  /* Applen tyyliset paksut ja ohuet sisäreunat (valon heijastus) */
   --glass-border: rgba(255, 255, 255, 0.7);
   --glass-highlight: inset 0 1px 1px rgba(255, 255, 255, 1), inset 0 -1px 2px rgba(255, 255, 255, 0.4);
   
@@ -28,7 +26,7 @@
   --text-2: #3C3C43;
   --text-3: #8E8E93;
   
-  --blue: #0A84FF; --green: #34C759;
+  --blue: #0A84FF; --green: #34C759; --orange: #FF9F0A;
   
   --blur: saturate(200%) blur(50px);
   --spring: cubic-bezier(0.22, 1, 0.36, 1);
@@ -99,7 +97,7 @@ body { user-select: none; }
 .island.focus ~ .map-status { transform: translateY(60px); }
 .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 1.8s ease-in-out infinite; box-shadow: 0 0 8px rgba(52,199,89,0.6); }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
-.live-dot.sim { background: var(--orange); box-shadow: 0 0 8px rgba(255,159,10,0.6); } /* Oranssi jos simulaatio! */
+.live-dot.warn { background: var(--orange); box-shadow: 0 0 8px rgba(255,159,10,0.6); animation: none; } 
 
 .side-controls { position: fixed; right: 14px; top: calc(max(14px, env(safe-area-inset-top)) + 84px); z-index: 2100; display: flex; flex-direction: column; gap: 10px; transition: transform 0.4s var(--spring); }
 .island.focus ~ .side-controls { transform: translateY(60px); }
@@ -186,9 +184,9 @@ body { user-select: none; }
 <div class="sheet expanded" id="sheet">
   <div class="sheet-grab" id="sheetGrab"><div></div></div>
   <div class="sheet-head">
-    <div><div class="sheet-title">Live Radar</div><div class="sheet-sub" id="sheetSub">Waiting for data...</div></div>
+    <div><div class="sheet-title">Live Radar</div><div class="sheet-sub" id="sheetSub">Waiting for real data...</div></div>
   </div>
-  <div class="sheet-list" id="flightList"><div class="empty">Loading world airspace...</div></div>
+  <div class="sheet-list" id="flightList"><div class="empty">Loading local airspace...</div></div>
 </div>
 
 <div class="detail" id="detail">
@@ -218,7 +216,7 @@ const state = {
   markers: new Map()
 };
 
-// PUHTAAT DATA URI KUVAT LENTOKONEISTA (100% Varma toiminta img-tagissa)
+// 100% VARMAT DATA URI -KUVAT LENTOKONEILLE
 const planeBlueURI = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z' fill='%230A84FF' stroke='%23FFFFFF' stroke-width='0.5'/%3E%3C/svg%3E";
 const planeGreenURI = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z' fill='%2334C759' stroke='%23FFFFFF' stroke-width='1'/%3E%3C/svg%3E";
 
@@ -228,8 +226,16 @@ function haversine(lat1, lon1, lat2, lon2){ const R=6371, p=Math.PI/180; const a
 
 // ---------- 1. LEAFLET KARTTA ----------
 function initMap(){
-  // MinZoom asetettu arvoon 2, ettei kartasta voi zoomata ulkoavaruuteen!
-  state.map = L.map('map', {zoomControl:false, attributionControl:false, minZoom: 2, maxBounds: [[-90, -180], [90, 180]]}).setView([state.userLat, state.userLon], 6);
+  // ESTETÄÄN KARTAN KATOAMINEN!
+  // minZoom: 3 pitää huolen ettet voi zoomata liian kauas. 
+  // maxBounds lukitsee kameran maapalloon, jotta et eksy harmaalle tyhjälle alueelle!
+  state.map = L.map('map', {
+      zoomControl:false, 
+      attributionControl:false, 
+      minZoom: 3,
+      maxBounds: [[-90, -180], [90, 180]],
+      maxBoundsViscosity: 1.0 // Tekee reunoista jäykät
+  }).setView([state.userLat, state.userLon], 6);
   
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19}).addTo(state.map);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{maxZoom:19, opacity:0.85}).addTo(state.map);
@@ -246,6 +252,7 @@ function setUserLocation(lat, lon, zoom=6){
 function updateMarkers() {
     if(!state.map) return;
     
+    // Suorituskyky pysyy hyvänä, käsitellään kerrallaan max 300 lähintä.
     let arr = [...state.flights.values()].sort((a,b) => a.dist - b.dist).slice(0, 300);
     if(state.selectedIcao && !arr.find(f => f.icao24 === state.selectedIcao)){
         const sf = state.flights.get(state.selectedIcao);
@@ -267,7 +274,6 @@ function updateMarkers() {
         const uri = isSel ? planeGreenURI : planeBlueURI;
         
         if(!marker) {
-            // Tässä käytetään aitoa IMG tagia, jota selaimet eivä voi "rikkoa" tai estää.
             const icon = L.divIcon({
                 className: '',
                 html: `<img src="${uri}" class="plane-img ${isSel?'sel':''}" style="transform: rotate(${f.track||0}deg)" />`,
@@ -293,42 +299,32 @@ function updateMarkers() {
     }
 }
 
-// SIMULAATTORI (Käynnistyy jos OpenSky on estänyt meidät)
-function generateMockData() {
-    const mock = [];
-    const now = Date.now();
-    for(let i=0; i<40; i++) {
-        const angle = (now / 10000) + (i * 0.4);
-        const lat = state.userLat + Math.sin(angle) * (0.8 + i*0.06);
-        const lon = state.userLon + Math.cos(angle) * (1.2 + i*0.1);
-        const track = (Math.atan2(Math.cos(angle), -Math.sin(angle)) * 180/Math.PI) + 180;
-
-        mock.push({
-            icao24: 'mock' + i,
-            callsign: 'SIM' + (100+i),
-            country: 'API Limited Simulation',
-            lon: lon, lat: lat, curLat: lat, curLon: lon,
-            velocity: 150 + i*5, track: track,
-            baro_alt: 25000 + i*150, on_ground: false,
-            dist: haversine(state.userLat, state.userLon, lat, lon)
-        });
-    }
-    return mock;
-}
-
-// ---------- 2. DATA FETCH ----------
+// ---------- 2. DATA FETCH (ÄLYKÄS) ----------
 async function fetchFlights(){
-  $('mapStatusText').textContent = 'Connecting...';
-  let usedMock = false;
+  $('mapStatusText').textContent = 'Fetching...';
   
   try{
-    const res = await fetch(`https://opensky-network.org/api/states/all`);
-    if(!res.ok) throw new Error('API');
+    // ÄLYKÄS HAKU: Jotta et saa bännejä rajapinnasta, haemme koneet vain nykyiseltä kartta-alueelta (Bounding Box)!
+    let url = `https://opensky-network.org/api/states/all`;
+    if(state.map && state.map.getZoom() >= 5) {
+        const bounds = state.map.getBounds();
+        const lamin = Math.max(-90, bounds.getSouth());
+        const lomin = Math.max(-180, bounds.getWest());
+        const lamax = Math.min(90, bounds.getNorth());
+        const lomax = Math.min(180, bounds.getEast());
+        url += `?lamin=${lamin}&lomin=${lomin}&lamax=${lamax}&lomax=${lomax}`;
+    }
+
+    const res = await fetch(url);
+    if(!res.ok) {
+        if(res.status === 429) throw new Error('RateLimit');
+        throw new Error('API');
+    }
     const json = await res.json();
-    if(!json.states) throw new Error('RateLimit');
+    if(!json.states) json.states = []; // Jos alueella ei ole koneita, tyhjennä kiltisti
     
     const now = Date.now();
-    let arr = (json.states || []).map(s => {
+    let arr = json.states.map(s => {
       if(s[6]==null || s[5]==null) return null;
       return {
         icao24: s[0], callsign: (s[1]||'').trim()||s[0].toUpperCase(), country: s[2]||'—',
@@ -348,26 +344,24 @@ async function fetchFlights(){
         if(!seen.has(icao)) state.flights.delete(icao);
     }
     
-    $('mapStatusText').textContent = `Tracking ${state.flights.size}`;
-    $('dotStatus').classList.remove('sim');
+    $('mapStatusText').textContent = `Tracking ${state.flights.size} in view`;
+    $('sheetSub').textContent = `${state.flights.size} Live Airborne`;
+    $('dotStatus').classList.remove('warn');
+    
   }catch(e){ 
-      // JOS API KAATUU TAI LUKITTUU, KÄYTETÄÄN SIMULAATIOTA ETTEI RUUTU JÄÄ TYHJÄKSI!
-      $('mapStatusText').textContent = 'API Blocked - Simulation';
-      $('dotStatus').classList.add('sim');
-      usedMock = true;
-      const mockArr = generateMockData();
-      const seen = new Set();
-      for(const nf of mockArr){
-          seen.add(nf.icao24);
-          state.flights.set(nf.icao24, nf);
+      // JOS API ESTÄÄ, KÄSKETÄÄN ODOTTAMAAN, EI LAITETA SIMULAATIOTA!
+      $('dotStatus').classList.add('warn');
+      if(e.message === 'RateLimit') {
+          $('mapStatusText').textContent = 'API Limit - Odota hetki...';
+          $('sheetSub').textContent = 'OpenSky API lukittu, odota n. 1 min';
+      } else {
+          $('mapStatusText').textContent = 'Network Error';
       }
-      for(const icao of state.flights.keys()){ 
-          if(!seen.has(icao)) state.flights.delete(icao);
-      }
+      // Tyhjennetään olemassa olevat poistumiset jos data alkaa vanhentua liikaa
   } finally{ 
-      $('sheetSub').textContent = usedMock ? `Showing Simulated Traffic` : `${state.flights.size} Live Airborne`;
       renderList(); updateMarkers();
-      setTimeout(fetchFlights, 15000); 
+      // 12 sekunnin pollausväli on optimi
+      setTimeout(fetchFlights, 12000); 
   } 
 }
 
@@ -407,7 +401,14 @@ function renderList(){
   let arr = [...state.flights.values()].sort((a,b) => (a.dist??999) - (b.dist??999));
   if(q) arr = arr.filter(f => (f.callsign||'').toLowerCase().includes(q));
   
-  if(!arr.length){ $('flightList').innerHTML = '<div class="empty">No flights found.</div>'; return; }
+  if(!arr.length){ 
+      if($('mapStatusText').textContent.includes('Limit')) {
+          $('flightList').innerHTML = '<div class="empty">API Rate Limit osui kohdalle. Pidä sivu auki ja odota n. 1-2 minuuttia niin live-data palautuu!</div>';
+      } else {
+          $('flightList').innerHTML = '<div class="empty">Loading...</div>'; 
+      }
+      return; 
+  }
 
   $('flightList').innerHTML = arr.slice(0,80).map(f => {
     const img = state.photoCache.get(f.icao24);
@@ -438,12 +439,6 @@ window.openDetailUI = async function(icao24) {
   $('hudWrap').classList.add('show');
   
   state.map.setView([f.curLat, f.curLon], 9, {animate:true}); updateMarkers(); 
-
-  // Simulaatiokoneilla ei ole oikeita kuvia
-  if(f.icao24.startsWith('mock')) {
-      $('dModel').textContent = 'Simulated Aircraft'; $('dOperator').textContent = 'System Test';
-      return;
-  }
 
   if(!state.photoCache.has(icao24)) {
       try {
@@ -492,7 +487,9 @@ window.onload = () => {
     initMap();
     setUserLocation(60.4518, 22.2666, 6);
     startAnimation();
-    fetchFlights();
+    
+    // Pieni viive alussa jotta UI ehtii rakentua ennen ekaa API kutsua
+    setTimeout(fetchFlights, 500);
 };
 </script>
 </body>
