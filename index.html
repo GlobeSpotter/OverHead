@@ -4,141 +4,146 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<title>Overhead Ultra — Pro Edition</title>
+<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+<title>Overhead Ultra — Liquid Glass</title>
 
 <!-- LEAFLET -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<!-- THREE.JS & ORBIT CONTROLS -->
-<script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
-<script src="https://unpkg.com/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
+<!-- THREE.JS & ORBIT CONTROLS (Korjattu ja varmistettu r128 versio!) -->
+<script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
 <style>
-:root{
-  --bg:#000000; --surface:rgba(18,18,24,.76);
-  --line:rgba(255,255,255,.10); --line-2:rgba(255,255,255,.12);
-  --text:#fff; --text-2:rgba(255,255,255,.72); --text-3:rgba(255,255,255,.40);
-  --blue:#0A84FF; --green:#30D158; --orange:#FF9F0A; --purple:#BF5AF2;
-  --blur:saturate(180%) blur(28px); --blur-heavy:saturate(200%) blur(40px);
-  --spring:cubic-bezier(.22,1,.36,1);
-}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display",sans-serif}
-body{user-select:none}
-body::before{
-  content:""; position:fixed; inset:0; z-index:35; pointer-events:none;
-  background: radial-gradient(circle at 50% 0%, rgba(10,132,255,.08), transparent 40%),
-              radial-gradient(circle at 50% 120%, rgba(0,0,0,0), rgba(0,0,0,.6) 70%);
+:root {
+  /* APPLE LIQUID GLASS LIGHT THEME */
+  --bg: #F2F2F7;
+  --surface: rgba(255, 255, 255, 0.65);
+  --surface-solid: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(255, 255, 255, 0.6);
+  --glass-highlight: inset 0 1px 1px rgba(255, 255, 255, 0.9);
+  
+  --text: #1C1C1E;
+  --text-2: #3C3C43;
+  --text-3: #8E8E93;
+  
+  --blue: #0A84FF; --green: #34C759; --orange: #FF9F0A; --purple: #AF52DE;
+  
+  --blur: saturate(200%) blur(40px);
+  --spring: cubic-bezier(.22, 1, .36, 1);
+  --shadow: 0 12px 36px rgba(0, 0, 0, 0.12);
 }
 
-#mapWrap{ position:fixed; inset:0; z-index:1; transition:opacity .6s ease, transform .6s var(--spring); }
-#map{ position:absolute; inset:0; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; }
+body { user-select: none; }
+
+#mapWrap { position: fixed; inset: 0; z-index: 1; transition: opacity .8s ease, transform .8s var(--spring); }
+#map { position: absolute; inset: 0; background: #E5E5EA; }
 
 /* 3D GLOBE CANVAS */
-#globeWrap{ position:fixed; inset:0; z-index:2; opacity:0; pointer-events:none; transition:opacity .8s ease, transform .8s var(--spring); transform:scale(0.85); background:#000; display:flex; justify-content:center; align-items:center;}
-#globeWrap.on{ opacity:1; pointer-events:auto; transform:scale(1); }
-#glCanvas{ width:100%; height:100%; position:absolute; top:0; left:0; outline:none; }
+#globeWrap { position: fixed; inset: 0; z-index: 2; opacity: 0; pointer-events: none; transition: opacity .8s ease, transform .8s var(--spring); transform: scale(0.85); background: var(--bg); display: flex; justify-content: center; align-items: center; }
+#globeWrap.on { opacity: 1; pointer-events: auto; transform: scale(1); }
+#glCanvas { width: 100%; height: 100%; position: absolute; top: 0; left: 0; outline: none; }
 
-.leaflet-control-zoom,.leaflet-control-attribution{display:none!important}
-.leaflet-container{background:#000}
+.leaflet-control-zoom, .leaflet-control-attribution { display: none !important; }
 
-/* UI Elements */
-.island-wrap{ position:fixed; left:0;right:0; top:max(14px, env(safe-area-inset-top)); z-index:2500; display:flex; justify-content:center; pointer-events:none; padding:0 14px; }
-.island{
-  width:min(820px,100%); min-height:58px; border-radius:30px; padding:10px 12px; display:flex; align-items:center; gap:8px; pointer-events:auto;
-  background:linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.03)), var(--surface);
-  border:1px solid rgba(255,255,255,.15); box-shadow:0 12px 32px rgba(0,0,0,.5); backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
-  transition:transform .45s var(--spring), min-height .45s var(--spring), width .45s var(--spring);
+/* GLASS UI COMPONENTS */
+.island-wrap { position: fixed; left: 0; right: 0; top: max(14px, env(safe-area-inset-top)); z-index: 2500; display: flex; justify-content: center; pointer-events: none; padding: 0 14px; }
+.island {
+  width: min(820px, 100%); min-height: 58px; border-radius: 30px; padding: 10px 12px; display: flex; align-items: center; gap: 8px; pointer-events: auto;
+  background: var(--surface); border: 1px solid var(--glass-border); box-shadow: var(--shadow), var(--glass-highlight);
+  backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+  transition: transform .45s var(--spring), min-height .45s var(--spring), width .45s var(--spring);
 }
-.brand{ flex:0 0 auto; display:flex; align-items:center; gap:8px; padding:0 6px 0 4px; }
-.brand-badge{ width:32px;height:32px;border-radius:16px; display:grid;place-items:center; background:linear-gradient(135deg,var(--blue),#4dabff); box-shadow:0 8px 18px rgba(10,132,255,.4); font-size:15px; }
-.brand-text{ font-size:17px;font-weight:850;letter-spacing:-.04em; }
-.searchbox{ flex:1; min-height:38px; border-radius:20px; background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.06); display:flex;align-items:center;gap:10px;padding:0 14px; }
-.searchbox input{ width:100%;border:none;outline:none;background:transparent; color:#fff;font-size:15px;font-weight:650; }
-.searchbox input::placeholder{color:var(--text-3)}
-.island.focus .searchbox{display:none}
+.brand { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 0 6px 0 4px; }
+.brand-badge { width: 32px; height: 32px; border-radius: 16px; display: grid; place-items: center; background: linear-gradient(135deg, var(--blue), #5eb1ff); box-shadow: 0 4px 12px rgba(10,132,255,.3); font-size: 15px; color: #fff; }
+.brand-text { font-size: 17px; font-weight: 850; letter-spacing: -.04em; color: var(--text); }
+.searchbox { flex: 1; min-height: 38px; border-radius: 20px; background: rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.03); display: flex; align-items: center; gap: 10px; padding: 0 14px; }
+.searchbox input { width: 100%; border: none; outline: none; background: transparent; color: var(--text); font-size: 15px; font-weight: 650; }
+.searchbox input::placeholder { color: var(--text-3); }
+.island.focus .searchbox { display: none; }
 
-.island-flight{ display:none;flex:1;align-items:center;gap:12px;padding:0 6px 0 10px; }
-.island.focus .island-flight{display:flex}
-.if-main{display:flex;flex-direction:column;line-height:1.05}
-.if-call{font-size:17px;font-weight:900;letter-spacing:-.04em}
-.if-route{margin-top:4px;font-size:13px;font-weight:700;color:var(--blue);white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis}
-.ibtn{ width:38px;height:38px;border:none;border-radius:19px; background:rgba(255,255,255,.1);color:#fff; display:grid;place-items:center;cursor:pointer; transition:transform .2s var(--spring), background .2s ease; font-size:16px;}
-.ibtn:active{transform:scale(.9)}
-.island-actions{display:flex;gap:6px}
+.island-flight { display: none; flex: 1; align-items: center; gap: 12px; padding: 0 6px 0 10px; }
+.island.focus .island-flight { display: flex; }
+.if-main { display: flex; flex-direction: column; line-height: 1.05; }
+.if-call { font-size: 17px; font-weight: 900; letter-spacing: -.04em; color: var(--text); }
+.if-route { margin-top: 4px; font-size: 13px; font-weight: 700; color: var(--blue); }
+.ibtn { width: 38px; height: 38px; border: none; border-radius: 19px; background: rgba(0,0,0,0.06); color: var(--text); display: grid; place-items: center; cursor: pointer; transition: transform .2s var(--spring); font-size: 16px; }
+.ibtn:active { transform: scale(.9); }
+.island-actions { display: flex; gap: 6px; }
 
-.hud-wrap{ position:fixed;left:0;right:0; top:calc(max(14px, env(safe-area-inset-top)) + 74px); z-index:2200;display:flex;justify-content:center;pointer-events:none; }
-.hud{ border-radius:22px;padding:8px 20px;display:flex;align-items:center;gap:18px; background:var(--surface); border:1px solid rgba(255,255,255,.12);box-shadow:0 8px 24px rgba(0,0,0,.4); backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur); font-variant-numeric:tabular-nums; }
-.hud-block{display:flex;flex-direction:column}
-.hud-label{font-size:10px;font-weight:800;color:var(--text-3);letter-spacing:.08em;text-transform:uppercase}
-.hud-value{font-size:17px;font-weight:950;letter-spacing:-.05em}
-.hud-divider{width:1px;height:24px;background:rgba(255,255,255,.15)}
+.hud-wrap { position: fixed; left: 0; right: 0; top: calc(max(14px, env(safe-area-inset-top)) + 74px); z-index: 2200; display: flex; justify-content: center; pointer-events: none; }
+.hud { border-radius: 22px; padding: 8px 20px; display: flex; align-items: center; gap: 18px; background: var(--surface); border: 1px solid var(--glass-border); box-shadow: var(--shadow), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); font-variant-numeric: tabular-nums; }
+.hud-block { display: flex; flex-direction: column; }
+.hud-label { font-size: 10px; font-weight: 800; color: var(--text-3); letter-spacing: .08em; text-transform: uppercase; }
+.hud-value { font-size: 17px; font-weight: 950; letter-spacing: -.05em; color: var(--text); }
+.hud-divider { width: 1px; height: 24px; background: rgba(0,0,0,0.1); }
 
-.map-status{ position:fixed;left:16px; top:calc(max(14px, env(safe-area-inset-top)) + 136px); z-index:1700; padding:10px 14px;border-radius:18px; background:var(--surface); border:1px solid var(--line);box-shadow:0 8px 24px rgba(0,0,0,.3); backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur); color:var(--text-2);font-size:13px;font-weight:750; display:flex; align-items:center; gap:8px;}
-.live-dot{ width:8px;height:8px;border-radius:50%;background:var(--green); animation:pulse 1.8s ease-in-out infinite; box-shadow:0 0 8px var(--green);}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.map-status { position: fixed; left: 16px; top: calc(max(14px, env(safe-area-inset-top)) + 136px); z-index: 1700; padding: 10px 14px; border-radius: 18px; background: var(--surface); border: 1px solid var(--glass-border); box-shadow: var(--shadow), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); color: var(--text-2); font-size: 13px; font-weight: 750; display: flex; align-items: center; gap: 8px; }
+.live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 1.8s ease-in-out infinite; box-shadow: 0 0 8px var(--green); }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
 
-.side-controls{ position:fixed;right:14px; top:calc(max(14px, env(safe-area-inset-top)) + 132px); z-index:2100;display:flex;flex-direction:column;gap:10px; }
-.fab{ width:50px;height:50px;border:none;border-radius:25px;color:#fff;cursor:pointer; background:var(--surface); border:1px solid var(--line);box-shadow:0 8px 24px rgba(0,0,0,.3); backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur); font-weight:800; font-size:13px;}
-.fab:active{transform:scale(.93)}
+.side-controls { position: fixed; right: 14px; top: calc(max(14px, env(safe-area-inset-top)) + 132px); z-index: 2100; display: flex; flex-direction: column; gap: 10px; }
+.fab { width: 50px; height: 50px; border: none; border-radius: 25px; color: var(--text); cursor: pointer; background: var(--surface); border: 1px solid var(--glass-border); box-shadow: var(--shadow), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); font-weight: 800; font-size: 13px; }
+.fab:active { transform: scale(.93); }
 
-.sheet{ position:fixed;left:14px;right:14px;bottom:14px; z-index:1800;border-radius:36px; background:linear-gradient(180deg, rgba(30,30,36,.85), rgba(20,20,26,.95)); border:1px solid var(--line);box-shadow:0 24px 60px rgba(0,0,0,.7); backdrop-filter:var(--blur-heavy);-webkit-backdrop-filter:var(--blur-heavy); overflow:hidden; transition:height .45s var(--spring); height:182px; }
-.sheet.expanded{height:min(72vh,820px)}
-.sheet-grab{ display:flex;justify-content:center;align-items:center;padding:12px 0 4px;cursor:pointer; }
-.sheet-grab div{width:48px;height:6px;border-radius:999px;background:rgba(255,255,255,.25)}
-.sheet-head{display:flex;justify-content:space-between;align-items:center;padding:8px 20px 16px}
-.sheet-title{font-size:28px;font-weight:950;letter-spacing:-.05em}
-.sheet-sub{margin-top:2px;font-size:13px;font-weight:800;color:var(--text-3);letter-spacing:.06em;text-transform:uppercase}
-.sheet-meta{font-size:13px;font-weight:800;color:var(--blue); background:rgba(10,132,255,.15); padding:6px 12px; border-radius:12px;}
-.sheet-list{height:calc(100% - 94px);overflow:auto;padding:0 14px 14px}
-.sheet-list::-webkit-scrollbar{display:none}
+.sheet { position: fixed; left: 14px; right: 14px; bottom: 14px; z-index: 1800; border-radius: 36px; background: linear-gradient(180deg, rgba(255,255,255,0.85), rgba(240,240,245,0.95)); border: 1px solid var(--glass-border); box-shadow: 0 24px 60px rgba(0,0,0,0.15), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); overflow: hidden; transition: height .45s var(--spring); height: 182px; }
+.sheet.expanded { height: min(72vh, 820px); }
+.sheet-grab { display: flex; justify-content: center; align-items: center; padding: 12px 0 4px; cursor: pointer; }
+.sheet-grab div { width: 48px; height: 6px; border-radius: 999px; background: rgba(0,0,0,0.15); }
+.sheet-head { display: flex; justify-content: space-between; align-items: center; padding: 8px 20px 16px; }
+.sheet-title { font-size: 28px; font-weight: 950; letter-spacing: -.05em; color: var(--text); }
+.sheet-sub { margin-top: 2px; font-size: 13px; font-weight: 800; color: var(--text-3); letter-spacing: .06em; text-transform: uppercase; }
+.sheet-meta { font-size: 13px; font-weight: 800; color: var(--blue); background: rgba(10,132,255,.1); padding: 6px 12px; border-radius: 12px; }
+.sheet-list { height: calc(100% - 94px); overflow: auto; padding: 0 14px 14px; }
+.sheet-list::-webkit-scrollbar { display: none; }
 
-.card{ display:flex;align-items:center;gap:14px; padding:12px;margin-bottom:12px;border-radius:24px; background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.06); cursor:pointer;transition:transform .2s var(--spring), background .2s ease; }
-.card:active{transform:scale(.97)}
-.card.sel{border-color:rgba(10,132,255,.5);background:rgba(10,132,255,.12); box-shadow:0 0 20px rgba(10,132,255,.15);}
-.plane-badge{ width:56px;height:56px;border-radius:20px;display:grid;place-items:center; background:rgba(0,0,0,.4);flex:0 0 auto; overflow:hidden; position:relative; box-shadow:inset 0 0 0 1px rgba(255,255,255,.1);}
-.plane-badge img{ width:100%; height:100%; object-fit:cover; }
-.card-main{flex:1;min-width:0}
-.card-call{font-size:18px;font-weight:900;letter-spacing:-.03em}
-.card-sub{margin-top:2px;color:var(--text-2);font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.overhead-pill{ margin-top:6px; font-size:11px; font-weight:850; color:var(--purple); display:inline-block; padding:4px 10px; border-radius:10px; background:rgba(191,90,242,.15); border:1px solid rgba(191,90,242,.3); }
-.badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
-.badge{padding:4px 10px;border-radius:10px;font-size:11px;font-weight:850;letter-spacing:.03em;}
-.badge.blue{background:rgba(10,132,255,.2);color:#8bc5ff; border:1px solid rgba(10,132,255,.3)}
-.badge.purple{background:rgba(191,90,242,.2);color:#dda6ff; border:1px solid rgba(191,90,242,.3)}
-.badge.orange{background:rgba(255,159,10,.2);color:#ffc87a; border:1px solid rgba(255,159,10,.3)}
-.card-stats{text-align:right;font-variant-numeric:tabular-nums}
-.stat-big{font-size:16px;font-weight:900}
-.stat-small{font-size:11px;color:var(--text-3);font-weight:800;margin-top:2px;text-transform:uppercase}
+.card { display: flex; align-items: center; gap: 14px; padding: 12px; margin-bottom: 12px; border-radius: 24px; background: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.8); box-shadow: 0 4px 12px rgba(0,0,0,0.03); cursor: pointer; transition: transform .2s var(--spring), border .2s ease; }
+.card:active { transform: scale(.97); }
+.card.sel { border-color: var(--blue); background: rgba(10,132,255,.08); box-shadow: 0 0 0 1px var(--blue); }
+.plane-badge { width: 56px; height: 56px; border-radius: 20px; display: grid; place-items: center; background: rgba(0,0,0,0.04); flex: 0 0 auto; overflow: hidden; position: relative; border: 1px solid rgba(0,0,0,0.05); }
+.plane-badge img { width: 100%; height: 100%; object-fit: cover; }
+.card-main { flex: 1; min-width: 0; }
+.card-call { font-size: 18px; font-weight: 900; letter-spacing: -.03em; color: var(--text); }
+.card-sub { margin-top: 2px; color: var(--text-2); font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.overhead-pill { margin-top: 6px; font-size: 11px; font-weight: 850; color: var(--purple); display: inline-block; padding: 4px 10px; border-radius: 10px; background: rgba(175,82,222,.1); border: 1px solid rgba(175,82,222,.2); }
+.badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+.badge { padding: 4px 10px; border-radius: 10px; font-size: 11px; font-weight: 850; letter-spacing: .03em; }
+.badge.blue { background: rgba(10,132,255,.1); color: var(--blue); border: 1px solid rgba(10,132,255,.2); }
+.badge.purple { background: rgba(175,82,222,.1); color: var(--purple); border: 1px solid rgba(175,82,222,.2); }
+.badge.orange { background: rgba(255,159,10,.1); color: var(--orange); border: 1px solid rgba(255,159,10,.2); }
+.card-stats { text-align: right; font-variant-numeric: tabular-nums; }
+.stat-big { font-size: 16px; font-weight: 900; color: var(--text); }
+.stat-small { font-size: 11px; color: var(--text-3); font-weight: 800; margin-top: 2px; text-transform: uppercase; }
 
-.detail{ position:fixed; left:50%; top:50%; transform:translate(-50%, -40%) scale(0.95); width:min(92%, 480px); max-height:85vh; z-index:3200; border-radius:36px; background:linear-gradient(180deg, rgba(30,30,38,.92), rgba(15,15,20,.98)); border:1px solid rgba(255,255,255,.15); box-shadow:0 30px 80px rgba(0,0,0,.8); backdrop-filter:var(--blur-heavy); -webkit-backdrop-filter:var(--blur-heavy); display:flex;flex-direction:column; opacity:0;pointer-events:none; transition:transform .45s var(--spring), opacity .3s ease; }
-.detail.open{ opacity:1; pointer-events:auto; transform:translate(-50%, -50%) scale(1); }
-.detail-close{ position:absolute;right:16px;top:16px; width:34px;height:34px;border:none;border-radius:17px; background:rgba(255,255,255,.15);color:#fff; cursor:pointer;z-index:10;display:grid;place-items:center; font-size:15px;font-weight:800; backdrop-filter:blur(10px); }
-.detail-close:active{transform:scale(.9)}
-.detail-top{ position:relative; padding:24px 20px 16px; border-bottom:1px solid rgba(255,255,255,.08); display:flex; flex-direction:column; align-items:center; text-align:center; }
-.d-hero{ width:100%; height:160px; display:flex; justify-content:center; align-items:center; margin-bottom:18px; border-radius:24px; background:rgba(0,0,0,.4); overflow:hidden; position:relative; border:1px solid rgba(255,255,255,.1); box-shadow:inset 0 0 40px rgba(0,0,0,.5); }
-.d-hero img{ width:100%; height:100%; object-fit:cover; transition: opacity 0.4s ease; }
-.d-call{font-size:38px;font-weight:950;letter-spacing:-.05em;line-height:1}
-.d-route{margin-top:8px;color:var(--blue);font-size:16px;font-weight:800}
-.overhead-status{ margin-top:10px; color:var(--purple); font-weight:850; font-size:14px; background:rgba(191,90,242,.15); padding:8px 16px; border-radius:14px; border:1px solid rgba(191,90,242,.3); box-shadow:0 8px 20px rgba(191,90,242,.2); }
-.phase{ display:inline-flex;align-items:center;gap:8px;margin-top:14px; padding:8px 16px;border-radius:999px;font-size:13px;font-weight:900; letter-spacing:.06em;text-transform:uppercase; border:1px solid transparent; }
-.phase.cruise{background:rgba(10,132,255,.15);color:#8bc5ff; border-color:rgba(10,132,255,.3)}
-.phase.climb{background:rgba(48,209,88,.15);color:#8bf0a5; border-color:rgba(48,209,88,.3)}
-.phase.desc{background:rgba(255,159,10,.15);color:#ffc87a; border-color:rgba(255,159,10,.3)}
-.phase.gnd{background:rgba(255,255,255,.1);color:var(--text-2); border-color:rgba(255,255,255,.2)}
-.d-scroll{ flex:1;overflow-y:auto;padding:18px; }
-.d-scroll::-webkit-scrollbar{display:none}
-.grid{ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px; }
-.info{ padding:14px 16px;border-radius:20px; background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.06); box-shadow:0 4px 12px rgba(0,0,0,.2); }
-.info.full{grid-column:1/-1}
-.i-label{ font-size:11px;font-weight:850;letter-spacing:.06em; text-transform:uppercase;color:rgba(255,255,255,.5); }
-.i-value{ margin-top:6px;font-size:16px;font-weight:900;letter-spacing:-.02em; }
-.i-sub{ margin-top:4px;font-size:12px;font-weight:700;color:rgba(255,255,255,.6); }
-.toast{ position:fixed;left:50%;bottom:34px;transform:translate(-50%,80px); z-index:5000;opacity:0;pointer-events:none; background:rgba(28,28,32,.95);color:#fff;padding:14px 24px;border-radius:999px; font-size:15px;font-weight:850;box-shadow:0 12px 32px rgba(0,0,0,.6); backdrop-filter:var(--blur); transition:transform .4s var(--spring), opacity .3s ease; border:1px solid rgba(255,255,255,.1); }
-.toast.show{opacity:1;transform:translate(-50%,0)}
-.empty{padding:40px 20px;text-align:center;color:var(--text-3);font-weight:700;font-size:15px}
+.detail { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -40%) scale(0.95); width: min(92%, 480px); max-height: 85vh; z-index: 3200; border-radius: 36px; background: var(--surface-solid); border: 1px solid var(--glass-border); box-shadow: 0 30px 80px rgba(0,0,0,0.2), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: transform .45s var(--spring), opacity .3s ease; }
+.detail.open { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
+.detail-close { position: absolute; right: 16px; top: 16px; width: 34px; height: 34px; border: none; border-radius: 17px; background: rgba(0,0,0,0.06); color: var(--text); cursor: pointer; z-index: 10; display: grid; place-items: center; font-size: 15px; font-weight: 800; }
+.detail-close:active { transform: scale(.9); }
+.detail-top { position: relative; padding: 24px 20px 16px; border-bottom: 1px solid rgba(0,0,0,0.06); display: flex; flex-direction: column; align-items: center; text-align: center; }
+.d-hero { width: 100%; height: 160px; display: flex; justify-content: center; align-items: center; margin-bottom: 18px; border-radius: 24px; background: rgba(0,0,0,0.03); overflow: hidden; position: relative; border: 1px solid rgba(0,0,0,0.05); }
+.d-hero img { width: 100%; height: 100%; object-fit: cover; transition: opacity 0.4s ease; }
+.d-call { font-size: 38px; font-weight: 950; letter-spacing: -.05em; line-height: 1; color: var(--text); }
+.d-route { margin-top: 8px; color: var(--blue); font-size: 16px; font-weight: 800; }
+.overhead-status { margin-top: 10px; color: var(--purple); font-weight: 850; font-size: 14px; background: rgba(175,82,222,.1); padding: 8px 16px; border-radius: 14px; border: 1px solid rgba(175,82,222,.2); }
+.phase { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; padding: 8px 16px; border-radius: 999px; font-size: 13px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; }
+.phase.cruise { background: rgba(10,132,255,.1); color: var(--blue); }
+.phase.climb { background: rgba(52,199,89,.1); color: var(--green); }
+.phase.desc { background: rgba(255,159,10,.1); color: var(--orange); }
+.phase.gnd { background: rgba(0,0,0,.05); color: var(--text-2); }
+.d-scroll { flex: 1; overflow-y: auto; padding: 18px; }
+.d-scroll::-webkit-scrollbar { display: none; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
+.info { padding: 14px 16px; border-radius: 20px; background: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.9); box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
+.info.full { grid-column: 1 / -1; }
+.i-label { font-size: 11px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; color: var(--text-3); }
+.i-value { margin-top: 6px; font-size: 16px; font-weight: 900; letter-spacing: -.02em; color: var(--text); }
+.i-sub { margin-top: 4px; font-size: 12px; font-weight: 700; color: var(--text-2); }
+.toast { position: fixed; left: 50%; bottom: 34px; transform: translate(-50%, 80px); z-index: 5000; opacity: 0; pointer-events: none; background: rgba(255,255,255,0.9); color: var(--text); padding: 14px 24px; border-radius: 999px; font-size: 15px; font-weight: 850; box-shadow: 0 12px 32px rgba(0,0,0,0.15); backdrop-filter: var(--blur); transition: transform .4s var(--spring), opacity .3s ease; border: 1px solid var(--glass-border); }
+.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.empty { padding: 40px 20px; text-align: center; color: var(--text-3); font-weight: 700; font-size: 15px; }
 
 .leaflet-marker-icon { transition: none !important; }
 </style>
@@ -181,7 +186,7 @@ body::before{
   <div class="sheet-grab" id="sheetGrab"><div></div></div>
   <div class="sheet-head">
     <div><div class="sheet-title">Live Radar</div><div class="sheet-sub" id="sheetSub">0 tracked</div></div>
-    <div class="sheet-meta" id="sheetMeta">Ultra Engine</div>
+    <div class="sheet-meta" id="sheetMeta">Liquid Engine</div>
   </div>
   <div class="sheet-list" id="flightList"><div class="empty">Loading...</div></div>
 </div>
@@ -231,29 +236,17 @@ const state = {
   canvasLayer: null, ctx: null
 };
 
-// LENTOKONE IKONIT (Ladataan valmiiksi muistiin Canvas-piirtoa varten)
-const planeImgBlue = new Image();
-planeImgBlue.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="6" ry="38" fill="%230A84FF"/><ellipse cx="50" cy="14" rx="5" ry="8" fill="%230A84FF"/><path d="M50,42 Q30,30 8,52 Q16,56 50,50 Q84,56 92,52 Q70,30 50,42Z" fill="%230A84FF"/><path d="M50,76 Q38,72 28,82 Q34,84 50,80 Q66,84 72,82 Q62,72 50,76Z" fill="%230A84FF"/></svg>';
-
-const planeImgPurple = new Image();
-planeImgPurple.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="6" ry="38" fill="%23BF5AF2"/><ellipse cx="50" cy="14" rx="5" ry="8" fill="%23BF5AF2"/><path d="M50,42 Q30,30 8,52 Q16,56 50,50 Q84,56 92,52 Q70,30 50,42Z" fill="%23BF5AF2"/><path d="M50,76 Q38,72 28,82 Q34,84 50,80 Q66,84 72,82 Q62,72 50,76Z" fill="%23BF5AF2"/></svg>';
-
-const planeImgGreen = new Image();
-planeImgGreen.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="6" ry="38" fill="%2330D158"/><ellipse cx="50" cy="14" rx="5" ry="8" fill="%2330D158"/><path d="M50,42 Q30,30 8,52 Q16,56 50,50 Q84,56 92,52 Q70,30 50,42Z" fill="%2330D158"/><path d="M50,76 Q38,72 28,82 Q34,84 50,80 Q66,84 72,82 Q62,72 50,76Z" fill="%2330D158"/></svg>';
-
-const planeImgOrange = new Image();
-planeImgOrange.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="6" ry="38" fill="%23FF9F0A"/><ellipse cx="50" cy="14" rx="5" ry="8" fill="%23FF9F0A"/><path d="M50,42 Q30,30 8,52 Q16,56 50,50 Q84,56 92,52 Q70,30 50,42Z" fill="%23FF9F0A"/><path d="M50,76 Q38,72 28,82 Q34,84 50,80 Q66,84 72,82 Q62,72 50,76Z" fill="%23FF9F0A"/></svg>';
-
+// SVG Plane Icons
+const planeImgBlue = new Image(); planeImgBlue.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="6" ry="38" fill="%230A84FF"/><ellipse cx="50" cy="14" rx="5" ry="8" fill="%230A84FF"/><path d="M50,42 Q30,30 8,52 Q16,56 50,50 Q84,56 92,52 Q70,30 50,42Z" fill="%230A84FF"/><path d="M50,76 Q38,72 28,82 Q34,84 50,80 Q66,84 72,82 Q62,72 50,76Z" fill="%230A84FF"/></svg>';
+const planeImgPurple = new Image(); planeImgPurple.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="6" ry="38" fill="%23AF52DE"/><ellipse cx="50" cy="14" rx="5" ry="8" fill="%23AF52DE"/><path d="M50,42 Q30,30 8,52 Q16,56 50,50 Q84,56 92,52 Q70,30 50,42Z" fill="%23AF52DE"/><path d="M50,76 Q38,72 28,82 Q34,84 50,80 Q66,84 72,82 Q62,72 50,76Z" fill="%23AF52DE"/></svg>';
+const planeImgGreen = new Image(); planeImgGreen.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="6" ry="38" fill="%2334C759"/><ellipse cx="50" cy="14" rx="5" ry="8" fill="%2334C759"/><path d="M50,42 Q30,30 8,52 Q16,56 50,50 Q84,56 92,52 Q70,30 50,42Z" fill="%2334C759"/><path d="M50,76 Q38,72 28,82 Q34,84 50,80 Q66,84 72,82 Q62,72 50,76Z" fill="%2334C759"/></svg>';
+const planeImgOrange = new Image(); planeImgOrange.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><ellipse cx="50" cy="50" rx="6" ry="38" fill="%23FF9F0A"/><ellipse cx="50" cy="14" rx="5" ry="8" fill="%23FF9F0A"/><path d="M50,42 Q30,30 8,52 Q16,56 50,50 Q84,56 92,52 Q70,30 50,42Z" fill="%23FF9F0A"/><path d="M50,76 Q38,72 28,82 Q34,84 50,80 Q66,84 72,82 Q62,72 50,76Z" fill="%23FF9F0A"/></svg>';
 
 const $ = id => document.getElementById(id);
 function toast(msg){ const el=$('toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),2400); }
 
 function fmtFt(m){ return m==null?'—':Math.round(m*3.28084).toLocaleString('en-US')+' FT'; }
-function fmtM(m){ return m==null?'—':Math.round(m).toLocaleString('en-US')+' m'; }
 function fmtKt(ms){ return ms==null?'—':Math.round(ms*1.94384)+' KT'; }
-function fmtKmh(ms){ return ms==null?'—':Math.round(ms*3.6)+' km/h'; }
-function fmtVr(ms){ return ms==null?'—':(ms>0?'+':'')+Math.round(ms*196.8504)+' ft/min'; }
-function dir(track){ if(track==null) return '—'; const dirs=['N','NE','E','SE','S','SW','W','NW','N']; return dirs[Math.round(track/45)]; }
 function haversine(lat1, lon1, lat2, lon2){ const R=6371, p=Math.PI/180; const a=Math.sin((lat2-lat1)*p/2)**2 + Math.cos(lat1*p)*Math.cos(lat2*p)*Math.sin((lon2-lon1)*p/2)**2; return R*2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); }
 function esc(s){ return String(s??'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
@@ -274,24 +267,23 @@ function calculateOverhead(f) {
   return `Overhead in ${minAikaMins} min`;
 }
 
-// ---------- 1. LEAFLET KARTTA JA AITOJEN IKONIEN PIIRTO ----------
+// 1. LEAFLET KARTTA (APPLE LIGHT VECTOR -TYYLINEN)
 function initMap(){
   state.map = L.map('map', {zoomControl:false, attributionControl:false}).setView([state.userLat, state.userLon], 6);
   
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19}).addTo(state.map);
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,opacity:.92}).addTo(state.map);
+  // Vaalea puhdas "Apple Maps" -tyylinen karttapohja
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{maxZoom:19, subdomains:'abcd'}).addTo(state.map);
 
   state.userMarker = L.circleMarker([state.userLat, state.userLon], {radius:6, color:'#fff', weight:2, fillColor:'#0A84FF', fillOpacity:1}).addTo(state.map);
 
-  // KORJATTU: Estetään loputon loop tarkistamalla isGlobe tila. Vain kun zoomaa Ulos 2D:ssä.
   state.map.on('zoomend', () => {
      if(state.map.getZoom() <= 3 && !state.isGlobe) {
         if(navigator.vibrate) navigator.vibrate(15);
         state.isGlobe = true;
         
         const center = state.map.getCenter();
-        if(state.camera) {
-            latLonToVector3(center.lat, center.lng, 2.2, state.camera.position); // Sopiva aloitus-korkeus
+        if(state.camera && state.controls) {
+            latLonToVector3(center.lat, center.lng, 2.2, state.camera.position); 
             state.controls.update();
         }
         
@@ -327,10 +319,7 @@ function initMap(){
       const zoom = this._map.getZoom();
       
       const flights = [...state.flights.values()];
-      
-      // Optimoitu: Piirretään valittu kone VIMEISENÄ jotta se näkyy muiden päällä
-      const regularFlights = [];
-      let selectedFlight = null;
+      const regularFlights = []; let selectedFlight = null;
       for(const f of flights){
           if(f.icao24 === state.selectedIcao) selectedFlight = f;
           else regularFlights.push(f);
@@ -353,28 +342,23 @@ function initMap(){
         this._ctx.translate(pt.x, pt.y);
 
         if(zoom < 5) {
-            // Kaukaa katsottuna pallot ovat puhtaampia
             this._ctx.beginPath();
             this._ctx.arc(0, 0, isSel ? 6 : 2.5, 0, Math.PI * 2);
-            this._ctx.fillStyle = isSel ? '#30D158' : (f.on_ground ? '#FF9F0A' : (f.dist<40?'#BF5AF2':'#0A84FF'));
+            this._ctx.fillStyle = isSel ? '#34C759' : (f.on_ground ? '#FF9F0A' : (f.dist<40?'#AF52DE':'#0A84FF'));
             this._ctx.fill();
         } else {
-            // Normaalilla zoomilla (5+) KÄYTETÄÄN AITOA LENTOKONE-IKONIA
             this._ctx.rotate((f.track || 0) * Math.PI / 180);
+            const w = isSel ? 38 : 28; 
+            const h = isSel ? 38 : 28;
             
-            // Haluttu leveys/korkeus canvakselle
-            const w = isSel ? 36 : 26; 
-            const h = isSel ? 36 : 26;
-            
-            // DrawImage kääntyy automaattisesti rotate() ansiosta
             if(imgToDraw.complete) {
-               // Varjo
-               this._ctx.shadowColor = 'rgba(0,0,0,0.6)';
+               // Hieno heittovarjo vaaleaan teemaan
+               this._ctx.shadowColor = 'rgba(0,0,0,0.2)';
                this._ctx.shadowBlur = isSel ? 10 : 4;
+               this._ctx.shadowOffsetY = isSel ? 4 : 2;
                this._ctx.drawImage(imgToDraw, -w/2, -h/2, w, h);
             }
         }
-        
         this._ctx.restore();
       }
     }
@@ -400,10 +384,10 @@ function setUserLocation(lat, lon, zoom=6){
   if(state.map && !state.isGlobe) state.map.setView([lat, lon], zoom, {animate:true});
 }
 
-// ---------- 2. THREE.JS 3D PALLO (KORJATTU KATOAMIS-BUGISTA) ----------
+// 2. THREE.JS KORJATTU 3D PALLO
 function initThreeGlobe() {
     if(!window.THREE || !window.THREE.OrbitControls) {
-        console.warn("Three.js not loaded yet. Retrying...");
+        console.warn("Three.js/OrbitControls not loaded yet. Retrying...");
         setTimeout(initThreeGlobe, 200);
         return;
     }
@@ -415,7 +399,8 @@ function initThreeGlobe() {
     state.renderer.setSize(window.innerWidth, window.innerHeight);
 
     state.scene = new THREE.Scene();
-    state.scene.background = new THREE.Color(0x000000);
+    // Vaalea Apple-tyylinen tausta globen taakse
+    state.scene.background = new THREE.Color(0xF2F2F7);
 
     state.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
     state.camera.position.z = 2.5;
@@ -425,52 +410,47 @@ function initThreeGlobe() {
     state.controls.dampingFactor = 0.05;
     state.controls.enablePan = false;
     state.controls.minDistance = 1.05; 
-    
-    // KORJAUS: MaxDistance muutettu 15.0 jotta pallo ei koskaan katoa ulos zoomatessa!
-    state.controls.maxDistance = 15.0; 
+    state.controls.maxDistance = 15.0; // Pallo ei häviä kauas zoomatessa!
 
-    // PALUU 2D-KARTTAAN TAPAHTUU VAIN KUN ZOOMAAT SISÄÄN LÄHELLE PINTAA
     state.controls.addEventListener('change', () => {
         if(!state.isGlobe) return;
         const dist = state.camera.position.length();
-        
         if(dist < 1.15) { 
             if(navigator.vibrate) navigator.vibrate(15);
             state.isGlobe = false;
             $('globeWrap').classList.remove('on');
             
-            // Laske piste
             const dir = state.camera.position.clone().normalize();
             const lat = Math.asin(dir.y) * (180/Math.PI);
             const lng = Math.atan2(dir.x, dir.z) * (180/Math.PI);
             
-            // Siirry Leaflettiin
             state.map.setView([lat, lng], 4, {animate:false});
             $('mapWrap').style.opacity = '1';
             $('mapWrap').style.transform = 'scale(1)';
         }
     });
 
+    // Upea tyylitelty "Light Mode" -maapallo
     const earthGeo = new THREE.SphereGeometry(1, 64, 64);
     const earthMat = new THREE.MeshPhongMaterial({
-        color: 0x051525, emissive: 0x020815, specular: 0x111111, shininess: 10,
-        transparent: true, opacity: 0.95
+        color: 0xffffff, emissive: 0xaaccff, emissiveIntensity: 0.1, 
+        specular: 0x111111, shininess: 20
     });
     state.globeSphere = new THREE.Mesh(earthGeo, earthMat);
     state.scene.add(state.globeSphere);
 
     const atmosGeo = new THREE.SphereGeometry(1.03, 32, 32);
-    const atmosMat = new THREE.MeshBasicMaterial({ color: 0x0A84FF, transparent: true, opacity: 0.1, side: THREE.BackSide });
+    const atmosMat = new THREE.MeshBasicMaterial({ color: 0x0A84FF, transparent: true, opacity: 0.08, side: THREE.BackSide });
     state.scene.add(new THREE.Mesh(atmosGeo, atmosMat));
 
-    state.scene.add(new THREE.AmbientLight(0xffffff, 0.4));
-    const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
+    state.scene.add(new THREE.AmbientLight(0xffffff, 0.8));
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
     dirLight.position.set(5, 3, 5);
     state.scene.add(dirLight);
 
-    const planeGeo = new THREE.ConeGeometry(0.003, 0.012, 4);
+    const planeGeo = new THREE.ConeGeometry(0.004, 0.015, 4);
     planeGeo.rotateX(Math.PI / 2);
-    const planeMat = new THREE.MeshPhongMaterial({ color: 0xffffff });
+    const planeMat = new THREE.MeshPhongMaterial({ color: 0x1C1C1E }); // Tummat koneet kirkkaalla pallolla
     
     state.instancedMesh = new THREE.InstancedMesh(planeGeo, planeMat, 5000);
     state.instancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
@@ -487,11 +467,7 @@ function initThreeGlobe() {
 function latLonToVector3(lat, lon, radius, targetVector) {
     const phi = (90 - lat) * (Math.PI / 180);
     const theta = (lon + 180) * (Math.PI / 180);
-    targetVector.set(
-        -(radius * Math.sin(phi) * Math.cos(theta)),
-        radius * Math.cos(phi),
-        radius * Math.sin(phi) * Math.sin(theta)
-    );
+    targetVector.set( -(radius * Math.sin(phi) * Math.cos(theta)), radius * Math.cos(phi), radius * Math.sin(phi) * Math.sin(theta) );
 }
 
 function renderThreeScene() {
@@ -500,7 +476,6 @@ function renderThreeScene() {
     
     const flights = [...state.flights.values()];
     state.instancedMesh.count = flights.length;
-    
     const color = new THREE.Color();
     const lookTarget = new THREE.Vector3();
 
@@ -522,8 +497,8 @@ function renderThreeScene() {
         state.dummy.updateMatrix();
         state.instancedMesh.setMatrixAt(i, state.dummy.matrix);
 
-        if(f.icao24 === state.selectedIcao) color.setHex(0x30D158);
-        else if(f.dist < 40) color.setHex(0xBF5AF2);
+        if(f.icao24 === state.selectedIcao) color.setHex(0x34C759);
+        else if(f.dist < 40) color.setHex(0xAF52DE);
         else if(f.on_ground) color.setHex(0xFF9F0A);
         else color.setHex(0x0A84FF);
         
@@ -609,8 +584,8 @@ function startAnimation(){
   requestAnimationFrame(tick);
 }
 
-// 5. KÄYTTÖLIITTYMÄ
-const DEF_SVG = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23fff"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>';
+// 5. KÄYTTÖLIITTYMÄ (TUMMAT IKONIT)
+const DEF_SVG = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%231C1C1E"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>';
 
 function renderList(){
   const q = state.search.trim().toLowerCase();
@@ -626,7 +601,7 @@ function renderList(){
     
     return `
     <div class="card ${state.selectedIcao===f.icao24?'sel':''}" onclick="openDetailUI('${f.icao24}')">
-      <div class="plane-badge"><img src="${img}" style="${img===DEF_SVG?'width:28px;opacity:0.5':''}"/></div>
+      <div class="plane-badge"><img src="${img}" style="${img===DEF_SVG?'width:28px;opacity:0.4':''}"/></div>
       <div class="card-main">
         <div class="card-call">${esc(f.callsign)}</div>
         <div class="card-sub">${esc(f.country)}</div>
