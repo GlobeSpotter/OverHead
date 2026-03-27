@@ -30,6 +30,7 @@
       transform: var(--icon-pitch, rotateX(0deg));
       transform-style: preserve-3d;
       transition: transform 0.1s linear;
+      will-change: transform; /* Force Hardware Acceleration */
     }
 
     .fc { 
@@ -67,6 +68,8 @@
       box-shadow: 0 -10px 50px rgba(0,0,0,0.15); border-top: 1px solid rgba(255,255,255,0.8);
       z-index: 1000; display: flex; flex-direction: column; 
       transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), height 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+      will-change: transform, height;
+      transform: translateZ(0);
     }
     .sheet.collapsed { height: 130px; }
     .sheet.hidden { transform: translateY(100%); }
@@ -82,7 +85,7 @@
     .chip.on { background: var(--text); color: #fff; }
 
     .flist { flex: 1; overflow-y: auto; padding: 12px 0 30px; }
-    .fc { margin: 0 16px 12px; padding: 16px; border-radius: 20px; display: flex; align-items: center; cursor: pointer; transition: all 0.25s cubic-bezier(0.2, 0.8, 0.2, 1); }
+    .fc { margin: 0 16px 12px; padding: 16px; border-radius: 20px; display: flex; align-items: center; cursor: pointer; transition: transform 0.2s; }
     .fc:active { transform: scale(0.96); background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.02); }
     .fci { font-size: 24px; margin-right: 14px; width: 32px; text-align: center; }
     .fcm { flex: 1; overflow: hidden; }
@@ -94,7 +97,7 @@
     .fcb { display: inline-block; padding: 2px 6px; border-radius: 6px; font-size: 11px; font-weight: 700; margin-top: 4px; }
     .fc.sel { background: #fff; border-color: rgba(10,132,255,0.4); box-shadow: 0 0 0 2px rgba(10,132,255,0.4), 0 4px 15px rgba(0,0,0,0.05); }
 
-    .det { position: fixed; inset: 0; z-index: 2000; background: #f2f2f7; display: flex; flex-direction: column; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); overflow: hidden; }
+    .det { position: fixed; inset: 0; z-index: 2000; background: #f2f2f7; display: flex; flex-direction: column; transform: translateY(100%); transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); overflow: hidden; will-change: transform; }
     .det.open { transform: translateY(0); }
     .d-top { position: relative; height: 35vh; background: #e5e5ea; overflow: hidden; }
     .d-top img { width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.5s; }
@@ -388,16 +391,16 @@
 <div id="toast" class="toast"><span id="toastMsg"></span></div>
 
 <script>
+// FAST DOM UPDATER (OPTIMIZATION)
+function setFast(id, val) { var el = document.getElementById(id); if(el && el._lastVal !== val) { el.innerText = val; el._lastVal = val; } }
+function setStyleFast(id, prop, val) { var el = document.getElementById(id); if(el && el['_last'+prop] !== val) { el.style[prop] = val; el['_last'+prop] = val; } }
+
 var world = null;
 var isGlobeMode = false;
 
 function initGlobe() {
-  // CREATE 3D PLANE MODELS
-  var planeGeo = new THREE.ConeGeometry(0.15, 0.6, 4);
-  planeGeo.rotateX(Math.PI / 2); // Point cone forward
-  var selGeo = new THREE.ConeGeometry(0.4, 1.2, 4); // Bigger for selected
-  selGeo.rotateX(Math.PI / 2); 
-  
+  var planeGeo = new THREE.ConeGeometry(0.15, 0.6, 4); planeGeo.rotateX(Math.PI / 2); 
+  var selGeo = new THREE.ConeGeometry(0.4, 1.2, 4); selGeo.rotateX(Math.PI / 2); 
   var matAir = new THREE.MeshLambertMaterial({ color: 0x0a84ff });
   var matGnd = new THREE.MeshLambertMaterial({ color: 0xff9500 });
   var matSel = new THREE.MeshBasicMaterial({ color: 0x34c759 });
@@ -406,74 +409,37 @@ function initGlobe() {
     .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
     .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
     .backgroundImageUrl('https://unpkg.com/three-globe/example/img/night-sky.png')
-    .showAtmosphere(true)
-    .atmosphereColor('#87ceeb')
-    .atmosphereAltitude(0.15)
-    // RENDER PLANES AS 3D MESHES
+    .showAtmosphere(true).atmosphereColor('#87ceeb').atmosphereAltitude(0.15)
     .objectsData([])
-    .objectLat('lat')
-    .objectLng('lon')
+    .objectLat('lat').objectLng('lon')
     .objectAltitude(function(d){ return d.ground ? 0.002 : 0.03 + ((d.altFt||0) / 100000); })
     .objectThreeObject(function(d) {
        var isSel = (d.id === selId);
        var mesh = new THREE.Mesh(isSel ? selGeo : planeGeo, isSel ? matSel : (d.ground ? matGnd : matAir));
-       // Rotate to match heading track
        mesh.rotation.y = (-(d.track || 0) + 180) * Math.PI / 180;
        return mesh;
     })
-    // MASSIVE GREEN GLOWING RING UNDER SELECTED PLANE
-    .ringsData([])
-    .ringLat('lat')
-    .ringLng('lon')
-    .ringColor(function(){ return '#34c759'; })
-    .ringMaxRadius(3)
-    .ringPropagationSpeed(2)
-    .ringRepeatPeriod(700);
+    .ringsData([]).ringLat('lat').ringLng('lon').ringColor(function(){ return '#34c759'; }).ringMaxRadius(3).ringPropagationSpeed(2).ringRepeatPeriod(700);
     
-  // Add some lighting so models look nice
   world.scene().add(new THREE.AmbientLight(0xffffff, 0.6));
-  var dirLight = new THREE.DirectionalLight(0xffffff, 0.6);
-  dirLight.position.set(1, 1, 1);
-  world.scene().add(dirLight);
+  var dirLight = new THREE.DirectionalLight(0xffffff, 0.6); dirLight.position.set(1, 1, 1); world.scene().add(dirLight);
 
-  world.controls().enableDamping = true;
-  world.controls().dampingFactor = 0.05;
-
+  world.controls().enableDamping = true; world.controls().dampingFactor = 0.05;
   world.controls().addEventListener('change', function() {
-     if(!isGlobeMode) return;
-     var pov = world.pointOfView();
-     if(pov.altitude < 0.5) {
-         disableGlobeMode();
-         map.setView([pov.lat, pov.lng], 5, {animate: false});
-     }
+     if(!isGlobeMode) return; var pov = world.pointOfView();
+     if(pov.altitude < 0.5) { disableGlobeMode(); map.setView([pov.lat, pov.lng], 5, {animate: false}); }
   });
 }
 
 function enableGlobeMode() {
-   if(!world) initGlobe();
-   isGlobeMode = true;
-   
-   // IF A PLANE IS SELECTED, AUTO-FLY CAMERA TO IT!
-   var c = map.getCenter();
-   if(selId && mks[selId]) {
-       c = { lat: mks[selId].f.lat, lng: mks[selId].f.lon };
-   }
-   
+   if(!world) initGlobe(); isGlobeMode = true;
+   var c = map.getCenter(); if(selId && mks[selId]) c = { lat: mks[selId].f.lat, lng: mks[selId].f.lon };
    world.pointOfView({ lat: c.lat, lng: c.lng, altitude: 1.5 }, 1000);
-   document.getElementById('globeViz').style.opacity = 1;
-   document.getElementById('globeViz').style.pointerEvents = 'auto';
-   
-   if(flights && flights.length) {
-       world.objectsData(flights);
-       world.ringsData(selId ? flights.filter(function(f){return f.id === selId;}) : []);
-   }
+   document.getElementById('globeViz').style.opacity = 1; document.getElementById('globeViz').style.pointerEvents = 'auto';
+   if(flights && flights.length) { world.objectsData(flights.slice(0, 800)); world.ringsData(selId ? flights.filter(function(f){return f.id === selId;}) : []); }
 }
 
-function disableGlobeMode() {
-   isGlobeMode = false;
-   document.getElementById('globeViz').style.opacity = 0;
-   document.getElementById('globeViz').style.pointerEvents = 'none';
-}
+function disableGlobeMode() { isGlobeMode = false; document.getElementById('globeViz').style.opacity = 0; document.getElementById('globeViz').style.pointerEvents = 'none'; }
 
 var currentPitch = 0, mapPitching = false, initialTouchY = 0;
 window.addEventListener('load', function() {
@@ -482,20 +448,14 @@ window.addEventListener('load', function() {
     mw.addEventListener('touchstart', function(e) { if(e.touches.length === 2) { mapPitching = true; initialTouchY = (e.touches[0].clientY + e.touches[1].clientY) / 2; } }, {passive: false});
     mw.addEventListener('touchmove', function(e) {
       if(mapPitching && e.touches.length === 2) {
-        e.preventDefault();
-        var cY = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-        var dY = cY - initialTouchY;
-        currentPitch -= dY * 0.5;
-        if(currentPitch < 0) currentPitch = 0; if(currentPitch > 65) currentPitch = 65;
-        initialTouchY = cY;
+        e.preventDefault(); var cY = (e.touches[0].clientY + e.touches[1].clientY) / 2; var dY = cY - initialTouchY; currentPitch -= dY * 0.5;
+        if(currentPitch < 0) currentPitch = 0; if(currentPitch > 65) currentPitch = 65; initialTouchY = cY;
         var mapEl = document.getElementById('map');
         if(currentPitch > 0) {
           var scale = 1 + (currentPitch / 80); var yOff = currentPitch * 2.5; 
           mapEl.style.transform = 'translateY(' + yOff + 'px) rotateX(' + currentPitch + 'deg) scale(' + scale + ')';
           document.documentElement.style.setProperty('--icon-pitch', 'rotateX(' + (-currentPitch) + 'deg)');
-        } else {
-          mapEl.style.transform = 'none'; document.documentElement.style.setProperty('--icon-pitch', 'rotateX(0deg)');
-        }
+        } else { mapEl.style.transform = 'none'; document.documentElement.style.setProperty('--icon-pitch', 'rotateX(0deg)'); }
       }
     }, {passive: false});
     mw.addEventListener('touchend', function(e) { if(e.touches.length < 2) mapPitching = false; });
@@ -563,27 +523,22 @@ async function selFlight(id){
   var bT = document.getElementById('btnTrack'); if(bT) bT.style.display = 'none';
   renderAll();
 
-  // ALSO SYNC GLOBE IF OPEN
-  if(isGlobeMode && world) {
-      world.ringsData(flights.filter(function(x){return x.id === selId;}));
-      world.objectsData(flights); // refresh geometries to apply scaling
-      world.pointOfView({ lat: f.lat, lng: f.lon, altitude: 1.5 }, 1000);
-  }
+  if(isGlobeMode && world) { world.ringsData(flights.filter(function(x){return x.id === selId;})); world.objectsData(flights.slice(0, 800)); world.pointOfView({ lat: f.lat, lng: f.lon, altitude: 1.5 }, 1000); }
 
-  set('dCs',f.cs||id); set('dSub',f.desc||f.reg); updateDetailStats(f); set('dIc',id.toUpperCase()); set('dSq',f.squawk);
+  setFast('dCs',f.cs||id); setFast('dSub',f.desc||f.reg); updateDetailStats(f); setFast('dIc',id.toUpperCase()); setFast('dSq',f.squawk);
   var tags=[]; if(f.type)tags.push(f.type); if(f.reg)tags.push(f.reg); document.getElementById('dTags').innerHTML=tags.map(function(t){return'<span class="dtag">'+t+'</span>';}).join('');
-  set('dOp','');set('dLn','');set('dEn','');set('dBy',''); document.getElementById('deta').style.display='none'; document.getElementById('routeCard').style.display='none'; routeDataCache = null;
-  var img=document.getElementById('dImg'); img.classList.remove('ok');img.src='';img.style.display='block'; set('dCr','');
+  setFast('dOp','');setFast('dLn','');setFast('dEn','');setFast('dBy',''); document.getElementById('deta').style.display='none'; document.getElementById('routeCard').style.display='none'; routeDataCache = null;
+  var img=document.getElementById('dImg'); img.classList.remove('ok');img.src='';img.style.display='block'; setFast('dCr','');
 
   var photoLoaded = false;
-  fetchPhoto(id).then(function(p){ if(p && !photoLoaded){ photoLoaded = true; img.onload=function(){img.classList.add('ok');}; img.src=p.src; set('dCr',p.credit); } });
+  fetchPhoto(id).then(function(p){ if(p && !photoLoaded){ photoLoaded = true; img.onload=function(){img.classList.add('ok');}; img.src=p.src; setFast('dCr',p.credit); } });
 
   var results=await Promise.all([fetchMeta(id),fetchRoute(f.cs)]); var meta=results[0],route=results[1];
-  var tCode = (f.type || '').toUpperCase(); var mdl = f.desc || '–'; set('dOp', '–'); set('dMd', mdl); set('dSub', mdl || f.reg || 'Unknown'); set('dBy', '–');
+  var tCode = (f.type || '').toUpperCase(); var mdl = f.desc || '–'; setFast('dOp', '–'); setFast('dMd', mdl); setFast('dSub', mdl || f.reg || 'Unknown'); setFast('dBy', '–');
 
   if(meta) {
-    if(meta.icao_type) tCode = meta.icao_type.toUpperCase(); if(meta.registered_owner) set('dOp', meta.registered_owner);
-    var mType = [meta.manufacturer, meta.type].filter(Boolean).join(' '); if(mType) { mdl = mType; set('dMd', mdl); set('dSub', mdl); }
+    if(meta.icao_type) tCode = meta.icao_type.toUpperCase(); if(meta.registered_owner) setFast('dOp', meta.registered_owner);
+    var mType = [meta.manufacturer, meta.type].filter(Boolean).join(' '); if(mType) { mdl = mType; setFast('dMd', mdl); setFast('dSub', mdl); }
     var sc = document.getElementById('smartContext'); sc.style.display = 'none'; sc.innerHTML = '';
     if(!f.cs || f.cs.trim() === '') { sc.innerHTML = '🕵️ Blocked Callsign'; sc.style.display = 'flex'; sc.style.background = 'rgba(94,92,230,0.85)'; sc.style.border = '1px solid rgba(255,255,255,0.4)'; } 
     else if (f.squawk === '7700') { sc.innerHTML = '🚨 EMERGENCY 7700'; sc.style.display = 'flex'; sc.style.background = 'rgba(255,59,48,0.85)'; sc.style.border = '1px solid rgba(255,255,255,0.4)'; }
@@ -592,16 +547,16 @@ async function selFlight(id){
         else if (owner.includes('police') || owner.includes('sheriff')) { sc.innerHTML = '🚓 Law Enforcement'; sc.style.display = 'flex'; sc.style.background = 'rgba(10,132,255,0.85)'; } 
         else if (f.cat === 'A7') { sc.innerHTML = '🚁 Helicopter'; sc.style.display = 'flex'; }
     }
-    if(!photoLoaded && (meta.url_photo || meta.url_photo_thumbnail)){ photoLoaded = true; img.onload=function(){img.classList.add('ok');}; img.src = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(meta.url_photo || meta.url_photo_thumbnail); set('dCr', '📷 Airport-Data.com'); }
+    if(!photoLoaded && (meta.url_photo || meta.url_photo_thumbnail)){ photoLoaded = true; img.onload=function(){img.classList.add('ok');}; img.src = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(meta.url_photo || meta.url_photo_thumbnail); setFast('dCr', '📷 Airport-Data.com'); }
     var logo = document.getElementById('dLogo'); logo.style.display = 'none'; logo.src = '';
     if(meta.registered_owner){ var op = meta.registered_owner.split(' ')[0].replace(/[^a-zA-Z]/g, ''); if(op.length > 2) { logo.src = 'https://logo.clearbit.com/' + op.toLowerCase() + '.com'; logo.onload = function(){ logo.style.display = 'block'; }; } }
     var tags2=[]; if(meta.icao_type) tags2.push(meta.icao_type); if(meta.registration) tags2.push(meta.registration); document.getElementById('dTags').innerHTML=tags2.map(function(tg){return '<span class="dtag">'+tg+'</span>';}).join('');
-    if(meta.registration) fetchBuiltYear(meta.registration).then(function(yr){ set('dBy', yr || '–'); });
+    if(meta.registration) fetchBuiltYear(meta.registration).then(function(yr){ setFast('dBy', yr || '–'); });
   }
 
-  set('dLn', ACLEN[tCode] ? ACLEN[tCode] + ' m' : '–'); set('dEn', ACENG[tCode] || (meta && meta.engines ? meta.engines : '–')); set('dRl', ACREL[tCode] ? ACREL[tCode] : '–');
+  setFast('dLn', ACLEN[tCode] ? ACLEN[tCode] + ' m' : '–'); setFast('dEn', ACENG[tCode] || (meta && meta.engines ? meta.engines : '–')); setFast('dRl', ACREL[tCode] ? ACREL[tCode] : '–');
   var sp = ACSPECS[tCode]; var twEl = document.getElementById('dTw'); if(twEl) twEl.parentElement.querySelector('.dl').innerText = 'Max Takeoff Weight';
-  if(sp) { set('dRg', sp[0].toLocaleString() + ' km'); set('dTw', sp[1].toLocaleString() + ' kg'); set('dEw', sp[2].toLocaleString() + ' kg'); set('dFc', sp[3].toLocaleString() + ' L'); } else { set('dRg','–'); set('dTw','–'); set('dEw','–'); set('dFc','–'); }
+  if(sp) { setFast('dRg', sp[0].toLocaleString() + ' km'); setFast('dTw', sp[1].toLocaleString() + ' kg'); setFast('dEw', sp[2].toLocaleString() + ' kg'); setFast('dFc', sp[3].toLocaleString() + ' L'); } else { setFast('dRg','–'); setFast('dTw','–'); setFast('dEw','–'); setFast('dFc','–'); }
 
   if(pastRouteLine) map.removeLayer(pastRouteLine); if(futureRouteLine) map.removeLayer(futureRouteLine); pastRouteLine = null; futureRouteLine = null;
 
@@ -624,7 +579,7 @@ async function selFlight(id){
 
   if(route){ var o=route.origin,d=route.destination;
     if(o||d){
-      document.getElementById('routeCard').style.display='block'; document.getElementById('rOrig').innerText = o ? o.iata_code : '???'; document.getElementById('rDest').innerText = d ? d.iata_code : '???';
+      document.getElementById('routeCard').style.display='block'; setFast('rOrig', o ? o.iata_code : '???'); setFast('rDest', d ? d.iata_code : '???');
       routeDataCache = { oLat: o ? o.latitude : null, oLon: o ? o.longitude : null, dLat: d ? d.latitude : null, dLon: d ? d.longitude : null };
       if(d && d.latitude && d.longitude) futureRouteLine = L.polyline([[f.lat, f.lon], [d.latitude, d.longitude]], {color: '#0a84ff', weight: 3, dashArray: '8, 12', opacity: 0.8, className: 'contrail-line'}).addTo(map);
     }
@@ -633,6 +588,8 @@ async function selFlight(id){
 
 function animatePlanes(){
   var now = Date.now(), bnds = map.getBounds().pad(0.2), ids = Object.keys(mks);
+  var isDetOpen = document.getElementById('det').classList.contains('open');
+
   for(var i=0; i<ids.length; i++){
     var mk = mks[ids[i]], f = mk.f; if(!f || !f.lat || !f.lon) continue;
     if(!bnds.contains([f.lat, f.lon]) && f.id !== selId) continue;
@@ -665,45 +622,46 @@ function animatePlanes(){
       var targetPitch = Math.atan2((f.vrMs || 0), f.velMs) * (180/Math.PI); if(mk.smoothPitch == null) mk.smoothPitch = targetPitch; mk.smoothPitch += (targetPitch - mk.smoothPitch) * (dt * 2.5); var visualPitch = mk.smoothPitch * 2.5; 
       var rawTrkDelta = (f.track || 0) - (mk.oldTrack || 0); if(rawTrkDelta > 180) rawTrkDelta -= 360; if(rawTrkDelta < -180) rawTrkDelta += 360; var targetRoll = (rawTrkDelta / 5) * 4; if(targetRoll > 45) targetRoll = 45; if(targetRoll < -45) targetRoll = -45; if(!mk.curRoll) mk.curRoll = 0; mk.curRoll += (targetRoll - mk.curRoll) * (dt * 2);
 
-      var pfd = document.getElementById('pfdHorizon');
-      if(pfd) {
-          pfd.style.transform = 'translateY(' + visualPitch + 'px) rotate(' + mk.curRoll + 'deg)';
-          document.getElementById('pfdSkyline').style.backgroundPosition = (-mk.smoothHdg * 3) + 'px 0px'; document.getElementById('pfdClouds').style.backgroundPosition = (-mk.smoothHdg * 1.5) + 'px 0px';
-          if(!mk.gridOffset) mk.gridOffset = 0; mk.gridOffset += (f.velMs * dt * 0.4); document.getElementById('pfdGrid').style.backgroundPosition = '0px ' + mk.gridOffset + 'px';
-          document.getElementById('pfdSpd').innerText = Math.round(mk.smoothSpd); var liveAlt = f.altFt + (f.vrMs * 3.28084 * (age_sec||0)); document.getElementById('pfdAlt').innerText = Math.round(liveAlt).toLocaleString(); document.getElementById('pfdHdg').innerText = 'HDG ' + Math.round(mk.smoothHdg).toString().padStart(3,'0') + '°';
-          var sos = 1225 - ((f.altFt||0)/1000)*4; if(sos < 1062) sos = 1062; var mach = (mk.smoothSpd * 1.852) / sos; document.getElementById('dMach').innerText = mach > 0.3 ? 'M ' + mach.toFixed(2) : '';
-          var bankRad = mk.curRoll * (Math.PI/180), gForce = 1 / Math.cos(bankRad); if(gForce > 2.5) gForce = 2.5; document.getElementById('dGf').innerText = gForce.toFixed(2) + ' G';
-      }
-      
-      var elAl = document.getElementById('dAlT'); if(elAl) elAl.innerText = Math.round(liveAlt).toLocaleString() + ' ft';
-      var elVr = document.getElementById('dVrT'); if(elVr) { var fpm = f.vrMs * 196.85; elVr.innerText = (fpm > 0 ? '▲ +' : '▼ ') + Math.round(fpm).toLocaleString() + ' ft/min'; elVr.style.color = fpm > 100 ? '#34c759' : (fpm < -100 ? '#0a84ff' : '#8e8e93'); }
-      var elSpT = document.getElementById('dSpT'); if(elSpT) elSpT.innerText = Math.round(f.velKt * 1.852) + ' km/h'; var elSpS = document.getElementById('dSpS'); if(elSpS) elSpS.innerText = Math.round(f.velKt) + ' kt' + (mach > 0.3 ? '  •  M ' + mach.toFixed(2) : '');
-      
-      var isSpot = document.getElementById('spotterGlass').style.display === 'flex';
-      if(isSpot && userPos) {
-          var dLon = (cLon - userPos[1]) * Math.PI/180, lat1 = userPos[0] * Math.PI/180, lat2 = cLat * Math.PI/180;
-          var y = Math.sin(dLon) * Math.cos(lat2), x = Math.cos(lat1)*Math.sin(lat2) - Math.sin(lat1)*Math.cos(lat2)*Math.cos(dLon);
-          var brng = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
-          var sTar = document.getElementById('spotterTarget'); document.getElementById('spotterDial').style.transform = 'rotate(' + (-userHeading) + 'deg)';
-          sTar.style.transform = 'translate(-50%, -50%) rotate(' + brng + 'deg) translateY(-100px)';
-          var diff = Math.abs((brng - userHeading + 360) % 360); if(diff > 180) diff = 360 - diff;
-          if(diff < 15) { sTar.style.color = '#34c759'; sTar.style.filter = 'drop-shadow(0 0 15px #34c759) scale(1.2)'; } else { sTar.style.color = '#ffcc00'; sTar.style.filter = 'drop-shadow(0 0 10px #ffcc00) scale(1)'; }
-      }
-
-      if(routeDataCache) {
-        var oL = routeDataCache.oLat, oLn = routeDataCache.oLon, dL = routeDataCache.dLat, dLn = routeDataCache.dLon;
-        if(oL && dL) {
-            var totalD = hav(oL, oLn, dL, dLn), distGone = hav(oL, oLn, cLat, cLon), distRem = hav(cLat, cLon, dL, dLn);
-            var pct = (distGone / (distGone + distRem)) * 100; if(pct > 100) pct = 100; if(pct < 0) pct = 0;
-            var elPct = document.getElementById('rPct'), elProg = document.getElementById('rProg');
-            if(elPct) elPct.innerText = Math.round(pct) + '%'; if(elProg) elProg.style.width = pct + '%';
-            var ms = f.velMs || 200, secE = (distGone * 1000) / ms, secR = (distRem * 1000) / ms;
-            var hE = Math.floor(secE/3600), mE = Math.floor((secE%3600)/60), sE = Math.floor(secE%60);
-            var hR = Math.floor(secR/3600), mR = Math.floor((secR%3600)/60), sR = Math.floor(secR%60);
-            var elElap = document.getElementById('rElap'), elRem = document.getElementById('rRem');
-            if(elElap) elElap.innerText = hE + 'h ' + (mE<10?'0':'')+mE+'m ' + (sE<10?'0':'')+sE+'s';
-            if(elRem) elRem.innerText = hR + 'h ' + (mR<10?'0':'')+mR+'m ' + (sR<10?'0':'')+sR+'s';
-        }
+      if(isDetOpen) {
+          setStyleFast('pfdHorizon', 'transform', 'translateY(' + visualPitch + 'px) rotate(' + mk.curRoll + 'deg)');
+          setStyleFast('pfdSkyline', 'backgroundPosition', (-mk.smoothHdg * 3) + 'px 0px'); 
+          setStyleFast('pfdClouds', 'backgroundPosition', (-mk.smoothHdg * 1.5) + 'px 0px');
+          if(!mk.gridOffset) mk.gridOffset = 0; mk.gridOffset += (f.velMs * dt * 0.4); setStyleFast('pfdGrid', 'backgroundPosition', '0px ' + mk.gridOffset + 'px');
+          setFast('pfdSpd', Math.round(mk.smoothSpd)); var liveAlt = f.altFt + (f.vrMs * 3.28084 * (age_sec||0)); 
+          setFast('pfdAlt', Math.round(liveAlt).toLocaleString()); setFast('pfdHdg', 'HDG ' + Math.round(mk.smoothHdg).toString().padStart(3,'0') + '°');
+          var sos = 1225 - ((f.altFt||0)/1000)*4; if(sos < 1062) sos = 1062; var mach = (mk.smoothSpd * 1.852) / sos; setFast('dMach', mach > 0.3 ? 'M ' + mach.toFixed(2) : '');
+          var bankRad = mk.curRoll * (Math.PI/180), gForce = 1 / Math.cos(bankRad); if(gForce > 2.5) gForce = 2.5; setFast('dGf', gForce.toFixed(2) + ' G');
+          setFast('dAlT', Math.round(liveAlt).toLocaleString() + ' ft');
+          var elVr = document.getElementById('dVrT'); if(elVr) { var fpm = f.vrMs * 196.85; var vrTxt = (fpm > 0 ? '▲ +' : '▼ ') + Math.round(fpm).toLocaleString() + ' ft/min'; if(elVr._lastVal !== vrTxt) { elVr.innerText = vrTxt; elVr._lastVal = vrTxt; elVr.style.color = fpm > 100 ? '#34c759' : (fpm < -100 ? '#0a84ff' : '#8e8e93'); } }
+          setFast('dSpT', Math.round(f.velKt * 1.852) + ' km/h'); setFast('dSpS', Math.round(f.velKt) + ' kt' + (mach > 0.3 ? '  •  M ' + mach.toFixed(2) : ''));
+          
+          var gSpot = document.getElementById('spotterGlass');
+          if(gSpot && gSpot.style.display === 'flex' && userPos) {
+              var dLon = (cLon - userPos[1]) * Math.PI/180, lat1 = userPos[0] * Math.PI/180, lat2 = cLat * Math.PI/180;
+              var y = Math.sin(dLon) * Math.cos(lat2), x = Math.cos(lat1)*Math.sin(lat2) - Math.sin(lat1)*Math.cos(lat2)*Math.cos(dLon);
+              var brng = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+              setStyleFast('spotterDial', 'transform', 'rotate(' + (-userHeading) + 'deg)');
+              var sTar = document.getElementById('spotterTarget');
+              if(sTar) {
+                  var tgtTrans = 'translate(-50%, -50%) rotate(' + brng + 'deg) translateY(-100px)';
+                  if(sTar._lastTrans !== tgtTrans) { sTar.style.transform = tgtTrans; sTar._lastTrans = tgtTrans; }
+                  var diff = Math.abs((brng - userHeading + 360) % 360); if(diff > 180) diff = 360 - diff;
+                  var tCol = (diff < 15) ? '#34c759' : '#ffcc00'; var tFilt = (diff < 15) ? 'drop-shadow(0 0 15px #34c759) scale(1.2)' : 'drop-shadow(0 0 10px #ffcc00) scale(1)';
+                  if(sTar._lastCol !== tCol) { sTar.style.color = tCol; sTar.style.filter = tFilt; sTar._lastCol = tCol; }
+              }
+          }
+          if(routeDataCache) {
+            var oL = routeDataCache.oLat, oLn = routeDataCache.oLon, dL = routeDataCache.dLat, dLn = routeDataCache.dLon;
+            if(oL && dL) {
+                var totalD = hav(oL, oLn, dL, dLn), distGone = hav(oL, oLn, cLat, cLon), distRem = hav(cLat, cLon, dL, dLn);
+                var pct = (distGone / (distGone + distRem)) * 100; if(pct > 100) pct = 100; if(pct < 0) pct = 0;
+                setFast('rPct', Math.round(pct) + '%'); setStyleFast('rProg', 'width', pct + '%');
+                var ms = f.velMs || 200, secE = (distGone * 1000) / ms, secR = (distRem * 1000) / ms;
+                var hE = Math.floor(secE/3600), mE = Math.floor((secE%3600)/60), sE = Math.floor(secE%60);
+                var hR = Math.floor(secR/3600), mR = Math.floor((secR%3600)/60), sR = Math.floor(secR%60);
+                setFast('rElap', hE + 'h ' + (mE<10?'0':'')+mE+'m ' + (sE<10?'0':'')+sE+'s'); setFast('rRem', hR + 'h ' + (mR<10?'0':'')+mR+'m ' + (sR<10?'0':'')+sR+'s');
+            }
+          }
       }
     }
   }
@@ -730,12 +688,7 @@ async function fetchLive(forceShowSheet){
   var directUrl = (searchRadius > 400 || zoom < 7) ? 'https://api.airplanes.live/v2/all' : 'https://api.airplanes.live/v2/point/'+center.lat+'/'+center.lng+'/'+searchRadius;
   var ac=null; try{ var res=await xhrGet(directUrl); ac=res.ac; lastFetchTime = Date.now(); }catch(e){ isFetching = false; return; }
   flights=parseAC(ac); renderAll(); if(forceShowSheet) openSheet();
-  
-  // UPDATE 3D GLOBE
-  if(world && isGlobeMode) {
-    world.objectsData(flights);
-    world.ringsData(selId ? flights.filter(function(f){return f.id === selId;}) : []);
-  }
+  if(world && isGlobeMode) { world.objectsData(flights.slice(0, 800)); world.ringsData(selId ? flights.filter(function(f){return f.id === selId;}) : []); }
   isFetching = false; return flights;
 }
 
@@ -755,16 +708,17 @@ function renderAll(){
   visible.sort(function(a,b){return (a.dist||0)-(b.dist||0);});
   var list=visible; if(chip==='near') list=visible.slice(0,15); else if(chip==='over') list=visible.filter(function(f){return!f.ground&&f.dist<60;});
   list = list.slice(0, 100);
-  if(!list.length) setFL('<div class="empty-state">No aircraft in view</div>'); else setFL(list.map(card).join(''));
-  document.getElementById('chips').style.display='flex'; document.getElementById('ch-count').textContent=visible.length+' visible'; document.getElementById('shS').textContent='Live Radar';
+  if(!list.length) setFast('flist', '<div class="empty-state">No aircraft in view</div>'); else setStyleFast('flist', 'innerHTML', list.map(card).join(''));
+  document.getElementById('chips').style.display='flex'; setFast('ch-count', visible.length+' visible'); setFast('shS', 'Live Radar');
 
-  var toDraw = visible.slice(0, 1500), currentIds = {};
+  // OPTIMIZATION: Max 250 markers on 2D DOM map for 60fps
+  var toDraw = visible.slice(0, 250), currentIds = {};
   toDraw.forEach(function(f){
     currentIds[f.id] = true; var ov=!f.ground&&f.dist<60, col=f.ground?'#ff9500':(ov?'#34c759':'#0a84ff'), isHeli = f.cat==='A7', isSel = (f.id === selId);
     var tStr = (f.type||'').toUpperCase(), len = ACLEN[tStr] || 35, sz = 24; if(len > 68) sz = 40; else if(len > 55) sz = 34; else if(len > 30) sz = 26; else sz = 18;
     var pulseSz = sz + 10;
-    var baseSvg = isHeli ? `<svg width="${sz}" height="${sz}" viewBox="0 0 24 24" style="filter:drop-shadow(0 1px 3px rgba(0,0,0,.4));"><g transform="rotate(${f.track} 12 12)"><path d="M12 2L12 10M12 10L14 14H10L12 10ZM8 4H16M11 22H13" stroke="${col}" stroke-width="2" fill="none"/></g></svg>`
-                         : `<svg width="${sz}" height="${sz}" viewBox="0 0 24 24" style="filter:drop-shadow(0 1px 3px rgba(0,0,0,.4));"><g transform="rotate(${f.track} 12 12)"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="${col}"/></g></svg>`;
+    var baseSvg = isHeli ? `<svg width="${sz}" height="${sz}" viewBox="0 0 24 24"><g transform="rotate(${f.track} 12 12)"><path d="M12 2L12 10M12 10L14 14H10L12 10ZM8 4H16M11 22H13" stroke="${col}" stroke-width="2" fill="none"/></g></svg>`
+                         : `<svg width="${sz}" height="${sz}" viewBox="0 0 24 24"><g transform="rotate(${f.track} 12 12)"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="${col}" stroke="rgba(0,0,0,0.15)" stroke-width="1"/></g></svg>`;
     var iconSvg = `<div class="plane-icon-inner"><div style="position:relative; width:${sz}px; height:${sz}px;">` + (isSel ? `<div class="sel-pulse" style="width:${pulseSz}px;height:${pulseSz}px;top:50%;left:50%;"></div>` : '') + baseSvg + `</div></div>`;
     if(mks[f.id]){ var mk = mks[f.id]; if(mk.f.lastUpd !== f.lastUpd){ mk.oldLat = mk.f.lat; mk.oldLon = mk.f.lon; mk.oldTrack = mk.f.track; mk.oldDataTime = mk.f.lastUpd; mk.startLat = mk.getLatLng().lat; mk.startLon = mk.getLatLng().lng; mk.startTime = Date.now(); mk.f = f; mk.setIcon(L.divIcon({html:iconSvg, className:'', iconSize:[sz,sz], iconAnchor:[sz/2,sz/2]})); }
     } else { var mk=L.marker([f.lat,f.lon],{icon:L.divIcon({html:iconSvg, className:'', iconSize:[sz,sz], iconAnchor:[sz/2,sz/2]})}).addTo(map); mk.onclick=function(){selFlight(f.id);}; mk.f = f; mk.oldLat = f.lat; mk.oldLon = f.lon; mk.oldTrack = f.track; mk.oldDataTime = f.lastUpd; mk.startLat = f.lat; mk.startLon = f.lon; mk.startTime = 0; mks[f.id]=mk; }
@@ -774,52 +728,12 @@ function renderAll(){
 }
 
 function setChip(v){ chip=v; document.querySelectorAll('.chip').forEach(function(c){c.classList.remove('on');}); var el=document.getElementById('ch-'+v); if(el)el.classList.add('on'); renderAll(); }
-function updateDetailStats(f){ set('dDs',f.dist!=null?f.dist.toFixed(1)+' km':'–'); }
+function updateDetailStats(f){ setFast('dDs',f.dist!=null?f.dist.toFixed(1)+' km':'–'); }
 
 var ACLEN={'C172':8.28,'PA28':7.16,'A318':31.4,'A319':33.8,'A320':37.6,'A321':44.5,'A20N':37.6,'A21N':44.5,'A332':58.8,'A333':63.7,'A338':63.7,'A339':63.7,'A359':66.8,'A35K':73.8,'A388':72.7,'B736':31.1,'B737':33.6,'B738':39.5,'B739':42.1,'B744':70.7,'B748':76.3,'B752':47.3,'B753':54.5,'B762':48.5,'B763':54.9,'B764':61.4,'B772':63.7,'B77L':64.8,'B77W':73.9,'B77X':76.7,'B788':57,'B789':63,'B78X':68.3,'E170':29.9,'E175':31.7,'E190':36.2,'E195':38.7,'CRJ2':24.4,'CRJ7':32.5,'CRJ9':36.2,'DH8D':32.8,'AT72':27.2};
 var ACSPECS={'C172':[1289,1157,767,212],'PA28':[1050,1106,544,180],'A318': [5750, 68000, 39500, 24210], 'A319': [6950, 75500, 40800, 24210], 'A320': [6100, 78000, 42600, 24210], 'A321': [5950, 93500, 47500, 24050], 'A20N': [6300, 79000, 42600, 26730], 'A21N': [7400, 97000, 50100, 32940], 'A332': [13450, 242000, 119600, 139090], 'A333': [11750, 242000, 124500, 139090], 'A338': [15090, 251000, 125000, 139090], 'A339': [13330, 251000, 129000, 139090], 'A359': [15370, 280000, 142400, 141000], 'A35K': [16110, 316000, 155000, 159000], 'A388': [14800, 575000, 276800, 320000], 'B736': [5970, 65540, 36378, 26020], 'B737': [5850, 70080, 37714, 26020], 'B738': [5436, 79010, 41413, 26020], 'B739': [5460, 85130, 44676, 29660], 'B38M': [6570, 82190, 45070, 25816], 'B39M': [6570, 88314, 47450, 25816], 'B744': [13450, 396890, 183500, 216840], 'B748': [14310, 447700, 220100, 238610], 'B752': [7222, 115680, 58440, 43490], 'B753': [6287, 123600, 64590, 43490], 'B762': [7300, 142880, 80130, 63216], 'B763': [11065, 186880, 90010, 91380], 'B764': [10415, 204110, 103870, 91380], 'B772': [9700, 247200, 135580, 117340], 'B77L': [15843, 347800, 145150, 181280], 'B77W': [13649, 351500, 167829, 181280], 'B788': [13620, 227930, 119950, 126206], 'B789': [14140, 254011, 128850, 126206], 'B78X': [11910, 254011, 135500, 126206], 'E170': [3982, 38600, 21140, 9335], 'E175': [4074, 38790, 21810, 9335], 'E190': [4537, 51800, 27837, 12971], 'E195': [4260, 52290, 28667, 12971], 'CRJ2': [3148, 24040, 13835, 6489], 'CRJ7': [2553, 34019, 19731, 7401], 'CRJ9': [2876, 38330, 21845, 7401], 'DH8D': [2040, 29257, 17185, 3160], 'AT72': [1528, 23000, 13311, 5000]};
 var ACREL={'C172':1956,'PA28':1956,'A318':2003,'A319':1996,'A320':1988,'A321':1994,'A20N':2017,'A21N':2018,'A332':1998,'A333':1994,'A338':2020,'A339':2018, 'A359':2015,'A35K':2018,'A388':2007, 'B736':1998,'B737':1998,'B738':1998,'B739':2001,'B38M':2017,'B39M':2018, 'B744':1989,'B748':2011, 'B752':1983,'B753':1999, 'B762':1982,'B763':1986,'B764':2000, 'B772':1995,'B77L':2006,'B77W':2004, 'B788':2011,'B789':2014,'B78X':2018, 'E170':2004,'E175':2005,'E190':2005,'E195':2006, 'CRJ2':1992,'CRJ7':2001,'CRJ9':2003,'DH8D':2000,'AT72':1989};
 var ACENG={'C172':'1x Lycoming IO-360','PA28':'1x Lycoming O-320','A320':'2× CFM56-5B / IAE V2500','A321':'2× CFM56-5B / IAE V2500','A20N':'2× CFM LEAP-1A','A21N':'2× CFM LEAP-1A','A332':'2× GE CF6 / RR Trent 700','A333':'2× RR Trent 700','A338':'2× RR Trent 7000','A339':'2× RR Trent 7000','A359':'2× RR Trent XWB-84','A35K':'2× RR Trent XWB-97','A388':'4× GP7200 / RR Trent 970','B737':'2× CFM56-3','B738':'2× CFM56-7B','B739':'2× CFM56-7B','B744':'4× CF6-80C2','B748':'4× GEnx-2B67','B752':'2× RB211-535','B763':'2× CF6-80C2','B772':'2× GE90-94B','B77L':'2× GE90-110B1','B77W':'2× GE90-115B1','B77X':'2× GE9X-105B1A','B788':'2× GEnx-1B / RR Trent 1000','B789':'2× GEnx-1B / RR Trent 1000','B78X':'2× GEnx-1B76','E190':'2× GE CF34-10E','E195':'2× GE CF34-10E','CRJ2':'2× GE CF34-3B1','CRJ7':'2× GE CF34-8C5','DH8D':'2× PW150A','AT72':'2× PW127F'};
-
-function dir(t){return['N','NE','E','SE','S','SW','W','NW'][Math.round(t/45)%8];}
-function g(id){return document.getElementById(id);}
-function set(id,v){var e=g(id);if(e)e.textContent=v;}
-function setFL(h){var e=g('flist');if(e)e.innerHTML=h;}
-
-function toast(msg,bg){ var b=document.createElement('div'); b.style.cssText='position:fixed;top:62px;left:50%;transform:translateX(-50%);z-index:6000;background:'+(bg||'#333')+';color:#fff;padding:10px 20px;border-radius:20px;font-weight:700;font-size:14px;box-shadow:0 4px 20px rgba(0,0,0,.3);white-space:nowrap;'; b.textContent=msg;document.body.appendChild(b);setTimeout(function(){b.remove();},4000); }
-
-var sheetCollapsed = false;
-function toggleSheet(){ var sheet = document.getElementById('sheet'); if(sheetCollapsed){ sheet.classList.remove('collapsed'); sheetCollapsed=false; } else{ sheet.classList.add('collapsed'); sheetCollapsed=true; } }
-function openSheet(){g('sheet').classList.add('open');}
-function closeSheet(){g('sheet').classList.remove('open');}
-function openCfg(e){g('cfg').classList.remove('hidden');g('cfgOv').style.display='block';setTimeout(function(){g('cfgOv').style.opacity=1;},10);}
-function closeCfg(){g('cfg').classList.add('hidden');g('cfgOv').style.opacity=0;setTimeout(function(){g('cfgOv').style.display='none';},400);}
-function applySettings(){ searchRadius = parseInt(document.getElementById('iRad').value); closeCfg(); fetchLive(true); }
-function closeDetail(){document.getElementById('det').classList.remove('open');selId=null;if(pastRouteLine)map.removeLayer(pastRouteLine);if(futureRouteLine)map.removeLayer(futureRouteLine);pastRouteLine=null;futureRouteLine=null;openSheet();renderAll();}
-
-window.addEventListener('load',function(){
-  initMap(); fetchLive(); startLive();
-  var cfgY = 0, cfgStartY = 0, cfgDragging = false;
-  document.getElementById('cfg').addEventListener('touchstart', function(e) { if(e.target.closest('.sh-drag-area')) { cfgStartY = e.touches[0].clientY; cfgDragging = true; document.getElementById('cfg').style.transition = 'none'; } });
-  document.getElementById('cfg').addEventListener('touchmove', function(e) { if(!cfgDragging) return; var delta = e.touches[0].clientY - cfgStartY; if(delta > 0) document.getElementById('cfg').style.transform = `translateY(${delta}px)`; });
-  document.getElementById('cfg').addEventListener('touchend', function(e) { if(!cfgDragging) return; cfgDragging = false; document.getElementById('cfg').style.transition = 'transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)'; document.getElementById('cfg').style.transform = ''; var delta = e.changedTouches[0].clientY - cfgStartY; if(delta > 50) closeCfg(); });
-
-  var sheetY = 0, startY = 0, dragging = false;
-  document.getElementById('sheet').addEventListener('touchstart', function(e) { if(e.target.closest('.sh-drag-area') || e.target.closest('.sh-head')) { startY = e.touches[0].clientY; dragging = true; document.getElementById('sheet').style.transition = 'none'; } });
-  document.getElementById('sheet').addEventListener('touchmove', function(e) { if(!dragging) return; var delta = e.touches[0].clientY - startY; if(delta > 0 && !sheetCollapsed) document.getElementById('sheet').style.transform = `translateY(${delta}px)`; else if (delta < 0 && sheetCollapsed) document.getElementById('sheet').style.transform = `translateY(${delta}px)`; });
-  document.getElementById('sheet').addEventListener('touchend', function(e) { if(!dragging) return; dragging = false; document.getElementById('sheet').style.transition = 'transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), height 0.4s cubic-bezier(0.2, 0.8, 0.2, 1)'; document.getElementById('sheet').style.transform = ''; var endY = e.changedTouches[0].clientY; var delta = endY - startY; if(delta > 50 && !sheetCollapsed) toggleSheet(); else if (delta < -50 && sheetCollapsed) toggleSheet(); });
-});
-
-async function fetchMeta(id){ if(id in mcache)return mcache[id]; mcache[id]=null; try{ var r=await xhrGet('https://api.adsbdb.com/v0/aircraft/'+id.toLowerCase()); mcache[id]=(r&&r.response&&r.response.aircraft)?r.response.aircraft:null; return mcache[id]; }catch(e){return null;} }
-async function fetchRoute(cs){ if(!cs)return null; try{ var r=await xhrGet('https://api.adsbdb.com/v0/callsign/'+cs.replace(/\s+/g,'').toUpperCase()); return(r&&r.response&&r.response.flightroute)?r.response.flightroute:null; }catch(e){return null;} }
-async function fetchPhoto(id){
-  try{ var r=await xhrGet('https://api.planespotters.net/pub/photos/hex/'+id); if(r.photos&&r.photos.length>0){ var p=r.photos[0]; return{src:(p.thumbnail_large?p.thumbnail_large.src:p.thumbnail.src), credit:(p.photographer?'📷 '+p.photographer:'')}; } }catch(e){
-    try{ var r2=await xhrGet('https://api.allorigins.win/get?url='+encodeURIComponent('https://api.planespotters.net/pub/photos/hex/'+id)); var d=JSON.parse(r2.contents); if(d.photos&&d.photos.length>0){ var p=d.photos[0]; return{src:(p.thumbnail_large?p.thumbnail_large.src:p.thumbnail.src), credit:(p.photographer?'📷 '+p.photographer:'')}; } }catch(e2){}
-  }
-  try{ var r3=await xhrGet('https://api.allorigins.win/get?url='+encodeURIComponent('https://www.airliners.net/search?hex='+id.toUpperCase())); var htmlStr=typeof r3.contents==='string'?r3.contents:''; var imgMatch = htmlStr.match(/src="([^"]*photos\/airliners[^"]*)"/); if(imgMatch) return {src: imgMatch[1], credit: '📷 Airliners.net'}; }catch(e3){}
-  return null;
-}
-async function fetchBuiltYear(reg){ if(!reg) return null; var proxy='https://api.allorigins.win/get?url='+encodeURIComponent('https://www.airport-data.com/aircraft/'+reg+'.html'); try{ var d=await xhrGet(proxy); var html=typeof d.contents==='string'?d.contents:''; var match = html.match(/Year built:[^<]*<[^>]*>\s*(\d{4})/i) || html.match(/built[\s\S]{0,20}(\d{4})/i); if(match) return match[1]; }catch(e){} return null; }
 
 function calcETA(f,route){
   var myLat = userPos ? userPos[0] : map.getCenter().lat, myLon = userPos ? userPos[1] : map.getCenter().lng;
