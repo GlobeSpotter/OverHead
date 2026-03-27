@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<title>Overhead Ultra — Global CPA Edition</title>
+<title>Overhead Ultra — Seamless Globe</title>
 
 <!-- LEAFLET -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -33,11 +33,14 @@ body::before{
   content:""; position:fixed; inset:0; z-index:35; pointer-events:none;
   background: radial-gradient(circle at 50% 8%, rgba(255,255,255,.06), transparent 25%), radial-gradient(circle at 50% 120%, rgba(0,0,0,0), rgba(0,0,0,.42) 70%);
 }
-#mapWrap{ position:fixed; inset:0; z-index:0; transition:opacity .55s var(--spring); }
+
+/* KARTTA JA GLOBE WRAPPERIT - ANIMATIONS */
+#mapWrap{ position:fixed; inset:0; z-index:1; transition:opacity .8s ease, transform .8s var(--spring); }
 #map{ position:absolute; inset:0; }
-#globeWrap{ position:fixed; inset:0; z-index:10; opacity:0; pointer-events:none; transition:opacity .6s var(--spring); background:#000; }
-#globeWrap.on{ opacity:1; pointer-events:auto; }
+#globeWrap{ position:fixed; inset:0; z-index:2; opacity:0; pointer-events:none; transition:opacity .8s ease, transform .8s var(--spring); transform:scale(0.85); background:#000; }
+#globeWrap.on{ opacity:1; pointer-events:auto; transform:scale(1); }
 #globeViz{position:absolute;inset:0;}
+
 .leaflet-control-zoom,.leaflet-control-attribution{display:none!important}
 .leaflet-container{background:#000}
 
@@ -67,7 +70,6 @@ body::before{
 .ibtn{ width:38px;height:38px;border:none;border-radius:19px; background:rgba(255,255,255,.08);color:#fff; display:grid;place-items:center;cursor:pointer; transition:transform .22s var(--spring), background .2s ease; font-size:12px; font-weight:800; }
 .ibtn:active{transform:scale(.93)}
 .ibtn.on{background:rgba(10,132,255,.22);box-shadow:0 0 0 1px rgba(10,132,255,.35) inset; color:#79b8ff;}
-.ibtn.purple.on{background:rgba(191,90,242,.22);box-shadow:0 0 0 1px rgba(191,90,242,.35) inset; color:#dca2ff;}
 
 /* Top HUD */
 .hud-wrap{ position:fixed;left:0;right:0; top:calc(max(14px, env(safe-area-inset-top)) + 74px); z-index:2200;display:flex;justify-content:center;pointer-events:none; }
@@ -172,10 +174,9 @@ body::before{
       <div class="if-pill">LIVE</div>
     </div>
     <div class="island-actions">
-      <!-- UUSI: Global mode toggle -->
-      <button class="ibtn purple" id="globalBtn" title="Global Mode">GLB</button>
+      <!-- Ei erillistä global-nappia. Seamless zoom hoitaa asian! -->
       <button class="ibtn" id="gpsBtn" title="GPS">📍</button>
-      <button class="ibtn" id="globeBtn" title="3D Globe">🌍</button>
+      <button class="ibtn" id="refreshBtn" title="Refresh">↻</button>
     </div>
   </div>
 </div>
@@ -199,7 +200,7 @@ body::before{
   <div class="sheet-grab" id="sheetGrab"><div></div></div>
   <div class="sheet-head">
     <div><div class="sheet-title">Live Radar</div><div class="sheet-sub" id="sheetSub">No flights loaded</div></div>
-    <div class="sheet-meta" id="sheetMeta">Local 200km</div>
+    <div class="sheet-meta" id="sheetMeta">Global Scan</div>
   </div>
   <div class="sheet-list" id="flightList"><div class="empty">Paina TKU tai GPS aloittaaksesi.</div></div>
 </div>
@@ -211,7 +212,7 @@ body::before{
     <div class="d-hero" id="dHero"><img id="dImg" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" style="opacity:0" /></div>
     <div class="d-call" id="dCall">FLIGHT</div>
     <div class="d-route" id="dRoute">—</div>
-    <!-- UUSI: Overhead tila -->
+    <!-- Overhead tila -->
     <div class="overhead-status" id="dOverhead" style="display:none;">Overhead in 5 min</div>
     <div class="phase cruise" id="dPhase">→ Cruise</div>
   </div>
@@ -237,7 +238,6 @@ body::before{
 <div class="toast" id="toast"></div>
 
 <script>
-// ---------- AIRCRAFT TECH DATABASE ----------
 const AC_DB = {
   "A319": { eng:"2× CFM56 / V2500", year:1995, mtow:"75.5 t", fuel:"24,210 L", len:"33.8 m" },
   "A320": { eng:"2× CFM56 / V2500", year:1987, mtow:"78.0 t", fuel:"24,210 L", len:"37.6 m" },
@@ -260,22 +260,19 @@ const AC_DB = {
   "AT76": { eng:"2× PW127M (Turboprop)", year:2012, mtow:"23.0 t", fuel:"6,400 L", len:"27.2 m" }
 };
 
-// ---------- CONFIG & STATE ----------
 const state = {
   map: null, globe: null, globeReady: false, isGlobe: false,
-  userLat: 60.4518, userLon: 22.2666, radiusKm: 180,
+  userLat: 60.4518, userLon: 22.2666,
   flights: new Map(), markers: new Map(), selectedIcao: null,
   refreshTimer: null, animFrame: null, animLast: 0, lastGlobeSync: 0,
   search: '', sheetExpanded: true,
   metaCache: new Map(), photoCache: new Map(),
-  basePlaneScene: null,
-  isGlobalMode: false // <-- UUSI ASETUS
+  basePlaneScene: null
 };
 
 const $ = id => document.getElementById(id);
 function toast(msg){ const el = $('toast'); el.textContent = msg; el.classList.add('show'); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 2400); }
 
-// Muunnokset ja Matikka
 function fmtFt(m){ return m == null ? '—' : Math.round(m * 3.28084).toLocaleString('en-US') + ' FT'; }
 function fmtM(m){ return m == null ? '—' : Math.round(m).toLocaleString('en-US') + ' m'; }
 function fmtKt(ms){ return ms == null ? '—' : Math.round(ms * 1.94384) + ' KT'; }
@@ -285,42 +282,18 @@ function dir(track){ if(track == null) return '—'; const dirs = ['N','NE','E',
 function haversine(lat1, lon1, lat2, lon2){ const R=6371, p=Math.PI/180; const a=Math.sin((lat2-lat1)*p/2)**2 + Math.cos(lat1*p)*Math.cos(lat2*p)*Math.sin((lon2-lon1)*p/2)**2; return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); }
 function esc(s){ return String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
-// OVERHEAD / CPA (Closest Point of Approach) LOGIIKKA
 function calculateOverhead(f) {
-  if(!f.velocity || f.on_ground || f.dist > 300) return null; // Vain lähellä liikkuvat koneet
-  
-  // Koneen sijainti ja nopeusvektori (km/h)
-  const v_kmh = f.velocity * 3.6;
-  if(v_kmh < 50) return null;
-  
-  // Muutetaan asteet radiaaneiksi
+  if(!f.velocity || f.on_ground || f.dist > 300) return null;
+  const v_kmh = f.velocity * 3.6; if(v_kmh < 50) return null;
   const trackRad = (f.track || 0) * Math.PI / 180;
-  
-  // Yksinkertaistettu vektori-lasku (X=Long, Y=Lat, aproksimaatio tasolla, riittää overhead-laskuun)
-  // 1 aste latitudia = n. 111km. 1 aste longitudia = n. 111km * cos(lat)
-  const latToKm = 111.32;
-  const lonToKm = 111.32 * Math.cos(state.userLat * Math.PI / 180);
-  
-  // Vektorit (Tarkkailija origossa 0,0)
-  const px = (f.curLon - state.userLon) * lonToKm;
-  const py = (f.curLat - state.userLat) * latToKm;
-  
-  // Nopeusvektorit X ja Y
-  const vx = v_kmh * Math.sin(trackRad);
-  const vy = v_kmh * Math.cos(trackRad);
-  
-  const v2 = vx*vx + vy*vy;
-  if(v2 === 0) return null;
-  
-  // Aika (t) tuntia, jolloin etäisyys on pienin (CPA - Closest Point of Approach)
+  const latToKm = 111.32; const lonToKm = 111.32 * Math.cos(state.userLat * Math.PI / 180);
+  const px = (f.curLon - state.userLon) * lonToKm; const py = (f.curLat - state.userLat) * latToKm;
+  const vx = v_kmh * Math.sin(trackRad); const vy = v_kmh * Math.cos(trackRad);
+  const v2 = vx*vx + vy*vy; if(v2 === 0) return null;
   const tCPA = -(px*vx + py*vy) / v2;
   const distCPA = Math.sqrt(Math.pow(px + vx*tCPA, 2) + Math.pow(py + vy*tCPA, 2));
-  
-  // Määritellään mikä on "Overhead" = menee alle 15 km päästä päältäsi
   if(distCPA > 15) return null; 
-
   const minAikaMins = Math.round(tCPA * 60);
-
   if(minAikaMins < -1) return `Passed ${Math.abs(minAikaMins)} min ago`;
   if(minAikaMins >= -1 && minAikaMins <= 1) return `Overhead RIGHT NOW`;
   return `Overhead in ${minAikaMins} min`;
@@ -335,28 +308,57 @@ function phaseOf(f){
 }
 function colorOf(f){
   if(f.on_ground) return '#FF9F0A';
-  if((f.dist ?? 9999) < 40) return '#BF5AF2'; // Purple lähellä oleville
+  if((f.dist ?? 9999) < 40) return '#BF5AF2';
   return '#0A84FF';
 }
 
 const DEF_PLANE_SVG = 'https://upload.wikimedia.org/wikipedia/commons/4/41/Airliner_silhouette.svg';
 
-// ---------- LEAFLET 2D MAP ----------
+// ---------- LEAFLET 2D MAP & SEAMLESS TRANSITION LOGIC ----------
 function initMap(){
   state.map = L.map('map', {zoomControl:false, attributionControl:false}).setView([state.userLat, state.userLon], 7);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19}).addTo(state.map);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,opacity:.92}).addTo(state.map);
   state.userMarker = L.circleMarker([state.userLat, state.userLon], {radius:7,color:'#fff',weight:3,fillColor:'#FF453A',fillOpacity:1}).addTo(state.map);
-  state.radiusCircle = L.circle([state.userLat, state.userLon], {radius:state.radiusKm*1000,color:'#0A84FF',weight:1.4,opacity:.55,fillColor:'#0A84FF',fillOpacity:.05}).addTo(state.map);
+  
+  // Transition logiikka: Kun Leaflet zoom on <= 3, vaihda 3D Globeen pehmeästi.
+  state.map.on('zoomend', () => {
+     checkZoomTransition();
+     // Päivitä markkereiden koko riippuen zoomista
+     for(const [icao, f] of state.flights.entries()){ upsertMarker(f); }
+  });
 }
-function setUserLocation(lat, lon, zoom=8){
+
+function checkZoomTransition() {
+    const zoom = state.map.getZoom();
+    
+    // Siirtyminen Maapalloon, kun ollaan zoomattu aivan ulos (zoom 3 tai alle)
+    if(zoom <= 3 && !state.isGlobe) {
+        if(navigator.vibrate) navigator.vibrate(20);
+        if(!state.globeReady) initGlobe();
+        state.isGlobe = true;
+        
+        // Syncataan 3D pallon sijainti siihen mitä 2D kartassa viimeksi katsottiin
+        const center = state.map.getCenter();
+        if(state.globeReady) {
+            state.globe.pointOfView({lat: center.lat, lng: center.lng, altitude: 2.2}, 0);
+        }
+
+        $('globeWrap').classList.add('on');
+        $('mapWrap').style.opacity = '0';
+        $('mapWrap').style.transform = 'scale(1.1)'; // Pehmeä zoom efekti
+        syncGlobe(true);
+    } 
+    // Palataan 2D karttaan kun zoomataan maapallosta (Tämä hoidetaan globe-kontrolseista)
+}
+
+function setUserLocation(lat, lon, zoom=7){
   state.userLat = lat; state.userLon = lon;
   if(state.userMarker) state.userMarker.setLatLng([lat, lon]);
-  if(state.radiusCircle) { state.radiusCircle.setLatLng([lat, lon]); state.radiusCircle.setRadius(state.radiusKm * 1000); }
   if(state.map) state.map.setView([lat, lon], zoom, {animate:true});
 }
 
-// ---------- DATA FETCHING ----------
+// ---------- DATA FETCHING (Aina Globaali haku, n. 1000-2000 konetta) ----------
 function parseStates(states){
   const now = Date.now();
   let arr = (states || []).map(s => {
@@ -369,42 +371,27 @@ function parseStates(states){
     };
   }).filter(Boolean);
   
-  // Jos Global Mode, rajoitetaan max 1500 jottei selain kaadu
-  if(state.isGlobalMode && arr.length > 1500) {
-      // Suositaan ilmassa olevia
-      arr.sort((a,b) => (a.on_ground===b.on_ground ? 0 : a.on_ground ? 1 : -1));
-      arr = arr.slice(0, 1500); 
-  }
+  // AINA GLOBAL MODE! Haetaan kaikki, rajataan rendauksen säästämiseksi n. 2500 aktiivisimpaan
+  // Laitetaan ne jotka on lähellä käyttäjää etusijalle, sitten satunnaisia ympäriltä
+  arr.sort((a,b) => a.dist - b.dist);
+  if(arr.length > 2000) arr = arr.slice(0, 2000); 
+
   return arr;
 }
 
 async function fetchFlights(){
-  const deg = state.radiusKm / 111;
-  // Local (boundingBox) vs Global (all)
-  const url = state.isGlobalMode 
-      ? `https://opensky-network.org/api/states/all` 
-      : `https://opensky-network.org/api/states/all?lamin=${(state.userLat-deg).toFixed(4)}&lomin=${(state.userLon-deg).toFixed(4)}&lamax=${(state.userLat+deg).toFixed(4)}&lomax=${(state.userLon+deg).toFixed(4)}&extended=1`;
-
-  $('mapStatusText').textContent = 'Refreshing live flights...'; $('refreshBtn').classList.add('on');
+  // Haetaan AINA koko maailma
+  const url = `https://opensky-network.org/api/states/all`;
+  $('mapStatusText').textContent = 'Scanning Global Flights...'; $('refreshBtn').classList.add('on');
   try{
     const res = await fetch(url);
     if(!res.ok) throw new Error('API Error');
     const json = await res.json(); mergeFlights(parseStates(json.states || []));
-    renderList(); syncGlobe(true); scheduleRefresh(); toast(`✈ ${state.flights.size} flights loaded`);
+    renderList(); syncGlobe(true); scheduleRefresh(); toast(`✈ ${state.flights.size} global flights tracked`);
   }catch(e){ toast('Refresh failed'); $('mapStatusText').textContent = 'Error refreshing'; } finally{ $('refreshBtn').classList.remove('on'); }
 }
 
 function mergeFlights(fresh){
-  // Kun vaihdetaan global -> local, tyhjennetään kaukaat mapista ja muistista
-  if(!state.isGlobalMode) {
-      for(const [icao, f] of state.flights.entries()){
-         if(f.dist > state.radiusKm * 1.5) {
-             const mk = state.markers.get(icao); if(mk) { state.map.removeLayer(mk); state.markers.delete(icao); }
-             state.flights.delete(icao);
-         }
-      }
-  }
-
   const seen = new Set();
   for(const nf of fresh){
     seen.add(nf.icao24);
@@ -429,13 +416,15 @@ function upsertMarker(f){
   let marker = state.markers.get(f.icao24);
   const size=28, rot=f.track, color=colorOf(f);
   
-  // Piirrä pienempi pallura jos global mode on päällä jottei mene puuroksi
-  const htmlStr = state.isGlobalMode && state.map.getZoom() < 5 
-      ? `<div style="width:8px;height:8px;background:${color};border-radius:50%;border:1px solid #fff;"></div>`
+  const zoom = state.map.getZoom();
+  // Jos katsotaan todella kaukaa 2D:ssä, piirretään vain pisteitä
+  const isFar = zoom < 6;
+  const htmlStr = isFar 
+      ? `<div style="width:6px;height:6px;background:${color};border-radius:50%;border:1px solid #000;"></div>`
       : `<div style="width:${size}px;height:${size}px;transform:rotate(${rot}deg);transform-origin:center"><svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 100 100" style="filter:drop-shadow(0 2px 6px rgba(0,0,0,.45))"><ellipse cx="50" cy="50" rx="6" ry="38" fill="${color}"/><ellipse cx="50" cy="14" rx="5" ry="8" fill="${color}"/><path d="M50,42 Q30,30 8,52 Q16,56 50,50 Q84,56 92,52 Q70,30 50,42Z" fill="${color}"/><path d="M50,76 Q38,72 28,82 Q34,84 50,80 Q66,84 72,82 Q62,72 50,76Z" fill="${color}"/><ellipse cx="50" cy="78" rx="3" ry="8" fill="${color}" opacity=".75"/></svg></div>`;
   
-  const iconSize = state.isGlobalMode && state.map.getZoom() < 5 ? [8,8] : [size,size];
-  const iconAnchor = state.isGlobalMode && state.map.getZoom() < 5 ? [4,4] : [size/2,size/2];
+  const iconSize = isFar ? [6,6] : [size,size];
+  const iconAnchor = isFar ? [3,3] : [size/2,size/2];
 
   const icon = L.divIcon({ className:'', html:htmlStr, iconSize, iconAnchor });
   const pop = `<div><div style="font-weight:850;font-size:14px">${esc(f.callsign)}</div><div style="opacity:.8">${esc(f.country)}</div><div>↕ ${fmtFt(f.baro_alt??f.geo_alt)}</div><div>💨 ${fmtKt(f.velocity)}</div></div>`;
@@ -453,7 +442,7 @@ function projectFlight(f, now){
   return { lat: f.lat + (distM * Math.cos(track))/111320, lon: f.lon + (distM * Math.sin(track))/(111320 * Math.max(.2, Math.cos(f.lat*Math.PI/180))) };
 }
 
-// ---------- 3D GLOBE ----------
+// ---------- 3D GLOBE KORJATTU JA LUOTETTAVA ----------
 function loadAirplaneModel(){
   return new Promise(resolve => {
     const loader = new THREE.GLTFLoader();
@@ -471,9 +460,9 @@ function loadAirplaneModel(){
 async function initGlobe(){
   if(state.globeReady) return; await loadAirplaneModel(); 
   state.globe = Globe()($('globeViz'))
-    // KORJATTU: Luotettavammat CDN linkit tekstuurille
-    .globeImageUrl('https://unpkg.com/three-globe@2.30.0/example/img/earth-blue-marble.jpg')
-    .bumpImageUrl('https://unpkg.com/three-globe@2.30.0/example/img/earth-topology.png')
+    // KORJATUT LUOTETTAVAT TAUSTAKUVAT UNPKG:STA:
+    .globeImageUrl('https://unpkg.com/three-globe@2.31.1/example/img/earth-blue-marble.jpg')
+    .bumpImageUrl('https://unpkg.com/three-globe@2.31.1/example/img/earth-topology.png')
     .backgroundColor('#000').showAtmosphere(true).atmosphereColor('#4dabff').atmosphereAltitude(0.15)
     .objectLat('gLat').objectLng('gLon').objectAltitude('gAlt')
     .objectThreeObject(d => {
@@ -485,13 +474,31 @@ async function initGlobe(){
       wrapper.scale.set(d.gScale, d.gScale, d.gScale); return wrapper;
     });
 
-  // Varmistetaan että pallo on valaistu vaikka tekstuuri ei latautuisi heti
-  state.globe.scene().add(new THREE.AmbientLight(0xffffff, 0.9));
+  // Varmistetaan kirkas valaistus, vaikkei kuva olisi heti ladattu
+  state.globe.scene().add(new THREE.AmbientLight(0xffffff, 0.8));
   const sun = new THREE.DirectionalLight(0xffffff, 1.8); sun.position.set(1, 1, 1);
   state.globe.scene().add(sun);
   
   state.globe.controls().enableDamping=true; state.globe.controls().dampingFactor=0.08;
-  state.globe.pointOfView({lat: state.userLat, lng: state.userLon, altitude: 1.5}, 0);
+  state.globe.pointOfView({lat: state.userLat, lng: state.userLon, altitude: 2.2}, 0);
+  
+  // Kuunnellaan kameran zoomia ja palataan 2D karttaan jos zoomataan tarpeeksi lähelle!
+  state.globe.controls().addEventListener('change', () => {
+      if(!state.isGlobe) return;
+      const cam = state.globe.pointOfView();
+      if(cam.altitude < 0.25) { // Zoomaa lähemmäs kuin 0.25 -> Vaihda Leaflettiin
+          if(navigator.vibrate) navigator.vibrate(20);
+          state.isGlobe = false;
+          // Piilota globe
+          $('globeWrap').classList.remove('on');
+          // Aseta 2D kartta samaan pisteeseen
+          state.map.setView([cam.lat, cam.lng], 6, {animate:false});
+          // Näytä 2D kartta
+          $('mapWrap').style.opacity = '1';
+          $('mapWrap').style.transform = 'scale(1)';
+      }
+  });
+
   state.globeReady = true;
 }
 
@@ -499,18 +506,18 @@ function syncGlobe(force=false){
   if(!state.globeReady || (!force && performance.now()-state.lastGlobeSync<250)) return;
   state.lastGlobeSync = performance.now();
   
-  // Piirretään MAX 800 konetta 3D-globeen, muuten puhelin sulaa käsiin.
-  const arr = [...state.flights.values()].sort((a,b)=>a.dist - b.dist).slice(0,800);
+  // Maapallossa rajataan näytettävät max 1000 koneeseen performanssin takia
+  const arr = [...state.flights.values()].slice(0,1000);
   
   state.globe.objectsData(arr.map(f => {
     const p = projectFlight(f, Date.now());
     return {
       id: f.icao24, gLat: p.lat, gLon: p.lon, gAlt: f.on_ground ? 0.001 : Math.max(0.002, (f.baro_alt??f.geo_alt??0) / 6371000 * 20), 
-      gColor: state.selectedIcao===f.icao24 ? '#30D158' : colorOf(f), gScale: state.selectedIcao===f.icao24 ? 1.8 : (state.isGlobalMode ? 0.8 : 1.2),
+      gColor: state.selectedIcao===f.icao24 ? '#30D158' : colorOf(f), gScale: state.selectedIcao===f.icao24 ? 1.6 : 0.8,
       track: f.track || 0, vrate: f.vertical_rate || 0, vel: f.velocity || 250, on_ground: f.on_ground
     };
   }));
-  if(state.selectedIcao){
+  if(state.selectedIcao && state.isGlobe){
     const sf = state.flights.get(state.selectedIcao);
     if(sf) state.globe.pointOfView({lat:sf.curLat, lng:sf.curLon, altitude: 0.4}, 800);
   }
@@ -608,7 +615,7 @@ async function openDetail(icao24){
 
   const ph = phaseOf(f); $('dPhase').className = `phase ${ph.cls}`; $('dPhase').textContent = `${ph.icon} ${ph.label}`;
   
-  // OVERHEAD
+  // OVERHEAD CPA
   const ohText = calculateOverhead(f);
   if(ohText) {
       $('dOverhead').textContent = ohText;
@@ -619,7 +626,8 @@ async function openDetail(icao24){
 
   updateDetailLive(f);
   $('island').classList.add('focus'); $('ifCall').textContent = f.callsign; $('ifRoute').textContent = 'Live focus';
-  if(!state.isGlobe) state.map.setView([f.curLat??f.lat, f.curLon??f.lon], Math.max(state.map.getZoom(), 9), {animate:true});
+  
+  if(!state.isGlobe) state.map.setView([f.curLat??f.lat, f.curLon??f.lon], Math.max(state.map.getZoom(), 8), {animate:true});
   else syncGlobe(true);
 
   Promise.all([
@@ -676,48 +684,17 @@ function scheduleRefresh(){ clearTimeout(state.refreshTimer); state.refreshTimer
 
 // ---------- INIT & EVENTS ----------
 $('searchInput').addEventListener('input', e => { state.search = e.target.value; renderList(); });
-$('globalBtn').addEventListener('click', () => {
-   if(navigator.vibrate) navigator.vibrate(10);
-   state.isGlobalMode = !state.isGlobalMode;
-   $('globalBtn').classList.toggle('on', state.isGlobalMode);
-   $('sheetMeta').textContent = state.isGlobalMode ? 'Global Mode (All)' : 'Local 200km';
-   
-   if(state.isGlobalMode && state.map) {
-       // Pienennä zoomausta jotta globaalit näkyy paremmin 2D kartassa
-       state.map.setZoom(3);
-   } else if (!state.isGlobalMode && state.map) {
-       state.map.setZoom(7);
-   }
-   
-   fetchFlights(); // Hae uudestaan joko all tai bounding box
-});
 $('gpsBtn').addEventListener('click', () => {
   if(navigator.vibrate) navigator.vibrate(15);
   if(!navigator.geolocation) return toast('GPS ei tuettu');
   $('gpsBtn').classList.add('on');
-  navigator.geolocation.getCurrentPosition(p => { setUserLocation(p.coords.latitude, p.coords.longitude); fetchFlights(); $('gpsBtn').classList.remove('on'); }, () => { $('gpsBtn').classList.remove('on'); toast('GPS epäonnistui'); });
+  navigator.geolocation.getCurrentPosition(p => { setUserLocation(p.coords.latitude, p.coords.longitude, 8); fetchFlights(); $('gpsBtn').classList.remove('on'); }, () => { $('gpsBtn').classList.remove('on'); toast('GPS epäonnistui'); });
 });
-$('globeBtn').addEventListener('click', () => {
-  if(navigator.vibrate) navigator.vibrate(20);
-  if(!state.globeReady) initGlobe();
-  state.isGlobe = !state.isGlobe;
-  $('globeWrap').classList.toggle('on', state.isGlobe); $('globeBtn').classList.toggle('on', state.isGlobe);
-  $('mapWrap').style.opacity = state.isGlobe ? '0' : '1'; syncGlobe(true);
-});
-$('turkuBtn').addEventListener('click', () => { setUserLocation(60.4518, 22.2666, 7); fetchFlights(); });
+$('turkuBtn').addEventListener('click', () => { setUserLocation(60.4518, 22.2666, 7); });
 $('refreshBtn').addEventListener('click', () => { if(navigator.vibrate) navigator.vibrate(10); fetchFlights(); });
 $('detailClose').addEventListener('click', closeDetail);
 $('sheetBtn').addEventListener('click', () => { state.sheetExpanded = !state.sheetExpanded; $('sheet').classList.toggle('expanded', state.sheetExpanded); });
 $('sheetGrab').addEventListener('click', () => { state.sheetExpanded = !state.sheetExpanded; $('sheet').classList.toggle('expanded', state.sheetExpanded); });
-
-// Force Leaflet redraw when zooming in Global mode to change icon sizes
-state.map?.on('zoomend', () => {
-    if(state.isGlobalMode) {
-        for(const [icao, f] of state.flights.entries()){
-            upsertMarker(f);
-        }
-    }
-});
 
 // Launch
 initMap(); setUserLocation(60.4518, 22.2666, 7); startAnimation(); fetchFlights();
