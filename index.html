@@ -165,14 +165,20 @@ body::before{
 
 /* Cards */
 .card{
-  display:flex;align-items:center;gap:14px; padding:14px;margin-bottom:10px;border-radius:22px;
+  display:flex;align-items:center;gap:14px; padding:12px;margin-bottom:10px;border-radius:22px;
   background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.05);
   cursor:pointer;transition:transform .18s var(--spring), background .18s ease;
 }
 .card:hover{background:rgba(255,255,255,.07)}
 .card:active{transform:scale(.985)}
 .card.sel{border-color:rgba(10,132,255,.38);background:rgba(10,132,255,.10)}
-.plane-badge{width:48px;height:48px;border-radius:24px;display:grid;place-items:center;background:rgba(255,255,255,.04);flex:0 0 auto}
+.plane-badge{
+  width:54px;height:54px;border-radius:18px;display:grid;place-items:center;
+  background:rgba(255,255,255,.04);flex:0 0 auto; overflow:hidden; position:relative;
+}
+.plane-badge img{
+  width:100%; height:100%; object-fit:cover;
+}
 .card-main{flex:1;min-width:0}
 .card-call{font-size:17px;font-weight:900;letter-spacing:-.04em}
 .card-sub{margin-top:3px;color:var(--text-2);font-size:13px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -190,7 +196,7 @@ body::before{
 .detail{
   position:fixed; left:50%; top:50%; transform:translate(-50%, -40%) scale(0.95);
   width:min(92%, 480px); max-height:85vh; z-index:3200; border-radius:32px;
-  background:linear-gradient(180deg, rgba(30,30,36,.94), rgba(20,20,26,.97));
+  background:linear-gradient(180deg, rgba(30,30,36,.96), rgba(20,20,26,.98));
   border:1px solid var(--line-2); box-shadow:var(--shadow-3);
   backdrop-filter:var(--blur-heavy); -webkit-backdrop-filter:var(--blur-heavy);
   display:flex;flex-direction:column; opacity:0;pointer-events:none;
@@ -209,11 +215,11 @@ body::before{
 }
 /* Plane Image Holder */
 .d-hero{
-  width:100%; height:120px; display:flex; justify-content:center; align-items:center;
+  width:100%; height:140px; display:flex; justify-content:center; align-items:center;
   margin-bottom:16px; border-radius:20px; background:rgba(255,255,255,0.03);
-  overflow:hidden; position:relative;
+  overflow:hidden; position:relative; border:1px solid rgba(255,255,255,0.05);
 }
-.d-hero img{ width:80%; height:100%; object-fit:contain; opacity:0.9; }
+.d-hero img{ width:100%; height:100%; object-fit:cover; transition: opacity 0.3s; }
 
 .d-call{font-size:36px;font-weight:900;letter-spacing:-.05em;line-height:1}
 .d-route{margin-top:6px;color:var(--blue);font-size:15px;font-weight:700}
@@ -229,18 +235,18 @@ body::before{
 
 .d-scroll{ flex:1;overflow-y:auto;padding:16px; }
 .d-scroll::-webkit-scrollbar{display:none}
-.grid{ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px; }
+.grid{ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px; }
 .info{
-  padding:14px;border-radius:20px;
+  padding:12px 14px;border-radius:18px;
   background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.03);
 }
 .info.full{grid-column:1/-1}
 .i-label{
-  font-size:11px;font-weight:800;letter-spacing:.05em;
+  font-size:10px;font-weight:800;letter-spacing:.05em;
   text-transform:uppercase;color:rgba(255,255,255,.4);
 }
-.i-value{ margin-top:6px;font-size:16px;font-weight:800;letter-spacing:-.02em; }
-.i-sub{ margin-top:2px;font-size:12px;color:rgba(255,255,255,.6); }
+.i-value{ margin-top:4px;font-size:15px;font-weight:800;letter-spacing:-.02em; }
+.i-sub{ margin-top:2px;font-size:11px;color:rgba(255,255,255,.6); }
 
 /* Toast & Popup */
 .toast{
@@ -338,8 +344,7 @@ body::before{
 
   <div class="detail-top">
     <div class="d-hero" id="dHero">
-      <!-- Generinen siluetti tai valokuva -->
-      <img id="dImg" src="https://upload.wikimedia.org/wikipedia/commons/4/41/Airliner_silhouette.svg" style="filter:invert(1) opacity(0.8);" />
+      <img id="dImg" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" style="opacity:0" />
     </div>
     <div class="d-call" id="dCall">FLIGHT</div>
     <div class="d-route" id="dRoute">—</div>
@@ -348,6 +353,7 @@ body::before{
 
   <div class="d-scroll">
     <div class="grid">
+      <!-- Flight Telemetry -->
       <div class="info">
         <div class="i-label">Altitude</div>
         <div class="i-value" id="dAlt">—</div>
@@ -368,23 +374,36 @@ body::before{
         <div class="i-value" id="dVr">—</div>
         <div class="i-sub" id="dDist">—</div>
       </div>
+      
+      <!-- Aircraft DB Specs -->
       <div class="info full">
-        <div class="i-label">Aircraft</div>
+        <div class="i-label">Aircraft Model</div>
         <div class="i-value" id="dModel">Loading…</div>
         <div class="i-sub" id="dMeta">—</div>
       </div>
+      
+      <!-- New Spec blocks -->
+      <div class="info">
+        <div class="i-label">Max Takeoff Weight</div>
+        <div class="i-value" id="dWeight">—</div>
+      </div>
+      <div class="info">
+        <div class="i-label">Fuel Capacity</div>
+        <div class="i-value" id="dFuel">—</div>
+      </div>
+      <div class="info">
+        <div class="i-label">Engines</div>
+        <div class="i-value" id="dEngines">—</div>
+      </div>
+      <div class="info">
+        <div class="i-label">First Flight</div>
+        <div class="i-value" id="dFirstFlight">—</div>
+      </div>
+
       <div class="info full">
         <div class="i-label">Operator / Route</div>
         <div class="i-value" id="dOperator">—</div>
         <div class="i-sub" id="dRouteLong">—</div>
-      </div>
-      <div class="info">
-        <div class="i-label">ICAO24</div>
-        <div class="i-value" id="dIcao">—</div>
-      </div>
-      <div class="info">
-        <div class="i-label">Squawk</div>
-        <div class="i-value" id="dSquawk">—</div>
       </div>
     </div>
   </div>
@@ -393,6 +412,30 @@ body::before{
 <div class="toast" id="toast"></div>
 
 <script>
+// ---------- AIRCRAFT TECH DATABASE ----------
+// Laaja tietokanta yleisimmille malleille. MTOW tonneina, polttoaine litroina.
+const AC_DB = {
+  "A319": { eng:"2× CFM56 / V2500", year:1995, mtow:"75.5 t", fuel:"24,210 L", len:"33.8 m" },
+  "A320": { eng:"2× CFM56 / V2500", year:1987, mtow:"78.0 t", fuel:"24,210 L", len:"37.6 m" },
+  "A321": { eng:"2× CFM56 / V2500", year:1993, mtow:"93.5 t", fuel:"30,030 L", len:"44.5 m" },
+  "A20N": { eng:"2× LEAP-1A / PW1100G", year:2014, mtow:"79.0 t", fuel:"26,730 L", len:"37.6 m" },
+  "A21N": { eng:"2× LEAP-1A / PW1100G", year:2016, mtow:"97.0 t", fuel:"32,940 L", len:"44.5 m" },
+  "A332": { eng:"2× Trent 700 / CF6", year:1997, mtow:"242.0 t", fuel:"139,090 L", len:"58.8 m" },
+  "A333": { eng:"2× Trent 700 / CF6", year:1992, mtow:"242.0 t", fuel:"139,090 L", len:"63.7 m" },
+  "A359": { eng:"2× Trent XWB-84", year:2013, mtow:"280.0 t", fuel:"140,795 L", len:"66.8 m" },
+  "A388": { eng:"4× Trent 900 / GP7200", year:2005, mtow:"575.0 t", fuel:"320,000 L", len:"72.7 m" },
+  "B737": { eng:"2× CFM56-7B", year:1997, mtow:"70.5 t", fuel:"26,020 L", len:"33.6 m" },
+  "B738": { eng:"2× CFM56-7B", year:1997, mtow:"79.0 t", fuel:"26,020 L", len:"39.5 m" },
+  "B38M": { eng:"2× LEAP-1B", year:2016, mtow:"82.2 t", fuel:"25,816 L", len:"39.5 m" },
+  "B744": { eng:"4× CF6 / PW4000", year:1988, mtow:"396.9 t", fuel:"216,840 L", len:"70.6 m" },
+  "B77W": { eng:"2× GE90-115B", year:2003, mtow:"351.5 t", fuel:"181,280 L", len:"73.9 m" },
+  "B788": { eng:"2× GEnx / Trent 1000", year:2009, mtow:"227.9 t", fuel:"126,206 L", len:"56.7 m" },
+  "B789": { eng:"2× GEnx / Trent 1000", year:2013, mtow:"254.0 t", fuel:"126,206 L", len:"63.0 m" },
+  "E190": { eng:"2× CF34-10E", year:2004, mtow:"51.8 t", fuel:"16,250 L", len:"36.2 m" },
+  "BCS3": { eng:"2× PW1500G", year:2015, mtow:"67.6 t", fuel:"21,508 L", len:"38.7 m" }, // A220-300
+  "AT76": { eng:"2× PW127M (Turboprop)", year:2012, mtow:"23.0 t", fuel:"6,400 L", len:"27.2 m" }
+};
+
 // ---------- CONFIG & STATE ----------
 const state = {
   map: null, globe: null, globeReady: false, isGlobe: false,
@@ -400,8 +443,8 @@ const state = {
   flights: new Map(), markers: new Map(), selectedIcao: null,
   refreshTimer: null, animFrame: null, animLast: 0, lastGlobeSync: 0,
   search: '', sheetExpanded: true,
-  metaCache: new Map(), routeCache: new Map(),
-  basePlaneScene: null // 3D malli välimuistissa
+  metaCache: new Map(), routeCache: new Map(), photoCache: new Map(),
+  basePlaneScene: null
 };
 
 const $ = id => document.getElementById(id);
@@ -442,6 +485,9 @@ function colorOf(f){
   if((f.dist ?? 9999) < 50) return '#30D158'; // Green
   return '#0A84FF'; // Blue
 }
+
+// Default fallback plane svg
+const DEF_PLANE_SVG = 'https://upload.wikimedia.org/wikipedia/commons/4/41/Airliner_silhouette.svg';
 
 // ---------- LEAFLET 2D MAP ----------
 function initMap(){
@@ -549,42 +595,25 @@ function projectFlight(f, now){
 // ---------- 3D GLOBE ----------
 function loadAirplaneModel(){
   return new Promise(resolve => {
-    // Käytetään Three.js esimerkeistä tuttua kevyttä konemallia, ladataan jsdelivr CDN:stä:
     const loader = new THREE.GLTFLoader();
     loader.load('https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/models/gltf/Flamingo.glb', (gltf) => {
       const plane = gltf.scene;
-      
-      // Käännetään malli osoittamaan Z-akselin suuntaan
       plane.rotation.y = Math.PI; 
-      plane.scale.set(0.003, 0.003, 0.003); // Skaalataan sopivaksi maapallolle
-      
-      // Luodaan valkoinen materiaali (värjätään myöhemmin klooneissa)
+      plane.scale.set(0.003, 0.003, 0.003); 
       plane.traverse((child) => {
-        if (child.isMesh) {
-          child.material = new THREE.MeshStandardMaterial({ 
-            color: 0xffffff,
-            metalness: 0.3,
-            roughness: 0.4
-          });
-        }
+        if (child.isMesh) child.material = new THREE.MeshStandardMaterial({ color: 0xffffff, metalness: 0.3, roughness: 0.4 });
       });
-      state.basePlaneScene = plane;
-      resolve(plane);
+      state.basePlaneScene = plane; resolve(plane);
     }, undefined, () => {
-      // Jos laataus epäonnistuu, tehdään fallback "nuoli"
-      const fallback = new THREE.Mesh(
-        new THREE.ConeGeometry(0.02, 0.08, 4).rotateX(Math.PI/2),
-        new THREE.MeshStandardMaterial()
-      );
-      state.basePlaneScene = fallback;
-      resolve(fallback);
+      const fallback = new THREE.Mesh(new THREE.ConeGeometry(0.02, 0.08, 4).rotateX(Math.PI/2), new THREE.MeshStandardMaterial());
+      state.basePlaneScene = fallback; resolve(fallback);
     });
   });
 }
 
 async function initGlobe(){
   if(state.globeReady) return;
-  await loadAirplaneModel(); // Odotetaan että 3D malli latautuu
+  await loadAirplaneModel(); 
 
   state.globe = Globe()($('globeViz'))
     .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
@@ -593,94 +622,41 @@ async function initGlobe(){
     .showAtmosphere(true)
     .atmosphereColor('#4dabff')
     .atmosphereAltitude(0.15)
-    .objectLat('gLat')
-    .objectLng('gLon')
-    .objectAltitude('gAlt')
+    .objectLat('gLat').objectLng('gLon').objectAltitude('gAlt')
     .objectThreeObject(d => {
-      // Kloonataan alkuperäinen 3D malli
       const clone = state.basePlaneScene.clone();
-      
-      // Värjätään malli valitun värin mukaan
-      clone.traverse((child) => {
-        if (child.isMesh) {
-          child.material = child.material.clone(); // Jotta ei värjätä kaikkia
-          child.material.color.set(d.gColor);
-        }
-      });
-
-      // Kiertokulmat! Laitetaan oikeaan asentoonsa Globe.gl päällä
-      const trackRad = (90 - d.track) * (Math.PI / 180);
-      
-      // Pitch lasketaan vertical_ratesta. m/s ja velMs suhde.
-      let pitchRad = 0;
-      if(d.vel > 5) {
-         pitchRad = Math.atan((d.vrate || 0) / d.vel);
-      }
-      
-      // Kolmiulotteinen rotation group
-      const wrapper = new THREE.Group();
-      wrapper.add(clone);
-      
-      // Globe.gl asettaa Z-akselin ylöspäin maapallosta ja Y-akselin pohjoiseen.
-      // Säädetään asento trackin mukaan.
-      clone.rotation.y = trackRad; // Yaw
-      clone.rotation.x = pitchRad; // Pitch (nokkka ylös/alas)
-      
-      // Kallistus käännöksissä (Roll) - visuaalinen jippo
-      if(!d.on_ground) {
-          // Teeskennellään kallistusta vähän satunnaisesti tai oletetaan että se lentää suoraan
-          // clone.rotation.z = Math.sin(Date.now() / 1000 + d.icao24.charCodeAt(0)) * 0.1;
-      }
-      
+      clone.traverse((child) => { if (child.isMesh) { child.material = child.material.clone(); child.material.color.set(d.gColor); } });
+      const wrapper = new THREE.Group(); wrapper.add(clone);
+      clone.rotation.y = (90 - d.track) * (Math.PI / 180);
+      if(d.vel > 5) clone.rotation.x = Math.atan((d.vrate || 0) / d.vel);
       wrapper.scale.set(d.gScale, d.gScale, d.gScale);
       return wrapper;
     });
 
-  // Parempi valaistus konemalleille
   state.globe.scene().add(new THREE.AmbientLight(0xffffff, 0.8));
-  const sun = new THREE.DirectionalLight(0xffffff, 1.5);
-  sun.position.set(1, 1, 1);
+  const sun = new THREE.DirectionalLight(0xffffff, 1.5); sun.position.set(1, 1, 1);
   state.globe.scene().add(sun);
-
-  state.globe.controls().enableDamping=true; 
-  state.globe.controls().dampingFactor=0.08;
+  state.globe.controls().enableDamping=true; state.globe.controls().dampingFactor=0.08;
   state.globe.pointOfView({lat: state.userLat, lng: state.userLon, altitude: 1.5}, 0);
-  
   state.globeReady = true;
 }
 
 function syncGlobe(force=false){
   if(!state.globeReady || (!force && performance.now()-state.lastGlobeSync<250)) return;
   state.lastGlobeSync = performance.now();
-  
   state.globe.objectsData([...state.flights.values()].slice(0,250).map(f => {
     const p = projectFlight(f, Date.now());
-    // Laske korkeus: minimi on 0.002 jotta ei uppoa maahan
-    // 30,000 jalkaa = ~10km. Maapallon säde Globe.gl:ssä on 1. 10km / 6371km = 0.0015
-    const altitudeGlobe = f.on_ground ? 0.001 : Math.max(0.002, (f.baro_alt??f.geo_alt??0) / 6371000 * 20); 
-
     return {
-      id: f.icao24, 
-      gLat: p.lat, 
-      gLon: p.lon, 
-      gAlt: altitudeGlobe, 
+      id: f.icao24, gLat: p.lat, gLon: p.lon, 
+      gAlt: f.on_ground ? 0.001 : Math.max(0.002, (f.baro_alt??f.geo_alt??0) / 6371000 * 20), 
       gColor: state.selectedIcao===f.icao24 ? '#30D158' : colorOf(f), 
       gScale: state.selectedIcao===f.icao24 ? 1.8 : 1.2,
-      track: f.track || 0,
-      vrate: f.vertical_rate || 0,
-      vel: f.velocity || 250,
-      on_ground: f.on_ground
+      track: f.track || 0, vrate: f.vertical_rate || 0, vel: f.velocity || 250, on_ground: f.on_ground
     };
   }));
-
-  // Kameran seuranta jos lennossa kiinni
   if(state.selectedIcao){
     const sf = state.flights.get(state.selectedIcao);
-    if(sf) {
-        const curCam = state.globe.pointOfView();
-        // Mennään hieman lähemmäs konetta ja seurataan
-        state.globe.pointOfView({lat:sf.curLat, lng:sf.curLon, altitude: 0.4}, 800);
-    }
+    if(sf) state.globe.pointOfView({lat:sf.curLat, lng:sf.curLon, altitude: 0.4}, 800);
   }
 }
 
@@ -723,9 +699,13 @@ function renderList(){
 
   if(!arr.length){ $('flightList').innerHTML = '<div class="empty">No flights match.</div>'; return; }
 
-  $('flightList').innerHTML = arr.slice(0,100).map(f => `
+  $('flightList').innerHTML = arr.slice(0,100).map(f => {
+    const photo = state.photoCache.get(f.icao24);
+    const photoHtml = photo ? `<img src="${photo}" />` : `<div style="color:${colorOf(f)};font-size:26px">✈</div>`;
+    
+    return `
     <div class="card ${state.selectedIcao===f.icao24?'sel':''}" onclick="openDetail('${f.icao24}')">
-      <div class="plane-badge" style="color:${colorOf(f)};font-size:24px">✈</div>
+      <div class="plane-badge">${photoHtml}</div>
       <div class="card-main">
         <div class="card-call">${esc(f.callsign)}</div>
         <div class="card-sub">${esc(f.country)} · ${Math.round(f.track||0)}°</div>
@@ -736,27 +716,50 @@ function renderList(){
         <div class="stat-big" style="margin-top:6px">${fmtFt(f.baro_alt??f.geo_alt)}</div><div class="stat-small">altitude</div>
       </div>
     </div>
-  `).join('');
+  `}).join('');
+}
+
+// Haetaan kuva Airport-data APIsta ICAO koodilla. Proxyllä ohi corsin.
+async function fetchPhoto(icao24) {
+  if(state.photoCache.has(icao24)) return state.photoCache.get(icao24);
+  try {
+     const url = encodeURIComponent(`https://airport-data.com/api/ac_thumb.json?m=${icao24.toUpperCase()}&n=1`);
+     const res = await fetch(`https://api.allorigins.win/get?url=${url}`);
+     const data = await res.json();
+     const pData = JSON.parse(data.contents);
+     
+     if(pData && pData.data && pData.data.length > 0) {
+        const imgUrl = pData.data[0].image;
+        state.photoCache.set(icao24, imgUrl);
+        return imgUrl;
+     }
+  } catch(e) {}
+  state.photoCache.set(icao24, null);
+  return null;
 }
 
 async function openDetail(icao24){
-  // Haptic feedback simulointi
   if(navigator.vibrate) navigator.vibrate(10);
 
-  state.selectedIcao = icao24; renderList();
+  state.selectedIcao = icao24; 
   const f = state.flights.get(icao24); if(!f) return;
 
   $('detail').classList.add('open');
   $('sheet').classList.remove('expanded');
 
-  // Nollaa ensin kuvat ja tekstit
-  $('dHero').innerHTML = `<img id="dImg" src="https://upload.wikimedia.org/wikipedia/commons/4/41/Airliner_silhouette.svg" style="filter:invert(1) opacity(0.8);" />`;
+  // Nollataan UI
+  const dImg = $('dImg');
+  dImg.style.opacity = '0';
+  dImg.src = DEF_PLANE_SVG;
+  dImg.style.filter = "invert(1) opacity(0.8)";
+  dImg.onload = () => { dImg.style.opacity = '1'; }
   
   $('dCall').textContent = f.callsign; $('dRoute').textContent = f.country;
   $('dCountry').textContent = f.country; $('dIcao').textContent = f.icao24.toUpperCase();
-  $('dSquawk').textContent = f.squawk || 'None';
   $('dModel').textContent = 'Loading…'; $('dMeta').textContent = 'Fetching data';
   $('dOperator').textContent = 'Loading…'; $('dRouteLong').textContent = 'Looking up route';
+  $('dWeight').textContent = '—'; $('dFuel').textContent = '—';
+  $('dEngines').textContent = '—'; $('dFirstFlight').textContent = '—';
 
   const ph = phaseOf(f);
   $('dPhase').className = `phase ${ph.cls}`; $('dPhase').textContent = `${ph.icon} ${ph.label}`;
@@ -769,38 +772,53 @@ async function openDetail(icao24){
   if(!state.isGlobe) state.map.setView([f.curLat??f.lat, f.curLon??f.lon], Math.max(state.map.getZoom(), 9), {animate:true});
   else syncGlobe(true);
 
-  // Fetch metadata
-  try{
-    const mRes = await fetch(`https://api.adsbdb.com/v0/aircraft/${icao24.toLowerCase()}`);
-    if(mRes.ok && state.selectedIcao === icao24){
-      const m = (await mRes.json())?.response?.aircraft;
-      if(m){
+  // Kutsutaan rinnakkain Metadata, Reitti ja Valokuva
+  Promise.all([
+    fetch(`https://api.adsbdb.com/v0/aircraft/${icao24.toLowerCase()}`).then(r=>r.json()).catch(()=>null),
+    fetch(`https://api.adsbdb.com/v0/callsign/${f.callsign.toUpperCase()}`).then(r=>r.json()).catch(()=>null),
+    fetchPhoto(icao24)
+  ]).then(([mRes, rRes, photoUrl]) => {
+     if(state.selectedIcao !== icao24) return;
+     
+     // 1. Photo
+     if(photoUrl) {
+       dImg.style.filter = "none"; // Poistetaan SVG invert filter
+       dImg.src = photoUrl;
+       renderList(); // Päivitetään pikkukuva myös listaan!
+     }
+
+     // 2. Meta
+     const m = mRes?.response?.aircraft;
+     if(m){
         $('dModel').textContent = [m.manufacturer, m.type].filter(Boolean).join(' ') || 'Unknown';
         $('dMeta').textContent = `${m.icao_type||'—'} · ${m.registration||'—'}`;
         $('dOperator').textContent = m.registered_owner || 'Unknown operator';
         
-        // Hieno kikka: Vaihdetaan siluetti oikean yhtiön/koneen kuvaan jos loytyy
-        // Käytetään DuckDuckGo/Wikipedia rajapintaa tai placeholderia logoille
-        if(m.registered_owner) {
-             const cleanName = m.registered_owner.replace(/Airlines|Airways|Ltd|Inc/ig, '').trim();
-             $('dHero').innerHTML = `<div style="font-size:28px; font-weight:900; color:var(--blue);">${cleanName}</div>`;
+        // Katso löytyykö tyypille dataa DB:stä
+        if(m.icao_type && AC_DB[m.icao_type]) {
+           const db = AC_DB[m.icao_type];
+           $('dWeight').textContent = db.mtow;
+           $('dFuel').textContent = db.fuel;
+           $('dEngines').textContent = db.eng;
+           $('dFirstFlight').textContent = db.year;
+        } else {
+           $('dWeight').textContent = 'N/A';
+           $('dFuel').textContent = 'N/A';
+           $('dEngines').textContent = 'N/A';
+           $('dFirstFlight').textContent = 'N/A';
         }
-      }
-    }
-  }catch(e){ $('dModel').textContent='No data'; $('dMeta').textContent='—'; $('dOperator').textContent='—'; }
+     } else {
+        $('dModel').textContent='No data'; $('dMeta').textContent='—'; $('dOperator').textContent='—';
+     }
 
-  // Fetch route
-  try{
-    const rRes = await fetch(`https://api.adsbdb.com/v0/callsign/${f.callsign.toUpperCase()}`);
-    if(rRes.ok && state.selectedIcao === icao24){
-      const r = (await rRes.json())?.response?.flightroute;
-      if(r && (r.origin || r.destination)){
+     // 3. Route
+     const r = rRes?.response?.flightroute;
+     if(r && (r.origin || r.destination)){
         const rt = `${r.origin?.iata_code||'—'} → ${r.destination?.iata_code||'—'}`;
         $('dRoute').textContent = rt; $('dRouteLong').textContent = rt;
         $('ifRoute').textContent = rt;
-      }
-    }
-  }catch(e){}
+     }
+  });
 }
 
 function closeDetail(){
