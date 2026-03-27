@@ -183,29 +183,47 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 
     /* PFD & Telemetry Grid */
+    
     .pfd-container {
-      width: 100%; height: 130px; border-radius: 20px; background: #000; overflow: hidden; position: relative;
+      width: 100%; height: 160px; border-radius: 24px; background: #000; overflow: hidden; position: relative;
       box-shadow: inset 0 4px 15px rgba(0,0,0,0.8), 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 16px;
       display: flex; align-items: center; justify-content: center;
+      perspective: 600px;
     }
-    .pfd-horizon {
+    .svs-world {
       position: absolute; width: 400%; height: 400%;
-      background: linear-gradient(180deg, #0a84ff 50%, #8b572a 50%);
+      top: -150%; left: -150%;
       transform-origin: center; will-change: transform;
+      display: flex; flex-direction: column;
+    }
+    .svs-sky {
+      flex: 1; position: relative; overflow: hidden;
+      background: linear-gradient(180deg, #001133 0%, #0a84ff 60%, #87ceeb 100%);
+    }
+    .svs-clouds {
+      position: absolute; top: 0; left: 0; width: 200%; height: 100%;
+      background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200" opacity="0.3"><circle cx="50" cy="50" r="30" fill="white"/><circle cx="90" cy="60" r="40" fill="white"/><circle cx="200" cy="40" r="25" fill="white"/><circle cx="250" cy="50" r="35" fill="white"/><circle cx="350" cy="80" r="50" fill="white"/></svg>') repeat-x;
+      background-size: 50% 100%;
+    }
+    .svs-ground {
+      flex: 1; position: relative; overflow: hidden;
+      background: linear-gradient(180deg, #2e5927 0%, #0d1f0d 100%);
+    }
+    .svs-grid {
+      position: absolute; inset: -100%;
+      background-image: 
+        linear-gradient(rgba(255,255,255,0.15) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.15) 1px, transparent 1px);
+      background-size: 60px 60px;
+      transform: perspective(600px) rotateX(75deg);
+      transform-origin: top center;
+    }
+    .svs-skyline {
+      position: absolute; bottom: 50%; left: 0; width: 400%; height: 100px;
+      background: url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22800%22%20height%3D%22100%22%20viewBox%3D%220%200%20800%20100%22%20preserveAspectRatio%3D%22none%22%3E%0A%20%20%20%20%3Cpath%20d%3D%22M0%2C100%20L0%2C60%20Q20%2C60%2040%2C40%20T80%2C50%20T120%2C30%20L140%2C50%20L160%2C20%20L180%2C60%20Q200%2C80%20240%2C40%20T300%2C50%20L310%2C20%20L330%2C40%20L340%2C10%20L360%2C50%20T400%2C60%20L420%2C80%20L440%2C30%20L450%2C50%20L470%2C20%20L500%2C60%20T550%2C40%20T600%2C70%20L620%2C40%20L640%2C60%20L660%2C10%20L680%2C50%20T720%2C40%20T760%2C60%20L780%2C40%20L800%2C70%20L800%2C100%20Z%22%20fill%3D%22%231c3b1c%22%20opacity%3D%220.8%22/%3E%0A%20%20%20%20%3Cpath%20d%3D%22M0%2C100%20L0%2C70%20L10%2C70%20L10%2C50%20L20%2C50%20L20%2C80%20L40%2C80%20L40%2C40%20L50%2C40%20L50%2C80%20L80%2C80%20L80%2C30%20L90%2C30%20L90%2C80%20L120%2C80%20L120%2C60%20L140%2C60%20L140%2C80%20L180%2C80%20L180%2C20%20L200%2C20%20L200%2C80%20L250%2C80%20L250%2C40%20L270%2C40%20L270%2C80%20L320%2C80%20L320%2C50%20L340%2C50%20L340%2C80%20L380%2C80%20L380%2C20%20L400%2C20%20L400%2C80%20L450%2C80%20L450%2C30%20L470%2C30%20L470%2C80%20L520%2C80%20L520%2C60%20L540%2C60%20L540%2C80%20L580%2C80%20L580%2C40%20L600%2C40%20L600%2C80%20L650%2C80%20L650%2C20%20L670%2C20%20L670%2C80%20L720%2C80%20L720%2C50%20L740%2C50%20L740%2C80%20L780%2C80%20L780%2C30%20L800%2C30%20L800%2C100%20Z%22%20fill%3D%22%230d1f0d%22%20opacity%3D%220.6%22/%3E%0A%3C/svg%3E') repeat-x;
+      background-size: 200px 100px;
     }
     .pfd-pitch-line { position: absolute; left: 50%; width: 40px; height: 2px; background: rgba(255,255,255,0.8); transform: translateX(-50%); border-radius: 2px; }
-    .pfd-overlay { position: absolute; inset: 0; box-shadow: inset 0 0 30px rgba(0,0,0,0.8); z-index: 2; pointer-events: none; }
-
-    .telemetry-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px;
-    }
-    .t-card {
-      background: #fff; border-radius: 16px; padding: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.03);
-      border: 1px solid rgba(0,0,0,0.03);
-    }
-    .t-card-title { font-size: 11px; font-weight: 800; color: #8e8e93; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
-    .t-card-val { font-size: 18px; font-weight: 800; color: #1d1d1f; font-family: ui-monospace, SF Mono, Menlo, monospace; letter-spacing: -0.5px; }
-    .t-card-sub { font-size: 13px; color: #8e8e93; font-weight: 600; margin-top: 2px; }
 
     .contrail-line { filter: drop-shadow(0 0 6px rgba(255,255,255,0.9)) blur(1px); animation: flow-dash 1s linear infinite; }
 
@@ -365,11 +383,16 @@ input:checked + .slider:before { transform: translateX(20px); }
       <div class="dsec-t" style="padding-left: 16px;">Live Glass Cockpit (PFD)</div>
 
       <div class="pfd-container" id="pfdBox">
-        <div class="pfd-horizon" id="pfdHorizon">
-          <div class="pfd-pitch-line" style="top: calc(50% - 30px); width: 20px;"></div>
-          <div class="pfd-pitch-line" style="top: calc(50% - 60px);"></div>
-          <div class="pfd-pitch-line" style="top: calc(50% + 30px); width: 20px;"></div>
-          <div class="pfd-pitch-line" style="top: calc(50% + 60px);"></div>
+        <div class="svs-world" id="pfdHorizon">
+          <div class="svs-sky"><div class="svs-clouds" id="pfdClouds"></div></div>
+          <div class="svs-ground"><div class="svs-grid" id="pfdGrid"></div></div>
+          <div class="svs-skyline" id="pfdSkyline"></div>
+
+          <!-- Pitch Ladder -->
+          <div class="pfd-pitch-line" style="top: calc(50% - 40px); width: 20px;"></div><div style="position:absolute; top: calc(50% - 46px); left: calc(50% + 15px); color:white; font-size:9px; font-weight:800;">10</div>
+          <div class="pfd-pitch-line" style="top: calc(50% - 80px);"></div><div style="position:absolute; top: calc(50% - 86px); left: calc(50% + 25px); color:white; font-size:9px; font-weight:800;">20</div>
+          <div class="pfd-pitch-line" style="top: calc(50% + 40px); width: 20px;"></div><div style="position:absolute; top: calc(50% + 34px); left: calc(50% + 15px); color:white; font-size:9px; font-weight:800;">10</div>
+          <div class="pfd-pitch-line" style="top: calc(50% + 80px);"></div><div style="position:absolute; top: calc(50% + 74px); left: calc(50% + 25px); color:white; font-size:9px; font-weight:800;">20</div>
           <div class="pfd-pitch-line" style="top: 50%; width: 100vw; background: rgba(255,255,255,0.4);"></div>
         </div>
 
@@ -733,9 +756,21 @@ function animatePlanes(){
           if(!mk.curRoll) mk.curRoll = 0;
           mk.curRoll += (targetRoll - mk.curRoll) * 0.1; // Smooth ease
 
+          
           var pfd = document.getElementById('pfdHorizon');
           if(pfd) {
-              pfd.style.transform = 'translateY(' + (visualPitch * 2) + 'px) rotate(' + mk.curRoll + 'deg)';
+              pfd.style.transform = 'translateY(' + (visualPitch * 2.5) + 'px) rotate(' + mk.curRoll + 'deg)';
+
+              // Pan mountains, clouds and grid based on heading!
+              var heading = f.track || 0;
+              document.getElementById('pfdSkyline').style.backgroundPosition = (-heading * 3) + 'px 0px';
+              document.getElementById('pfdClouds').style.backgroundPosition = (-heading * 1.5) + 'px 0px';
+
+              // Grid moves based on speed to simulate forward motion
+              if(!mk.gridOffset) mk.gridOffset = 0;
+              mk.gridOffset += (f.velMs / 10);
+              document.getElementById('pfdGrid').style.backgroundPosition = '0px ' + mk.gridOffset + 'px';
+
               document.getElementById('pfdSpd').innerText = Math.round(f.velKt) + ' KT';
               document.getElementById('pfdAlt').innerText = Math.round(liveAlt).toLocaleString() + ' FT';
               document.getElementById('pfdHdg').innerText = 'HDG ' + Math.round(f.track) + '°';
@@ -1243,7 +1278,21 @@ async function selFlight(id){
   var results=await Promise.all([fetchMeta(id),fetchRoute(f.cs)]);
   var meta=results[0],route=results[1];
 
-  if(meta){
+  
+  // Set fallback defaults
+  var tCode = (f.type || '').toUpperCase();
+  var mdl = f.desc || '–';
+  set('dOp', '–'); set('dMd', mdl); set('dSub', mdl || f.reg || 'Unknown');
+  set('dBy', '–');
+
+  if(meta) {
+    if(meta.icao_type) tCode = meta.icao_type.toUpperCase();
+    if(meta.registered_owner) set('dOp', meta.registered_owner);
+
+    var mType = [meta.manufacturer, meta.type].filter(Boolean).join(' ');
+    if(mType) { mdl = mType; set('dMd', mdl); set('dSub', mdl); }
+
+    // Photo & Logo logic
     if(!photoLoaded && (meta.url_photo || meta.url_photo_thumbnail)){
       photoLoaded = true;
       img.onload=function(){img.classList.add('ok');};
@@ -1251,8 +1300,6 @@ async function selFlight(id){
       img.src = 'https://api.allorigins.win/raw?url=' + encodeURIComponent(imgUrl);
       set('dCr', '📷 Airport-Data.com');
     }
-    var mdl=[meta.manufacturer,meta.type].filter(Boolean).join(' ')||f.desc||'–';
-    set('dOp',meta.registered_owner||'–');
     var logo = document.getElementById('dLogo');
     logo.style.display = 'none';
     logo.src = '';
@@ -1264,20 +1311,38 @@ async function selFlight(id){
       }
     }
 
-    set('dMd',mdl);
+    // Tags
     var tags2=[];
-    if(meta.icao_type)tags2.push(meta.icao_type);
-    if(meta.registration)tags2.push(meta.registration);
-    document.getElementById('dTags').innerHTML=tags2.map(function(t){return'<span class="dtag">'+t+'</span>';}).join('');
-    set('dSub',mdl); // Still keep it in header
-    var t=(meta.icao_type||f.type||'').toUpperCase();
-    set('dLn',ACLEN[t]?ACLEN[t]+' m':'–');
-    set('dEn',ACENG[t]||meta.engines||'–');
-    
-    if(meta.registration)fetchBuiltYear(meta.registration).then(function(yr){set('dBy',yr||'–');});
-  }else{
-    set('dOp','–'); set('dMd', f.desc || '–');
+    if(meta.icao_type) tags2.push(meta.icao_type);
+    if(meta.registration) tags2.push(meta.registration);
+    document.getElementById('dTags').innerHTML=tags2.map(function(tg){return '<span class="dtag">'+tg+'</span>';}).join('');
+
+    // Built year
+    if(meta.registration) {
+      fetchBuiltYear(meta.registration).then(function(yr){
+         set('dBy', yr || '–');
+      });
+    }
   }
+
+  // Populate Database Stats directly using tCode
+  set('dLn', ACLEN[tCode] ? ACLEN[tCode] + ' m' : '–');
+  set('dEn', ACENG[tCode] || (meta && meta.engines ? meta.engines : '–'));
+  set('dRl', ACREL[tCode] ? ACREL[tCode] : '–');
+
+  var sp = ACSPECS[tCode];
+  var twEl = document.getElementById('dTw');
+  if(twEl) twEl.parentElement.querySelector('.dl').innerText = 'Max Takeoff Weight';
+
+  if(sp) {
+      set('dRg', sp[0].toLocaleString() + ' km');
+      set('dTw', sp[1].toLocaleString() + ' kg');
+      set('dEw', sp[2].toLocaleString() + ' kg');
+      set('dFc', sp[3].toLocaleString() + ' L');
+  } else {
+      set('dRg','–'); set('dTw','–'); set('dEw','–'); set('dFc','–');
+  }
+
 
 
   if(pastRouteLine) map.removeLayer(pastRouteLine);
@@ -1426,12 +1491,13 @@ async function fetchPhoto(id){
   return null;
 }
 async function fetchBuiltYear(reg){
+  if(!reg) return null;
   var tgt='https://www.airport-data.com/aircraft/'+reg+'.html';
   var proxy='https://api.allorigins.win/get?url='+encodeURIComponent(tgt);
   try{
     var d=await xhrGet(proxy);
     var html=typeof d.contents==='string'?d.contents:'';
-    var match = html.match(/Year built:[^<]*<[^>]*>\s*(\d{4})/i) || html.match(/built[\s\S]{0,20}(\d{4})/i) || html.match(/C\/N[^]+?(\d{4})/i);
+    var match = html.match(/Year built:[^<]*<[^>]*>\s*(\d{4})/i) || html.match(/built[\s\S]{0,20}(\d{4})/i);
     if(match) return match[1];
   }catch(e){}
   return null;
@@ -1512,13 +1578,13 @@ function card(f){
     '<div class="fca">'+(f.altFt!=null?f.altFt.toLocaleString()+' ft':'–')+'</div></div></div>';
 }
 
-var ACLEN={A318:31.4,A319:33.8,A320:37.6,A321:44.5,A20N:37.6,A21N:44.5,A332:58.8,A333:63.7,A338:63.7,A339:63.7,A359:66.8,A35K:73.8,A388:72.7,B736:31.1,B737:33.6,B738:39.5,B739:42.1,B744:70.7,B748:76.3,B752:47.3,B753:54.5,B762:48.5,B763:54.9,B764:61.4,B772:63.7,B77L:64.8,B77W:73.9,B77X:76.7,B788:57,B789:63,B78X:68.3,E170:29.9,E175:31.7,E190:36.2,E195:38.7,CRJ2:24.4,CRJ7:32.5,CRJ9:36.2,DH8D:32.8,AT72:27.2};
+var ACLEN={'C172':8.28,'PA28':7.16,A318:31.4,A319:33.8,A320:37.6,A321:44.5,A20N:37.6,A21N:44.5,A332:58.8,A333:63.7,A338:63.7,A339:63.7,A359:66.8,A35K:73.8,A388:72.7,B736:31.1,B737:33.6,B738:39.5,B739:42.1,B744:70.7,B748:76.3,B752:47.3,B753:54.5,B762:48.5,B763:54.9,B764:61.4,B772:63.7,B77L:64.8,B77W:73.9,B77X:76.7,B788:57,B789:63,B78X:68.3,E170:29.9,E175:31.7,E190:36.2,E195:38.7,CRJ2:24.4,CRJ7:32.5,CRJ9:36.2,DH8D:32.8,AT72:27.2};
 
 
 
 var ACSPECS = {
   // Airbus
-  'A318': [5750, 68000, 39500, 23859],
+  'C172':[1289,1157,767,212],'PA28':[1050,1106,544,180],'A318': [5750, 68000, 39500, 23859],
   'A319': [6950, 75500, 40800, 24210],
   'A320': [6100, 78000, 42600, 24210],
   'A321': [5950, 93500, 47500, 24050],
@@ -1597,7 +1663,7 @@ var ACSPECS = {
 };
 
 var ACREL={
-'A318':2003,'A319':1996,'A320':1988,'A321':1994,'A20N':2016,'A21N':2017,'A221':2016,'A223':2016,
+'C172':1956,'PA28':1956,'A318':2003,'A319':1996,'A320':1988,'A321':1994,'A20N':2016,'A21N':2017,'A221':2016,'A223':2016,
 'A332':1998,'A333':1994,'A338':2020,'A339':2018,'A343':1993,'A359':2015,'A35K':2018,'A388':2007,'A400':2013,
 'B736':1998,'B737':1998,'B738':1998,'B739':2001,'B38M':2017,'B39M':2018,
 'B744':1989,'B748':2011,'B752':1983,'B753':1999,'B762':1982,'B763':1986,'B764':2000,
@@ -1608,7 +1674,7 @@ var ACREL={
 'AT72':1989,'AT75':2007,'AT76':2012,'AT43':1985,'AT45':2007,
 'GL5T':2005,'GL6T':2012,'GLEX':1999,'CL60':1983,'F2TH':1995,'FA7X':2007,'C56X':1998,'C680':2004,'GLF4':1987,'GLF5':1997,'GLF6':2012
 };
-var ACENG={A320:'2× CFM56-5B / IAE V2500',A321:'2× CFM56-5B / IAE V2500',A20N:'2× CFM LEAP-1A',A21N:'2× CFM LEAP-1A',A332:'2× GE CF6 / RR Trent 700',A333:'2× RR Trent 700',A338:'2× RR Trent 7000',A339:'2× RR Trent 7000',A359:'2× RR Trent XWB-84',A35K:'2× RR Trent XWB-97',A388:'4× GP7200 / RR Trent 970',B737:'2× CFM56-3',B738:'2× CFM56-7B',B739:'2× CFM56-7B',B744:'4× CF6-80C2',B748:'4× GEnx-2B67',B752:'2× RB211-535',B763:'2× CF6-80C2',B772:'2× GE90-94B',B77L:'2× GE90-110B1',B77W:'2× GE90-115B1',B77X:'2× GE9X-105B1A',B788:'2× GEnx-1B / RR Trent 1000',B789:'2× GEnx-1B / RR Trent 1000',B78X:'2× GEnx-1B76',E190:'2× GE CF34-10E',E195:'2× GE CF34-10E',CRJ2:'2× GE CF34-3B1',CRJ7:'2× GE CF34-8C5',DH8D:'2× PW150A',AT72:'2× PW127F'};
+var ACENG={'C172':'1x Lycoming IO-360','PA28':'1x Lycoming O-320',A320:'2× CFM56-5B / IAE V2500',A321:'2× CFM56-5B / IAE V2500',A20N:'2× CFM LEAP-1A',A21N:'2× CFM LEAP-1A',A332:'2× GE CF6 / RR Trent 700',A333:'2× RR Trent 700',A338:'2× RR Trent 7000',A339:'2× RR Trent 7000',A359:'2× RR Trent XWB-84',A35K:'2× RR Trent XWB-97',A388:'4× GP7200 / RR Trent 970',B737:'2× CFM56-3',B738:'2× CFM56-7B',B739:'2× CFM56-7B',B744:'4× CF6-80C2',B748:'4× GEnx-2B67',B752:'2× RB211-535',B763:'2× CF6-80C2',B772:'2× GE90-94B',B77L:'2× GE90-110B1',B77W:'2× GE90-115B1',B77X:'2× GE9X-105B1A',B788:'2× GEnx-1B / RR Trent 1000',B789:'2× GEnx-1B / RR Trent 1000',B78X:'2× GEnx-1B76',E190:'2× GE CF34-10E',E195:'2× GE CF34-10E',CRJ2:'2× GE CF34-3B1',CRJ7:'2× GE CF34-8C5',DH8D:'2× PW150A',AT72:'2× PW127F'};
 
 
 function getBearing(lat1, lon1, lat2, lon2) {
