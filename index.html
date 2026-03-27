@@ -5,23 +5,25 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<title>Overhead Ultra</title>
+<title>Overhead Ultra — Apple Edition</title>
 
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+<script src="https://unpkg.com/globe.gl"></script>
 
 <style>
 :root{
-  --bg:#000;
+  --bg:#000000;
   --surface:rgba(18,18,24,.76);
-  --surface-2:rgba(26,26,34,.88);
+  --surface-2:rgba(24,24,30,.90);
   --surface-3:rgba(255,255,255,.06);
   --line:rgba(255,255,255,.10);
   --line-2:rgba(255,255,255,.16);
 
   --text:#fff;
   --text-2:rgba(255,255,255,.72);
-  --text-3:rgba(255,255,255,.42);
+  --text-3:rgba(255,255,255,.40);
 
   --blue:#0A84FF;
   --green:#30D158;
@@ -29,52 +31,77 @@
   --red:#FF453A;
   --purple:#BF5AF2;
 
-  --r-xs:14px;
-  --r-sm:18px;
-  --r-md:24px;
-  --r-lg:30px;
-  --r-xl:40px;
-
-  --blur:saturate(180%) blur(28px);
-  --shadow-1:0 8px 24px rgba(0,0,0,.28);
+  --shadow-1:0 10px 24px rgba(0,0,0,.28);
   --shadow-2:0 18px 40px rgba(0,0,0,.40);
   --shadow-3:0 28px 80px rgba(0,0,0,.58);
 
+  --blur:saturate(180%) blur(28px);
   --spring:cubic-bezier(.22,1,.36,1);
   --soft:cubic-bezier(.2,.8,.2,1);
 }
 
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;padding:0;background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",sans-serif;overflow:hidden}
+html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text",sans-serif}
 body{user-select:none}
 
 body::before{
   content:"";
   position:fixed;
   inset:0;
+  z-index:35;
   pointer-events:none;
-  z-index:20;
   background:
-    radial-gradient(circle at 50% 10%, rgba(255,255,255,.06), transparent 28%),
+    radial-gradient(circle at 50% 8%, rgba(255,255,255,.06), transparent 25%),
     radial-gradient(circle at 50% 120%, rgba(0,0,0,0), rgba(0,0,0,.42) 70%);
 }
 
-#map{position:fixed;inset:0;z-index:0;background:#000}
-.leaflet-control-attribution,.leaflet-control-zoom{display:none!important}
+#mapWrap{
+  position:fixed;
+  inset:0;
+  z-index:0;
+  transition:opacity .55s var(--spring), transform .55s var(--spring), filter .55s ease;
+  transform:scale(1);
+}
+#map{
+  position:absolute;
+  inset:0;
+}
+#mapWrap.dim{
+  filter:saturate(.55) brightness(.55);
+}
+#globeWrap{
+  position:fixed;
+  inset:0;
+  z-index:10;
+  opacity:0;
+  pointer-events:none;
+  transition:opacity .6s var(--spring);
+  background:#000;
+}
+#globeWrap.on{
+  opacity:1;
+  pointer-events:auto;
+}
+#globeViz{
+  position:absolute;
+  inset:0;
+}
+.leaflet-control-zoom,.leaflet-control-attribution{display:none!important}
 .leaflet-container{background:#000}
 
-.topbar-wrap{
+/* Dynamic island */
+.island-wrap{
   position:fixed;
+  left:0;right:0;
   top:max(14px, env(safe-area-inset-top));
-  left:0; right:0;
-  z-index:2000;
+  z-index:2500;
   display:flex;
   justify-content:center;
   pointer-events:none;
   padding:0 14px;
 }
-.topbar{
-  width:min(740px,100%);
+.island{
+  width:min(820px,100%);
   min-height:58px;
   border-radius:30px;
   padding:10px 12px;
@@ -82,76 +109,139 @@ body::before{
   align-items:center;
   gap:10px;
   pointer-events:auto;
-  background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03)), var(--surface);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03)),
+    var(--surface);
   border:1px solid var(--line);
   box-shadow:var(--shadow-2);
   backdrop-filter:var(--blur);
   -webkit-backdrop-filter:var(--blur);
+  transition:
+    transform .45s var(--spring),
+    min-height .45s var(--spring),
+    border-radius .35s ease,
+    background .35s ease,
+    width .45s var(--spring);
 }
+.island:active{transform:scale(.995)}
 .brand{
-  min-width:max-content;
+  flex:0 0 auto;
   display:flex;
   align-items:center;
   gap:10px;
-  padding:0 10px 0 6px;
-  font-size:17px;
-  font-weight:800;
-  letter-spacing:-.03em;
+  padding:0 10px 0 4px;
+  white-space:nowrap;
 }
-.brand-icon{
-  width:30px;height:30px;border-radius:15px;
+.brand-badge{
+  width:32px;height:32px;border-radius:16px;
   display:grid;place-items:center;
   background:linear-gradient(135deg,var(--blue),#58b3ff);
-  box-shadow:0 6px 16px rgba(10,132,255,.38);
+  box-shadow:0 8px 18px rgba(10,132,255,.35);
+  font-size:15px;
 }
-.search-wrap{
+.brand-text{
+  font-size:17px;
+  font-weight:850;
+  letter-spacing:-.04em;
+}
+.searchbox{
   flex:1;
+  min-height:38px;
+  border-radius:20px;
+  background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.05);
   display:flex;
   align-items:center;
   gap:10px;
-  background:rgba(255,255,255,.06);
-  border:1px solid rgba(255,255,255,.06);
-  min-height:38px;
-  border-radius:20px;
   padding:0 14px;
 }
-.search-wrap input{
+.searchbox input{
   width:100%;
-  background:transparent;
   border:none;
   outline:none;
+  background:transparent;
   color:#fff;
   font-size:15px;
-  font-weight:600;
+  font-weight:650;
 }
-.search-wrap input::placeholder{color:var(--text-3)}
-.top-actions{display:flex;gap:8px}
-.icon-btn{
-  width:38px;height:38px;border-radius:19px;border:none;
+.searchbox input::placeholder{color:var(--text-3)}
+.island-flight{
+  display:none;
+  flex:0 0 auto;
+  align-items:center;
+  gap:12px;
+  padding:0 6px 0 4px;
+}
+.island.focus .island-flight{display:flex}
+.island.focus{
+  min-height:66px;
+}
+.if-main{
+  display:flex;
+  flex-direction:column;
+  line-height:1.05;
+}
+.if-call{
+  font-size:16px;
+  font-weight:900;
+  letter-spacing:-.04em;
+  font-variant-numeric:tabular-nums;
+}
+.if-route{
+  margin-top:4px;
+  font-size:12px;
+  font-weight:700;
+  color:var(--blue);
+  white-space:nowrap;
+  max-width:190px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.if-pill{
+  font-size:11px;
+  font-weight:850;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--green);
+}
+.island-actions{
+  display:flex;
+  gap:8px;
+}
+.ibtn{
+  width:38px;height:38px;border:none;border-radius:19px;
   background:rgba(255,255,255,.08);
-  color:#fff;display:grid;place-items:center;cursor:pointer;
-  transition:transform .25s var(--spring), background .25s ease, box-shadow .25s ease;
+  color:#fff;
+  display:grid;place-items:center;
+  cursor:pointer;
+  transition:transform .22s var(--spring), background .22s ease, box-shadow .22s ease;
 }
-.icon-btn:active{transform:scale(.94)}
-.icon-btn.on{background:rgba(10,132,255,.22);box-shadow:0 0 0 1px rgba(10,132,255,.35) inset}
+.ibtn:active{transform:scale(.93)}
+.ibtn.on{
+  background:rgba(10,132,255,.22);
+  box-shadow:0 0 0 1px rgba(10,132,255,.35) inset;
+}
 
+/* top HUD */
 .hud-wrap{
   position:fixed;
-  top:calc(max(14px, env(safe-area-inset-top)) + 72px);
-  left:0; right:0;
-  z-index:1900;
+  left:0;right:0;
+  top:calc(max(14px, env(safe-area-inset-top)) + 74px);
+  z-index:2200;
   display:flex;
   justify-content:center;
   pointer-events:none;
   padding:0 14px;
 }
 .hud{
+  border-radius:24px;
+  padding:8px 18px;
   display:flex;
   align-items:center;
-  gap:14px;
-  padding:8px 18px;
-  border-radius:24px;
-  background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03)), var(--surface);
+  gap:15px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03)),
+    var(--surface);
   border:1px solid var(--line);
   box-shadow:var(--shadow-2);
   backdrop-filter:var(--blur);
@@ -161,78 +251,130 @@ body::before{
 .hud-block{display:flex;flex-direction:column}
 .hud-label{
   font-size:10px;
-  text-transform:uppercase;
-  letter-spacing:.10em;
-  color:var(--text-3);
   font-weight:800;
+  color:var(--text-3);
+  letter-spacing:.08em;
+  text-transform:uppercase;
 }
 .hud-value{
   font-size:18px;
-  font-weight:900;
-  letter-spacing:-.04em;
+  font-weight:950;
+  letter-spacing:-.05em;
 }
 .hud-divider{
-  width:1px;height:28px;background:rgba(255,255,255,.14)
+  width:1px;height:28px;background:rgba(255,255,255,.15)
 }
 
+/* map status tag */
+.map-status{
+  position:fixed;
+  left:16px;
+  top:calc(max(14px, env(safe-area-inset-top)) + 136px);
+  z-index:1700;
+  padding:10px 14px;
+  border-radius:18px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03)),
+    var(--surface);
+  border:1px solid var(--line);
+  box-shadow:var(--shadow-1);
+  backdrop-filter:var(--blur);
+  -webkit-backdrop-filter:var(--blur);
+  color:var(--text-2);
+  font-size:13px;
+  font-weight:750;
+}
+.live-dot{
+  width:8px;height:8px;border-radius:50%;
+  background:var(--green);
+  display:inline-block;
+  margin-right:8px;
+  animation:pulse 1.8s ease-in-out infinite;
+}
+@keyframes pulse{
+  0%,100%{opacity:1;transform:scale(1)}
+  50%{opacity:.4;transform:scale(.7)}
+}
+
+/* floating buttons */
 .side-controls{
   position:fixed;
   right:14px;
-  top:calc(max(14px, env(safe-area-inset-top)) + 136px);
-  z-index:1800;
+  top:calc(max(14px, env(safe-area-inset-top)) + 132px);
+  z-index:2100;
   display:flex;
   flex-direction:column;
   gap:10px;
 }
 .fab{
   width:50px;height:50px;border:none;border-radius:25px;
-  cursor:pointer;color:#fff;
-  background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03)), var(--surface);
+  color:#fff;cursor:pointer;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03)),
+    var(--surface);
   border:1px solid var(--line);
   box-shadow:var(--shadow-1);
   backdrop-filter:var(--blur);
   -webkit-backdrop-filter:var(--blur);
-  transition:transform .25s var(--spring), background .25s ease, box-shadow .25s ease;
+  transition:transform .22s var(--spring), background .22s ease, box-shadow .22s ease;
 }
 .fab:active{transform:scale(.93)}
-.fab.primary{background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02)), rgba(10,132,255,.20)}
+.fab.on{background:rgba(10,132,255,.20)}
 
+/* sheet */
 .sheet{
   position:fixed;
-  left:14px; right:14px; bottom:14px;
-  z-index:1600;
-  border-radius:34px;
-  background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03)), var(--surface);
+  left:14px;right:14px;bottom:14px;
+  z-index:1800;
+  border-radius:36px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03)),
+    var(--surface);
   border:1px solid var(--line);
   box-shadow:var(--shadow-3);
   backdrop-filter:var(--blur);
   -webkit-backdrop-filter:var(--blur);
   overflow:hidden;
-  transition:height .45s var(--spring), transform .45s var(--spring);
-  height:180px;
+  transition:height .45s var(--spring), transform .45s var(--spring), opacity .35s ease;
+  height:182px;
 }
-.sheet.expanded{height:min(72vh,780px)}
-.sheet.hidden{transform:translateY(120%)}
-
+.sheet.expanded{
+  height:min(72vh,820px);
+}
+.sheet.hidden{
+  transform:translateY(120%);
+}
 .sheet-grab{
   display:flex;justify-content:center;align-items:center;
-  padding:10px 0 2px;cursor:pointer;
+  padding:10px 0 3px;
+  cursor:pointer;
 }
 .sheet-grab div{
   width:42px;height:5px;border-radius:999px;background:rgba(255,255,255,.20)
 }
 .sheet-head{
-  display:flex;justify-content:space-between;align-items:center;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
   padding:8px 18px 14px;
 }
 .sheet-title{
-  font-size:26px;font-weight:900;letter-spacing:-.05em
+  font-size:26px;
+  font-weight:950;
+  letter-spacing:-.06em;
 }
 .sheet-sub{
   margin-top:2px;
-  font-size:12px;font-weight:800;
-  letter-spacing:.08em;text-transform:uppercase;
-  color:var(--text-3)
+  font-size:12px;
+  font-weight:800;
+  color:var(--text-3);
+  letter-spacing:.08em;
+  text-transform:uppercase;
+}
+.sheet-meta{
+  font-size:13px;
+  font-weight:800;
+  color:var(--text-3);
 }
 .sheet-list{
   height:calc(100% - 86px);
@@ -241,8 +383,11 @@ body::before{
 }
 .sheet-list::-webkit-scrollbar{display:none}
 
+/* cards */
 .card{
-  display:flex;align-items:center;gap:14px;
+  display:flex;
+  align-items:center;
+  gap:14px;
   padding:14px 14px;
   margin-bottom:10px;
   border-radius:22px;
@@ -251,177 +396,250 @@ body::before{
   cursor:pointer;
   transition:transform .18s var(--spring), background .18s ease, border-color .18s ease;
 }
-.card:hover{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.10)}
+.card:hover{
+  background:rgba(255,255,255,.07);
+  border-color:rgba(255,255,255,.10);
+}
 .card:active{transform:scale(.985)}
-.card.sel{border-color:rgba(10,132,255,.40);background:rgba(10,132,255,.09)}
-
+.card.sel{
+  border-color:rgba(10,132,255,.38);
+  background:rgba(10,132,255,.10);
+}
 .plane-badge{
   width:48px;height:48px;border-radius:24px;
-  display:grid;place-items:center;flex:0 0 auto;
-  background:rgba(255,255,255,.05)
+  display:grid;place-items:center;
+  background:rgba(255,255,255,.04);
+  flex:0 0 auto;
 }
-.card-main{min-width:0;flex:1}
+.card-main{flex:1;min-width:0}
 .card-call{
-  font-size:17px;font-weight:850;letter-spacing:-.03em
+  font-size:17px;
+  font-weight:900;
+  letter-spacing:-.04em;
+  font-variant-numeric:tabular-nums;
 }
 .card-sub{
-  margin-top:2px;color:var(--text-2);font-size:13px;font-weight:600;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+  margin-top:3px;
+  color:var(--text-2);
+  font-size:13px;
+  font-weight:650;
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
 }
-.badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:7px}
+.badges{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:7px;
+}
 .badge{
-  padding:4px 9px;border-radius:999px;
-  font-size:11px;font-weight:800;letter-spacing:.02em
+  padding:4px 9px;
+  border-radius:999px;
+  font-size:11px;
+  font-weight:850;
 }
 .badge.blue{background:rgba(10,132,255,.16);color:#79b8ff}
 .badge.green{background:rgba(48,209,88,.16);color:#7df0a0}
 .badge.orange{background:rgba(255,159,10,.16);color:#ffbf66}
 .badge.gray{background:rgba(255,255,255,.08);color:var(--text-2)}
-
 .card-stats{
-  text-align:right;flex:0 0 auto;font-variant-numeric:tabular-nums
+  text-align:right;
+  font-variant-numeric:tabular-nums;
 }
 .stat-big{font-size:15px;font-weight:850}
 .stat-small{font-size:11px;color:var(--text-3);font-weight:700;margin-top:2px}
 
+/* detail */
 .detail{
   position:fixed;
   inset:14px;
   top:calc(max(14px, env(safe-area-inset-top)) + 58px);
-  z-index:3000;
-  border-radius:38px;
-  background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03)), var(--surface-2);
+  z-index:3200;
+  border-radius:40px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03)),
+    var(--surface-2);
   border:1px solid var(--line-2);
   box-shadow:var(--shadow-3);
   backdrop-filter:saturate(180%) blur(34px);
   -webkit-backdrop-filter:saturate(180%) blur(34px);
   overflow:hidden;
-  display:flex;flex-direction:column;
-  opacity:0;pointer-events:none;transform:translateY(40px) scale(.97);
+  display:flex;
+  flex-direction:column;
+  opacity:0;
+  pointer-events:none;
+  transform:translateY(30px) scale(.97);
   transition:transform .45s var(--spring), opacity .3s ease;
 }
-.detail.open{opacity:1;pointer-events:auto;transform:translateY(0) scale(1)}
-
-.detail-top{
-  padding:22px 22px 10px;
-  border-bottom:1px solid rgba(255,255,255,.06)
+.detail.open{
+  opacity:1;
+  pointer-events:auto;
+  transform:translateY(0) scale(1);
 }
 .detail-close{
-  position:absolute;right:18px;top:18px;
-  width:38px;height:38px;border-radius:19px;border:none;
-  background:rgba(255,255,255,.12);color:#fff;cursor:pointer
+  position:absolute;
+  right:18px;top:18px;
+  width:38px;height:38px;border:none;border-radius:19px;
+  background:rgba(255,255,255,.12);
+  color:#fff;cursor:pointer;
+  z-index:2;
 }
 .detail-close:active{transform:scale(.93)}
+.detail-top{
+  padding:22px 22px 12px;
+  border-bottom:1px solid rgba(255,255,255,.06);
+}
 .d-call{
-  font-size:38px;font-weight:950;letter-spacing:-.06em;line-height:1
+  font-size:40px;
+  font-weight:980;
+  letter-spacing:-.07em;
+  line-height:1;
 }
 .d-route{
-  margin-top:6px;font-size:14px;color:var(--text-2);font-weight:650
+  margin-top:6px;
+  color:var(--text-2);
+  font-size:14px;
+  font-weight:650;
 }
 .phase{
-  display:inline-flex;align-items:center;gap:6px;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
   margin-top:10px;
-  padding:6px 12px;border-radius:999px;
-  font-size:12px;font-weight:900;letter-spacing:.06em;text-transform:uppercase
+  padding:6px 12px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:900;
+  letter-spacing:.06em;
+  text-transform:uppercase;
 }
 .phase.cruise{background:rgba(10,132,255,.15);color:#73b6ff}
 .phase.climb{background:rgba(48,209,88,.15);color:#7df0a0}
 .phase.desc{background:rgba(255,159,10,.15);color:#ffbf66}
 .phase.gnd{background:rgba(255,255,255,.10);color:var(--text-2)}
-
 .d-scroll{
-  flex:1;overflow:auto;padding:16px 16px 24px
+  flex:1;
+  overflow:auto;
+  padding:16px;
 }
 .d-scroll::-webkit-scrollbar{display:none}
-
 .grid{
   display:grid;
   grid-template-columns:repeat(2,minmax(0,1fr));
   gap:10px;
 }
 .info{
-  padding:16px 16px;
+  padding:16px;
   border-radius:22px;
   background:rgba(255,255,255,.05);
-  border:1px solid rgba(255,255,255,.05)
+  border:1px solid rgba(255,255,255,.05);
 }
 .info.full{grid-column:1/-1}
 .i-label{
-  font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--text-3)
+  font-size:11px;
+  font-weight:850;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  color:var(--text-3);
 }
 .i-value{
   margin-top:6px;
-  font-size:17px;font-weight:850;letter-spacing:-.03em;
-  font-variant-numeric:tabular-nums
+  font-size:17px;
+  font-weight:900;
+  letter-spacing:-.04em;
+  font-variant-numeric:tabular-nums;
 }
 .i-sub{
-  margin-top:5px;color:var(--text-2);font-size:13px;font-weight:600
+  margin-top:5px;
+  font-size:13px;
+  font-weight:650;
+  color:var(--text-2);
 }
 
+/* toast */
 .toast{
-  position:fixed;left:50%;bottom:34px;transform:translate(-50%,80px);
+  position:fixed;
+  left:50%;
+  bottom:34px;
+  transform:translate(-50%,80px);
   z-index:5000;
-  background:rgba(28,28,30,.95);
-  color:#fff;padding:12px 18px;border-radius:999px;
-  font-size:14px;font-weight:700;
+  opacity:0;
+  pointer-events:none;
+  background:rgba(28,28,30,.96);
+  color:#fff;
+  padding:12px 18px;
+  border-radius:999px;
+  font-size:14px;
+  font-weight:800;
   box-shadow:var(--shadow-2);
   transition:transform .3s var(--spring), opacity .3s ease;
-  opacity:0;pointer-events:none
 }
-.toast.show{opacity:1;transform:translate(-50%,0)}
+.toast.show{
+  opacity:1;
+  transform:translate(-50%,0);
+}
 
-.pulse{
-  width:8px;height:8px;border-radius:50%;background:var(--green);display:inline-block;margin-right:8px;
-  animation:pulse 1.8s ease-in-out infinite
+/* popup */
+.leaflet-popup-content-wrapper{
+  background:rgba(15,20,34,.94)!important;
+  color:#fff!important;
+  border-radius:16px!important;
+  border:1px solid rgba(255,255,255,.10)!important;
+  box-shadow:0 10px 28px rgba(0,0,0,.35)!important;
+  backdrop-filter:blur(10px);
 }
-@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+.leaflet-popup-tip{background:rgba(15,20,34,.94)!important}
+.leaflet-popup-content{
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+  font-size:13px;
+  line-height:1.55;
+}
 
 .empty{
-  padding:32px 18px;color:var(--text-3);text-align:center
+  padding:34px 18px;
+  text-align:center;
+  color:var(--text-3);
 }
 
-.map-tag{
-  position:fixed;
-  left:16px;
-  top:calc(max(14px, env(safe-area-inset-top)) + 136px);
-  z-index:1700;
-  padding:10px 14px;
-  border-radius:18px;
-  background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03)), var(--surface);
-  border:1px solid var(--line);
-  box-shadow:var(--shadow-1);
-  backdrop-filter:var(--blur);
-  -webkit-backdrop-filter:var(--blur);
-  font-size:13px;font-weight:700;color:var(--text-2)
-}
-
-@media (max-width:700px){
-  .brand{display:none}
+@media (max-width:760px){
+  .brand-text{display:none}
+  .brand{padding-right:4px}
+  .if-route{max-width:120px}
   .sheet-title{font-size:22px}
   .d-call{font-size:32px}
-  .grid{grid-template-columns:1fr 1fr}
 }
 </style>
 </head>
 <body>
 
-<div id="map"></div>
+<div id="mapWrap"><div id="map"></div></div>
+<div id="globeWrap"><div id="globeViz"></div></div>
 
-<div class="topbar-wrap">
-  <div class="topbar">
+<div class="island-wrap">
+  <div class="island" id="island">
     <div class="brand">
-      <div class="brand-icon">✈</div>
-      Overhead Ultra
+      <div class="brand-badge">✈</div>
+      <div class="brand-text">Overhead Ultra</div>
     </div>
 
-    <div class="search-wrap">
+    <div class="searchbox">
       <span style="opacity:.55">🔎</span>
       <input id="searchInput" placeholder="Search callsign, country, ICAO24…" />
     </div>
 
-    <div class="top-actions">
-      <button class="icon-btn" id="gpsBtn" title="GPS">📍</button>
-      <button class="icon-btn" id="refreshBtn" title="Refresh">↻</button>
+    <div class="island-flight" id="islandFlight">
+      <div class="if-main">
+        <div class="if-call" id="ifCall">FIN123</div>
+        <div class="if-route" id="ifRoute">Live focus</div>
+      </div>
+      <div class="if-pill">LIVE</div>
+    </div>
+
+    <div class="island-actions">
+      <button class="ibtn" id="gpsBtn" title="GPS">📍</button>
+      <button class="ibtn" id="refreshBtn" title="Refresh">↻</button>
+      <button class="ibtn" id="globeBtn" title="3D Globe">🌍</button>
     </div>
   </div>
 </div>
@@ -440,11 +658,11 @@ body::before{
   </div>
 </div>
 
-<div class="map-tag" id="mapTag"><span class="pulse"></span>Waiting for search</div>
+<div class="map-status" id="mapStatus"><span class="live-dot"></span>Waiting for search</div>
 
 <div class="side-controls">
-  <button class="fab primary" id="findTurkuBtn" title="Turku">TKU</button>
-  <button class="fab" id="expandBtn" title="Expand list">☰</button>
+  <button class="fab" id="turkuBtn" title="Turku">TKU</button>
+  <button class="fab" id="sheetBtn" title="Open list">☰</button>
 </div>
 
 <div class="sheet expanded" id="sheet">
@@ -454,10 +672,10 @@ body::before{
       <div class="sheet-title">Live Radar</div>
       <div class="sheet-sub" id="sheetSub">No flights loaded</div>
     </div>
-    <div style="font-size:13px;color:var(--text-3);font-weight:800" id="statusMeta">30s refresh</div>
+    <div class="sheet-meta" id="sheetMeta">25s refresh</div>
   </div>
   <div class="sheet-list" id="flightList">
-    <div class="empty">Aseta sijainti tai paina TKU / GPS.</div>
+    <div class="empty">Paina TKU tai GPS aloittaaksesi.</div>
   </div>
 </div>
 
@@ -487,7 +705,7 @@ body::before{
       <div class="info">
         <div class="i-label">Heading</div>
         <div class="i-value" id="dHdg">—</div>
-        <div class="i-sub" id="dPhaseText">—</div>
+        <div class="i-sub" id="dHeadingSub">—</div>
       </div>
 
       <div class="info">
@@ -528,17 +746,26 @@ body::before{
 <script>
 const state = {
   map: null,
+  globe: null,
+  globeReady: false,
+  isGlobe: false,
+
   userLat: 60.4518,
   userLon: 22.2666,
   radiusKm: 180,
+
   flights: new Map(),
   markers: new Map(),
   selectedIcao: null,
+
   refreshTimer: null,
   animFrame: null,
   animLast: 0,
-  sheetExpanded: true,
+  lastGlobeSync: 0,
+
   search: '',
+  sheetExpanded: true,
+
   metaCache: new Map(),
   routeCache: new Map()
 };
@@ -550,31 +777,31 @@ function toast(msg){
   el.textContent = msg;
   el.classList.add('show');
   clearTimeout(el._t);
-  el._t = setTimeout(() => el.classList.remove('show'), 2500);
+  el._t = setTimeout(() => el.classList.remove('show'), 2400);
 }
 
 function fmtFt(m){
-  if (m == null) return '—';
+  if(m == null) return '—';
   return Math.round(m * 3.28084).toLocaleString('en-US') + ' FT';
 }
 function fmtM(m){
-  if (m == null) return '—';
+  if(m == null) return '—';
   return Math.round(m).toLocaleString('en-US') + ' m';
 }
 function fmtKt(ms){
-  if (ms == null) return '—';
+  if(ms == null) return '—';
   return Math.round(ms * 1.94384) + ' KT';
 }
 function fmtKmh(ms){
-  if (ms == null) return '—';
+  if(ms == null) return '—';
   return Math.round(ms * 3.6) + ' km/h';
 }
 function fmtVr(ms){
-  if (ms == null) return '—';
+  if(ms == null) return '—';
   return (ms > 0 ? '+' : '') + Math.round(ms * 196.8504) + ' ft/min';
 }
 function dir(track){
-  if (track == null) return '—';
+  if(track == null) return '—';
   const dirs = ['N','NE','E','SE','S','SW','W','NW','N'];
   return dirs[Math.round(track / 45)];
 }
@@ -582,34 +809,59 @@ function haversine(lat1, lon1, lat2, lon2){
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
   const dLon = (lon2 - lon1) * Math.PI / 180;
-  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLon/2)**2;
-  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) *
+    Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+function esc(s){
+  return String(s ?? '').replace(/[&<>"']/g, m => ({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+  }[m]));
 }
 function phaseOf(f){
-  if (f.on_ground) return {label:'On Ground', cls:'gnd', icon:'●'};
+  if(f.on_ground) return {label:'On Ground', cls:'gnd', icon:'●'};
   const vr = f.vertical_rate ?? 0;
-  if (vr > 2) return {label:'Climb', cls:'climb', icon:'↗'};
-  if (vr < -2) return {label:'Descent', cls:'desc', icon:'↘'};
+  if(vr > 2) return {label:'Climb', cls:'climb', icon:'↗'};
+  if(vr < -2) return {label:'Descent', cls:'desc', icon:'↘'};
   return {label:'Cruise', cls:'cruise', icon:'→'};
 }
 function colorOf(f){
-  if (f.on_ground) return '#FF9F0A';
-  if (f.dist != null && f.dist < 50) return '#30D158';
+  if(f.on_ground) return '#FF9F0A';
+  if((f.dist ?? 9999) < 50) return '#30D158';
   return '#0A84FF';
 }
-function esc(s){
-  return String(s ?? '').replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+function setIslandNormal(){
+  $('island').classList.remove('focus');
+  $('ifCall').textContent = '';
+  $('ifRoute').textContent = '';
+}
+function setIslandFocus(f, routeText){
+  $('island').classList.add('focus');
+  $('ifCall').textContent = f.callsign || f.icao24.toUpperCase();
+  $('ifRoute').textContent = routeText || 'Live focus';
+}
+function setHUD(f){
+  const alt = f ? fmtFt(f.baro_alt ?? f.geo_alt) : '--- FT';
+  const spd = f ? fmtKt(f.velocity) : '--- KT';
+  $('hudAlt').textContent = alt;
+  $('hudSpd').textContent = spd;
 }
 
 function initMap(){
-  state.map = L.map('map', {zoomControl:false, attributionControl:false}).setView([state.userLat, state.userLon], 7);
+  state.map = L.map('map', {
+    zoomControl:false,
+    attributionControl:false
+  }).setView([state.userLat, state.userLon], 7);
 
-  const sat = L.tileLayer(
+  L.tileLayer(
     'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
     {maxZoom:19}
   ).addTo(state.map);
 
-  const labels = L.tileLayer(
+  L.tileLayer(
     'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',
     {maxZoom:19, opacity:.92}
   ).addTo(state.map);
@@ -623,7 +875,7 @@ function initMap(){
   }).addTo(state.map);
 
   state.radiusCircle = L.circle([state.userLat, state.userLon], {
-    radius: state.radiusKm * 1000,
+    radius:state.radiusKm * 1000,
     color:'#0A84FF',
     weight:1.4,
     opacity:.55,
@@ -632,31 +884,97 @@ function initMap(){
   }).addTo(state.map);
 }
 
-function setUserLocation(lat, lon, zoom=7){
-  state.userLat = lat;
-  state.userLon = lon;
-  if (state.userMarker) state.userMarker.setLatLng([lat, lon]);
-  if (state.radiusCircle) {
-    state.radiusCircle.setLatLng([lat, lon]);
-    state.radiusCircle.setRadius(state.radiusKm * 1000);
-  }
-  state.map.setView([lat, lon], zoom, {animate:true});
+function createPlaneMesh(colorHex, scale=1){
+  const color = new THREE.Color(colorHex);
+  const mat = new THREE.MeshStandardMaterial({
+    color,
+    metalness:.55,
+    roughness:.28
+  });
+
+  const group = new THREE.Group();
+
+  const fuselage = new THREE.Mesh(
+    new THREE.CylinderGeometry(0.04, 0.03, 0.42, 10).rotateX(Math.PI / 2),
+    mat
+  );
+  group.add(fuselage);
+
+  const wing = new THREE.Mesh(
+    new THREE.BoxGeometry(0.34, 0.012, 0.08),
+    mat
+  );
+  wing.position.set(0, 0, 0.01);
+  group.add(wing);
+
+  const tail = new THREE.Mesh(
+    new THREE.BoxGeometry(0.10, 0.012, 0.05),
+    mat
+  );
+  tail.position.set(0, -0.16, 0.01);
+  group.add(tail);
+
+  group.scale.set(scale, scale, scale);
+  return group;
 }
 
-function aircraftSVG(color, size=26){
+function initGlobe(){
+  if(state.globeReady) return;
+
+  const globe = Globe()(document.getElementById('globeViz'))
+    .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+    .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
+    .backgroundColor('#000000')
+    .showAtmosphere(true)
+    .atmosphereColor('#4dabff')
+    .atmosphereAltitude(0.18)
+    .objectLat('gLat')
+    .objectLng('gLon')
+    .objectAltitude(d => d.gAlt)
+    .objectThreeObject(d => createPlaneMesh(d.gColor, d.gScale));
+
+  const amb = new THREE.AmbientLight(0xffffff, .78);
+  globe.scene().add(amb);
+
+  const sun = new THREE.DirectionalLight(0xffffff, 1.8);
+  sun.position.set(1, 1, 1);
+  globe.scene().add(sun);
+
+  globe.controls().enableDamping = true;
+  globe.controls().dampingFactor = .08;
+  globe.controls().autoRotate = false;
+  globe.pointOfView({lat:20, lng:20, altitude:2.2}, 0);
+
+  state.globe = globe;
+  state.globeReady = true;
+}
+
+function toggleGlobe(){
+  if(!state.globeReady) initGlobe();
+
+  state.isGlobe = !state.isGlobe;
+  $('globeWrap').classList.toggle('on', state.isGlobe);
+  $('globeBtn').classList.toggle('on', state.isGlobe);
+  $('mapWrap').style.opacity = state.isGlobe ? '.15' : '1';
+  $('mapWrap').style.pointerEvents = state.isGlobe ? 'none' : 'auto';
+  syncGlobe(true);
+}
+
+function aircraftSVG(color, size=28){
   return `
-  <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 100 100" style="filter:drop-shadow(0 2px 6px rgba(0,0,0,.45))">
-    <ellipse cx="50" cy="50" rx="6" ry="38" fill="${color}"/>
-    <ellipse cx="50" cy="14" rx="5" ry="8" fill="${color}"/>
-    <path d="M50,42 Q30,30 8,52 Q16,56 50,50 Q84,56 92,52 Q70,30 50,42Z" fill="${color}"/>
-    <path d="M50,76 Q38,72 28,82 Q34,84 50,80 Q66,84 72,82 Q62,72 50,76Z" fill="${color}"/>
-    <ellipse cx="50" cy="78" rx="3" ry="8" fill="${color}" opacity=".7"/>
-  </svg>`;
+    <svg xmlns="http://www.w3.org/2000/svg" width="${size}" height="${size}" viewBox="0 0 100 100" style="filter:drop-shadow(0 2px 6px rgba(0,0,0,.45))">
+      <ellipse cx="50" cy="50" rx="6" ry="38" fill="${color}"/>
+      <ellipse cx="50" cy="14" rx="5" ry="8" fill="${color}"/>
+      <path d="M50,42 Q30,30 8,52 Q16,56 50,50 Q84,56 92,52 Q70,30 50,42Z" fill="${color}"/>
+      <path d="M50,76 Q38,72 28,82 Q34,84 50,80 Q66,84 72,82 Q62,72 50,76Z" fill="${color}"/>
+      <ellipse cx="50" cy="78" rx="3" ry="8" fill="${color}" opacity=".75"/>
+    </svg>
+  `;
 }
 
 function planeIcon(f){
   const color = colorOf(f);
-  const rot = (f.track ?? 0);
+  const rot = f.track ?? 0;
   const size = 28;
   return L.divIcon({
     className:'',
@@ -666,14 +984,14 @@ function planeIcon(f){
   });
 }
 
-function buildPopup(f){
+function popupHTML(f){
   const alt = fmtFt(f.baro_alt ?? f.geo_alt);
   const spd = fmtKt(f.velocity);
   const dist = f.dist != null ? f.dist.toFixed(0) + ' km' : '—';
   return `
-    <div style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;color:#fff;line-height:1.55">
-      <div style="font-weight:800;font-size:14px">${esc(f.callsign)}</div>
-      <div style="opacity:.82">${esc(f.country || '—')}</div>
+    <div>
+      <div style="font-weight:850;font-size:14px">${esc(f.callsign)}</div>
+      <div style="opacity:.8">${esc(f.country || '—')}</div>
       <div>↕ ${alt}</div>
       <div>💨 ${spd}</div>
       <div>📏 ${dist}</div>
@@ -681,18 +999,24 @@ function buildPopup(f){
   `;
 }
 
+function setUserLocation(lat, lon, zoom=8){
+  state.userLat = lat;
+  state.userLon = lon;
+
+  if(state.userMarker) state.userMarker.setLatLng([lat, lon]);
+  if(state.radiusCircle){
+    state.radiusCircle.setLatLng([lat, lon]);
+    state.radiusCircle.setRadius(state.radiusKm * 1000);
+  }
+  if(state.map) state.map.setView([lat, lon], zoom, {animate:true});
+}
+
 function parseStates(states){
   const now = Date.now();
   return (states || []).map(s => {
     const lat = s[6];
     const lon = s[5];
-    if (lat == null || lon == null) return null;
-
-    const baro = s[7];
-    const geo = s[13];
-    const velocity = s[9];
-    const track = s[10];
-    const dist = haversine(state.userLat, state.userLon, lat, lon);
+    if(lat == null || lon == null) return null;
 
     return {
       icao24: s[0],
@@ -700,19 +1024,19 @@ function parseStates(states){
       country: s[2] || '—',
       lon,
       lat,
-      baro_alt: baro,
-      geo_alt: geo,
+      baro_alt: s[7],
       on_ground: !!s[8],
-      velocity: velocity == null ? null : Number(velocity),
-      track: track == null ? 0 : Number(track),
+      velocity: s[9] == null ? null : Number(s[9]),
+      track: s[10] == null ? 0 : Number(s[10]),
       vertical_rate: s[11] == null ? null : Number(s[11]),
+      geo_alt: s[13] == null ? null : Number(s[13]),
       squawk: s[14] || '',
       category: s[17] ?? null,
+
       sampleTime: now,
-      dist,
       curLat: lat,
       curLon: lon,
-      metaLoaded: false
+      dist: haversine(state.userLat, state.userLon, lat, lon)
     };
   }).filter(Boolean);
 }
@@ -726,21 +1050,23 @@ async function fetchFlights(){
 
   const url = `https://opensky-network.org/api/states/all?lamin=${lamin}&lomin=${lomin}&lamax=${lamax}&lomax=${lomax}&extended=1`;
 
-  $('mapTag').innerHTML = '<span class="pulse"></span>Refreshing live flights';
+  $('mapStatus').innerHTML = '<span class="live-dot"></span>Refreshing live flights';
   $('refreshBtn').classList.add('on');
 
   try{
     const res = await fetch(url);
     if(!res.ok) throw new Error('OpenSky error ' + res.status);
+
     const json = await res.json();
     const fresh = parseStates(json.states || []);
     mergeFlights(fresh);
     renderList();
+    syncGlobe(true);
     scheduleRefresh();
     toast(`✈ ${fresh.length} flights loaded`);
   }catch(err){
-    toast('Refresh failed');
     console.error(err);
+    toast('Refresh failed');
   }finally{
     $('refreshBtn').classList.remove('on');
   }
@@ -763,15 +1089,15 @@ function mergeFlights(fresh){
       old.lat = nf.lat;
       old.lon = nf.lon;
       old.baro_alt = nf.baro_alt;
-      old.geo_alt = nf.geo_alt;
       old.on_ground = nf.on_ground;
       old.velocity = nf.velocity;
       old.track = nf.track;
       old.vertical_rate = nf.vertical_rate;
+      old.geo_alt = nf.geo_alt;
       old.squawk = nf.squawk;
       old.category = nf.category;
-      old.dist = nf.dist;
       old.sampleTime = nf.sampleTime;
+      old.dist = nf.dist;
     }else{
       state.flights.set(nf.icao24, nf);
     }
@@ -783,30 +1109,37 @@ function mergeFlights(fresh){
     if(!seen.has(icao)){
       const age = Date.now() - f.sampleTime;
       if(age > 90000){
-        const m = state.markers.get(icao);
-        if(m){ state.map.removeLayer(m); state.markers.delete(icao); }
+        const mk = state.markers.get(icao);
+        if(mk){
+          state.map.removeLayer(mk);
+          state.markers.delete(icao);
+        }
         state.flights.delete(icao);
       }
     }
   }
 
-  const count = state.flights.size;
+  const total = state.flights.size;
   const airborne = [...state.flights.values()].filter(f => !f.on_ground).length;
-  $('sheetSub').textContent = `${count} tracked · ${airborne} airborne`;
-  $('mapTag').innerHTML = `<span class="pulse"></span>${count} live flights`;
+
+  $('sheetSub').textContent = `${total} tracked · ${airborne} airborne`;
+  $('mapStatus').innerHTML = `<span class="live-dot"></span>${total} live flights`;
 }
 
 function upsertMarker(f){
   let marker = state.markers.get(f.icao24);
 
   if(!marker){
-    marker = L.marker([f.curLat, f.curLon], {icon: planeIcon(f)}).addTo(state.map);
+    marker = L.marker([f.curLat, f.curLon], {
+      icon: planeIcon(f)
+    }).addTo(state.map);
+
     marker.on('click', () => openDetail(f.icao24));
-    marker.bindPopup(buildPopup(f), {maxWidth:220});
+    marker.bindPopup(popupHTML(f), {maxWidth:220});
     state.markers.set(f.icao24, marker);
   }else{
     marker.setIcon(planeIcon(f));
-    marker.setPopupContent(buildPopup(f));
+    marker.setPopupContent(popupHTML(f));
   }
 }
 
@@ -828,17 +1161,56 @@ function projectFlight(f, now){
   };
 }
 
+function syncGlobe(force=false){
+  if(!state.globeReady) return;
+  const now = performance.now();
+  if(!force && now - state.lastGlobeSync < 220) return;
+  state.lastGlobeSync = now;
+
+  let arr = [...state.flights.values()]
+    .map(f => {
+      const p = projectFlight(f, Date.now());
+      return {
+        id: f.icao24,
+        gLat: p.lat,
+        gLon: p.lon,
+        gAlt: f.on_ground ? 0.002 : Math.max(.01, ((f.baro_alt ?? f.geo_alt ?? 0) * 3.28084) / 120000),
+        gColor: state.selectedIcao === f.icao24 ? '#30D158' : colorOf(f),
+        gScale: state.selectedIcao === f.icao24 ? 2.5 : 1.35
+      };
+    });
+
+  arr.sort((a,b) => (a.id === state.selectedIcao ? -1 : 0) - (b.id === state.selectedIcao ? -1 : 0));
+  arr = arr.slice(0, 320);
+
+  state.globe.objectsData(arr);
+
+  if(state.selectedIcao){
+    const sf = state.flights.get(state.selectedIcao);
+    if(sf){
+      const p = projectFlight(sf, Date.now());
+      state.globe.pointOfView({
+        lat:p.lat,
+        lng:p.lon,
+        altitude:1.8
+      }, 260);
+    }
+  }
+}
+
 function startAnimation(){
   cancelAnimationFrame(state.animFrame);
   state.animLast = 0;
 
-  const tick = (now) => {
+  const tick = (t) => {
     state.animFrame = requestAnimationFrame(tick);
-    if(!state.animLast){ state.animLast = now; return; }
+    if(!state.animLast){
+      state.animLast = t;
+      return;
+    }
 
-    const dt = Math.min((now - state.animLast) / 1000, .2);
-    state.animLast = now;
-
+    const dt = Math.min((t - state.animLast) / 1000, .2);
+    state.animLast = t;
     const alpha = 1 - Math.exp(-dt * 7);
 
     for(const [icao, f] of state.flights.entries()){
@@ -856,12 +1228,24 @@ function startAnimation(){
       }
 
       marker.setLatLng([f.curLat, f.curLon]);
+      f.dist = haversine(state.userLat, state.userLon, f.curLat, f.curLon);
     }
 
     if(state.selectedIcao){
       const sf = state.flights.get(state.selectedIcao);
-      if(sf) updateDetailLive(sf);
+      if(sf){
+        updateDetailLive(sf);
+        if(!state.isGlobe){
+          const center = state.map.getCenter();
+          const d = haversine(center.lat, center.lng, sf.curLat, sf.curLon);
+          if(d > 120){
+            state.map.panTo([sf.curLat, sf.curLon], {animate:true, duration:.6});
+          }
+        }
+      }
     }
+
+    if(state.isGlobe) syncGlobe(false);
   };
 
   state.animFrame = requestAnimationFrame(tick);
@@ -870,12 +1254,6 @@ function startAnimation(){
 function renderList(){
   const q = state.search.trim().toLowerCase();
   let flights = [...state.flights.values()];
-
-  flights.forEach(f => {
-    const plat = typeof f.curLat === 'number' ? f.curLat : f.lat;
-    const plon = typeof f.curLon === 'number' ? f.curLon : f.lon;
-    f.dist = haversine(state.userLat, state.userLon, plat, plon);
-  });
 
   flights.sort((a,b) => (a.dist ?? 9999) - (b.dist ?? 9999));
 
@@ -888,16 +1266,19 @@ function renderList(){
   }
 
   if(!flights.length){
-    $('flightList').innerHTML = `<div class="empty">No flights match your search.</div>`;
+    $('flightList').innerHTML = '<div class="empty">No flights match your search.</div>';
     return;
   }
 
-  $('flightList').innerHTML = flights.slice(0, 120).map(f => {
-    const altFt = fmtFt(f.baro_alt ?? f.geo_alt);
-    const dist = f.dist != null ? f.dist.toFixed(0) + ' km' : '—';
+  $('flightList').innerHTML = flights.slice(0, 140).map(f => {
     const ph = phaseOf(f);
-    const badges = [];
-    badges.push(`<span class="badge ${f.on_ground ? 'orange' : (f.dist < 50 ? 'green' : 'blue')}">${f.on_ground ? 'On Ground' : (f.dist < 50 ? 'Overhead' : ph.label)}</span>`);
+    const colorClass = f.on_ground ? 'orange' : ((f.dist ?? 9999) < 50 ? 'green' : 'blue');
+    const alt = fmtFt(f.baro_alt ?? f.geo_alt);
+    const dist = f.dist != null ? f.dist.toFixed(0) + ' km' : '—';
+
+    const badges = [
+      `<span class="badge ${colorClass}">${f.on_ground ? 'On Ground' : ((f.dist ?? 9999) < 50 ? 'Overhead' : ph.label)}</span>`
+    ];
     if(f.squawk && f.squawk !== '0000') badges.push(`<span class="badge gray">SQK ${esc(f.squawk)}</span>`);
 
     return `
@@ -911,7 +1292,7 @@ function renderList(){
         <div class="card-stats">
           <div class="stat-big">${dist}</div>
           <div class="stat-small">distance</div>
-          <div class="stat-big" style="margin-top:6px">${altFt}</div>
+          <div class="stat-big" style="margin-top:6px">${alt}</div>
           <div class="stat-small">altitude</div>
         </div>
       </div>
@@ -921,6 +1302,7 @@ function renderList(){
 
 async function fetchMeta(icao24){
   if(state.metaCache.has(icao24)) return state.metaCache.get(icao24);
+
   try{
     const res = await fetch(`https://api.adsbdb.com/v0/aircraft/${icao24.toLowerCase()}`);
     if(!res.ok) throw 0;
@@ -937,6 +1319,7 @@ async function fetchMeta(icao24){
 async function fetchRoute(callsign){
   const key = callsign.trim().toUpperCase();
   if(state.routeCache.has(key)) return state.routeCache.get(key);
+
   try{
     const res = await fetch(`https://api.adsbdb.com/v0/callsign/${encodeURIComponent(key)}`);
     if(!res.ok) throw 0;
@@ -957,22 +1340,30 @@ async function openDetail(icao24){
   const f = state.flights.get(icao24);
   if(!f) return;
 
+  const ph = phaseOf(f);
+  $('dPhase').className = `phase ${ph.cls}`;
+  $('dPhase').textContent = `${ph.icon} ${ph.label}`;
+
   $('detail').classList.add('open');
   $('sheet').classList.remove('expanded');
 
   $('dCall').textContent = f.callsign;
   $('dRoute').textContent = f.country;
-  $('dIcao').textContent = f.icao24.toUpperCase();
   $('dCountry').textContent = f.country;
+  $('dIcao').textContent = f.icao24.toUpperCase();
   $('dModel').textContent = 'Loading…';
   $('dMeta').textContent = 'Fetching aircraft metadata';
   $('dOperator').textContent = 'Loading…';
   $('dRouteLong').textContent = 'Looking up route';
-  updateDetailLive(f);
 
-  const ph = phaseOf(f);
-  $('dPhase').className = `phase ${ph.cls}`;
-  $('dPhase').textContent = `${ph.icon} ${ph.label}`;
+  updateDetailLive(f);
+  setIslandFocus(f, 'Live focus');
+
+  if(state.isGlobe){
+    syncGlobe(true);
+  }else{
+    state.map.setView([f.curLat ?? f.lat, f.curLon ?? f.lon], Math.max(state.map.getZoom(), 8), {animate:true});
+  }
 
   const [meta, route] = await Promise.all([
     fetchMeta(f.icao24),
@@ -984,10 +1375,7 @@ async function openDetail(icao24){
   if(meta){
     const model = [meta.manufacturer, meta.type].filter(Boolean).join(' ') || 'Unknown aircraft';
     $('dModel').textContent = model;
-    $('dMeta').textContent = [
-      meta.icao_type || '—',
-      meta.registration || '—'
-    ].join(' · ');
+    $('dMeta').textContent = [meta.icao_type || '—', meta.registration || '—'].join(' · ');
     $('dOperator').textContent = meta.registered_owner || 'Unknown operator';
   }else{
     $('dModel').textContent = 'No metadata';
@@ -995,37 +1383,41 @@ async function openDetail(icao24){
     $('dOperator').textContent = 'Unknown operator';
   }
 
+  let routeText = 'Live focus';
   if(route?.origin || route?.destination){
     const o = route.origin ? `${route.origin.iata_code || ''} ${route.origin.name || ''}`.trim() : '—';
     const d = route.destination ? `${route.destination.iata_code || ''} ${route.destination.name || ''}`.trim() : '—';
     $('dRoute').textContent = `${o} → ${d}`;
     $('dRouteLong').textContent = `${o} → ${d}`;
+    routeText = `${(route.origin?.iata_code || '—')} → ${(route.destination?.iata_code || '—')}`;
   }else{
     $('dRouteLong').textContent = 'No route information';
   }
 
-  const pos = projectFlight(f, Date.now());
-  state.map.setView([pos.lat, pos.lon], Math.max(state.map.getZoom(), 8), {animate:true});
+  setIslandFocus(f, routeText);
 }
 
 function closeDetail(){
   state.selectedIcao = null;
   $('detail').classList.remove('open');
-  $('hudAlt').textContent = '--- FT';
-  $('hudSpd').textContent = '--- KT';
+  setIslandNormal();
+  setHUD(null);
   renderList();
+  syncGlobe(true);
 }
 
 function updateDetailLive(f){
   const altM = f.baro_alt ?? f.geo_alt;
+  const phase = phaseOf(f);
+
   $('dAlt').textContent = fmtFt(altM);
   $('dAltM').textContent = fmtM(altM);
   $('dSpd').textContent = fmtKt(f.velocity);
   $('dSpdKmh').textContent = fmtKmh(f.velocity);
   $('dHdg').textContent = f.track != null ? `${Math.round(f.track)}° ${dir(f.track)}` : '—';
+  $('dHeadingSub').textContent = phase.label;
   $('dVr').textContent = fmtVr(f.vertical_rate);
   $('dDist').textContent = f.dist != null ? `${f.dist.toFixed(1)} km from you` : '—';
-  $('dPhaseText').textContent = phaseOf(f).label;
 
   $('hudAlt').textContent = fmtFt(altM);
   $('hudSpd').textContent = fmtKt(f.velocity);
@@ -1033,10 +1425,10 @@ function updateDetailLive(f){
 
 function scheduleRefresh(){
   clearTimeout(state.refreshTimer);
-  state.refreshTimer = setTimeout(fetchFlights, 30000);
+  state.refreshTimer = setTimeout(fetchFlights, 25000);
 }
 
-async function useGPS(){
+function useGPS(){
   if(!navigator.geolocation){
     toast('GPS not supported');
     return;
@@ -1052,26 +1444,33 @@ async function useGPS(){
   }, () => {
     $('gpsBtn').classList.remove('on');
     toast('GPS failed');
-  }, {enableHighAccuracy:true, timeout:8000, maximumAge:5000});
+  }, {
+    enableHighAccuracy:true,
+    timeout:8000,
+    maximumAge:5000
+  });
 }
 
-function setTurku(){
+function goTurku(){
   setUserLocation(60.4518, 22.2666, 7);
   fetchFlights();
 }
 
 window.openDetail = openDetail;
 
+/* events */
 $('searchInput').addEventListener('input', e => {
   state.search = e.target.value || '';
   renderList();
 });
 
-$('refreshBtn').addEventListener('click', fetchFlights);
 $('gpsBtn').addEventListener('click', useGPS);
-$('findTurkuBtn').addEventListener('click', setTurku);
+$('refreshBtn').addEventListener('click', fetchFlights);
+$('globeBtn').addEventListener('click', toggleGlobe);
+$('turkuBtn').addEventListener('click', goTurku);
 $('detailClose').addEventListener('click', closeDetail);
-$('expandBtn').addEventListener('click', () => {
+
+$('sheetBtn').addEventListener('click', () => {
   state.sheetExpanded = !state.sheetExpanded;
   $('sheet').classList.toggle('expanded', state.sheetExpanded);
 });
@@ -1080,8 +1479,10 @@ $('sheetGrab').addEventListener('click', () => {
   $('sheet').classList.toggle('expanded', state.sheetExpanded);
 });
 
+/* init */
 initMap();
-setTurku();
+initGlobe();
+goTurku();
 startAnimation();
 </script>
 </body>
