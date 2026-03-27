@@ -134,7 +134,7 @@ body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "S
 input:checked + .slider { background-color: #34c759; }
 input:checked + .slider:before { transform: translateX(20px); }
 
-.search-bar { position: absolute; top: 16px; left: 16px; right: 16px; height: 50px; background: rgba(255,255,255,0.85); backdrop-filter: saturate(200%) blur(40px); -webkit-backdrop-filter: saturate(200%) blur(40px); border-radius: 16px; z-index: 1500; display: flex; align-items: center; padding: 0 16px; gap: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.6); transition: 0.3s; }
+.search-bar { position: absolute; top: 16px; left:  170px; right: 16px; height: 50px; background: rgba(255,255,255,0.85); backdrop-filter: saturate(200%) blur(40px); -webkit-backdrop-filter: saturate(200%) blur(40px); border-radius: 16px; z-index: 1500; display: flex; align-items: center; padding: 0 16px; gap: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.6); transition: 0.3s; }
 .search-bar:focus-within { background: rgba(255,255,255,0.95); box-shadow: 0 8px 25px rgba(0,0,0,0.15); transform: translateY(-2px); }
 .search-bar input { border: none; background: transparent; font-size: 17px; font-weight: 500; width: 100%; outline: none; color: #1d1d1f; font-family: inherit; }
 .search-bar input::placeholder { color: #8e8e93; }
@@ -190,6 +190,7 @@ input:checked + .slider:before { transform: translateX(20px); }
       display: flex; align-items: center; justify-content: center;
       perspective: 600px;
     }
+    
     .svs-world {
       position: absolute; width: 400%; height: 400%;
       top: -150%; left: -150%;
@@ -198,32 +199,29 @@ input:checked + .slider:before { transform: translateX(20px); }
     }
     .svs-sky {
       flex: 1; position: relative; overflow: hidden;
-      background: linear-gradient(180deg, #001133 0%, #0a84ff 60%, #87ceeb 100%);
-    }
-    .svs-clouds {
-      position: absolute; top: 0; left: 0; width: 200%; height: 100%;
-      background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="200" opacity="0.3"><circle cx="50" cy="50" r="30" fill="white"/><circle cx="90" cy="60" r="40" fill="white"/><circle cx="200" cy="40" r="25" fill="white"/><circle cx="250" cy="50" r="35" fill="white"/><circle cx="350" cy="80" r="50" fill="white"/></svg>') repeat-x;
-      background-size: 50% 100%;
+      background: linear-gradient(180deg, #001e52 0%, #0d47a1 50%, #2196f3 100%);
     }
     .svs-ground {
       flex: 1; position: relative; overflow: hidden;
-      background: linear-gradient(180deg, #2e5927 0%, #0d1f0d 100%);
+      background: linear-gradient(180deg, #3e2723 0%, #1b5e20 20%, #000000 100%);
     }
     .svs-grid {
       position: absolute; inset: -100%;
       background-image: 
-        linear-gradient(rgba(255,255,255,0.15) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.15) 1px, transparent 1px);
-      background-size: 60px 60px;
-      transform: perspective(600px) rotateX(75deg);
+        linear-gradient(rgba(139,195,74,0.15) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(139,195,74,0.15) 1px, transparent 1px);
+      background-size: 80px 80px;
+      transform: perspective(400px) rotateX(75deg);
       transform-origin: top center;
     }
     .svs-skyline {
-      position: absolute; bottom: 50%; left: 0; width: 400%; height: 100px;
-      background: url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22800%22%20height%3D%22100%22%20viewBox%3D%220%200%20800%20100%22%20preserveAspectRatio%3D%22none%22%3E%0A%20%20%20%20%3Cpath%20d%3D%22M0%2C100%20L0%2C60%20Q20%2C60%2040%2C40%20T80%2C50%20T120%2C30%20L140%2C50%20L160%2C20%20L180%2C60%20Q200%2C80%20240%2C40%20T300%2C50%20L310%2C20%20L330%2C40%20L340%2C10%20L360%2C50%20T400%2C60%20L420%2C80%20L440%2C30%20L450%2C50%20L470%2C20%20L500%2C60%20T550%2C40%20T600%2C70%20L620%2C40%20L640%2C60%20L660%2C10%20L680%2C50%20T720%2C40%20T760%2C60%20L780%2C40%20L800%2C70%20L800%2C100%20Z%22%20fill%3D%22%231c3b1c%22%20opacity%3D%220.8%22/%3E%0A%20%20%20%20%3Cpath%20d%3D%22M0%2C100%20L0%2C70%20L10%2C70%20L10%2C50%20L20%2C50%20L20%2C80%20L40%2C80%20L40%2C40%20L50%2C40%20L50%2C80%20L80%2C80%20L80%2C30%20L90%2C30%20L90%2C80%20L120%2C80%20L120%2C60%20L140%2C60%20L140%2C80%20L180%2C80%20L180%2C20%20L200%2C20%20L200%2C80%20L250%2C80%20L250%2C40%20L270%2C40%20L270%2C80%20L320%2C80%20L320%2C50%20L340%2C50%20L340%2C80%20L380%2C80%20L380%2C20%20L400%2C20%20L400%2C80%20L450%2C80%20L450%2C30%20L470%2C30%20L470%2C80%20L520%2C80%20L520%2C60%20L540%2C60%20L540%2C80%20L580%2C80%20L580%2C40%20L600%2C40%20L600%2C80%20L650%2C80%20L650%2C20%20L670%2C20%20L670%2C80%20L720%2C80%20L720%2C50%20L740%2C50%20L740%2C80%20L780%2C80%20L780%2C30%20L800%2C30%20L800%2C100%20Z%22%20fill%3D%22%230d1f0d%22%20opacity%3D%220.6%22/%3E%0A%3C/svg%3E') repeat-x;
-      background-size: 200px 100px;
+      position: absolute; bottom: 50%; left: 0; width: 400%; height: 120px;
+      background: url('data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%22800%22%20height%3D%22120%22%20viewBox%3D%220%200%20800%20120%22%20preserveAspectRatio%3D%22none%22%3E%0A%20%20%20%20%3Cpath%20d%3D%22M0%2C120%20L0%2C70%20L20%2C70%20L20%2C50%20L40%2C50%20L40%2C80%20L80%2C80%20L80%2C30%20L100%2C30%20L100%2C60%20L140%2C60%20L140%2C80%20L200%2C80%20L200%2C20%20L220%2C20%20L220%2C70%20L280%2C70%20L280%2C40%20L320%2C40%20L320%2C90%20L380%2C90%20L380%2C10%20L420%2C10%20L420%2C60%20L460%2C60%20L460%2C40%20L500%2C40%20L500%2C80%20L550%2C80%20L550%2C50%20L600%2C50%20L600%2C90%20L650%2C90%20L650%2C20%20L700%2C20%20L700%2C70%20L750%2C70%20L750%2C30%20L800%2C30%20L800%2C120%20Z%22%20fill%3D%22%23212121%22%20opacity%3D%220.9%22/%3E%0A%20%20%20%20%3Cpath%20d%3D%22M0%2C120%20L0%2C80%20Q40%2C60%2080%2C80%20T160%2C50%20T240%2C80%20T320%2C40%20T400%2C70%20T480%2C30%20T560%2C60%20T640%2C40%20T720%2C70%20T800%2C50%20L800%2C120%20Z%22%20fill%3D%22%233e2723%22%20opacity%3D%220.6%22/%3E%0A%3C/svg%3E') repeat-x;
+      background-size: 250px 120px;
     }
-    .pfd-pitch-line { position: absolute; left: 50%; width: 40px; height: 2px; background: rgba(255,255,255,0.8); transform: translateX(-50%); border-radius: 2px; }
+    .pfd-pitch-line { position: absolute; left: 50%; height: 2px; background: rgba(255,255,255,0.9); transform: translateX(-50%); }
+    .pfd-pitch-text { position: absolute; color: #fff; font-size: 10px; font-weight: 800; font-family: ui-monospace, SF Mono, monospace; text-shadow: 1px 1px 0 #000, -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000; }
+
 
     .contrail-line { filter: drop-shadow(0 0 6px rgba(255,255,255,0.9)) blur(1px); animation: flow-dash 1s linear infinite; }
 
@@ -233,23 +231,19 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 <div id="map"></div>
 
+    
     <!-- OVERHEAD BRAND LOGO -->
-    <style>
-      @keyframes logo-fly {
-        0% { transform: translateY(-50%) rotate(15deg) translateX(-30px); opacity: 0; }
-        20% { opacity: 0.15; }
-        80% { opacity: 0.15; }
-        100% { transform: translateY(-50%) rotate(15deg) translateX(80px); opacity: 0; }
-      }
-    </style>
-    <div style="position: absolute; top: 60px; left: 16px; z-index: 500; display: flex; align-items: center; justify-content: center; padding: 10px 16px 10px 14px; border-radius: 20px; background: rgba(255,255,255,0.7); backdrop-filter: saturate(180%) blur(20px); -webkit-backdrop-filter: saturate(180%) blur(20px); box-shadow: 0 4px 15px rgba(0,0,0,0.1), inset 0 0 0 1px rgba(255,255,255,0.5); overflow: hidden; pointer-events: none;">
-      <div style="position: absolute; top: 50%; left: 0; z-index: 1; animation: logo-fly 6s ease-in-out infinite;">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="#0a84ff"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
-      </div>
-      <div style="position: relative; z-index: 2; font-family: -apple-system, BlinkMacSystemFont, SF Pro Display, Helvetica, sans-serif; font-size: 20px; font-weight: 900; letter-spacing: -0.5px; color: #1d1d1f; display: flex; align-items: center; gap: 4px;">
-        Overhead
+    <div style="position: absolute; top: 16px; left: 16px; height: 50px; z-index: 2000; display: flex; align-items: center; justify-content: center; pointer-events: none;">
+      <div style="background: rgba(28, 28, 30, 0.85); backdrop-filter: saturate(200%) blur(20px); -webkit-backdrop-filter: saturate(200%) blur(20px); padding: 0 14px; height: 100%; border-radius: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.1), inset 0 1px 0 rgba(255,255,255,0.15); display: flex; align-items: center; gap: 8px;">
+        <div style="width: 24px; height: 24px; background: linear-gradient(135deg, #0a84ff, #005bb5); border-radius: 6px; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 2px 4px rgba(255,255,255,0.3);">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="white" style="transform: rotate(45deg);"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
+        </div>
+        <div style="font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif; font-size: 16px; font-weight: 800; letter-spacing: -0.5px; color: #ffffff; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">
+          OVERHEAD<span style="color: #0a84ff;">.</span>
+        </div>
       </div>
     </div>
+
 
 
 <!-- Top Search Bar -->
@@ -408,32 +402,56 @@ input:checked + .slider:before { transform: translateX(20px); }
           <div class="svs-skyline" id="pfdSkyline"></div>
 
           <!-- Pitch Ladder -->
-          <div class="pfd-pitch-line" style="top: calc(50% - 40px); width: 20px;"></div><div style="position:absolute; top: calc(50% - 46px); left: calc(50% + 15px); color:white; font-size:9px; font-weight:800;">10</div>
-          <div class="pfd-pitch-line" style="top: calc(50% - 80px);"></div><div style="position:absolute; top: calc(50% - 86px); left: calc(50% + 25px); color:white; font-size:9px; font-weight:800;">20</div>
-          <div class="pfd-pitch-line" style="top: calc(50% + 40px); width: 20px;"></div><div style="position:absolute; top: calc(50% + 34px); left: calc(50% + 15px); color:white; font-size:9px; font-weight:800;">10</div>
-          <div class="pfd-pitch-line" style="top: calc(50% + 80px);"></div><div style="position:absolute; top: calc(50% + 74px); left: calc(50% + 25px); color:white; font-size:9px; font-weight:800;">20</div>
-          <div class="pfd-pitch-line" style="top: 50%; width: 100vw; background: rgba(255,255,255,0.4);"></div>
+          <!-- Positive Pitch (Blue) -->
+          <div class="pfd-pitch-line" style="top: calc(50% - 30px); width: 30px;"></div>
+          <div class="pfd-pitch-line" style="top: calc(50% - 60px); width: 60px;"></div><div class="pfd-pitch-text" style="top: calc(50% - 66px); left: calc(50% + 35px);">10</div>
+          <div class="pfd-pitch-line" style="top: calc(50% - 90px); width: 30px;"></div>
+          <div class="pfd-pitch-line" style="top: calc(50% - 120px); width: 60px;"></div><div class="pfd-pitch-text" style="top: calc(50% - 126px); left: calc(50% + 35px);">20</div>
+          <!-- Horizon -->
+          <div class="pfd-pitch-line" style="top: 50%; width: 200px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.8);"></div>
+          <!-- Negative Pitch (Brown) -->
+          <div class="pfd-pitch-line" style="top: calc(50% + 30px); width: 30px; border-top: 2px dashed #fff; background: transparent;"></div>
+          <div class="pfd-pitch-line" style="top: calc(50% + 60px); width: 60px; border-top: 2px dashed #fff; background: transparent;"></div><div class="pfd-pitch-text" style="top: calc(50% + 54px); left: calc(50% + 35px);">10</div>
+          <div class="pfd-pitch-line" style="top: calc(50% + 90px); width: 30px; border-top: 2px dashed #fff; background: transparent;"></div>
+          <div class="pfd-pitch-line" style="top: calc(50% + 120px); width: 60px; border-top: 2px dashed #fff; background: transparent;"></div><div class="pfd-pitch-text" style="top: calc(50% + 114px); left: calc(50% + 35px);">20</div>
         </div>
 
-        <!-- Plane Crosshair -->
-        <div style="position: absolute; z-index: 3; display: flex; gap: 24px; align-items: center;">
-          <div style="width: 30px; height: 4px; background: #ffcc00; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.5);"></div>
-          <div style="width: 6px; height: 6px; background: #ffcc00; border-radius: 50%; box-shadow: 0 1px 3px rgba(0,0,0,0.5);"></div>
-          <div style="width: 30px; height: 4px; background: #ffcc00; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.5);"></div>
+        <!-- FPV (Flight Path Vector) Symbol -->
+        <div style="position: absolute; z-index: 3; top: 50%; left: 50%; transform: translate(-50%, -50%); display: flex; align-items: center; justify-content: center; pointer-events: none;">
+           <svg width="40" height="40" viewBox="0 0 40 40" style="filter: drop-shadow(0 1px 2px rgba(0,0,0,0.8));">
+              <circle cx="20" cy="20" r="5" fill="none" stroke="#34c759" stroke-width="2"/>
+              <line x1="5" y1="20" x2="15" y2="20" stroke="#34c759" stroke-width="2"/>
+              <line x1="25" y1="20" x2="35" y2="20" stroke="#34c759" stroke-width="2"/>
+              <line x1="20" y1="5" x2="20" y2="15" stroke="#34c759" stroke-width="2"/>
+           </svg>
+        </div>
+
+        <!-- Aircraft Reference Symbol (Boresight) -->
+        <div style="position: absolute; z-index: 4; display: flex; gap: 28px; align-items: center; pointer-events: none; top: 50%; transform: translateY(-50%);">
+          <div style="width: 40px; height: 6px; border-top: 4px solid #ffcc00; border-right: 4px solid #ffcc00; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.8));"></div>
+          <div style="width: 6px; height: 6px; background: #ffcc00; border-radius: 50%; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.8));"></div>
+          <div style="width: 40px; height: 6px; border-top: 4px solid #ffcc00; border-left: 4px solid #ffcc00; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.8));"></div>
         </div>
 
         <div class="pfd-overlay"></div>
 
         <!-- PFD Data Overlays -->
-        <div style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); z-index: 4; background: rgba(0,0,0,0.6); padding: 4px 8px; border-radius: 6px; color: #34c759; font-weight: 800; font-family: ui-monospace, SF Mono, monospace; font-size: 14px; border-left: 3px solid #34c759; box-shadow: 0 2px 10px rgba(0,0,0,0.5);" id="pfdSpd">--- KT</div>
+        <!-- Speed Tape Background -->
+        <div style="position: absolute; left: 0; top: 0; bottom: 0; width: 50px; background: rgba(0,0,0,0.4); border-right: 2px solid rgba(255,255,255,0.2); z-index: 4;"></div>
+        <!-- Alt Tape Background -->
+        <div style="position: absolute; right: 0; top: 0; bottom: 0; width: 60px; background: rgba(0,0,0,0.4); border-left: 2px solid rgba(255,255,255,0.2); z-index: 4;"></div>
 
-        <div style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); z-index: 4; background: rgba(0,0,0,0.6); padding: 4px 8px; border-radius: 6px; color: #0a84ff; font-weight: 800; font-family: ui-monospace, SF Mono, monospace; font-size: 14px; border-right: 3px solid #0a84ff; box-shadow: 0 2px 10px rgba(0,0,0,0.5);" id="pfdAlt">--- FT</div>
+        <div style="position: absolute; left: 0; top: 50%; transform: translateY(-50%); z-index: 5; background: #000; padding: 4px 6px; border: 1px solid #fff; border-left: none; color: #34c759; font-weight: 800; font-family: ui-monospace, SF Mono, monospace; font-size: 14px; box-shadow: 0 2px 10px rgba(0,0,0,0.8);" id="pfdSpd">---</div>
+        <div style="position: absolute; left: 10px; top: 10px; z-index: 5; color: #fff; font-size: 10px; font-weight: 800; font-family: monospace; text-shadow: 1px 1px 0 #000;">IAS</div>
 
-        <div style="position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 4; background: rgba(0,0,0,0.6); padding: 2px 12px; border-radius: 10px; color: #fff; font-weight: 800; font-family: ui-monospace, SF Mono, monospace; font-size: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.5);" id="pfdHdg">HDG ---</div>
+        <div style="position: absolute; right: 0; top: 50%; transform: translateY(-50%); z-index: 5; background: #000; padding: 4px 6px; border: 1px solid #fff; border-right: none; color: #0a84ff; font-weight: 800; font-family: ui-monospace, SF Mono, monospace; font-size: 14px; box-shadow: 0 2px 10px rgba(0,0,0,0.8);" id="pfdAlt">---</div>
+        <div style="position: absolute; right: 10px; top: 10px; z-index: 5; color: #fff; font-size: 10px; font-weight: 800; font-family: monospace; text-shadow: 1px 1px 0 #000;">ALT</div>
+
+        <div style="position: absolute; top: 0; left: 50%; transform: translateX(-50%); z-index: 5; background: rgba(0,0,0,0.8); padding: 2px 16px; border-bottom-left-radius: 8px; border-bottom-right-radius: 8px; border: 1px solid rgba(255,255,255,0.3); border-top: none; color: #fff; font-weight: 800; font-family: ui-monospace, SF Mono, monospace; font-size: 14px; box-shadow: 0 2px 10px rgba(0,0,0,0.8);" id="pfdHdg">HDG ---</div>
 
         <!-- Live G-Force & Mach -->
-        <div style="position: absolute; bottom: 8px; left: 12px; z-index: 4; color: #ff3b30; font-weight: 800; font-family: ui-monospace, SF Mono, monospace; font-size: 12px; text-shadow: 0 1px 3px #000;" id="dGf">1.00 G</div>
-        <div style="position: absolute; bottom: 8px; right: 12px; z-index: 4; color: #ffcc00; font-weight: 800; font-family: ui-monospace, SF Mono, monospace; font-size: 12px; text-shadow: 0 1px 3px #000;" id="dMach">M 0.00</div>
+        <div style="position: absolute; bottom: 8px; left: 56px; z-index: 5; color: #ffcc00; font-weight: 800; font-family: ui-monospace, SF Mono, monospace; font-size: 11px; text-shadow: 1px 1px 0 #000;" id="dMach">M 0.00</div>
+        <div style="position: absolute; bottom: 8px; right: 66px; z-index: 5; color: #ff3b30; font-weight: 800; font-family: ui-monospace, SF Mono, monospace; font-size: 11px; text-shadow: 1px 1px 0 #000;" id="dGf">1.00 G</div>
       </div>
 
       <div class="telemetry-grid">
@@ -790,8 +808,8 @@ function animatePlanes(){
               mk.gridOffset += (f.velMs / 10);
               document.getElementById('pfdGrid').style.backgroundPosition = '0px ' + mk.gridOffset + 'px';
 
-              document.getElementById('pfdSpd').innerText = Math.round(f.velKt) + ' KT';
-              document.getElementById('pfdAlt').innerText = Math.round(liveAlt).toLocaleString() + ' FT';
+              document.getElementById('pfdSpd').innerText = Math.round(f.velKt);
+              document.getElementById('pfdAlt').innerText = Math.round(liveAlt).toLocaleString();
               document.getElementById('pfdHdg').innerText = 'HDG ' + Math.round(f.track) + '°';
 
               var sos = 1225 - ((f.altFt||0)/1000)*4; 
@@ -825,7 +843,7 @@ function animatePlanes(){
           var pfd = document.getElementById('pfdHorizon');
           if(pfd) {
               pfd.style.transform = 'translateY(0px) rotate(0deg)';
-              document.getElementById('pfdSpd').innerText = f.ground ? 'GS 0 KT' : '---';
+              document.getElementById('pfdSpd').innerText = f.ground ? '0' : '---';
               document.getElementById('pfdAlt').innerText = f.ground ? 'GND' : '---';
               document.getElementById('dMach').innerText = '';
               document.getElementById('dGf').innerText = '1.00 G';
