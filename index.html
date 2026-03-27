@@ -67,12 +67,15 @@ body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "S
 
 /* Detailed Flight Panel (Slides over everything) */
 .det { 
-  position: fixed; inset: 0; z-index: 2000; background: #f2f2f7; 
+  position: fixed; bottom: 0; left: 0; width: 100%; height: 75vh; 
+  z-index: 2000; background: #f2f2f7; 
   display: flex; flex-direction: column; transform: translateY(100%); 
-  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); overflow: hidden;
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1); 
+  border-top-left-radius: 32px; border-top-right-radius: 32px;
+  box-shadow: 0 -10px 50px rgba(0,0,0,0.15);
 }
 .det.open { transform: translateY(0); }
-.d-top { position: relative; height: 35vh; background: #e5e5ea; overflow: hidden; }
+.d-top { position: relative; height: 25vh; background: #e5e5ea; overflow: hidden; border-top-left-radius: 32px; border-top-right-radius: 32px; flex-shrink: 0; }
 .d-top img { width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.5s; }
 .d-top img.ok { opacity: 1; }
 .d-top-grad { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, transparent 40%, rgba(0,0,0,0.7) 100%); }
@@ -255,12 +258,15 @@ input:checked + .slider:before { transform: translateX(20px); }
   </div>
 </div>
 
-<!-- Detail View (Full Screen Cover) -->
+<!-- Detail View (Half Screen Sheet) -->
 <div class="det" id="det">
+  <div class="sh-drag-area" style="position: absolute; top: 0; left: 0; width: 100%; z-index: 30; padding: 16px 0; background: linear-gradient(180deg, rgba(0,0,0,0.5) 0%, transparent 100%); cursor: pointer; border-top-left-radius: 32px; border-top-right-radius: 32px;" onclick="closeDetail()">
+    <div style="background: rgba(255,255,255,0.9); width: 48px; height: 5px; border-radius: 3px; margin: 0 auto; box-shadow: 0 1px 3px rgba(0,0,0,0.2);"></div>
+  </div>
   <div class="d-top">
     <img id="dImg" src="" alt="Aircraft">
     <div class="d-top-grad"></div>
-    <div class="d-close" onclick="closeDetail()">✕</div>
+    
     <div class="d-cr" id="dCr"></div>
     <div class="cam-badge" id="camBadge"><div class="cam-dot"></div>CINEMATIC TRACKING</div>
   </div>
@@ -333,6 +339,7 @@ input:checked + .slider:before { transform: translateX(20px); }
       <div class="dr"><div class="dl">Model</div><div class="dv" id="dMd" style="max-width: 60%; line-height: 1.3; text-align: right; color: #1d1d1f; font-weight: 500;">–</div></div>
       <div class="dr"><div class="dl">Length</div><div class="dv" id="dLn">–</div></div>
       <div class="dr"><div class="dl">Year Built</div><div class="dv" id="dBy">–</div></div>
+      <div class="dr"><div class="dl">Model Released</div><div class="dv" id="dRl">–</div></div>
     </div>
 
     <div class="dsec" id="perfSec">
@@ -585,9 +592,12 @@ function animatePlanes(){
       }
 
       
-      // CAMERA LOCK 
+      // CAMERA LOCK WITH OFFSET
       if(isCameraLocked) {
-         map.setView([cLat, cLon], map.getZoom(), {animate: false});
+         var px = map.project([cLat, cLon], map.getZoom());
+         px.y += window.innerHeight * 0.15; // Shift map center south, so plane moves north (up) on screen
+         var offsetLatLng = map.unproject(px, map.getZoom());
+         map.setView(offsetLatLng, map.getZoom(), {animate: false});
       }
 
 
@@ -1339,6 +1349,19 @@ var ACSPECS = {
   'GLF4': [7820, 33203, 19278, 13410], // Gulfstream IV
   'GLF5': [10742, 41277, 21773, 18712], // Gulfstream V
   'GLF6': [12964, 45178, 24040, 20138], // Gulfstream G650
+};
+
+var ACREL={
+'A318':2003,'A319':1996,'A320':1988,'A321':1994,'A20N':2016,'A21N':2017,'A221':2016,'A223':2016,
+'A332':1998,'A333':1994,'A338':2020,'A339':2018,'A343':1993,'A359':2015,'A35K':2018,'A388':2007,'A400':2013,
+'B736':1998,'B737':1998,'B738':1998,'B739':2001,'B38M':2017,'B39M':2018,
+'B744':1989,'B748':2011,'B752':1983,'B753':1999,'B762':1982,'B763':1986,'B764':2000,
+'B772':1995,'B77W':2004,'B77L':2006,'B788':2011,'B789':2014,'B78X':2018,
+'E170':2004,'E175':2005,'E190':2005,'E195':2006,'E290':2018,'E295':2019,
+'CRJ2':1992,'CRJ7':2001,'CRJ9':2003,'CRJX':2010,
+'DH8A':1984,'DH8C':1989,'DH8D':2000,
+'AT72':1989,'AT75':2007,'AT76':2012,'AT43':1985,'AT45':2007,
+'GL5T':2005,'GL6T':2012,'GLEX':1999,'CL60':1983,'F2TH':1995,'FA7X':2007,'C56X':1998,'C680':2004,'GLF4':1987,'GLF5':1997,'GLF6':2012
 };
 var ACENG={A320:'2× CFM56-5B / IAE V2500',A321:'2× CFM56-5B / IAE V2500',A20N:'2× CFM LEAP-1A',A21N:'2× CFM LEAP-1A',A332:'2× GE CF6 / RR Trent 700',A333:'2× RR Trent 700',A338:'2× RR Trent 7000',A339:'2× RR Trent 7000',A359:'2× RR Trent XWB-84',A35K:'2× RR Trent XWB-97',A388:'4× GP7200 / RR Trent 970',B737:'2× CFM56-3',B738:'2× CFM56-7B',B739:'2× CFM56-7B',B744:'4× CF6-80C2',B748:'4× GEnx-2B67',B752:'2× RB211-535',B763:'2× CF6-80C2',B772:'2× GE90-94B',B77L:'2× GE90-110B1',B77W:'2× GE90-115B1',B77X:'2× GE9X-105B1A',B788:'2× GEnx-1B / RR Trent 1000',B789:'2× GEnx-1B / RR Trent 1000',B78X:'2× GEnx-1B76',E190:'2× GE CF34-10E',E195:'2× GE CF34-10E',CRJ2:'2× GE CF34-3B1',CRJ7:'2× GE CF34-8C5',DH8D:'2× PW150A',AT72:'2× PW127F'};
 
