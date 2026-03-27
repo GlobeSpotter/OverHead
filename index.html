@@ -4,148 +4,141 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="default" />
-<title>Overhead Ultra — Satellite Glass</title>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>Overhead Ultra — True Apple Maps</title>
 
 <!-- LEAFLET -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<!-- THREE.JS & ORBIT CONTROLS -->
+<!-- THREE.JS -->
 <script src="https://unpkg.com/three@0.128.0/build/three.min.js"></script>
 <script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
 <style>
 :root {
-  /* APPLE LIQUID GLASS LIGHT THEME */
-  --bg: #000000; 
-  --surface: rgba(255, 255, 255, 0.76);
-  --surface-solid: rgba(255, 255, 255, 0.92);
-  --glass-border: rgba(255, 255, 255, 0.6);
-  --glass-highlight: inset 0 1px 1px rgba(255, 255, 255, 0.9);
+  /* THE APPLE MAPS SATELLITE GLASS THEME */
+  --bg: #000000;
   
-  --text: #000000;
-  --text-2: #3C3C43;
-  --text-3: #8E8E93;
+  /* Tyylikäs tummanpuhuva lasi kuten Applen sää/kartat -sovelluksessa */
+  --surface: rgba(28, 28, 30, 0.75);
+  --surface-solid: rgba(28, 28, 30, 0.95);
+  --line: rgba(255, 255, 255, 0.15);
   
-  --blue: #0A84FF; --green: #34C759; --orange: #FF9F0A; --purple: #AF52DE;
+  --text: #ffffff;
+  --text-2: rgba(235, 235, 245, 0.6);
+  --text-3: rgba(235, 235, 245, 0.3);
   
-  --blur: saturate(200%) blur(40px);
+  --blue: #0A84FF; --green: #30D158; --orange: #FF9F0A; --purple: #BF5AF2;
+  
+  --blur: saturate(180%) blur(40px);
   --spring: cubic-bezier(.22, 1, .36, 1);
-  --shadow: 0 16px 40px rgba(0, 0, 0, 0.25);
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; }
 body { user-select: none; }
 
-#mapWrap { position: fixed; inset: 0; z-index: 1; transition: opacity .8s ease, transform .8s var(--spring); }
+#mapWrap { position: fixed; inset: 0; z-index: 1; transition: opacity .6s ease, transform .6s var(--spring); }
 #map { position: absolute; inset: 0; background: #000; }
 
-/* 3D GLOBE CANVAS */
-#globeWrap { position: fixed; inset: 0; z-index: 2; opacity: 0; pointer-events: none; transition: opacity .8s ease, transform .8s var(--spring); transform: scale(0.85); background: var(--bg); display: flex; justify-content: center; align-items: center; }
+#globeWrap { position: fixed; inset: 0; z-index: 2; opacity: 0; pointer-events: none; transition: opacity .6s ease, transform .6s var(--spring); transform: scale(0.9); background: var(--bg); display: flex; justify-content: center; align-items: center; }
 #globeWrap.on { opacity: 1; pointer-events: auto; transform: scale(1); }
 #glCanvas { width: 100%; height: 100%; position: absolute; top: 0; left: 0; outline: none; }
 
 .leaflet-control-zoom, .leaflet-control-attribution { display: none !important; }
 
-/* GLASS UI COMPONENTS */
+/* -- LENTOKONE IKONIT DOMISSA -- */
+/* Smooth siirtymä käännöksille mutta EI sijainnille jotta ei lagaa kun data päivittyy */
+.plane-icon {
+  width: 32px; height: 32px;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g stroke="%23ffffff" stroke-width="6" stroke-linejoin="round"><ellipse cx="50" cy="50" rx="8" ry="38" fill="%230A84FF"/><ellipse cx="50" cy="14" rx="7" ry="8" fill="%230A84FF"/><path d="M50,42 Q30,30 8,52 Q16,56 50,50 Q84,56 92,52 Q70,30 50,42Z" fill="%230A84FF"/><path d="M50,76 Q38,72 28,82 Q34,84 50,80 Q66,84 72,82 Q62,72 50,76Z" fill="%230A84FF"/></g></svg>');
+  background-size: contain; background-repeat: no-repeat;
+  filter: drop-shadow(0px 4px 6px rgba(0,0,0,0.6));
+  transition: transform 0.4s ease;
+  margin-left: -16px; margin-top: -16px;
+}
+.plane-icon.sel {
+  width: 44px; height: 44px; margin-left: -22px; margin-top: -22px;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g stroke="%23ffffff" stroke-width="6" stroke-linejoin="round"><ellipse cx="50" cy="50" rx="8" ry="38" fill="%2330D158"/><ellipse cx="50" cy="14" rx="7" ry="8" fill="%2330D158"/><path d="M50,42 Q30,30 8,52 Q16,56 50,50 Q84,56 92,52 Q70,30 50,42Z" fill="%2330D158"/><path d="M50,76 Q38,72 28,82 Q34,84 50,80 Q66,84 72,82 Q62,72 50,76Z" fill="%2330D158"/></g></svg>');
+  filter: drop-shadow(0px 6px 12px rgba(0,0,0,0.8)); z-index: 1000 !important;
+}
+
+/* UI ELEMENTS */
 .island-wrap { position: fixed; left: 0; right: 0; top: max(14px, env(safe-area-inset-top)); z-index: 2500; display: flex; justify-content: center; pointer-events: none; padding: 0 14px; }
 .island {
   width: min(820px, 100%); min-height: 58px; border-radius: 30px; padding: 10px 12px; display: flex; align-items: center; gap: 8px; pointer-events: auto;
-  background: var(--surface); border: 1px solid var(--glass-border); box-shadow: var(--shadow), var(--glass-highlight);
+  background: var(--surface); border: 1px solid var(--line); box-shadow: 0 16px 40px rgba(0,0,0,0.3);
   backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
   transition: transform .45s var(--spring), min-height .45s var(--spring), width .45s var(--spring);
 }
 .brand { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 0 6px 0 4px; }
-.brand-badge { width: 32px; height: 32px; border-radius: 16px; display: grid; place-items: center; background: linear-gradient(135deg, var(--blue), #5eb1ff); box-shadow: 0 4px 12px rgba(10,132,255,.3); font-size: 15px; color: #fff; }
-.brand-text { font-size: 17px; font-weight: 850; letter-spacing: -.04em; color: var(--text); }
-.searchbox { flex: 1; min-height: 38px; border-radius: 20px; background: rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.03); display: flex; align-items: center; gap: 10px; padding: 0 14px; }
-.searchbox input { width: 100%; border: none; outline: none; background: transparent; color: var(--text); font-size: 15px; font-weight: 650; }
-.searchbox input::placeholder { color: var(--text-3); }
+.brand-badge { width: 32px; height: 32px; border-radius: 16px; display: grid; place-items: center; background: linear-gradient(135deg, var(--blue), #4dabff); font-size: 15px; }
+.brand-text { font-size: 17px; font-weight: 850; letter-spacing: -.04em; }
+.searchbox { flex: 1; min-height: 38px; border-radius: 20px; background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; gap: 10px; padding: 0 14px; }
+.searchbox input { width: 100%; border: none; outline: none; background: transparent; color: #fff; font-size: 15px; font-weight: 650; }
+.searchbox input::placeholder { color: var(--text-2); }
 .island.focus .searchbox { display: none; }
 
 .island-flight { display: none; flex: 1; align-items: center; gap: 12px; padding: 0 6px 0 10px; }
 .island.focus .island-flight { display: flex; }
 .if-main { display: flex; flex-direction: column; line-height: 1.05; }
-.if-call { font-size: 17px; font-weight: 900; letter-spacing: -.04em; color: var(--text); }
+.if-call { font-size: 17px; font-weight: 900; letter-spacing: -.04em; }
 .if-route { margin-top: 4px; font-size: 13px; font-weight: 700; color: var(--blue); }
-.ibtn { width: 38px; height: 38px; border: none; border-radius: 19px; background: rgba(0,0,0,0.06); color: var(--text); display: grid; place-items: center; cursor: pointer; transition: transform .2s var(--spring); font-size: 16px; }
+.ibtn { width: 38px; height: 38px; border: none; border-radius: 19px; background: rgba(255,255,255,0.1); color: #fff; display: grid; place-items: center; cursor: pointer; font-size: 16px; transition: transform .2s var(--spring); }
 .ibtn:active { transform: scale(.9); }
 .island-actions { display: flex; gap: 6px; }
 
 .hud-wrap { position: fixed; left: 0; right: 0; top: calc(max(14px, env(safe-area-inset-top)) + 74px); z-index: 2200; display: flex; justify-content: center; pointer-events: none; }
-.hud { border-radius: 22px; padding: 8px 20px; display: flex; align-items: center; gap: 18px; background: var(--surface); border: 1px solid var(--glass-border); box-shadow: var(--shadow), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); font-variant-numeric: tabular-nums; }
+.hud { border-radius: 22px; padding: 8px 20px; display: flex; align-items: center; gap: 18px; background: var(--surface); border: 1px solid var(--line); box-shadow: 0 8px 24px rgba(0,0,0,0.3); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); font-variant-numeric: tabular-nums; }
 .hud-block { display: flex; flex-direction: column; }
-.hud-label { font-size: 10px; font-weight: 800; color: var(--text-3); letter-spacing: .08em; text-transform: uppercase; }
-.hud-value { font-size: 17px; font-weight: 950; letter-spacing: -.05em; color: var(--text); }
-.hud-divider { width: 1px; height: 24px; background: rgba(0,0,0,0.1); }
-
-.map-status { position: fixed; left: 16px; top: calc(max(14px, env(safe-area-inset-top)) + 136px); z-index: 1700; padding: 10px 14px; border-radius: 18px; background: var(--surface); border: 1px solid var(--glass-border); box-shadow: var(--shadow), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); color: var(--text-2); font-size: 13px; font-weight: 750; display: flex; align-items: center; gap: 8px; }
-.live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 1.8s ease-in-out infinite; box-shadow: 0 0 8px var(--green); }
-@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
+.hud-label { font-size: 10px; font-weight: 800; color: var(--text-2); letter-spacing: .08em; text-transform: uppercase; }
+.hud-value { font-size: 17px; font-weight: 950; letter-spacing: -.05em; }
+.hud-divider { width: 1px; height: 24px; background: rgba(255,255,255,0.15); }
 
 .side-controls { position: fixed; right: 14px; top: calc(max(14px, env(safe-area-inset-top)) + 132px); z-index: 2100; display: flex; flex-direction: column; gap: 10px; }
-.fab { width: 50px; height: 50px; border: none; border-radius: 25px; color: var(--text); cursor: pointer; background: var(--surface); border: 1px solid var(--glass-border); box-shadow: var(--shadow), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); font-weight: 800; font-size: 13px; }
+.fab { width: 50px; height: 50px; border: none; border-radius: 25px; color: #fff; cursor: pointer; background: var(--surface); border: 1px solid var(--line); box-shadow: 0 8px 24px rgba(0,0,0,0.3); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); font-weight: 800; font-size: 13px; }
 .fab:active { transform: scale(.93); }
 
-.sheet { position: fixed; left: 14px; right: 14px; bottom: 14px; z-index: 1800; border-radius: 36px; background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(240,240,245,0.95)); border: 1px solid var(--glass-border); box-shadow: 0 24px 60px rgba(0,0,0,0.3), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); overflow: hidden; transition: height .45s var(--spring); height: 182px; }
+.sheet { position: fixed; left: 14px; right: 14px; bottom: 14px; z-index: 1800; border-radius: 36px; background: var(--surface-solid); border: 1px solid var(--line); box-shadow: 0 24px 60px rgba(0,0,0,0.6); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); overflow: hidden; transition: height .45s var(--spring); height: 182px; }
 .sheet.expanded { height: min(72vh, 820px); }
 .sheet-grab { display: flex; justify-content: center; align-items: center; padding: 12px 0 4px; cursor: pointer; }
-.sheet-grab div { width: 48px; height: 6px; border-radius: 999px; background: rgba(0,0,0,0.15); }
+.sheet-grab div { width: 48px; height: 6px; border-radius: 999px; background: rgba(255,255,255,0.25); }
 .sheet-head { display: flex; justify-content: space-between; align-items: center; padding: 8px 20px 16px; }
-.sheet-title { font-size: 28px; font-weight: 950; letter-spacing: -.05em; color: var(--text); }
-.sheet-sub { margin-top: 2px; font-size: 13px; font-weight: 800; color: var(--text-3); letter-spacing: .06em; text-transform: uppercase; }
-.sheet-meta { font-size: 13px; font-weight: 800; color: var(--blue); background: rgba(10,132,255,.1); padding: 6px 12px; border-radius: 12px; }
+.sheet-title { font-size: 28px; font-weight: 950; letter-spacing: -.05em; }
+.sheet-sub { margin-top: 2px; font-size: 13px; font-weight: 800; color: var(--text-2); letter-spacing: .06em; text-transform: uppercase; }
 .sheet-list { height: calc(100% - 94px); overflow: auto; padding: 0 14px 14px; }
 .sheet-list::-webkit-scrollbar { display: none; }
 
-.card { display: flex; align-items: center; gap: 14px; padding: 12px; margin-bottom: 12px; border-radius: 24px; background: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.9); box-shadow: 0 4px 12px rgba(0,0,0,0.03); cursor: pointer; transition: transform .2s var(--spring), border .2s ease; }
+.card { display: flex; align-items: center; gap: 14px; padding: 12px; margin-bottom: 12px; border-radius: 24px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.06); cursor: pointer; transition: transform .2s var(--spring); }
 .card:active { transform: scale(.97); }
-.card.sel { border-color: var(--blue); background: rgba(10,132,255,.08); box-shadow: 0 0 0 1px var(--blue); }
-.plane-badge { width: 56px; height: 56px; border-radius: 20px; display: grid; place-items: center; background: rgba(0,0,0,0.04); flex: 0 0 auto; overflow: hidden; position: relative; border: 1px solid rgba(0,0,0,0.05); }
+.card.sel { border-color: var(--blue); background: rgba(10,132,255,.15); }
+.plane-badge { width: 56px; height: 56px; border-radius: 20px; display: grid; place-items: center; background: rgba(0,0,0,0.4); flex: 0 0 auto; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
 .plane-badge img { width: 100%; height: 100%; object-fit: cover; }
 .card-main { flex: 1; min-width: 0; }
-.card-call { font-size: 18px; font-weight: 900; letter-spacing: -.03em; color: var(--text); }
+.card-call { font-size: 18px; font-weight: 900; letter-spacing: -.03em; }
 .card-sub { margin-top: 2px; color: var(--text-2); font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.overhead-pill { margin-top: 6px; font-size: 11px; font-weight: 850; color: var(--purple); display: inline-block; padding: 4px 10px; border-radius: 10px; background: rgba(175,82,222,.1); border: 1px solid rgba(175,82,222,.2); }
-.badges { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
-.badge { padding: 4px 10px; border-radius: 10px; font-size: 11px; font-weight: 850; letter-spacing: .03em; }
-.badge.blue { background: rgba(10,132,255,.1); color: var(--blue); border: 1px solid rgba(10,132,255,.2); }
-.badge.purple { background: rgba(175,82,222,.1); color: var(--purple); border: 1px solid rgba(175,82,222,.2); }
-.badge.orange { background: rgba(255,159,10,.1); color: var(--orange); border: 1px solid rgba(255,159,10,.2); }
 .card-stats { text-align: right; font-variant-numeric: tabular-nums; }
-.stat-big { font-size: 16px; font-weight: 900; color: var(--text); }
+.stat-big { font-size: 16px; font-weight: 900; }
 .stat-small { font-size: 11px; color: var(--text-3); font-weight: 800; margin-top: 2px; text-transform: uppercase; }
 
-.detail { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -40%) scale(0.95); width: min(92%, 480px); max-height: 85vh; z-index: 3200; border-radius: 36px; background: var(--surface-solid); border: 1px solid var(--glass-border); box-shadow: 0 30px 80px rgba(0,0,0,0.3), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: transform .45s var(--spring), opacity .3s ease; }
+.detail { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -40%) scale(0.95); width: min(92%, 480px); max-height: 85vh; z-index: 3200; border-radius: 36px; background: var(--surface-solid); border: 1px solid var(--line); box-shadow: 0 30px 80px rgba(0,0,0,0.8); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: transform .45s var(--spring), opacity .3s ease; }
 .detail.open { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
-.detail-close { position: absolute; right: 16px; top: 16px; width: 34px; height: 34px; border: none; border-radius: 17px; background: rgba(0,0,0,0.06); color: var(--text); cursor: pointer; z-index: 10; display: grid; place-items: center; font-size: 15px; font-weight: 800; }
-.detail-close:active { transform: scale(.9); }
-.detail-top { position: relative; padding: 24px 20px 16px; border-bottom: 1px solid rgba(0,0,0,0.06); display: flex; flex-direction: column; align-items: center; text-align: center; }
-.d-hero { width: 100%; height: 160px; display: flex; justify-content: center; align-items: center; margin-bottom: 18px; border-radius: 24px; background: rgba(0,0,0,0.03); overflow: hidden; position: relative; border: 1px solid rgba(0,0,0,0.05); }
-.d-hero img { width: 100%; height: 100%; object-fit: cover; transition: opacity 0.4s ease; }
-.d-call { font-size: 38px; font-weight: 950; letter-spacing: -.05em; line-height: 1; color: var(--text); }
+.detail-close { position: absolute; right: 16px; top: 16px; width: 34px; height: 34px; border: none; border-radius: 17px; background: rgba(255,255,255,0.15); color: #fff; cursor: pointer; z-index: 10; display: grid; place-items: center; font-size: 15px; font-weight: 800; }
+.detail-top { position: relative; padding: 24px 20px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; align-items: center; text-align: center; }
+.d-hero { width: 100%; height: 160px; display: flex; justify-content: center; align-items: center; margin-bottom: 18px; border-radius: 24px; background: rgba(0,0,0,0.4); overflow: hidden; position: relative; border: 1px solid rgba(255,255,255,0.1); }
+.d-hero img { width: 100%; height: 100%; object-fit: cover; }
+.d-call { font-size: 38px; font-weight: 950; letter-spacing: -.05em; line-height: 1; }
 .d-route { margin-top: 8px; color: var(--blue); font-size: 16px; font-weight: 800; }
-.overhead-status { margin-top: 10px; color: var(--purple); font-weight: 850; font-size: 14px; background: rgba(175,82,222,.1); padding: 8px 16px; border-radius: 14px; border: 1px solid rgba(175,82,222,.2); }
-.phase { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; padding: 8px 16px; border-radius: 999px; font-size: 13px; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; }
-.phase.cruise { background: rgba(10,132,255,.1); color: var(--blue); }
-.phase.climb { background: rgba(52,199,89,.1); color: var(--green); }
-.phase.desc { background: rgba(255,159,10,.1); color: var(--orange); }
-.phase.gnd { background: rgba(0,0,0,.05); color: var(--text-2); }
 .d-scroll { flex: 1; overflow-y: auto; padding: 18px; }
 .d-scroll::-webkit-scrollbar { display: none; }
 .grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
-.info { padding: 14px 16px; border-radius: 20px; background: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.9); box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
+.info { padding: 14px 16px; border-radius: 20px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.06); }
 .info.full { grid-column: 1 / -1; }
 .i-label { font-size: 11px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; color: var(--text-3); }
-.i-value { margin-top: 6px; font-size: 16px; font-weight: 900; letter-spacing: -.02em; color: var(--text); }
-.i-sub { margin-top: 4px; font-size: 12px; font-weight: 700; color: var(--text-2); }
-.toast { position: fixed; left: 50%; bottom: 34px; transform: translate(-50%, 80px); z-index: 5000; opacity: 0; pointer-events: none; background: rgba(255,255,255,0.9); color: var(--text); padding: 14px 24px; border-radius: 999px; font-size: 15px; font-weight: 850; box-shadow: 0 16px 40px rgba(0,0,0,0.25); backdrop-filter: var(--blur); transition: transform .4s var(--spring), opacity .3s ease; border: 1px solid var(--glass-border); }
-.toast.show { opacity: 1; transform: translate(-50%, 0); }
+.i-value { margin-top: 6px; font-size: 16px; font-weight: 900; letter-spacing: -.02em; }
 .empty { padding: 40px 20px; text-align: center; color: var(--text-3); font-weight: 700; font-size: 15px; }
 
-.leaflet-marker-icon { transition: none !important; }
 </style>
 </head>
 <body>
@@ -175,8 +168,6 @@ body { user-select: none; }
   </div>
 </div>
 
-<div class="map-status" id="mapStatus"><span class="live-dot"></span><span id="mapStatusText">Waiting for data</span></div>
-
 <div class="side-controls">
   <button class="fab" id="turkuBtn">TKU</button>
   <button class="fab" id="sheetBtn">☰</button>
@@ -186,7 +177,6 @@ body { user-select: none; }
   <div class="sheet-grab" id="sheetGrab"><div></div></div>
   <div class="sheet-head">
     <div><div class="sheet-title">Live Radar</div><div class="sheet-sub" id="sheetSub">0 tracked</div></div>
-    <div class="sheet-meta" id="sheetMeta">Satellite Glass</div>
   </div>
   <div class="sheet-list" id="flightList"><div class="empty">Loading...</div></div>
 </div>
@@ -197,25 +187,19 @@ body { user-select: none; }
     <div class="d-hero" id="dHero"><img id="dImg" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" style="opacity:0" /></div>
     <div class="d-call" id="dCall">FLIGHT</div>
     <div class="d-route" id="dRoute">—</div>
-    <div class="overhead-status" id="dOverhead" style="display:none;"></div>
-    <div class="phase cruise" id="dPhase">→ Cruise</div>
   </div>
   <div class="d-scroll">
     <div class="grid">
-      <div class="info"><div class="i-label">Altitude</div><div class="i-value" id="dAlt">—</div><div class="i-sub" id="dAltM">—</div></div>
-      <div class="info"><div class="i-label">Speed</div><div class="i-value" id="dSpd">—</div><div class="i-sub" id="dSpdKmh">—</div></div>
-      <div class="info"><div class="i-label">Heading</div><div class="i-value" id="dHdg">—</div><div class="i-sub" id="dHeadingSub">—</div></div>
-      <div class="info"><div class="i-label">Vertical Rate</div><div class="i-value" id="dVr">—</div><div class="i-sub" id="dDist">—</div></div>
-      <div class="info full"><div class="i-label">Aircraft Model</div><div class="i-value" id="dModel">Loading…</div><div class="i-sub" id="dMeta">—</div></div>
-      <div class="info"><div class="i-label">Max Takeoff Weight</div><div class="i-value" id="dWeight">—</div></div>
-      <div class="info"><div class="i-label">Length</div><div class="i-value" id="dLength">—</div></div>
-      <div class="info full"><div class="i-label">Operator / Route</div><div class="i-value" id="dOperator">—</div><div class="i-sub" id="dRouteLong">—</div></div>
+      <div class="info"><div class="i-label">Altitude</div><div class="i-value" id="dAlt">—</div></div>
+      <div class="info"><div class="i-label">Speed</div><div class="i-value" id="dSpd">—</div></div>
+      <div class="info full"><div class="i-label">Aircraft Model</div><div class="i-value" id="dModel">Loading…</div></div>
+      <div class="info full"><div class="i-label">Operator / Route</div><div class="i-value" id="dOperator">—</div></div>
     </div>
   </div>
 </div>
-<div class="toast" id="toast"></div>
 
 <script>
+// ---------- AIRCRAFT TECH DATABASE ----------
 const AC_DB = {
   "A319": { mtow:"75.5 t", len:"33.8 m" }, "A320": { mtow:"78.0 t", len:"37.6 m" }, "A321": { mtow:"93.5 t", len:"44.5 m" },
   "A20N": { mtow:"79.0 t", len:"37.6 m" }, "A21N": { mtow:"97.0 t", len:"44.5 m" }, "A332": { mtow:"242.0 t", len:"58.8 m" },
@@ -225,164 +209,47 @@ const AC_DB = {
 };
 
 const state = {
-  map: null, isGlobe: false,
-  userLat: 60.4518, userLon: 22.2666,
-  flights: new Map(), selectedIcao: null,
-  photoCache: new Map(),
-  
+  map: null, isGlobe: false, userLat: 60.4518, userLon: 22.2666,
+  flights: new Map(), selectedIcao: null, photoCache: new Map(),
+  markers: new Map(), // Oikeat DOM-markkerit tallessa
   renderer: null, scene: null, camera: null, controls: null,
-  instancedMesh: null, dummy: null, globeSphere: null,
-  
-  canvasLayer: null, ctx: null
+  instancedMesh: null, dummy: null, globeSphere: null
 };
 
-// SATELLIITTI-YHTEENSOPIVAT IKONIT (Valkoinen paksu ääriviiva, jotta kone erottuu maastosta)
-const planeImgBlue = new Image(); planeImgBlue.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g stroke="%23FFFFFF" stroke-width="5" stroke-linejoin="round"><ellipse cx="50" cy="50" rx="8" ry="38" fill="%230A84FF"/><ellipse cx="50" cy="14" rx="7" ry="8" fill="%230A84FF"/><path d="M50,42 Q30,30 8,52 Q16,56 50,50 Q84,56 92,52 Q70,30 50,42Z" fill="%230A84FF"/><path d="M50,76 Q38,72 28,82 Q34,84 50,80 Q66,84 72,82 Q62,72 50,76Z" fill="%230A84FF"/></g></svg>';
-const planeImgPurple = new Image(); planeImgPurple.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g stroke="%23FFFFFF" stroke-width="5" stroke-linejoin="round"><ellipse cx="50" cy="50" rx="8" ry="38" fill="%23AF52DE"/><ellipse cx="50" cy="14" rx="7" ry="8" fill="%23AF52DE"/><path d="M50,42 Q30,30 8,52 Q16,56 50,50 Q84,56 92,52 Q70,30 50,42Z" fill="%23AF52DE"/><path d="M50,76 Q38,72 28,82 Q34,84 50,80 Q66,84 72,82 Q62,72 50,76Z" fill="%23AF52DE"/></g></svg>';
-const planeImgGreen = new Image(); planeImgGreen.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g stroke="%23FFFFFF" stroke-width="5" stroke-linejoin="round"><ellipse cx="50" cy="50" rx="8" ry="38" fill="%2334C759"/><ellipse cx="50" cy="14" rx="7" ry="8" fill="%2334C759"/><path d="M50,42 Q30,30 8,52 Q16,56 50,50 Q84,56 92,52 Q70,30 50,42Z" fill="%2334C759"/><path d="M50,76 Q38,72 28,82 Q34,84 50,80 Q66,84 72,82 Q62,72 50,76Z" fill="%2334C759"/></g></svg>';
-const planeImgOrange = new Image(); planeImgOrange.src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g stroke="%23FFFFFF" stroke-width="5" stroke-linejoin="round"><ellipse cx="50" cy="50" rx="8" ry="38" fill="%23FF9F0A"/><ellipse cx="50" cy="14" rx="7" ry="8" fill="%23FF9F0A"/><path d="M50,42 Q30,30 8,52 Q16,56 50,50 Q84,56 92,52 Q70,30 50,42Z" fill="%23FF9F0A"/><path d="M50,76 Q38,72 28,82 Q34,84 50,80 Q66,84 72,82 Q62,72 50,76Z" fill="%23FF9F0A"/></g></svg>';
-
 const $ = id => document.getElementById(id);
-function toast(msg){ const el=$('toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),2400); }
 
 function fmtFt(m){ return m==null?'—':Math.round(m*3.28084).toLocaleString('en-US')+' FT'; }
 function fmtKt(ms){ return ms==null?'—':Math.round(ms*1.94384)+' KT'; }
 function haversine(lat1, lon1, lat2, lon2){ const R=6371, p=Math.PI/180; const a=Math.sin((lat2-lat1)*p/2)**2 + Math.cos(lat1*p)*Math.cos(lat2*p)*Math.sin((lon2-lon1)*p/2)**2; return R*2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); }
 function esc(s){ return String(s??'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
-function calculateOverhead(f) {
-  if(!f.velocity || f.on_ground || f.dist > 300) return null;
-  const v_kmh = f.velocity * 3.6; if(v_kmh < 50) return null;
-  const trackRad = (f.track || 0) * Math.PI / 180;
-  const latToKm = 111.32; const lonToKm = 111.32 * Math.cos(state.userLat * Math.PI / 180);
-  const px = (f.curLon - state.userLon) * lonToKm; const py = (f.curLat - state.userLat) * latToKm;
-  const vx = v_kmh * Math.sin(trackRad); const vy = v_kmh * Math.cos(trackRad);
-  const v2 = vx*vx + vy*vy; if(v2 === 0) return null;
-  const tCPA = -(px*vx + py*vy) / v2;
-  const distCPA = Math.sqrt(Math.pow(px + vx*tCPA, 2) + Math.pow(py + vy*tCPA, 2));
-  if(distCPA > 15) return null; 
-  const minAikaMins = Math.round(tCPA * 60);
-  if(minAikaMins < -1) return `Passed ${Math.abs(minAikaMins)} min ago`;
-  if(minAikaMins >= -1 && minAikaMins <= 1) return `Overhead RIGHT NOW`;
-  return `Overhead in ${minAikaMins} min`;
-}
-
-// 1. LEAFLET KARTTA (APPLE SATELLITE TYYLINEN)
+// ---------- 1. LEAFLET KARTTA JA AITOT DOM MARKKERIT ----------
 function initMap(){
   state.map = L.map('map', {zoomControl:false, attributionControl:false}).setView([state.userLat, state.userLon], 6);
   
-  // Esri World Imagery: Yksityiskohtainen ja näyttävä satelliittikartta
+  // Apple Maps Satelliittityylinen tausta - Todella kaunis ja tarkka!
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19}).addTo(state.map);
-  
-  // Esri Boundaries & Places: Piirtää kaupunkien nimet ja rajat satelliitin päälle
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{maxZoom:19, opacity:0.85}).addTo(state.map);
 
-  // Oma sijainti on Liquid Glass -tyylinen kirkas pallo
   state.userMarker = L.circleMarker([state.userLat, state.userLon], {radius:7, color:'#fff', weight:3, fillColor:'#0A84FF', fillOpacity:1}).addTo(state.map);
 
   state.map.on('zoomend', () => {
      if(state.map.getZoom() <= 3 && !state.isGlobe) {
         if(navigator.vibrate) navigator.vibrate(15);
         state.isGlobe = true;
-        
         const center = state.map.getCenter();
         if(state.camera && state.controls) {
             latLonToVector3(center.lat, center.lng, 2.2, state.camera.position); 
             state.controls.update();
         }
-        
         $('globeWrap').classList.add('on');
         $('mapWrap').style.opacity = '0';
         $('mapWrap').style.transform = 'scale(1.1)';
      }
   });
 
-  L.CanvasLayer = L.Layer.extend({
-    onAdd: function(map) {
-      this._canvas = L.DomUtil.create('canvas', 'leaflet-zoom-animated');
-      this._ctx = this._canvas.getContext('2d');
-      map.getPanes().overlayPane.appendChild(this._canvas);
-      map.on('moveend zoomend', this._reset, this);
-      this._reset();
-    },
-    onRemove: function(map) {
-      L.DomUtil.remove(this._canvas);
-      map.off('moveend zoomend', this._reset, this);
-    },
-    _reset: function() {
-      const size = this._map.getSize();
-      const topLeft = this._map.containerPointToLayerPoint([0, 0]);
-      L.DomUtil.setPosition(this._canvas, topLeft);
-      this._canvas.width = size.x; this._canvas.height = size.y;
-      this.draw();
-    },
-    draw: function() {
-      if(!this._ctx) return;
-      this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
-      const bounds = this._map.getBounds();
-      const zoom = this._map.getZoom();
-      
-      const flights = [...state.flights.values()];
-      const regularFlights = []; let selectedFlight = null;
-      for(const f of flights){
-          if(f.icao24 === state.selectedIcao) selectedFlight = f;
-          else regularFlights.push(f);
-      }
-      if(selectedFlight) regularFlights.push(selectedFlight);
-
-      for(let i=0; i<regularFlights.length; i++) {
-        const f = regularFlights[i];
-        if(!bounds.contains([f.curLat, f.curLon])) continue;
-        
-        const pt = this._map.latLngToContainerPoint([f.curLat, f.curLon]);
-        const isSel = (f.icao24 === state.selectedIcao);
-        
-        let imgToDraw = planeImgBlue;
-        if(isSel) imgToDraw = planeImgGreen;
-        else if(f.dist < 40) imgToDraw = planeImgPurple;
-        else if(f.on_ground) imgToDraw = planeImgOrange;
-
-        this._ctx.save();
-        this._ctx.translate(pt.x, pt.y);
-
-        if(zoom < 5) {
-            this._ctx.beginPath();
-            this._ctx.arc(0, 0, isSel ? 7 : 3.5, 0, Math.PI * 2);
-            this._ctx.fillStyle = isSel ? '#34C759' : (f.on_ground ? '#FF9F0A' : (f.dist<40?'#AF52DE':'#0A84FF'));
-            this._ctx.fill();
-            this._ctx.lineWidth = 1.5;
-            this._ctx.strokeStyle = '#fff';
-            this._ctx.stroke();
-        } else {
-            this._ctx.rotate((f.track || 0) * Math.PI / 180);
-            const w = isSel ? 44 : 32; 
-            const h = isSel ? 44 : 32;
-            
-            if(imgToDraw.complete) {
-               // Raskas heittovarjo erottamaan kone satelliittipohjasta
-               this._ctx.shadowColor = 'rgba(0,0,0,0.6)';
-               this._ctx.shadowBlur = isSel ? 16 : 8;
-               this._ctx.shadowOffsetY = isSel ? 6 : 4;
-               this._ctx.drawImage(imgToDraw, -w/2, -h/2, w, h);
-            }
-        }
-        this._ctx.restore();
-      }
-    }
-  });
-
-  state.canvasLayer = new L.CanvasLayer().addTo(state.map);
-  
-  state.map.on('click', (e) => {
-      let closest = null; let minDist = Infinity;
-      const clickPt = state.map.latLngToContainerPoint(e.latlng);
-      for(const f of state.flights.values()) {
-          const pt = state.map.latLngToContainerPoint([f.curLat, f.curLon]);
-          const dist = Math.sqrt((pt.x-clickPt.x)**2 + (pt.y-clickPt.y)**2);
-          if(dist < 22 && dist < minDist) { minDist = dist; closest = f.icao24; }
-      }
-      if(closest) openDetailUI(closest);
-  });
+  // Päivitä markkerit aina kun liikutetaan, jotta ne rajataan näkyvälle alueelle
+  state.map.on('move', renderMarkers);
 }
 
 function setUserLocation(lat, lon, zoom=6){
@@ -391,11 +258,54 @@ function setUserLocation(lat, lon, zoom=6){
   if(state.map && !state.isGlobe) state.map.setView([lat, lon], zoom, {animate:true});
 }
 
-// 2. THREE.JS 3D PALLO AVARUUDESSA
-function initThreeGlobe() {
-    if(!window.THREE || !window.THREE.OrbitControls) {
-        setTimeout(initThreeGlobe, 200); return;
+// Tämä funktio luo tai siirtää oikeat HTML divit kartalle!
+function renderMarkers() {
+    if(state.isGlobe) return;
+    const bounds = state.map.getBounds();
+    const zoom = state.map.getZoom();
+
+    for(const [icao, f] of state.flights.entries()) {
+        const inBounds = bounds.contains([f.curLat, f.curLon]);
+        
+        // Optimointi: Jos kone on kaukana ruudun ulkopuolella ja ei ole valittu, poista markkeri
+        if(!inBounds && state.selectedIcao !== icao) {
+            if(state.markers.has(icao)) {
+                state.map.removeLayer(state.markers.get(icao));
+                state.markers.delete(icao);
+            }
+            continue;
+        }
+
+        // Luo tai hae olemassa oleva markkeri
+        let marker = state.markers.get(icao);
+        
+        if(!marker) {
+            const icon = L.divIcon({
+                className: '',
+                html: `<div class="plane-icon ${icao===state.selectedIcao?'sel':''}" style="transform: rotate(${f.track||0}deg)"></div>`,
+                iconSize: [0, 0] // Centered via CSS margins
+            });
+            marker = L.marker([f.curLat, f.curLon], {icon, zIndexOffset: icao===state.selectedIcao?1000:0}).addTo(state.map);
+            marker.on('click', () => openDetailUI(icao));
+            state.markers.set(icao, marker);
+        } else {
+            // Päivitä markkerin sijainti
+            marker.setLatLng([f.curLat, f.curLon]);
+            // Päivitä markkerin ulkoasu vain jos se muuttuu
+            const currentHtml = marker.getElement()?.innerHTML || '';
+            const newHtml = `<div class="plane-icon ${icao===state.selectedIcao?'sel':''}" style="transform: rotate(${f.track||0}deg)"></div>`;
+            if(currentHtml !== newHtml && marker.getElement()) {
+                marker.getElement().innerHTML = newHtml;
+            }
+            if(icao===state.selectedIcao) marker.setZIndexOffset(1000);
+            else marker.setZIndexOffset(0);
+        }
     }
+}
+
+// ---------- 2. THREE.JS 3D PALLO ----------
+function initThreeGlobe() {
+    if(!window.THREE || !window.THREE.OrbitControls) { setTimeout(initThreeGlobe, 200); return; }
 
     state.dummy = new THREE.Object3D();
     const canvas = $('glCanvas');
@@ -404,23 +314,18 @@ function initThreeGlobe() {
     state.renderer.setSize(window.innerWidth, window.innerHeight);
 
     state.scene = new THREE.Scene();
-    // Tumma avaruus-tausta Apple Satellite tyyliin
-    state.scene.background = new THREE.Color(0x000000);
+    state.scene.background = new THREE.Color(0x000000); // Avaruus
 
     state.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
     state.camera.position.z = 2.5;
 
     state.controls = new THREE.OrbitControls(state.camera, state.renderer.domElement);
-    state.controls.enableDamping = true;
-    state.controls.dampingFactor = 0.05;
-    state.controls.enablePan = false;
-    state.controls.minDistance = 1.05; 
-    state.controls.maxDistance = 15.0; 
+    state.controls.enableDamping = true; state.controls.dampingFactor = 0.05;
+    state.controls.enablePan = false; state.controls.minDistance = 1.05; state.controls.maxDistance = 15.0; 
 
     state.controls.addEventListener('change', () => {
         if(!state.isGlobe) return;
-        const dist = state.camera.position.length();
-        if(dist < 1.15) { 
+        if(state.camera.position.length() < 1.15) { 
             if(navigator.vibrate) navigator.vibrate(15);
             state.isGlobe = false;
             $('globeWrap').classList.remove('on');
@@ -432,14 +337,12 @@ function initThreeGlobe() {
             state.map.setView([lat, lng], 4, {animate:false});
             $('mapWrap').style.opacity = '1';
             $('mapWrap').style.transform = 'scale(1)';
+            renderMarkers(); // Piirrä takaisin
         }
     });
 
-    // Tyylikäs tumma "merellinen" kiiltävä pallo
     const earthGeo = new THREE.SphereGeometry(1, 64, 64);
-    const earthMat = new THREE.MeshPhongMaterial({
-        color: 0x051525, emissive: 0x020815, specular: 0x223344, shininess: 25
-    });
+    const earthMat = new THREE.MeshPhongMaterial({ color: 0x051525, emissive: 0x020815, specular: 0x112233, shininess: 15 });
     state.globeSphere = new THREE.Mesh(earthGeo, earthMat);
     state.scene.add(state.globeSphere);
 
@@ -447,14 +350,11 @@ function initThreeGlobe() {
     const atmosMat = new THREE.MeshBasicMaterial({ color: 0x0A84FF, transparent: true, opacity: 0.1, side: THREE.BackSide });
     state.scene.add(new THREE.Mesh(atmosGeo, atmosMat));
 
-    state.scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-    const dirLight = new THREE.DirectionalLight(0xffffff, 1.2);
-    dirLight.position.set(5, 3, 5);
+    state.scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+    const dirLight = new THREE.DirectionalLight(0xffffff, 1.2); dirLight.position.set(5, 3, 5);
     state.scene.add(dirLight);
 
-    const planeGeo = new THREE.ConeGeometry(0.005, 0.018, 4);
-    planeGeo.rotateX(Math.PI / 2);
-    // Valkoiset koneet pallolla (erottuvat tummasta taustasta hyvin)
+    const planeGeo = new THREE.ConeGeometry(0.005, 0.018, 4); planeGeo.rotateX(Math.PI / 2);
     const planeMat = new THREE.MeshPhongMaterial({ color: 0xffffff }); 
     
     state.instancedMesh = new THREE.InstancedMesh(planeGeo, planeMat, 5000);
@@ -502,9 +402,7 @@ function renderThreeScene() {
         state.dummy.updateMatrix();
         state.instancedMesh.setMatrixAt(i, state.dummy.matrix);
 
-        if(f.icao24 === state.selectedIcao) color.setHex(0x34C759);
-        else if(f.dist < 40) color.setHex(0xAF52DE);
-        else if(f.on_ground) color.setHex(0xFF9F0A);
+        if(f.icao24 === state.selectedIcao) color.setHex(0x30D158);
         else color.setHex(0x0A84FF);
         
         state.instancedMesh.setColorAt(i, color);
@@ -515,9 +413,9 @@ function renderThreeScene() {
     state.renderer.render(state.scene, state.camera);
 }
 
-// 3. TIETOJEN HAKU
+// ---------- 3. TIETOJEN HAKU ----------
 async function fetchFlights(){
-  $('mapStatusText').textContent = 'Scanning Sky...'; $('refreshBtn').classList.add('on');
+  $('refreshBtn').style.opacity = '0.5';
   try{
     const res = await fetch(`https://opensky-network.org/api/states/all`);
     if(!res.ok) throw new Error('API');
@@ -535,7 +433,7 @@ async function fetchFlights(){
     }).filter(Boolean);
 
     arr.sort((a,b) => a.dist - b.dist);
-    if(arr.length > 3000) arr = arr.slice(0, 3000); 
+    if(arr.length > 2000) arr = arr.slice(0, 2000); 
 
     const seen = new Set();
     for(const nf of arr){
@@ -543,19 +441,25 @@ async function fetchFlights(){
       const old = state.flights.get(nf.icao24);
       if(old){ Object.assign(old, nf); } else { state.flights.set(nf.icao24, nf); }
     }
-    for(const icao of state.flights.keys()){ if(!seen.has(icao)) state.flights.delete(icao); }
+    for(const icao of state.flights.keys()){ 
+        if(!seen.has(icao)) {
+            state.flights.delete(icao);
+            if(state.markers.has(icao)) {
+                state.map.removeLayer(state.markers.get(icao));
+                state.markers.delete(icao);
+            }
+        } 
+    }
 
     const airborne = [...state.flights.values()].filter(f => !f.on_ground).length;
     $('sheetSub').textContent = `${state.flights.size} globally · ${airborne} airborne`;
-    $('mapStatusText').textContent = `${state.flights.size} live flights`;
     
     renderList();
-    if(!state.isGlobe && state.canvasLayer) state.canvasLayer.draw(); 
-    toast('Data updated');
-  }catch(e){ $('mapStatusText').textContent = 'Network error'; } finally{ $('refreshBtn').classList.remove('on'); setTimeout(fetchFlights, 15000); }
+    renderMarkers(); // Päivitä kaikki DOM ikoneiksi heti
+  }catch(e){ console.warn("Fetch error"); } finally{ $('refreshBtn').style.opacity = '1'; setTimeout(fetchFlights, 15000); }
 }
 
-// 4. ANIMAATIO
+// ---------- 4. ANIMAATIO ----------
 function startAnimation(){
   const tick = (t) => {
     requestAnimationFrame(tick);
@@ -569,7 +473,6 @@ function startAnimation(){
           const distM = f.velocity * dt;
           f.curLat += (distM * Math.cos(trackRad))/111320; 
           f.curLon += (distM * Math.sin(trackRad))/(111320 * Math.max(0.2, Math.cos(f.lat*Math.PI/180)));
-          f.dist = haversine(state.userLat, state.userLon, f.curLat, f.curLon);
           needs2DUpdate = true;
       }
     }
@@ -584,38 +487,32 @@ function startAnimation(){
     }
 
     if(state.isGlobe) renderThreeScene();
-    else if(needs2DUpdate && state.canvasLayer) state.canvasLayer.draw();
+    else if(needs2DUpdate) renderMarkers();
   };
   requestAnimationFrame(tick);
 }
 
-// 5. KÄYTTÖLIITTYMÄ 
-const DEF_SVG = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%231C1C1E"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>';
+// ---------- 5. KÄYTTÖLIITTYMÄ ----------
+const DEF_SVG = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23fff"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>';
 
 function renderList(){
-  const q = state.search.trim().toLowerCase();
+  const q = state.search?.trim().toLowerCase() || "";
   let arr = [...state.flights.values()].sort((a,b) => (a.dist??999) - (b.dist??999));
   if(q) arr = arr.filter(f => (f.callsign||'').toLowerCase().includes(q));
   
   if(!arr.length){ $('flightList').innerHTML = '<div class="empty">No flights found.</div>'; return; }
 
   $('flightList').innerHTML = arr.slice(0,80).map(f => {
-    const ohText = calculateOverhead(f);
-    const ohHtml = ohText ? `<div class="overhead-pill">CPA: ${ohText}</div>` : '';
     const img = state.photoCache.get(f.icao24) || DEF_SVG;
-    
     return `
     <div class="card ${state.selectedIcao===f.icao24?'sel':''}" onclick="openDetailUI('${f.icao24}')">
-      <div class="plane-badge"><img src="${img}" style="${img===DEF_SVG?'width:28px;opacity:0.4':''}"/></div>
+      <div class="plane-badge"><img src="${img}" style="${img===DEF_SVG?'width:28px;opacity:0.6':''}"/></div>
       <div class="card-main">
         <div class="card-call">${esc(f.callsign)}</div>
         <div class="card-sub">${esc(f.country)}</div>
-        ${ohHtml}
-        <div class="badges"><span class="badge ${f.on_ground?'orange':(f.dist<40?'purple':'blue')}">${f.on_ground?'Ground':(f.dist<40?'Overhead':'Airborne')}</span></div>
       </div>
       <div class="card-stats">
         <div class="stat-big">${f.dist.toFixed(0)} km</div><div class="stat-small">Dist</div>
-        <div class="stat-big" style="margin-top:6px">${fmtFt(f.baro_alt)}</div><div class="stat-small">Alt</div>
       </div>
     </div>`
   }).join('');
@@ -628,15 +525,11 @@ window.openDetailUI = async function(icao24) {
   $('detail').classList.add('open'); $('sheet').classList.remove('expanded');
   $('dCall').textContent = f.callsign; $('dRoute').textContent = f.country;
   $('dModel').textContent = 'Loading…'; $('dOperator').textContent = 'Loading…';
-  
-  const ohText = calculateOverhead(f);
-  $('dOverhead').style.display = ohText ? 'block' : 'none';
-  $('dOverhead').textContent = ohText || '';
 
   $('island').classList.add('focus'); $('ifCall').textContent = f.callsign; $('ifRoute').textContent = 'Focusing...';
   
   if(!state.isGlobe) state.map.setView([f.curLat, f.curLon], 9, {animate:true});
-  renderList();
+  renderList(); renderMarkers();
 
   if(!state.photoCache.has(icao24)) {
       try {
@@ -646,23 +539,22 @@ window.openDetailUI = async function(icao24) {
               if(data.photos?.length) {
                   state.photoCache.set(icao24, data.photos[0].thumbnail_large.src);
                   $('dImg').src = data.photos[0].thumbnail_large.src;
+                  $('dImg').style.opacity = '1';
                   renderList();
               }
           }
       } catch(e){}
-  } else { $('dImg').src = state.photoCache.get(icao24); }
+  } else { 
+      $('dImg').src = state.photoCache.get(icao24); 
+      $('dImg').style.opacity = '1';
+  }
 
   try {
       const dbRes = await fetch(`https://api.adsbdb.com/v0/aircraft/${icao24.toLowerCase()}`).then(r=>r.json());
       const m = dbRes?.response?.aircraft;
       if(m) {
           $('dModel').textContent = `${m.manufacturer} ${m.type}`;
-          $('dMeta').textContent = `${m.registration} · ${m.icao_type}`;
-          $('dOperator').textContent = m.registered_owner;
-          if(AC_DB[m.icao_type]) {
-              $('dWeight').textContent = AC_DB[m.icao_type].mtow;
-              $('dLength').textContent = AC_DB[m.icao_type].len;
-          }
+          $('dOperator').textContent = m.registered_owner || m.icao_type;
       }
   } catch(e){}
 }
@@ -670,7 +562,7 @@ window.openDetailUI = async function(icao24) {
 $('detailClose').addEventListener('click', () => {
     state.selectedIcao = null; $('detail').classList.remove('open'); $('island').classList.remove('focus');
     $('hudAlt').textContent='--- FT'; $('hudSpd').textContent='--- KT';
-    renderList(); if(!state.isGlobe && state.canvasLayer) state.canvasLayer.draw();
+    renderList(); renderMarkers();
 });
 $('sheetGrab').addEventListener('click', () => $('sheet').classList.toggle('expanded'));
 $('sheetBtn').addEventListener('click', () => $('sheet').classList.toggle('expanded'));
