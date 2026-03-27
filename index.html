@@ -5,15 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-<title>Overhead Ultra — Bulletproof Engine</title>
+<title>Overhead Ultra — Fallback Reliable</title>
 
 <!-- LEAFLET -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-
-<!-- THREE.JS (Erittäin vakaat CDN-linkit r128) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
 <style>
 :root {
@@ -38,20 +34,27 @@
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; }
+html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; }
 body { user-select: none; }
 
-/* MAP & GLOBE CONTAINERS */
-#mapWrap { position: fixed; inset: 0; z-index: 1; transition: opacity .8s ease, transform .8s var(--spring); }
+#mapWrap { position: absolute; inset: 0; z-index: 1; }
 #map { position: absolute; inset: 0; background: #000; }
-#globeWrap { position: fixed; inset: 0; z-index: 2; opacity: 0; pointer-events: none; transition: opacity .8s ease, transform .8s var(--spring); transform: scale(0.85); background: #000; display: flex; justify-content: center; align-items: center; }
-#globeWrap.on { opacity: 1; pointer-events: auto; transform: scale(1); }
-#glCanvas { width: 100%; height: 100%; position: absolute; top: 0; left: 0; outline: none; }
 
 .leaflet-control-zoom, .leaflet-control-attribution { display: none !important; }
-.leaflet-zoom-animated { pointer-events: none; }
 
-/* UI ELEMENTS - LIQUID GLASS LIGHT */
+/* THE PLANE MARKER - Tavallinen kuva, varmasti toimiva */
+.plane-img {
+  width: 32px; height: 32px;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.6));
+  transition: transform 0.6s linear; /* Pehmeä kääntyminen ja sijainnin muutos */
+}
+.plane-img.sel {
+  width: 44px; height: 44px;
+  filter: drop-shadow(0 6px 12px rgba(0,0,0,0.8));
+  z-index: 1000 !important;
+}
+
+/* UI ELEMENTS */
 .island-wrap { position: fixed; left: 0; right: 0; top: max(14px, env(safe-area-inset-top)); z-index: 2500; display: flex; justify-content: center; pointer-events: none; padding: 0 14px; }
 .island {
   width: min(820px, 100%); min-height: 58px; border-radius: 30px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; pointer-events: auto;
@@ -60,7 +63,6 @@ body { user-select: none; }
   transition: transform .45s var(--spring), min-height .45s var(--spring), width .45s var(--spring);
 }
 
-/* NEW OVERHEAD BRAND LOGO */
 .brand { flex: 0 0 auto; display: flex; align-items: center; gap: 10px; padding: 0 8px 0 4px; }
 .brand-badge { 
   width: 36px; height: 36px; border-radius: 12px; 
@@ -69,15 +71,9 @@ body { user-select: none; }
   position: relative; overflow: hidden;
   display: flex; justify-content: center; align-items: center;
 }
-.brand-badge::before {
-  content: ''; position: absolute; bottom: -4px; left: -4px; width: 24px; height: 24px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.3);
-}
-.brand-badge::after {
-  content: ''; position: absolute; width: 8px; height: 8px; background: #ffffff; border-radius: 50%; top: 8px; right: 8px; box-shadow: 0 0 10px rgba(255,255,255,0.8);
-}
-.brand-line {
-  position: absolute; width: 20px; height: 2px; background: #ffffff; transform: rotate(-45deg); transform-origin: left center; bottom: 8px; left: 8px; border-radius: 2px;
-}
+.brand-badge::before { content: ''; position: absolute; bottom: -4px; left: -4px; width: 24px; height: 24px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.3); }
+.brand-badge::after { content: ''; position: absolute; width: 8px; height: 8px; background: #ffffff; border-radius: 50%; top: 8px; right: 8px; box-shadow: 0 0 10px rgba(255,255,255,0.8); }
+.brand-line { position: absolute; width: 20px; height: 2px; background: #ffffff; transform: rotate(-45deg); transform-origin: left center; bottom: 8px; left: 8px; border-radius: 2px; }
 .brand-text { font-size: 19px; font-weight: 900; letter-spacing: -.05em; color: var(--text); }
 .brand-text span { color: var(--blue); }
 
@@ -95,7 +91,6 @@ body { user-select: none; }
 .ibtn:active { transform: scale(0.9); }
 .island-actions { display: flex; gap: 8px; }
 
-/* HUD */
 .hud-wrap { position: fixed; left: 0; right: 0; top: calc(max(14px, env(safe-area-inset-top)) + 78px); z-index: 2200; display: flex; justify-content: center; pointer-events: none; opacity: 0; transform: translateY(-10px); transition: opacity 0.4s ease, transform 0.4s var(--spring); }
 .hud-wrap.show { opacity: 1; transform: translateY(0); }
 
@@ -105,20 +100,16 @@ body { user-select: none; }
 .hud-value { margin-top: 2px; font-size: 17px; font-weight: 950; letter-spacing: -.05em; color: var(--text); }
 .hud-divider { width: 1px; height: 26px; background: rgba(0,0,0,0.1); }
 
-/* SIDE CONTROLS */
 .map-status { position: fixed; left: 16px; top: calc(max(14px, env(safe-area-inset-top)) + 84px); z-index: 1700; padding: 10px 16px; border-radius: 18px; background: var(--surface); border: 1px solid var(--glass-border); box-shadow: var(--shadow), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); color: var(--text-2); font-size: 13px; font-weight: 750; display: flex; align-items: center; gap: 8px; transition: transform 0.4s var(--spring); }
 .island.focus ~ .map-status { transform: translateY(60px); }
-
 .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 1.8s ease-in-out infinite; box-shadow: 0 0 8px rgba(52,199,89,0.6); }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
 
 .side-controls { position: fixed; right: 14px; top: calc(max(14px, env(safe-area-inset-top)) + 84px); z-index: 2100; display: flex; flex-direction: column; gap: 10px; transition: transform 0.4s var(--spring); }
 .island.focus ~ .side-controls { transform: translateY(60px); }
-
 .fab { width: 50px; height: 50px; border: none; border-radius: 25px; color: var(--text); cursor: pointer; background: var(--surface); border: 1px solid var(--glass-border); box-shadow: var(--shadow), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); font-weight: 800; font-size: 13px; transition: transform 0.2s; }
 .fab:active { transform: scale(0.92); }
 
-/* BOTTOM SHEET */
 .sheet { position: fixed; left: 14px; right: 14px; bottom: 14px; z-index: 1800; border-radius: 36px; background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(240,240,245,0.98)); border: 1px solid var(--glass-border); box-shadow: 0 24px 60px rgba(0,0,0,0.2), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); overflow: hidden; transition: height .45s var(--spring); height: 182px; }
 .sheet.expanded { height: min(72vh, 820px); }
 .sheet-grab { display: flex; justify-content: center; align-items: center; padding: 12px 0 4px; cursor: pointer; }
@@ -129,7 +120,6 @@ body { user-select: none; }
 .sheet-list { height: calc(100% - 94px); overflow: auto; padding: 0 14px 14px; }
 .sheet-list::-webkit-scrollbar { display: none; }
 
-/* CARDS */
 .card { display: flex; align-items: center; gap: 14px; padding: 12px; margin-bottom: 12px; border-radius: 24px; background: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.9); cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.03); transition: transform 0.2s var(--spring); }
 .card:active { transform: scale(0.97); }
 .card.sel { border-color: rgba(10,132,255,0.3); background: rgba(10,132,255,.08); box-shadow: 0 0 0 1px var(--blue); }
@@ -142,7 +132,6 @@ body { user-select: none; }
 .stat-big { font-size: 16px; font-weight: 900; color: var(--text); }
 .stat-small { font-size: 11px; color: var(--text-3); font-weight: 850; margin-top: 2px; text-transform: uppercase; }
 
-/* DETAIL VIEW */
 .detail { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -40%) scale(0.95); width: min(92%, 480px); max-height: 85vh; z-index: 3200; border-radius: 36px; background: var(--surface-solid); border: 1px solid var(--glass-border); box-shadow: 0 40px 100px rgba(0,0,0,0.25), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: transform .45s var(--spring), opacity .3s ease; }
 .detail.open { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
 .detail-close { position: absolute; right: 16px; top: 16px; width: 34px; height: 34px; border: none; border-radius: 17px; background: rgba(0,0,0,0.08); color: var(--text); cursor: pointer; z-index: 10; display: grid; place-items: center; font-size: 15px; font-weight: 800; transition: transform 0.2s; }
@@ -166,8 +155,8 @@ body { user-select: none; }
 <body>
 
 <div id="mapWrap"><div id="map"></div></div>
-<div id="globeWrap"><canvas id="glCanvas"></canvas></div>
 
+<!-- Uusi brändätty Liquid UI! -->
 <div class="island-wrap">
   <div class="island" id="island">
     <div class="brand">
@@ -228,21 +217,22 @@ body { user-select: none; }
 const $ = id => document.getElementById(id);
 
 const state = {
-  map: null, isGlobe: false, userLat: 60.4518, userLon: 22.2666,
+  map: null, 
+  userLat: 60.4518, userLon: 22.2666,
   flights: new Map(), selectedIcao: null, photoCache: new Map(),
-  
-  canvasLayer: null, // NATIVE CANVAS ENGINE
-  
-  renderer: null, scene: null, camera: null, controls: null,
-  instancedMesh: null, dummy: null, globeSphere: null
+  markers: new Map() // Varmasti toimivat Leaflet markkerit
 };
+
+// Ulkoiset kuvat (VARMASTI TOIMIVAT PNG:T netistä ilman SVG rajoituksia)
+const ICON_BLUE_URL = "https://cdn-icons-png.flaticon.com/512/789/789395.png"; // Lentokone icon (sinertävä jos filtteroitu tai perus)
 
 function fmtFt(m){ return m==null?'—':Math.round(m*3.28084).toLocaleString('en-US')+' FT'; }
 function fmtKt(ms){ return ms==null?'—':Math.round(ms*1.94384)+' KT'; }
 function haversine(lat1, lon1, lat2, lon2){ const R=6371, p=Math.PI/180; const a=Math.sin((lat2-lat1)*p/2)**2 + Math.cos(lat1*p)*Math.cos(lat2*p)*Math.sin((lon2-lon1)*p/2)**2; return R*2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); }
 
-// ---------- 1. LEAFLET + 100% NATIVE CANVAS LAYER ----------
+// ---------- 1. LEAFLET KARTTA (VARMA) ----------
 function initMap(){
+  // Varmistetaan että Leaflet pysyy 100% ruudussa ilman 3D-kikkailuja.
   state.map = L.map('map', {zoomControl:false, attributionControl:false}).setView([state.userLat, state.userLon], 6);
   
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19}).addTo(state.map);
@@ -250,248 +240,73 @@ function initMap(){
 
   state.userMarker = L.circleMarker([state.userLat, state.userLon], {radius:7, color:'#fff', weight:2, fillColor:'#0A84FF', fillOpacity:1}).addTo(state.map);
 
-  // LUODAAN PUMPUN KESTÄVÄ CANVAS-KERROS (Ei DOM-pohjaisia ongelmia koskaan)
-  L.CanvasLayer = L.Layer.extend({
-    onAdd: function(map) {
-      this._canvas = L.DomUtil.create('canvas', 'leaflet-zoom-animated');
-      this._ctx = this._canvas.getContext('2d');
-      map.getPanes().overlayPane.appendChild(this._canvas);
-      map.on('moveend zoomend', this._reset, this);
-      this._reset();
-    },
-    onRemove: function(map) {
-      L.DomUtil.remove(this._canvas);
-      map.off('moveend zoomend', this._reset, this);
-    },
-    _reset: function() {
-      const size = this._map.getSize();
-      const topLeft = this._map.containerPointToLayerPoint([0, 0]);
-      L.DomUtil.setPosition(this._canvas, topLeft);
-      
-      // Retina-skaalaus takaa Applen tyylisen terävyyden kankaalle!
-      const pixelRatio = window.devicePixelRatio || 1;
-      this._canvas.width = size.x * pixelRatio;
-      this._canvas.height = size.y * pixelRatio;
-      this._canvas.style.width = size.x + 'px';
-      this._canvas.style.height = size.y + 'px';
-      this._ctx.scale(pixelRatio, pixelRatio);
-      
-      this.draw();
-    },
-    draw: function() {
-      if(!this._ctx) return;
-      this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
-      const bounds = this._map.getBounds().pad(0.1);
-      const zoom = this._map.getZoom();
-
-      for(const f of state.flights.values()) {
-        if(!bounds.contains([f.curLat, f.curLon])) continue;
-        
-        const pt = this._map.latLngToContainerPoint([f.curLat, f.curLon]);
-        const isSel = (f.icao24 === state.selectedIcao);
-        const color = isSel ? '#34C759' : '#0A84FF';
-        
-        this._ctx.save();
-        this._ctx.translate(pt.x, pt.y);
-        this._ctx.rotate((f.track || 0) * Math.PI / 180);
-
-        if(zoom < 6) {
-            // Kaukaa katsottuna pelkät nätit pyöreät pisteet
-            this._ctx.beginPath();
-            this._ctx.arc(0, 0, isSel ? 6 : 3.5, 0, Math.PI * 2);
-            this._ctx.fillStyle = color;
-            this._ctx.fill();
-            this._ctx.lineWidth = 1.5;
-            this._ctx.strokeStyle = '#fff';
-            this._ctx.stroke();
-        } else {
-            // Läheltä katsottuna Natiivi Vektori-Jet (Ei kuvia ladattavana!)
-            this._ctx.beginPath();
-            const s = isSel ? 1.4 : 1.0;
-            this._ctx.moveTo(0, -14*s); 
-            this._ctx.lineTo(3*s, -6*s);
-            this._ctx.lineTo(16*s, 2*s); 
-            this._ctx.lineTo(16*s, 6*s);
-            this._ctx.lineTo(3*s, 4*s);
-            this._ctx.lineTo(2*s, 12*s);
-            this._ctx.lineTo(8*s, 16*s); 
-            this._ctx.lineTo(8*s, 18*s);
-            this._ctx.lineTo(0, 15*s); 
-            this._ctx.lineTo(-8*s, 18*s); 
-            this._ctx.lineTo(-8*s, 16*s);
-            this._ctx.lineTo(-2*s, 12*s);
-            this._ctx.lineTo(-3*s, 4*s);
-            this._ctx.lineTo(-16*s, 6*s); 
-            this._ctx.lineTo(-16*s, 2*s);
-            this._ctx.lineTo(-3*s, -6*s);
-            this._ctx.closePath();
-
-            // Heittovarjo (Applen tyyliin)
-            this._ctx.shadowColor = 'rgba(0,0,0,0.6)';
-            this._ctx.shadowBlur = 6 * s;
-            this._ctx.shadowOffsetY = 4 * s;
-            this._ctx.fillStyle = color;
-            this._ctx.fill();
-            
-            // Poista varjo reunan piirrosta
-            this._ctx.shadowColor = 'transparent';
-            this._ctx.lineWidth = 2 * s;
-            this._ctx.strokeStyle = '#ffffff';
-            this._ctx.stroke();
-        }
-        this._ctx.restore();
-      }
-    }
-  });
-
-  state.canvasLayer = new L.CanvasLayer().addTo(state.map);
-
-  // Klikkauksen tunnistus suoraan näytöltä, koska käytämme Canvas-tasoa
-  state.map.on('click', (e) => {
-      if(state.isGlobe) return;
-      let closest = null; let minDist = Infinity;
-      const clickPt = state.map.latLngToContainerPoint(e.latlng);
-      
-      for(const f of state.flights.values()) {
-          const pt = state.map.latLngToContainerPoint([f.curLat, f.curLon]);
-          const dist = Math.sqrt((pt.x-clickPt.x)**2 + (pt.y-clickPt.y)**2);
-          if(dist < 25 && dist < minDist) { minDist = dist; closest = f.icao24; }
-      }
-      if(closest) openDetailUI(closest);
-  });
-
-  // Siirtyminen Globe-tilaan uloszoomatessa
-  state.map.on('zoomend', () => {
-     if(state.map.getZoom() <= 3 && !state.isGlobe) {
-        if(!state.camera) return; // Varmistus: Globea ei avata jos Three ei ole latautunut!
-        if(navigator.vibrate) navigator.vibrate(15);
-        state.isGlobe = true;
-        
-        const center = state.map.getCenter();
-        latLonToVector3(center.lat, center.lng, 2.2, state.camera.position); 
-        state.controls.update();
-        
-        $('globeWrap').classList.add('on');
-        $('mapWrap').style.opacity = '0';
-        $('mapWrap').style.transform = 'scale(1.1)';
-     }
-  });
+  // Kartan renderöinti hoidetaan liikkeiden yhteydessä
+  state.map.on('moveend', updateMarkers);
 }
 
 function setUserLocation(lat, lon, zoom=6){
   state.userLat = lat; state.userLon = lon;
   if(state.userMarker) state.userMarker.setLatLng([lat, lon]);
-  if(state.map && !state.isGlobe) state.map.setView([lat, lon], zoom, {animate:true});
+  if(state.map) state.map.setView([lat, lon], zoom, {animate:true});
 }
 
-// ---------- 2. THREE.JS 3D GLOBE ----------
-function initThreeGlobe() {
-    if(!window.THREE || !window.THREE.OrbitControls) { 
-        setTimeout(initThreeGlobe, 300); return; 
+// Ladataan tavalliset kuvamarkkerit Leaflettiin, TÄMÄ ON SE RATKAISU, MIKÄ ON AINA TOIMINUT VERSIO 1:SSÄ.
+function updateMarkers() {
+    if(!state.map) return;
+    
+    // Suorituskyvyn takaamiseksi ladataan vain 300 konetta
+    let arr = [...state.flights.values()].sort((a,b) => a.dist - b.dist).slice(0, 300);
+    if(state.selectedIcao && !arr.find(f => f.icao24 === state.selectedIcao)){
+        const sf = state.flights.get(state.selectedIcao);
+        if(sf) arr.push(sf);
     }
-    
-    const canvas = $('glCanvas');
-    state.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
-    state.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    state.renderer.setSize(window.innerWidth, window.innerHeight);
 
-    state.scene = new THREE.Scene();
-    state.scene.background = new THREE.Color(0x000000); 
+    const currentIcaos = new Set(arr.map(f => f.icao24));
 
-    state.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-    state.camera.position.z = 2.5;
-
-    state.controls = new THREE.OrbitControls(state.camera, state.renderer.domElement);
-    state.controls.enableDamping = true; state.controls.dampingFactor = 0.05;
-    state.controls.enablePan = false; state.controls.minDistance = 1.05; state.controls.maxDistance = 10.0; 
-
-    // Palataan Karttaan kun zoomataan sisään
-    state.controls.addEventListener('change', () => {
-        if(!state.isGlobe) return;
-        if(state.camera.position.length() < 1.15) { 
-            state.isGlobe = false;
-            $('globeWrap').classList.remove('on');
-            
-            const dir = state.camera.position.clone().normalize();
-            const lat = Math.asin(dir.y) * (180/Math.PI);
-            const lng = Math.atan2(dir.x, dir.z) * (180/Math.PI);
-            
-            state.map.setView([lat, lng], 4, {animate:false});
-            $('mapWrap').style.opacity = '1';
-            $('mapWrap').style.transform = 'scale(1)';
+    // Poista vanhat
+    for(const [icao, marker] of state.markers.entries()){
+        if(!currentIcaos.has(icao)){
+            state.map.removeLayer(marker);
+            state.markers.delete(icao);
         }
-    });
+    }
 
-    const earthGeo = new THREE.SphereGeometry(1, 64, 64);
-    // Upea tyylikäs meren sininen väri
-    const earthMat = new THREE.MeshPhongMaterial({ color: 0x0A84FF, emissive: 0x021A3A, specular: 0x223344, shininess: 25 });
-    state.globeSphere = new THREE.Mesh(earthGeo, earthMat);
-    state.scene.add(state.globeSphere);
-
-    state.scene.add(new THREE.AmbientLight(0xffffff, 0.5));
-    const dirLight = new THREE.DirectionalLight(0xffffff, 1.2); dirLight.position.set(5, 3, 5);
-    state.scene.add(dirLight);
-
-    state.dummy = new THREE.Object3D();
-    const planeGeo = new THREE.ConeGeometry(0.005, 0.018, 4); planeGeo.rotateX(Math.PI / 2);
-    const planeMat = new THREE.MeshPhongMaterial({ color: 0xffffff }); 
-    
-    state.instancedMesh = new THREE.InstancedMesh(planeGeo, planeMat, 5000);
-    state.instancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-    state.instancedMesh.instanceColor.setUsage(THREE.DynamicDrawUsage);
-    state.scene.add(state.instancedMesh);
-}
-
-function latLonToVector3(lat, lon, radius, targetVector) {
-    const phi = (90 - lat) * (Math.PI / 180);
-    const theta = (lon + 180) * (Math.PI / 180);
-    targetVector.set( -(radius * Math.sin(phi) * Math.cos(theta)), radius * Math.cos(phi), radius * Math.sin(phi) * Math.sin(theta) );
-}
-
-function renderThreeScene() {
-    if(!state.isGlobe || !state.renderer) return;
-    state.controls.update();
-    
-    // Varmistetaan että InstancedMesh ei kaada palloa jos se ei ole valmis
-    if(state.instancedMesh) {
-        const flights = [...state.flights.values()];
-        state.instancedMesh.count = flights.length;
-        const color = new THREE.Color();
-        const lookTarget = new THREE.Vector3();
-
-        for(let i=0; i<flights.length; i++) {
-            const f = flights[i];
-            const h = 1.0 + Math.max(0.005, (f.baro_alt || 0) / 1500000);
-            
-            latLonToVector3(f.curLat, f.curLon, h, state.dummy.position);
-            
-            const trackRad = (f.track || 0) * (Math.PI/180);
-            const lookLat = f.curLat + Math.cos(trackRad);
-            const lookLon = f.curLon + Math.sin(trackRad);
-            latLonToVector3(lookLat, lookLon, h, lookTarget);
-            
-            state.dummy.lookAt(lookTarget);
-            if(f.icao24 === state.selectedIcao) state.dummy.scale.set(3,3,3);
-            else state.dummy.scale.set(1,1,1);
-            
-            state.dummy.updateMatrix();
-            state.instancedMesh.setMatrixAt(i, state.dummy.matrix);
-
-            if(f.icao24 === state.selectedIcao) color.setHex(0x34C759);
-            else color.setHex(0xffffff);
-            
-            state.instancedMesh.setColorAt(i, color);
-        }
+    // Luo ja päivitä uudet perus L.Icon -markkereilla
+    for(const f of arr){
+        let marker = state.markers.get(f.icao24);
         
-        state.instancedMesh.instanceMatrix.needsUpdate = true;
-        state.instancedMesh.instanceColor.needsUpdate = true;
+        // Varmista ettei selaimeen iske turvarajoituksia, ladataan julkinen kuva verkosta!
+        if(!marker) {
+            const icon = L.divIcon({
+                className: '',
+                html: `<img src="${ICON_BLUE_URL}" class="plane-img ${f.icao24===state.selectedIcao?'sel':''}" style="transform: rotate(${f.track||0}deg); ${f.icao24===state.selectedIcao?'filter: invert(50%) sepia(100%) saturate(300%) hue-rotate(80deg)':'filter: invert(40%) sepia(100%) saturate(300%) hue-rotate(180deg)'}" />`,
+                iconSize: [32, 32],
+                iconAnchor: [16, 16]
+            });
+            marker = L.marker([f.curLat, f.curLon], {icon, zIndexOffset: f.icao24===state.selectedIcao?1000:0}).addTo(state.map);
+            marker.on('click', () => openDetailUI(f.icao24));
+            state.markers.set(f.icao24, marker);
+        } else {
+            // Päivitä säästeliäästi sijainti Leafletin standardi-metodein
+            marker.setLatLng([f.curLat, f.curLon]);
+            const el = marker.getElement();
+            if(el && el.firstChild) {
+                el.firstChild.style.transform = `rotate(${f.track||0}deg)`;
+                
+                if(f.icao24 === state.selectedIcao) {
+                    el.firstChild.classList.add('sel');
+                    el.firstChild.style.filter = 'invert(50%) sepia(100%) saturate(300%) hue-rotate(80deg)';
+                } else {
+                    el.firstChild.classList.remove('sel');
+                    el.firstChild.style.filter = 'invert(40%) sepia(100%) saturate(300%) hue-rotate(180deg)';
+                }
+            }
+            marker.setZIndexOffset(f.icao24===state.selectedIcao?1000:0);
+        }
     }
-    
-    // Piirtää AINA maapallon, vaikka koneita ei olisi ladattu!
-    state.renderer.render(state.scene, state.camera);
 }
 
-// ---------- 3. DATA FETCH ----------
+// ---------- 2. DATA FETCH ----------
 async function fetchFlights(){
   $('mapStatusText').textContent = 'Connecting...';
   try{
@@ -526,27 +341,31 @@ async function fetchFlights(){
     $('mapStatusText').textContent = `Tracking ${state.flights.size}`;
     
     renderList();
-    if(state.canvasLayer && !state.isGlobe) state.canvasLayer.draw();
+    updateMarkers();
   }catch(e){ 
       $('mapStatusText').textContent = e.message === 'RateLimit' ? 'API Limited, retrying...' : 'Network Error'; 
-  } finally{ setTimeout(fetchFlights, 15000); }
+  } finally{ setTimeout(fetchFlights, 15000); } // 15 sekunnin pollaus!
 }
 
-// ---------- 4. ANIMAATIO ----------
+// ---------- 3. ANIMAATIO ----------
 function startAnimation(){
+  // Päivitetään Markkereiden graafinen lokaatio JOKA SEKUNTI (ei 60 kertaa sekunnissa DOM-tukkeutumisen takia)
+  setInterval(() => {
+    updateMarkers();
+  }, 1000);
+
   const tick = (t) => {
     requestAnimationFrame(tick);
     if(!state.animLast) { state.animLast = t; return; }
     const dt = Math.min((t - state.animLast)/1000, 0.1); state.animLast = t;
 
-    let needs2DUpdate = false;
+    // Vain laskenta täällä nopeasti
     for(const f of state.flights.values()){
       if(f.velocity && !f.on_ground) {
           const trackRad = (f.track||0) * Math.PI/180;
           const distM = f.velocity * dt;
           f.curLat += (distM * Math.cos(trackRad))/111320; 
           f.curLon += (distM * Math.sin(trackRad))/(111320 * Math.max(0.2, Math.cos(f.lat*Math.PI/180)));
-          needs2DUpdate = true;
       }
     }
 
@@ -558,17 +377,11 @@ function startAnimation(){
           $('hudAlt').textContent=fmtFt(alt); $('hudSpd').textContent=fmtKt(sf.velocity);
       }
     }
-
-    if(state.isGlobe && state.renderer) {
-        renderThreeScene();
-    } else if (needs2DUpdate && state.canvasLayer && !state.isGlobe) {
-        state.canvasLayer.draw();
-    }
   };
   requestAnimationFrame(tick);
 }
 
-// ---------- 5. UI PÄIVITYKSET ----------
+// ---------- 4. UI PÄIVITYKSET ----------
 function renderList(){
   const q = state.search?.trim().toLowerCase() || "";
   let arr = [...state.flights.values()].sort((a,b) => (a.dist??999) - (b.dist??999));
@@ -604,8 +417,8 @@ window.openDetailUI = async function(icao24) {
   $('island').classList.add('focus'); $('ifCall').textContent = f.callsign;
   $('hudWrap').classList.add('show');
   
-  if(!state.isGlobe) state.map.setView([f.curLat, f.curLon], 9, {animate:true});
-  renderList(); if(state.canvasLayer && !state.isGlobe) state.canvasLayer.draw();
+  state.map.setView([f.curLat, f.curLon], 9, {animate:true});
+  renderList(); updateMarkers();
 
   if(!state.photoCache.has(icao24)) {
       try {
@@ -641,7 +454,7 @@ $('detailClose').addEventListener('click', () => {
     $('island').classList.remove('focus');
     $('hudWrap').classList.remove('show'); 
     
-    renderList(); if(state.canvasLayer && !state.isGlobe) state.canvasLayer.draw();
+    renderList(); updateMarkers();
 });
 
 $('sheetGrab').addEventListener('click', () => $('sheet').classList.toggle('expanded'));
@@ -652,7 +465,6 @@ $('turkuBtn').addEventListener('click', () => { setUserLocation(60.4518, 22.2666
 
 window.onload = () => {
     initMap();
-    initThreeGlobe();
     setUserLocation(60.4518, 22.2666, 6);
     startAnimation();
     fetchFlights();
