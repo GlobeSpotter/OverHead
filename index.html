@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="fi">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1">
@@ -7,46 +7,70 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-:root{--bg:#f2f2f7;--card:#fff;--accent:#007aff;--green:#34c759;--red:#ff3b30;--orange:#ff9500;--text:#1c1c1e;--sub:#8e8e93;--sep:rgba(60,60,67,.12);--r:16px;--rsm:12px}
+:root{
+  --bg:#f2f2f7;--card:#fff;--accent:#000; /* Black accent as requested */
+  --green:#34c759;--red:#ff3b30;--orange:#ff9500;
+  --text:#1c1c1e;--sub:#8e8e93;--sep:rgba(60,60,67,.12);
+  --r:16px;--rsm:12px;
+}
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;-webkit-font-smoothing:antialiased;background:#000;color:var(--text);height:100vh;overflow:hidden}
-#map{position:fixed;inset:0;z-index:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",sans-serif;
+  -webkit-font-smoothing:antialiased;background:#000;color:var(--text);height:100vh;overflow:hidden}
+#map{position:fixed;inset:0;z-index:0;background:#e5e5ea;} /* light gray background instead of black so if tiles take a second, it's not black */
 #map .leaflet-control-attribution{display:none!important}
-nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:0 16px;height:52px;background:rgba(255,255,255,.88);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid var(--sep);display:flex;align-items:center;justify-content:space-between}
+nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:0 16px;height:52px;
+  background:rgba(255,255,255,.9);backdrop-filter:saturate(180%) blur(20px);
+  -webkit-backdrop-filter:saturate(180%) blur(20px);
+  border-bottom:1px solid var(--sep);display:flex;align-items:center;justify-content:space-between}
 .logo{display:flex;align-items:center;gap:9px;user-select:none}
-.logo-box{width:34px;height:34px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,122,255,.4)}
-.logo-name{font-size:18px;font-weight:800;letter-spacing:-.5px}
+.logo-box{width:34px;height:34px;background:#000;border-radius:8px;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 2px 8px rgba(0,0,0,.3)} /* Black box for logo */
+.logo-name{font-size:18px;font-weight:800;letter-spacing:-.5px;color:#000}
 .na{display:flex;gap:8px}
-.btn{border:none;border-radius:20px;padding:8px 16px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;transition:opacity .15s;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.btn{border:none;border-radius:20px;padding:8px 16px;font-size:14px;font-weight:600;
+  cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:5px;
+  transition:opacity .15s;white-space:nowrap;-webkit-tap-highlight-color:transparent}
 .btn:active{opacity:.7}
-.btnp{background:var(--accent);color:#fff}
+.btnp{background:#000;color:#fff} /* Black button */
 .btns{background:rgba(120,120,128,.16);color:var(--text)}
-#chips{position:fixed;top:52px;left:0;right:0;z-index:150;padding:8px 14px;gap:8px;overflow-x:auto;scrollbar-width:none;display:none;flex-direction:row;align-items:center}
+#chips{position:fixed;top:52px;left:0;right:0;z-index:150;padding:8px 14px;gap:8px;
+  overflow-x:auto;scrollbar-width:none;display:none;flex-direction:row;align-items:center}
 #chips::-webkit-scrollbar{display:none}
-.chip{flex-shrink:0;background:rgba(255,255,255,.92);backdrop-filter:blur(14px);border:1px solid var(--sep);border-radius:20px;padding:5px 13px;font-size:13px;font-weight:600;cursor:pointer}
-.chip.on{background:var(--accent);color:#fff;border-color:var(--accent)}
-#sheet{position:fixed;bottom:0;left:0;right:0;z-index:100;max-height:58vh;background:rgba(242,242,247,.97);backdrop-filter:saturate(180%) blur(24px);-webkit-backdrop-filter:saturate(180%) blur(24px);border-radius:22px 22px 0 0;border-top:1px solid var(--sep);display:flex;flex-direction:column;overflow:hidden;transform:translateY(100%);transition:transform .4s cubic-bezier(.32,1,.5,1)}
+.chip{flex-shrink:0;background:rgba(255,255,255,.92);backdrop-filter:blur(14px);
+  border:1px solid var(--sep);border-radius:20px;padding:5px 13px;font-size:13px;font-weight:600;cursor:pointer}
+.chip.on{background:#000;color:#fff;border-color:#000}
+#sheet{position:fixed;bottom:0;left:0;right:0;z-index:100;max-height:58vh;
+  background:rgba(242,242,247,.97);backdrop-filter:saturate(180%) blur(24px);
+  -webkit-backdrop-filter:saturate(180%) blur(24px);border-radius:22px 22px 0 0;
+  border-top:1px solid var(--sep);display:flex;flex-direction:column;overflow:hidden;
+  transform:translateY(100%);transition:transform .4s cubic-bezier(.32,1,.5,1)}
 #sheet.open{transform:translateY(0)}
 .handle{width:36px;height:4px;background:rgba(60,60,67,.25);border-radius:2px;margin:10px auto 6px;flex-shrink:0}
-.shhead{padding:2px 18px 10px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;border-bottom:1px solid var(--sep)}
+.shhead{padding:2px 18px 10px;display:flex;justify-content:space-between;align-items:center;
+  flex-shrink:0;border-bottom:1px solid var(--sep)}
 .sht{font-size:17px;font-weight:700}.shs{font-size:13px;color:var(--sub);margin-top:1px}
 #flist{overflow-y:auto;flex:1;padding:8px 12px 28px;-webkit-overflow-scrolling:touch}
-.fc{background:var(--card);border-radius:var(--rsm);padding:12px 14px;margin-bottom:8px;cursor:pointer;display:flex;align-items:center;gap:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);transition:transform .1s}
-.fc:active{transform:scale(.98)}.fc.sel{outline:2px solid var(--accent)}
+.fc{background:var(--card);border-radius:var(--rsm);padding:12px 14px;margin-bottom:8px;
+  cursor:pointer;display:flex;align-items:center;gap:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);transition:transform .1s}
+.fc:active{transform:scale(.98)}.fc.sel{outline:2px solid #000}
 .fci{width:36px;height:36px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .fcm{flex:1;min-width:0}.fcc{font-size:16px;font-weight:700;letter-spacing:-.2px}
 .fcs{font-size:13px;color:var(--sub);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .fcb{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;margin-top:4px}
 .fcr{text-align:right;flex-shrink:0}.fcd{font-size:15px;font-weight:700}.fca{font-size:12px;color:var(--sub);margin-top:2px}
-#det{position:fixed;inset:0;z-index:300;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;transform:translateY(100%);transition:transform .42s cubic-bezier(.32,1,.5,1)}
+#det{position:fixed;inset:0;z-index:300;background:var(--bg);overflow-y:auto;
+  -webkit-overflow-scrolling:touch;transform:translateY(100%);transition:transform .42s cubic-bezier(.32,1,.5,1)}
 #det.open{transform:translateY(0)}
 .dph{width:100%;height:220px;background:#1c1c1e;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
 .dph-ic{font-size:80px;color:rgba(255,255,255,.07)}
 .dph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .5s}
 .dph img.ok{opacity:1}
 .dph-cr{position:absolute;bottom:8px;right:12px;font-size:10px;color:rgba(255,255,255,.5)}
-.dbk{position:absolute;top:14px;left:14px;z-index:5;background:rgba(0,0,0,.45);backdrop-filter:blur(8px);border:none;border-radius:50%;width:34px;height:34px;color:#fff;font-size:22px;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1}
-.dhr{background:linear-gradient(135deg,#0066ee,#0040c0);padding:18px 20px 22px}
+.dbk{position:absolute;top:14px;left:14px;z-index:5;background:rgba(0,0,0,.45);backdrop-filter:blur(8px);
+  border:none;border-radius:50%;width:34px;height:34px;color:#fff;font-size:22px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;line-height:1}
+.dhr{background:linear-gradient(135deg,#222,#000);padding:18px 20px 22px} /* Black gradient header */
 .dcs{font-size:30px;font-weight:800;color:#fff;letter-spacing:-.6px}
 .dsub{font-size:14px;color:rgba(255,255,255,.7);margin-top:3px}
 .dtags{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
@@ -61,7 +85,10 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:0 16px;height:52px;b
 .dr.full{flex-direction:column;align-items:flex-start;gap:3px}
 .dr.full .dv{font-size:14px;max-width:100%;color:var(--text)}
 #cfgov{position:fixed;inset:0;z-index:249;display:none;background:rgba(0,0,0,.2)}
-#cfg{position:fixed;bottom:0;left:0;right:0;z-index:250;background:rgba(242,242,247,.98);backdrop-filter:saturate(180%) blur(24px);-webkit-backdrop-filter:saturate(180%) blur(24px);border-radius:24px 24px 0 0;border-top:1px solid var(--sep);padding-bottom:34px;transform:translateY(100%);transition:transform .4s cubic-bezier(.32,1,.5,1)}
+#cfg{position:fixed;bottom:0;left:0;right:0;z-index:250;background:rgba(242,242,247,.98);
+  backdrop-filter:saturate(180%) blur(24px);-webkit-backdrop-filter:saturate(180%) blur(24px);
+  border-radius:24px 24px 0 0;border-top:1px solid var(--sep);padding-bottom:34px;
+  transform:translateY(100%);transition:transform .4s cubic-bezier(.32,1,.5,1)}
 #cfg.open{transform:translateY(0)}
 .cgh{width:36px;height:4px;background:rgba(60,60,67,.25);border-radius:2px;margin:10px auto 0}
 .cgt{font-size:17px;font-weight:700;padding:14px 20px 10px}
@@ -70,7 +97,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:0 16px;height:52px;b
 .cgr+.cgr::before{content:"";position:absolute;top:0;left:16px;right:0;height:1px;background:var(--sep)}
 .cgr label{font-size:15px}
 .cgr input[type=number]{width:90px;border:1px solid var(--sep);border-radius:8px;padding:6px 10px;font-size:15px;font-family:inherit;text-align:right;background:var(--bg);outline:none}
-.cgbtn{display:block;margin:4px 16px 0;width:calc(100% - 32px);padding:14px;background:var(--accent);color:#fff;border:none;border-radius:var(--r);font-size:17px;font-weight:600;cursor:pointer;font-family:inherit}
+.cgbtn{display:block;margin:4px 16px 0;width:calc(100% - 32px);padding:14px;background:#000;color:#fff;border:none;border-radius:var(--r);font-size:17px;font-weight:600;cursor:pointer;font-family:inherit}
 .tog{position:relative;width:51px;height:31px;flex-shrink:0}
 .tog input{opacity:0;width:0;height:0;position:absolute}
 .tgt{position:absolute;inset:0;border-radius:15.5px;background:rgba(120,120,128,.24);cursor:pointer;transition:background .2s}
@@ -94,6 +121,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:0 16px;height:52px;b
   <div class="logo">
     <div class="logo-box">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <!-- Airplane silhouette -->
         <path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="white"/>
       </svg>
     </div>
@@ -101,21 +129,21 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:0 16px;height:52px;b
   </div>
   <div class="na">
     <button class="btn btns" onclick="openCfg()" style="font-size:17px;padding:6px 12px">⚙️</button>
-    <button class="btn btnp" id="btnFind" onclick="quickFind()">🔍 Hae lennot</button>
+    <button class="btn btnp" id="btnFind" onclick="quickFind()">🔍 Find Flights</button>
   </div>
 </nav>
 
 <div id="chips">
-  <div class="chip on" id="ch-all" onclick="setChip('all')">Kaikki</div>
+  <div class="chip on" id="ch-all" onclick="setChip('all')">All</div>
   <div class="chip" id="ch-count" style="cursor:default">–</div>
-  <div class="chip" id="ch-near" onclick="setChip('near')">📍 Lähimmät</div>
-  <div class="chip" id="ch-over" onclick="setChip('over')">🎯 Ylilennot</div>
+  <div class="chip" id="ch-near" onclick="setChip('near')">📍 Nearest</div>
+  <div class="chip" id="ch-over" onclick="setChip('over')">🎯 Overhead</div>
 </div>
 
 <div id="sheet">
   <div class="handle"></div>
   <div class="shhead">
-    <div><div class="sht" id="shT">Lentokoneet</div><div class="shs" id="shS"></div></div>
+    <div><div class="sht" id="shT">Aircraft</div><div class="shs" id="shS"></div></div>
     <button class="btn btns" style="padding:5px 12px;font-size:13px" onclick="closeSheet()">✕</button>
   </div>
   <div id="flist"></div>
@@ -136,20 +164,20 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:0 16px;height:52px;b
     <div class="dtags" id="dTags"></div>
   </div>
   <div id="deta"></div>
-  <div class="dsec"><div class="dsect">Lento</div><div class="dg">
-    <div class="dr"><div class="dl">Korkeus</div><div class="dv" id="dAl">–</div></div>
-    <div class="dr"><div class="dl">Nopeus</div><div class="dv" id="dSp">–</div></div>
-    <div class="dr"><div class="dl">Suunta</div><div class="dv" id="dHd">–</div></div>
-    <div class="dr"><div class="dl">Nousu/lasku</div><div class="dv" id="dVr">–</div></div>
-    <div class="dr"><div class="dl">Etäisyys</div><div class="dv" id="dDs">–</div></div>
+  <div class="dsec"><div class="dsect">Flight</div><div class="dg">
+    <div class="dr"><div class="dl">Altitude</div><div class="dv" id="dAl">–</div></div>
+    <div class="dr"><div class="dl">Speed</div><div class="dv" id="dSp">–</div></div>
+    <div class="dr"><div class="dl">Heading</div><div class="dv" id="dHd">–</div></div>
+    <div class="dr"><div class="dl">Vertical Rate</div><div class="dv" id="dVr">–</div></div>
+    <div class="dr"><div class="dl">Distance</div><div class="dv" id="dDs">–</div></div>
   </div></div>
-  <div class="dsec"><div class="dsect">Kone</div><div class="dg">
-    <div class="dr"><div class="dl">Operaattori</div><div class="dv" id="dOp">–</div></div>
-    <div class="dr"><div class="dl">Pituus</div><div class="dv" id="dLn">–</div></div>
-    <div class="dr full"><div class="dl">Moottorit</div><div class="dv" id="dEn">–</div></div>
-    <div class="dr"><div class="dl">Valmistusvuosi</div><div class="dv" id="dBy">–</div></div>
+  <div class="dsec"><div class="dsect">Aircraft</div><div class="dg">
+    <div class="dr"><div class="dl">Operator</div><div class="dv" id="dOp">–</div></div>
+    <div class="dr"><div class="dl">Length</div><div class="dv" id="dLn">–</div></div>
+    <div class="dr full"><div class="dl">Engines</div><div class="dv" id="dEn">–</div></div>
+    <div class="dr"><div class="dl">Year Built</div><div class="dv" id="dBy">–</div></div>
   </div></div>
-  <div class="dsec"><div class="dsect">Tekniset</div><div class="dg">
+  <div class="dsec"><div class="dsect">Technical</div><div class="dg">
     <div class="dr"><div class="dl">ICAO24</div><div class="dv" id="dIc" style="font-family:monospace;font-size:13px">–</div></div>
     <div class="dr"><div class="dl">Squawk</div><div class="dv" id="dSq">–</div></div>
   </div></div>
@@ -159,26 +187,26 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:0 16px;height:52px;b
 <div id="cfgov" onclick="closeCfg()"></div>
 <div id="cfg">
   <div class="cgh"></div>
-  <div class="cgt">Asetukset</div>
+  <div class="cgt">Settings</div>
   <div class="cgg">
-    <div class="cgr"><label>Leveys (lat)</label><input type="number" id="iLat" placeholder="60.4518" step="0.0001"></div>
-    <div class="cgr"><label>Pituus (lon)</label><input type="number" id="iLon" placeholder="22.2666" step="0.0001"></div>
-    <div class="cgr"><label>Säde (km)</label><input type="number" id="iRad" value="150" min="10" max="500"></div>
+    <div class="cgr"><label>Latitude</label><input type="number" id="iLat" placeholder="60.4518" step="0.0001"></div>
+    <div class="cgr"><label>Longitude</label><input type="number" id="iLon" placeholder="22.2666" step="0.0001"></div>
+    <div class="cgr"><label>Radius (km)</label><input type="number" id="iRad" value="150" min="10" max="500"></div>
   </div>
   <div class="cgg">
     <div class="cgr">
-      <label>🔔 Ylilento-hälytys</label>
+      <label>🔔 Overhead Alert</label>
       <label class="tog"><input type="checkbox" id="togAl"><div class="tgt"></div></label>
     </div>
-    <div class="cgr"><label>Hälytys alle (km)</label><input type="number" id="iAlKm" value="50" min="5" max="300"></div>
+    <div class="cgr"><label>Alert below (km)</label><input type="number" id="iAlKm" value="50" min="5" max="300"></div>
   </div>
   <div class="cgg">
     <div class="cgr" style="flex-direction:column;align-items:stretch;gap:8px">
-      <label>📡 GPS-paikannus</label>
-      <button class="btn btnp" style="justify-content:center;border-radius:var(--rsm)" onclick="doGPS()">Käytä sijaintia</button>
+      <label>📡 GPS Location</label>
+      <button class="btn btnp" style="justify-content:center;border-radius:var(--rsm)" onclick="doGPS()">Use my location</button>
     </div>
   </div>
-  <button class="cgbtn" onclick="closeCfg();fetchFlights()">Hae lennot</button>
+  <button class="cgbtn" onclick="closeCfg();fetchFlights()">Search Flights</button>
 </div>
 
 <script>
@@ -187,9 +215,26 @@ var map,uLat,uLon,uRad=150,flights=[],selId=null,mks={},chip='all',mcache={};
 function initMap(){
   if(map)return;
   map=L.map('map',{zoomControl:false,attributionControl:false}).setView([60.45,22.27],6);
+  // Using pure OpenStreetMap to guarantee it works on GitHub Pages without any block issues
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19}).addTo(map);
-  // labels layer removed for GitHub reliability,{maxZoom:19,opacity:0.75}).addTo(map);
   L.control.zoom({position:'bottomright'}).addTo(map);
+}
+
+function xhrGet(url){
+  return new Promise(function(resolve,reject){
+    var x=new XMLHttpRequest();
+    x.open('GET',url,true);
+    x.timeout=10000;
+    x.onload=function(){
+      if(x.status>=200&&x.status<300){
+        try{resolve(JSON.parse(x.responseText));}
+        catch(e){reject(e);}
+      }else{reject(new Error('HTTP '+x.status));}
+    };
+    x.onerror=function(){reject(new Error('Network error'));};
+    x.ontimeout=function(){reject(new Error('Timeout'));};
+    x.send();
+  });
 }
 
 function doGPS(){
@@ -197,8 +242,8 @@ function doGPS(){
     if(!navigator.geolocation)return res(false);
     navigator.geolocation.getCurrentPosition(
       function(p){
-        g('iLat').value=p.coords.latitude.toFixed(4);
-        g('iLon').value=p.coords.longitude.toFixed(4);
+        document.getElementById('iLat').value=p.coords.latitude.toFixed(4);
+        document.getElementById('iLon').value=p.coords.longitude.toFixed(4);
         res(true);
       },
       function(){res(false);},
@@ -209,47 +254,47 @@ function doGPS(){
 
 async function quickFind(){
   closeCfg();
-  var b=g('btnFind');
+  var b=document.getElementById('btnFind');
   b.innerHTML='<span class="spin">✈️</span>';
   b.disabled=true;
   await doGPS();
   await fetchFlights();
-  b.innerHTML='🔍 Hae lennot';
+  b.innerHTML='🔍 Find Flights';
   b.disabled=false;
 }
 
 async function fetchFlights(){
-  var lat=parseFloat(g('iLat').value);
-  var lon=parseFloat(g('iLon').value);
-  var rad=parseFloat(g('iRad').value)||150;
+  var lat=parseFloat(document.getElementById('iLat').value);
+  var lon=parseFloat(document.getElementById('iLon').value);
+  var rad=parseFloat(document.getElementById('iRad').value)||150;
   if(isNaN(lat)||isNaN(lon)){openCfg();return;}
   uLat=lat;uLon=lon;uRad=rad;
   initMap();
   map.setView([uLat,uLon],7);
-  setFL('<div class="empty"><span class="spin" style="font-size:32px">✈️</span><br>Haetaan lentoja…</div>');
+  setFL('<div class="empty"><span class="spin" style="font-size:32px">✈️</span><br>Fetching flights...</div>');
   openSheet();
 
-  // Try direct first, then proxy fallback
   var directUrl='https://api.airplanes.live/v2/point/'+uLat+'/'+uLon+'/'+Math.round(uRad);
   var proxyUrl='https://api.allorigins.win/get?url='+encodeURIComponent(directUrl);
 
   var ac=null;
   try{
-    ac=await xhrGet(directUrl);
+    var res=await xhrGet(directUrl);
+    ac=res.ac||[];
   }catch(e1){
     try{
       var raw2=await xhrGet(proxyUrl);
       var inner=JSON.parse(raw2.contents||'{}');
       ac=inner.ac||[];
     }catch(e2){
-      setFL('<div class="empty">⚠️<br><strong style="color:var(--red)">Verkkovirhe: '+e2.message+'</strong><br><small>Kokeile GitHubin kautta</small><br><br><button onclick="fetchFlights()" class="btn btnp" style="margin:0 auto">🔄 Yritä uudelleen</button></div>');
+      setFL('<div class="empty">⚠️<br><strong style="color:var(--red)">Network Error</strong><br><small>'+e2.message+'</small><br><br><button onclick="fetchFlights()" class="btn btnp" style="margin:0 auto">🔄 Try Again</button></div>');
       return;
     }
   }
 
   flights=parseAC(ac);
   if(!flights.length){
-    setFL('<div class="empty">✈️<br>Ei lentokoneita alueella<br><small>Kokeile suurempaa sädettä</small></div>');
+    setFL('<div class="empty">✈️<br>No aircraft in the area<br><small>Try increasing the radius</small></div>');
   }else{
     renderAll();
   }
@@ -259,7 +304,6 @@ function parseAC(ac){
   return ac.map(function(s){
     var lat=s.lat!=null?s.lat:null;
     var lon=s.lon!=null?s.lon:null;
-    // airplanes.live: alt_baro in feet, gs in knots, baro_rate ft/min
     var altFt=typeof s.alt_baro==='number'?s.alt_baro:null;
     var velKt=s.gs!=null?s.gs:null;
     var velMs=velKt!=null?velKt*0.514444:null;
@@ -289,13 +333,13 @@ function hav(la1,lo1,la2,lo2){
 function renderAll(){
   renderList();renderMarkers();
   g('chips').style.display='flex';
-  g('ch-count').textContent=flights.length+' kpl';
-  g('shT').textContent='Lentokoneet lähellä';
-  g('shS').textContent=uRad+' km säteellä · '+new Date().toLocaleTimeString('fi');
+  g('ch-count').textContent=flights.length;
+  g('shT').textContent='Aircraft Nearby';
+  g('shS').textContent=uRad+' km radius';
   if(g('togAl').checked){
     var km=parseFloat(g('iAlKm').value)||50;
     var ov=flights.filter(function(f){return!f.ground&&f.dist<km;});
-    if(ov.length)toast('🔴 '+ov.length+' lentokone alle '+km+' km!','#ff3b30');
+    if(ov.length)toast('🔴 '+ov.length+' aircraft below '+km+' km!','#ff3b30');
   }
 }
 
@@ -303,18 +347,18 @@ function renderList(){
   var list=flights;
   if(chip==='near')list=flights.slice(0,10);
   else if(chip==='over')list=flights.filter(function(f){return!f.ground&&f.dist<60;});
-  if(!list.length){setFL('<div class="empty">Ei lentokoneita</div>');return;}
+  if(!list.length){setFL('<div class="empty">No aircraft found</div>');return;}
   setFL(list.map(card).join(''));
 }
 
 function card(f){
   var ov=!f.ground&&f.dist!=null&&f.dist<60;
-  var col=f.ground?'#ff9500':ov?'#34c759':'#fff';
+  var col=f.ground?'#ff9500':ov?'#34c759':'#000'; // Black planes in list for design coherence
   var arr=f.vrMs!=null?(f.vrMs>0.5?' ↑':f.vrMs<-0.5?' ↓':''):'';
   var sub=f.desc||f.reg||'';
   var badge='';
-  if(f.ground)badge='<span class="fcb" style="background:rgba(255,149,0,.12);color:#ff9500">🛬 Maassa</span>';
-  else if(ov)badge='<span class="fcb" style="background:rgba(52,199,89,.12);color:#34c759">🎯 Ylilento</span>';
+  if(f.ground)badge='<span class="fcb" style="background:rgba(255,149,0,.12);color:#ff9500">🛬 On Ground</span>';
+  else if(ov)badge='<span class="fcb" style="background:rgba(52,199,89,.12);color:#34c759">🎯 Overhead</span>';
   var plane='<svg width="28" height="28" viewBox="0 0 24 24"><path transform-origin="12 12" transform="rotate('+f.track+')" d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="'+col+'"/></svg>';
   return '<div class="fc'+(f.id===selId?' sel':'')+'" onclick="selFlight(''+f.id+'')">'+
     '<div class="fci">'+plane+'</div>'+
@@ -326,15 +370,16 @@ function card(f){
 function renderMarkers(){
   Object.keys(mks).forEach(function(k){map.removeLayer(mks[k]);});mks={};
   if(uLat&&uLon){
-    L.circle([uLat,uLon],{radius:uRad*1000,color:'#007aff',fillOpacity:.05,weight:1.5}).addTo(map);
-    L.circleMarker([uLat,uLon],{radius:8,color:'#fff',weight:2,fillColor:'#007aff',fillOpacity:1}).addTo(map);
+    L.circle([uLat,uLon],{radius:uRad*1000,color:'#000',fillOpacity:.03,weight:1.5}).addTo(map);
+    L.circleMarker([uLat,uLon],{radius:7,color:'#fff',weight:2,fillColor:'#000',fillOpacity:1}).addTo(map);
   }
   flights.forEach(function(f){
     if(!f.lat||!f.lon)return;
     var ov=!f.ground&&f.dist<60;
-    var col=f.ground?'#ff9500':ov?'#34c759':'#fff';
+    // Map markers: orange for ground, green for overhead, black for normal
+    var col=f.ground?'#ff9500':ov?'#34c759':'#000';
     var mk=L.marker([f.lat,f.lon],{icon:L.divIcon({
-      html:'<svg width="22" height="22" viewBox="0 0 24 24" style="filter:drop-shadow(0 1px 4px rgba(0,0,0,.8))"><path transform-origin="12 12" transform="rotate('+f.track+')" d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="'+col+'"/></svg>',
+      html:'<svg width="22" height="22" viewBox="0 0 24 24" style="filter:drop-shadow(0 1px 3px rgba(0,0,0,.4))"><path transform-origin="12 12" transform="rotate('+f.track+')" d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="'+col+'"/></svg>',
       className:'',iconSize:[22,22],iconAnchor:[11,11]
     })}).addTo(map);
     mk.on('click',function(){selFlight(f.id);});
@@ -359,7 +404,7 @@ async function selFlight(id){
 
   set('dCs',f.cs||id);
   set('dSub',f.desc||f.reg||'–');
-  set('dAl',f.altFt!=null?(f.altFt.toLocaleString()+' ft  ('+f.altM+' m)'):(f.ground?'Maassa':'–'));
+  set('dAl',f.altFt!=null?(f.altFt.toLocaleString()+' ft  ('+f.altM+' m)'):(f.ground?'On Ground':'–'));
   set('dSp',f.velKt!=null?(Math.round(f.velKt)+' kt  ('+Math.round(f.velKt*1.852)+' km/h)'):'–');
   set('dHd',f.track!=null?(Math.round(f.track)+'°  '+dir(f.track)):'–');
   set('dVr',f.vrMs!=null?((f.vrMs>0?'+':'')+Math.round(f.vrMs)+' m/s'):'–');
@@ -407,10 +452,10 @@ async function selFlight(id){
       eb.style.cssText='display:block;margin:12px 16px 0;border-radius:12px;padding:11px 16px;font-size:14px;font-weight:700;text-align:center';
       if(eta.willPass){
         eb.style.background='rgba(52,199,89,.15)';eb.style.color='#1a7a35';
-        eb.textContent=eta.mins<=2?'🎯 Saapuu nyt ylitsesi!':'✅ Lentää ylitsesi ~'+eta.mins+' min';
+        eb.textContent=eta.mins<=2?'🎯 Passing overhead now!':'✅ Passing overhead in ~'+eta.mins+' min';
       }else{
         eb.style.background='rgba(255,59,48,.1)';eb.style.color='#ff3b30';
-        eb.textContent='❌ Ei lennä ylitsesi (lähin ~'+eta.closestKm+' km)';
+        eb.textContent='❌ Will not pass overhead (closest ~'+eta.closestKm+' km)';
       }
     }
   }
@@ -420,28 +465,23 @@ async function fetchMeta(id){
   if(id in mcache)return mcache[id];
   mcache[id]=null;
   try{
-    var r=await fetch('https://api.adsbdb.com/v0/aircraft/'+id.toLowerCase());
-    if(!r.ok)return null;
-    var d=await r.json();
-    mcache[id]=(d&&d.response&&d.response.aircraft)||null;
+    var r=await xhrGet('https://api.adsbdb.com/v0/aircraft/'+id.toLowerCase());
+    mcache[id]=(r&&r.response&&r.response.aircraft)||null;
     return mcache[id];
   }catch(e){return null;}
 }
 async function fetchRoute(cs){
   if(!cs)return null;
   try{
-    var r=await fetch('https://api.adsbdb.com/v0/callsign/'+cs.replace(/\s/g,'').toUpperCase());
-    if(!r.ok)return null;
-    var d=await r.json();
-    return(d&&d.response&&d.response.flightroute)||null;
+    var r=await xhrGet('https://api.adsbdb.com/v0/callsign/'+cs.replace(/\s/g,'').toUpperCase());
+    return(r&&r.response&&r.response.flightroute)||null;
   }catch(e){return null;}
 }
 async function fetchPhoto(id){
   try{
-    var r=await fetch('https://api.planespotters.net/pub/photos/hex/'+id);
-    var d=await r.json();
-    if(d.photos&&d.photos.length>0){
-      var p=d.photos[0];
+    var r=await xhrGet('https://api.planespotters.net/pub/photos/hex/'+id);
+    if(r.photos&&r.photos.length>0){
+      var p=r.photos[0];
       return{src:(p.thumbnail_large&&p.thumbnail_large.src)||p.thumbnail.src,
         credit:p.photographer?'📷 '+p.photographer:''};
     }
@@ -450,16 +490,13 @@ async function fetchPhoto(id){
 }
 async function fetchBuiltYear(reg){
   var tgt='https://www.airport-data.com/aircraft/'+reg+'.html';
-  var proxies=['https://api.allorigins.win/get?url=','https://corsproxy.io/?url='];
-  for(var i=0;i<proxies.length;i++){
-    try{
-      var r=await fetch(proxies[i]+encodeURIComponent(tgt));
-      var d=await r.json();
-      var html=typeof d.contents==='string'?d.contents:'';
-      var m=html.match(/(\d{4})/);
-      if(m)return m[1];
-    }catch(e){}
-  }
+  var proxy='https://api.allorigins.win/get?url='+encodeURIComponent(tgt);
+  try{
+    var d=await xhrGet(proxy);
+    var html=typeof d.contents==='string'?d.contents:'';
+    var m=html.match(/(\d{4})/);
+    if(m)return m[1];
+  }catch(e){}
   return null;
 }
 
@@ -484,25 +521,6 @@ function segD(px,py,ax,ay,bx,by){
   if(!l2)return{d:hav(px,py,ax,ay),t:0};
   var t=Math.max(0,Math.min(1,((px-ax)*dx+(py-ay)*dy)/l2));
   return{d:hav(px,py,ax+t*dx,ay+t*dy),t:t};
-}
-
-
-// XHR works from file:// where fetch() is blocked by Chrome
-function xhrGet(url){
-  return new Promise(function(resolve,reject){
-    var x=new XMLHttpRequest();
-    x.open('GET',url,true);
-    x.timeout=10000;
-    x.onload=function(){
-      if(x.status>=200&&x.status<300){
-        try{resolve(JSON.parse(x.responseText));}
-        catch(e){reject(e);}
-      }else{reject(new Error('HTTP '+x.status));}
-    };
-    x.onerror=function(){reject(new Error('Network error'));};
-    x.ontimeout=function(){reject(new Error('Timeout'));};
-    x.send();
-  });
 }
 
 var ACLEN={A318:31.4,A319:33.8,A320:37.6,A321:44.5,A20N:37.6,A21N:44.5,A332:58.8,A333:63.7,A338:63.7,A339:63.7,A359:66.8,A35K:73.8,A388:72.7,B736:31.1,B737:33.6,B738:39.5,B739:42.1,B744:70.7,B748:76.3,B752:47.3,B753:54.5,B762:48.5,B763:54.9,B764:61.4,B772:63.7,B77L:64.8,B77W:73.9,B77X:76.7,B788:57,B789:63,B78X:68.3,E170:29.9,E175:31.7,E190:36.2,E195:38.7,CRJ2:24.4,CRJ7:32.5,CRJ9:36.2,DH8D:32.8,AT72:27.2};
