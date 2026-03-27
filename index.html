@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-<title>Overhead Ultra — Full Specs</title>
+<title>Overhead Ultra — Apple Design</title>
 
 <!-- LEAFLET -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -13,138 +13,151 @@
 
 <style>
 :root {
-  /* EXTREME LIQUID GLASS LIGHT THEME */
+  /* APPLE SYSTEM COLORS */
   --bg: #F2F2F7;
+  --text-main: #1D1D1F;
+  --text-sec: #86868B;
+  --apple-blue: #007AFF;
+  --apple-green: #34C759;
+  --apple-orange: #FF9F0A;
   
-  --surface: rgba(255, 255, 255, 0.45);
-  --surface-solid: rgba(255, 255, 255, 0.85);
+  /* REAL IOS VIBRANCY MATERIALS */
+  --glass-bg: rgba(255, 255, 255, 0.55);
+  --glass-solid: rgba(255, 255, 255, 0.85);
+  --glass-card: linear-gradient(180deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.4) 100%);
   
-  --glass-border: rgba(255, 255, 255, 0.7);
-  --glass-highlight: inset 0 1px 1px rgba(255, 255, 255, 1), inset 0 -1px 2px rgba(255, 255, 255, 0.4);
+  --glass-border: rgba(255, 255, 255, 0.6);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.9);
   
-  --text: #1C1C1E;
-  --text-2: #3C3C43;
-  --text-3: #8E8E93;
+  --blur: saturate(180%) blur(40px);
+  --spring: cubic-bezier(0.25, 1, 0.25, 1); /* Pehmeämpi Apple-jousi */
   
-  --blue: #0A84FF; --green: #34C759; --orange: #FF9F0A;
-  
-  --blur: saturate(200%) blur(50px);
-  --spring: cubic-bezier(0.22, 1, 0.36, 1);
-  --shadow: 0 16px 40px rgba(0, 0, 0, 0.12);
+  /* IOS LAYERED SHADOWS */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.12), 0 2px 10px rgba(0, 0, 0, 0.04);
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; }
+
+/* APPLE TYPOGRAPHY */
+html, body { 
+  margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; 
+  background: #000; color: var(--text-main); 
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif; 
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
 body { user-select: none; }
 
 #map { position: absolute; inset: 0; background: #000; z-index: 1; }
 .leaflet-control-zoom, .leaflet-control-attribution { display: none !important; }
 
 /* KUVAMARKKERI */
-.plane-img {
-  width: 32px; height: 32px;
-  margin-left: -16px; margin-top: -16px;
-  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.6));
-  transition: transform 0.6s linear;
-}
-.plane-img.sel {
-  width: 46px; height: 46px;
-  margin-left: -23px; margin-top: -23px;
-  filter: drop-shadow(0 8px 16px rgba(0,0,0,0.8));
-  z-index: 1000 !important;
+.plane-img { width: 32px; height: 32px; margin-left: -16px; margin-top: -16px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4)); transition: transform 0.6s linear; }
+.plane-img.sel { width: 46px; height: 46px; margin-left: -23px; margin-top: -23px; filter: drop-shadow(0 6px 12px rgba(0,0,0,0.6)); z-index: 1000 !important; }
+
+/* LIQUID GLASS MIXIN CLASIT */
+.apple-glass {
+  background: var(--glass-bg);
+  backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+  border: 0.5px solid var(--glass-border);
+  box-shadow: var(--shadow-lg), var(--glass-highlight);
 }
 
 /* UI ELEMENTS */
 .island-wrap { position: fixed; left: 0; right: 0; top: max(14px, env(safe-area-inset-top)); z-index: 2500; display: flex; justify-content: center; pointer-events: none; padding: 0 14px; }
 .island {
-  width: min(820px, 100%); min-height: 58px; border-radius: 30px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; pointer-events: auto;
-  background: var(--surface); border: 1px solid var(--glass-border); box-shadow: var(--shadow), var(--glass-highlight);
-  backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
-  transition: transform .45s var(--spring), min-height .45s var(--spring), width .45s var(--spring);
+  width: min(820px, 100%); min-height: 60px; border-radius: 32px; padding: 10px 14px; 
+  display: flex; align-items: center; gap: 12px; pointer-events: auto;
+  transition: transform .5s var(--spring), min-height .5s var(--spring), width .5s var(--spring);
 }
 
-.brand { flex: 0 0 auto; display: flex; align-items: center; gap: 10px; padding: 0 8px 0 4px; }
-.brand-badge { width: 36px; height: 36px; border-radius: 12px; background: linear-gradient(135deg, #0A84FF, #5eb1ff); box-shadow: 0 4px 12px rgba(10,132,255,.3), inset 0 2px 4px rgba(255,255,255,0.4); position: relative; overflow: hidden; display: flex; justify-content: center; align-items: center; }
+.brand { flex: 0 0 auto; display: flex; align-items: center; gap: 10px; padding: 0 6px 0 4px; }
+.brand-badge { width: 36px; height: 36px; border-radius: 12px; background: linear-gradient(135deg, var(--apple-blue), #5eb1ff); box-shadow: 0 4px 12px rgba(0,122,255,0.3), inset 0 2px 4px rgba(255,255,255,0.4); position: relative; overflow: hidden; display: flex; justify-content: center; align-items: center; }
 .brand-badge::before { content: ''; position: absolute; bottom: -4px; left: -4px; width: 24px; height: 24px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.3); }
 .brand-badge::after { content: ''; position: absolute; width: 8px; height: 8px; background: #ffffff; border-radius: 50%; top: 8px; right: 8px; box-shadow: 0 0 10px rgba(255,255,255,0.8); }
 .brand-line { position: absolute; width: 20px; height: 2px; background: #ffffff; transform: rotate(-45deg); transform-origin: left center; bottom: 8px; left: 8px; border-radius: 2px; }
-.brand-text { font-size: 19px; font-weight: 900; letter-spacing: -.05em; color: var(--text); }
-.brand-text span { color: var(--blue); }
+.brand-text { font-size: 20px; font-weight: 800; letter-spacing: -0.05em; color: var(--text-main); }
+.brand-text span { color: var(--apple-blue); }
 
-.searchbox { flex: 1; min-height: 40px; border-radius: 20px; background: rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.03); display: flex; align-items: center; padding: 0 16px; }
-.searchbox input { width: 100%; border: none; outline: none; background: transparent; color: var(--text); font-size: 15px; font-weight: 650; }
-.searchbox input::placeholder { color: var(--text-3); font-weight: 600; }
+.searchbox { flex: 1; min-height: 42px; border-radius: 21px; background: rgba(0,0,0,0.06); display: flex; align-items: center; padding: 0 16px; }
+.searchbox input { width: 100%; border: none; outline: none; background: transparent; color: var(--text-main); font-size: 16px; font-weight: 500; letter-spacing: -0.02em; }
+.searchbox input::placeholder { color: var(--text-sec); font-weight: 500; }
 .island.focus .searchbox { display: none; }
 
 .island-flight { display: none; flex: 1; align-items: center; gap: 12px; padding: 0 6px 0 10px; }
 .island.focus .island-flight { display: flex; }
-.if-main { display: flex; flex-direction: column; line-height: 1.05; }
-.if-call { font-size: 18px; font-weight: 900; letter-spacing: -.04em; }
-.if-route { margin-top: 4px; font-size: 13px; font-weight: 700; color: var(--blue); }
-.ibtn { width: 38px; height: 38px; border: none; border-radius: 19px; background: rgba(255,255,255,0.5); border: 1px solid rgba(255,255,255,0.8); box-shadow: 0 2px 8px rgba(0,0,0,0.05); color: var(--text); cursor: pointer; font-size: 16px; display: grid; place-items: center; transition: transform 0.2s; }
-.ibtn:active { transform: scale(0.9); }
+.if-main { display: flex; flex-direction: column; line-height: 1.1; }
+.if-call { font-size: 20px; font-weight: 800; letter-spacing: -0.04em; }
+.if-route { margin-top: 2px; font-size: 13px; font-weight: 600; color: var(--apple-blue); letter-spacing: -0.01em; }
+
+.ibtn { width: 40px; height: 40px; border: none; border-radius: 20px; background: rgba(255,255,255,0.6); border: 0.5px solid rgba(255,255,255,0.8); box-shadow: var(--shadow-sm); color: var(--text-main); cursor: pointer; font-size: 18px; display: grid; place-items: center; transition: transform 0.2s; }
+.ibtn:active { transform: scale(0.88); }
 .island-actions { display: flex; gap: 8px; }
 
-.hud-wrap { position: fixed; left: 0; right: 0; top: calc(max(14px, env(safe-area-inset-top)) + 78px); z-index: 2200; display: flex; justify-content: center; pointer-events: none; opacity: 0; transform: translateY(-10px); transition: opacity 0.4s ease, transform 0.4s var(--spring); }
+/* HUD - TABULAR NUMS */
+.hud-wrap { position: fixed; left: 0; right: 0; top: calc(max(14px, env(safe-area-inset-top)) + 84px); z-index: 2200; display: flex; justify-content: center; pointer-events: none; opacity: 0; transform: translateY(-10px); transition: opacity 0.4s ease, transform 0.4s var(--spring); }
 .hud-wrap.show { opacity: 1; transform: translateY(0); }
-.hud { border-radius: 22px; padding: 10px 24px; display: flex; align-items: center; gap: 20px; background: var(--surface); border: 1px solid var(--glass-border); box-shadow: var(--shadow), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); font-variant-numeric: tabular-nums; }
+.hud { border-radius: 24px; padding: 12px 28px; display: flex; align-items: center; gap: 24px; font-variant-numeric: tabular-nums; }
 .hud-block { display: flex; flex-direction: column; align-items: center; }
-.hud-label { font-size: 10px; font-weight: 850; color: var(--text-3); letter-spacing: .08em; text-transform: uppercase; }
-.hud-value { margin-top: 2px; font-size: 17px; font-weight: 950; letter-spacing: -.05em; color: var(--text); }
-.hud-divider { width: 1px; height: 26px; background: rgba(0,0,0,0.1); }
+.hud-label { font-size: 11px; font-weight: 700; color: var(--text-sec); letter-spacing: 0.06em; text-transform: uppercase; }
+.hud-value { margin-top: 4px; font-size: 18px; font-weight: 800; letter-spacing: -0.03em; color: var(--text-main); }
+.hud-divider { width: 1px; height: 28px; background: rgba(0,0,0,0.1); }
 
-.map-status { position: fixed; left: 16px; top: calc(max(14px, env(safe-area-inset-top)) + 84px); z-index: 1700; padding: 10px 16px; border-radius: 18px; background: var(--surface); border: 1px solid var(--glass-border); box-shadow: var(--shadow), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); color: var(--text-2); font-size: 13px; font-weight: 750; display: flex; align-items: center; gap: 8px; transition: transform 0.4s var(--spring); }
-.island.focus ~ .map-status { transform: translateY(60px); }
-.live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 1.8s ease-in-out infinite; box-shadow: 0 0 8px rgba(52,199,89,0.6); }
+/* SIDE CONTROLS */
+.map-status { position: fixed; left: 14px; top: calc(max(14px, env(safe-area-inset-top)) + 84px); z-index: 1700; padding: 10px 18px; border-radius: 20px; color: var(--text-main); font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 10px; transition: transform 0.5s var(--spring); letter-spacing: -0.01em; }
+.island.focus ~ .map-status { transform: translateY(64px); }
+.live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--apple-green); animation: pulse 2s ease-in-out infinite; box-shadow: 0 0 10px rgba(52,199,89,0.5); }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
-.live-dot.warn { background: var(--orange); box-shadow: 0 0 8px rgba(255,159,10,0.6); animation: none; } 
+.live-dot.warn { background: var(--apple-orange); box-shadow: 0 0 10px rgba(255,159,10,0.5); animation: none; } 
 
-.side-controls { position: fixed; right: 14px; top: calc(max(14px, env(safe-area-inset-top)) + 84px); z-index: 2100; display: flex; flex-direction: column; gap: 10px; transition: transform 0.4s var(--spring); }
-.island.focus ~ .side-controls { transform: translateY(60px); }
-.fab { width: 50px; height: 50px; border: none; border-radius: 25px; color: var(--text); cursor: pointer; background: var(--surface); border: 1px solid var(--glass-border); box-shadow: var(--shadow), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); font-weight: 800; font-size: 13px; transition: transform 0.2s; }
-.fab:active { transform: scale(0.92); }
+.side-controls { position: fixed; right: 14px; top: calc(max(14px, env(safe-area-inset-top)) + 84px); z-index: 2100; display: flex; flex-direction: column; gap: 12px; transition: transform 0.5s var(--spring); }
+.island.focus ~ .side-controls { transform: translateY(64px); }
+.fab { width: 48px; height: 48px; border: none; border-radius: 24px; color: var(--text-main); cursor: pointer; font-weight: 700; font-size: 13px; transition: transform 0.2s; letter-spacing: -0.01em; }
+.fab:active { transform: scale(0.9); }
 
-.sheet { position: fixed; left: 14px; right: 14px; bottom: 14px; z-index: 1800; border-radius: 36px; background: linear-gradient(180deg, rgba(255,255,255,0.7), rgba(240,240,245,0.9)); border: 1px solid var(--glass-border); box-shadow: 0 24px 60px rgba(0,0,0,0.15), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); overflow: hidden; transition: height .45s var(--spring); height: 182px; }
+/* BOTTOM SHEET */
+.sheet { position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 1800; border-radius: 36px; overflow: hidden; transition: height .5s var(--spring); height: 180px; }
 .sheet.expanded { height: min(72vh, 820px); }
-.sheet-grab { display: flex; justify-content: center; align-items: center; padding: 12px 0 4px; cursor: pointer; }
-.sheet-grab div { width: 48px; height: 6px; border-radius: 999px; background: rgba(0,0,0,0.15); }
-.sheet-head { display: flex; justify-content: space-between; align-items: center; padding: 8px 20px 16px; }
-.sheet-title { font-size: 28px; font-weight: 950; letter-spacing: -.05em; color: var(--text); }
-.sheet-sub { margin-top: 2px; font-size: 13px; font-weight: 850; color: var(--blue); letter-spacing: .02em; text-transform: uppercase; }
-.sheet-list { height: calc(100% - 94px); overflow: auto; padding: 0 14px 14px; }
+.sheet-grab { display: flex; justify-content: center; align-items: center; padding: 14px 0 6px; cursor: pointer; }
+.sheet-grab div { width: 40px; height: 5px; border-radius: 3px; background: rgba(0,0,0,0.2); }
+.sheet-head { display: flex; justify-content: space-between; align-items: center; padding: 8px 24px 18px; }
+.sheet-title { font-size: 28px; font-weight: 800; letter-spacing: -0.04em; color: var(--text-main); }
+.sheet-sub { margin-top: 4px; font-size: 13px; font-weight: 700; color: var(--apple-blue); letter-spacing: 0.01em; text-transform: uppercase; }
+.sheet-list { height: calc(100% - 100px); overflow: auto; padding: 0 16px 16px; }
 .sheet-list::-webkit-scrollbar { display: none; }
 
-.card { display: flex; align-items: center; gap: 14px; padding: 12px; margin-bottom: 12px; border-radius: 24px; background: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.8); cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.02); transition: transform 0.2s var(--spring); }
-.card:active { transform: scale(0.97); }
-.card.sel { border-color: rgba(10,132,255,0.4); background: rgba(10,132,255,.08); box-shadow: 0 0 0 1px var(--blue); }
-.plane-badge { width: 56px; height: 56px; border-radius: 20px; display: grid; place-items: center; background: rgba(0,0,0,0.04); flex: 0 0 auto; overflow: hidden; border: 1px solid rgba(0,0,0,0.05); font-size:24px; opacity:0.6; }
+.card { display: flex; align-items: center; gap: 14px; padding: 12px; margin-bottom: 10px; border-radius: 24px; background: var(--glass-card); border: 0.5px solid rgba(255,255,255,0.7); cursor: pointer; box-shadow: var(--shadow-sm); transition: transform 0.2s var(--spring); }
+.card:active { transform: scale(0.96); }
+.card.sel { border-color: rgba(0,122,255,0.4); background: rgba(0,122,255,.06); box-shadow: inset 0 0 0 1px var(--apple-blue); }
+.plane-badge { width: 56px; height: 56px; border-radius: 20px; display: grid; place-items: center; background: rgba(0,0,0,0.04); flex: 0 0 auto; overflow: hidden; font-size:24px; opacity:0.6; }
 .plane-badge img { width: 100%; height: 100%; object-fit: cover; opacity: 1 !important; }
 .card-main { flex: 1; min-width: 0; }
-.card-call { font-size: 18px; font-weight: 900; letter-spacing: -.03em; color: var(--text); }
-.card-sub { margin-top: 2px; color: var(--text-2); font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.card-call { font-size: 18px; font-weight: 700; letter-spacing: -0.03em; color: var(--text-main); }
+.card-sub { margin-top: 2px; color: var(--text-sec); font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.01em; }
 .card-stats { text-align: right; font-variant-numeric: tabular-nums; }
-.stat-big { font-size: 16px; font-weight: 900; color: var(--text); }
-.stat-small { font-size: 11px; color: var(--text-3); font-weight: 850; margin-top: 2px; text-transform: uppercase; }
+.stat-big { font-size: 17px; font-weight: 700; color: var(--text-main); letter-spacing: -0.02em; }
+.stat-small { font-size: 11px; color: var(--text-sec); font-weight: 600; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.04em; }
 
-/* DETAIL VIEW - EXPANDED SPECS */
-.detail { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -40%) scale(0.95); width: min(92%, 480px); max-height: 85vh; z-index: 3200; border-radius: 36px; background: var(--surface-solid); border: 1px solid var(--glass-border); box-shadow: 0 40px 100px rgba(0,0,0,0.25), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: transform .45s var(--spring), opacity .3s ease; }
+/* DETAIL VIEW (APPLE WALLET STYLE) */
+.detail { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -40%) scale(0.95); width: min(92%, 480px); max-height: 85vh; z-index: 3200; border-radius: 36px; background: var(--glass-solid); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); border: 0.5px solid var(--glass-border); box-shadow: 0 40px 100px rgba(0,0,0,0.25), var(--glass-highlight); display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: transform .5s var(--spring), opacity .3s ease; }
 .detail.open { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
-.detail-close { position: absolute; right: 16px; top: 16px; width: 34px; height: 34px; border: none; border-radius: 17px; background: rgba(0,0,0,0.08); color: var(--text); cursor: pointer; z-index: 10; display: grid; place-items: center; font-size: 15px; font-weight: 800; transition: transform 0.2s; }
-.detail-close:active { transform: scale(0.9); }
-.detail-top { position: relative; padding: 24px 20px 16px; border-bottom: 1px solid rgba(0,0,0,0.06); display: flex; flex-direction: column; align-items: center; text-align: center; }
-.d-hero { width: 100%; height: 160px; display: flex; justify-content: center; align-items: center; margin-bottom: 18px; border-radius: 24px; background: rgba(0,0,0,0.03); overflow: hidden; border: 1px solid rgba(0,0,0,0.05); }
+.detail-close { position: absolute; right: 18px; top: 18px; width: 36px; height: 36px; border: none; border-radius: 18px; background: rgba(0,0,0,0.06); color: var(--text-main); cursor: pointer; z-index: 10; display: grid; place-items: center; font-size: 15px; font-weight: 800; transition: transform 0.2s; }
+.detail-close:active { transform: scale(0.85); }
+.detail-top { position: relative; padding: 28px 24px 20px; border-bottom: 0.5px solid rgba(0,0,0,0.08); display: flex; flex-direction: column; align-items: center; text-align: center; }
+.d-hero { width: 100%; height: 180px; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; border-radius: 26px; background: rgba(0,0,0,0.03); overflow: hidden; }
 .d-hero img { width: 100%; height: 100%; object-fit: cover; }
-.d-call { font-size: 38px; font-weight: 950; letter-spacing: -.05em; line-height: 1; color: var(--text); }
-.d-route { margin-top: 8px; color: var(--blue); font-size: 16px; font-weight: 800; }
-.d-scroll { flex: 1; overflow-y: auto; padding: 18px; }
+.d-call { font-size: 40px; font-weight: 800; letter-spacing: -0.04em; line-height: 1; color: var(--text-main); }
+.d-route { margin-top: 8px; color: var(--apple-blue); font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
+.d-scroll { flex: 1; overflow-y: auto; padding: 20px; }
 .d-scroll::-webkit-scrollbar { display: none; }
 
-.grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
-.info { padding: 14px 16px; border-radius: 20px; background: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,1); box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
+.info { padding: 14px 16px; border-radius: 20px; background: var(--glass-card); border: 0.5px solid rgba(255,255,255,0.8); box-shadow: var(--shadow-sm); }
 .info.full { grid-column: 1 / -1; }
-.i-label { font-size: 11px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; color: var(--text-3); }
-.i-value { margin-top: 6px; font-size: 16px; font-weight: 900; letter-spacing: -.02em; color: var(--text); font-variant-numeric: tabular-nums; }
-.empty { padding: 40px 20px; text-align: center; color: var(--text-3); font-weight: 700; font-size: 15px; }
+.i-label { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--text-sec); }
+.i-value { margin-top: 6px; font-size: 17px; font-weight: 700; letter-spacing: -0.02em; color: var(--text-main); font-variant-numeric: tabular-nums; }
+.empty { padding: 40px 20px; text-align: center; color: var(--text-sec); font-weight: 600; font-size: 16px; letter-spacing: -0.01em; }
 
 </style>
 </head>
@@ -153,12 +166,12 @@ body { user-select: none; }
 <div id="map"></div>
 
 <div class="island-wrap">
-  <div class="island" id="island">
+  <div class="island apple-glass" id="island">
     <div class="brand">
       <div class="brand-badge"><div class="brand-line"></div></div>
       <div class="brand-text">Over<span>head</span></div>
     </div>
-    <div class="searchbox"><span style="opacity:0.4; margin-right:6px; font-size:14px;">🔎</span><input id="searchInput" placeholder="Search callsign..." /></div>
+    <div class="searchbox"><span style="opacity:0.4; margin-right:6px; font-size:15px;">🔎</span><input id="searchInput" placeholder="Search callsign..." /></div>
     <div class="island-flight" id="islandFlight">
       <div class="if-main"><div class="if-call" id="ifCall">FIN123</div><div class="if-route" id="ifRoute">Live focus</div></div>
     </div>
@@ -169,21 +182,21 @@ body { user-select: none; }
 </div>
 
 <div class="hud-wrap" id="hudWrap">
-  <div class="hud">
+  <div class="hud apple-glass">
     <div class="hud-block"><div class="hud-label">Altitude</div><div class="hud-value" id="hudAlt">--- FT</div></div>
     <div class="hud-divider"></div>
     <div class="hud-block"><div class="hud-label">Speed</div><div class="hud-value" id="hudSpd">--- KT</div></div>
   </div>
 </div>
 
-<div class="map-status" id="mapStatus"><span class="live-dot" id="dotStatus"></span><span id="mapStatusText">Connecting...</span></div>
+<div class="map-status apple-glass" id="mapStatus"><span class="live-dot" id="dotStatus"></span><span id="mapStatusText">Connecting...</span></div>
 
 <div class="side-controls">
-  <button class="fab" id="turkuBtn">TKU</button>
-  <button class="fab" id="sheetBtn">☰</button>
+  <button class="fab apple-glass" id="turkuBtn">TKU</button>
+  <button class="fab apple-glass" id="sheetBtn">☰</button>
 </div>
 
-<div class="sheet expanded" id="sheet">
+<div class="sheet expanded apple-glass" id="sheet">
   <div class="sheet-grab" id="sheetGrab"><div></div></div>
   <div class="sheet-head">
     <div><div class="sheet-title">Live Radar</div><div class="sheet-sub" id="sheetSub">Waiting for real data...</div></div>
@@ -200,19 +213,14 @@ body { user-select: none; }
   </div>
   <div class="d-scroll">
     <div class="grid">
-      <!-- UUDET SPEKSIT TÄÄLLÄ! -->
       <div class="info"><div class="i-label">Altitude</div><div class="i-value" id="dAlt">—</div></div>
       <div class="info"><div class="i-label">Speed</div><div class="i-value" id="dSpd">—</div></div>
-      
       <div class="info"><div class="i-label">Track</div><div class="i-value" id="dTrack">—</div></div>
       <div class="info"><div class="i-label">V. Rate</div><div class="i-value" id="dVRate">—</div></div>
-      
       <div class="info"><div class="i-label">Distance</div><div class="i-value" id="dDist">—</div></div>
       <div class="info"><div class="i-label">Squawk</div><div class="i-value" id="dSquawk">—</div></div>
-      
       <div class="info full"><div class="i-label">Aircraft Model</div><div class="i-value" id="dModel">Loading…</div></div>
       <div class="info full"><div class="i-label">Operator</div><div class="i-value" id="dOperator">—</div></div>
-      
       <div class="info"><div class="i-label">Registration</div><div class="i-value" id="dReg">—</div></div>
       <div class="info"><div class="i-label">ICAO 24-bit</div><div class="i-value" id="dIcao">—</div></div>
     </div>
@@ -229,39 +237,29 @@ const state = {
   markers: new Map()
 };
 
-const planeBlueURI = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z' fill='%230A84FF' stroke='%23FFFFFF' stroke-width='0.5'/%3E%3C/svg%3E";
+const planeBlueURI = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z' fill='%23007AFF' stroke='%23FFFFFF' stroke-width='0.5'/%3E%3C/svg%3E";
 const planeGreenURI = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z' fill='%2334C759' stroke='%23FFFFFF' stroke-width='1'/%3E%3C/svg%3E";
 
-// Apuohjelmat datan nätiksi muokkaamiseen
 function fmtFt(m){ return m==null?'—':Math.round(m*3.28084).toLocaleString('en-US')+' FT'; }
 function fmtKt(ms){ return ms==null?'—':Math.round(ms*1.94384)+' KT'; }
 function fmtVRate(ms) {
     if (!ms) return 'Level';
-    const fpm = Math.round(ms * 196.85); // m/s to ft/min
+    const fpm = Math.round(ms * 196.85); 
     return fpm > 0 ? `↗ ${fpm} ft/m` : `↘ ${Math.abs(fpm)} ft/m`;
 }
 function fmtHeading(deg) {
     if (deg == null) return '—';
     const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
-    const dir = dirs[Math.round(deg / 45) % 8];
-    return `${Math.round(deg)}° ${dir}`;
+    return `${Math.round(deg)}° ${dirs[Math.round(deg / 45) % 8]}`;
 }
 function haversine(lat1, lon1, lat2, lon2){ const R=6371, p=Math.PI/180; const a=Math.sin((lat2-lat1)*p/2)**2 + Math.cos(lat1*p)*Math.cos(lat2*p)*Math.sin((lon2-lon1)*p/2)**2; return R*2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); }
 
 // ---------- 1. LEAFLET KARTTA ----------
 function initMap(){
-  state.map = L.map('map', {
-      zoomControl:false, 
-      attributionControl:false, 
-      minZoom: 3,
-      maxBounds: [[-90, -180], [90, 180]],
-      maxBoundsViscosity: 1.0
-  }).setView([state.userLat, state.userLon], 6);
-  
+  state.map = L.map('map', { zoomControl:false, attributionControl:false, minZoom: 3, maxBounds: [[-90, -180], [90, 180]], maxBoundsViscosity: 1.0 }).setView([state.userLat, state.userLon], 6);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19}).addTo(state.map);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{maxZoom:19, opacity:0.85}).addTo(state.map);
-
-  state.userMarker = L.circleMarker([state.userLat, state.userLon], {radius:7, color:'#fff', weight:2, fillColor:'#0A84FF', fillOpacity:1}).addTo(state.map);
+  state.userMarker = L.circleMarker([state.userLat, state.userLon], {radius:7, color:'#fff', weight:2, fillColor:'#007AFF', fillOpacity:1}).addTo(state.map);
 }
 
 function setUserLocation(lat, lon, zoom=6){
@@ -272,21 +270,11 @@ function setUserLocation(lat, lon, zoom=6){
 
 function updateMarkers() {
     if(!state.map) return;
-    
     let arr = [...state.flights.values()].sort((a,b) => a.dist - b.dist).slice(0, 300);
-    if(state.selectedIcao && !arr.find(f => f.icao24 === state.selectedIcao)){
-        const sf = state.flights.get(state.selectedIcao);
-        if(sf) arr.push(sf);
-    }
-
+    if(state.selectedIcao && !arr.find(f => f.icao24 === state.selectedIcao)){ const sf = state.flights.get(state.selectedIcao); if(sf) arr.push(sf); }
     const currentIcaos = new Set(arr.map(f => f.icao24));
 
-    for(const [icao, marker] of state.markers.entries()){
-        if(!currentIcaos.has(icao)){
-            state.map.removeLayer(marker);
-            state.markers.delete(icao);
-        }
-    }
+    for(const [icao, marker] of state.markers.entries()){ if(!currentIcaos.has(icao)){ state.map.removeLayer(marker); state.markers.delete(icao); } }
 
     for(const f of arr){
         let marker = state.markers.get(f.icao24);
@@ -294,11 +282,7 @@ function updateMarkers() {
         const uri = isSel ? planeGreenURI : planeBlueURI;
         
         if(!marker) {
-            const icon = L.divIcon({
-                className: '',
-                html: `<img src="${uri}" class="plane-img ${isSel?'sel':''}" style="transform: rotate(${f.track||0}deg)" />`,
-                iconSize: [0,0]
-            });
+            const icon = L.divIcon({ className: '', html: `<img src="${uri}" class="plane-img ${isSel?'sel':''}" style="transform: rotate(${f.track||0}deg)" />`, iconSize: [0,0] });
             marker = L.marker([f.curLat, f.curLon], {icon, zIndexOffset: isSel?1000:0}).addTo(state.map);
             marker.on('click', () => openDetailUI(f.icao24));
             state.markers.set(f.icao24, marker);
@@ -308,35 +292,25 @@ function updateMarkers() {
             if(el && el.firstChild) {
                 el.firstChild.style.transform = `rotate(${f.track||0}deg)`;
                 const wasSel = el.firstChild.classList.contains('sel');
-                if(isSel !== wasSel) {
-                    if(isSel) el.firstChild.classList.add('sel'); else el.firstChild.classList.remove('sel');
-                    el.firstChild.src = uri;
-                }
+                if(isSel !== wasSel) { if(isSel) el.firstChild.classList.add('sel'); else el.firstChild.classList.remove('sel'); el.firstChild.src = uri; }
             }
             marker.setZIndexOffset(isSel?1000:0);
         }
     }
 }
 
-// ---------- 2. DATA FETCH (ÄLYKÄS) ----------
+// ---------- 2. DATA FETCH ----------
 async function fetchFlights(){
-  $('mapStatusText').textContent = 'Fetching...';
+  $('mapStatusText').textContent = 'Updating...';
   try{
     let url = `https://opensky-network.org/api/states/all`;
     if(state.map && state.map.getZoom() >= 5) {
         const bounds = state.map.getBounds();
-        const lamin = Math.max(-90, bounds.getSouth());
-        const lomin = Math.max(-180, bounds.getWest());
-        const lamax = Math.min(90, bounds.getNorth());
-        const lomax = Math.min(180, bounds.getEast());
-        url += `?lamin=${lamin}&lomin=${lomin}&lamax=${lamax}&lomax=${lomax}`;
+        url += `?lamin=${Math.max(-90, bounds.getSouth())}&lomin=${Math.max(-180, bounds.getWest())}&lamax=${Math.min(90, bounds.getNorth())}&lomax=${Math.min(180, bounds.getEast())}`;
     }
 
     const res = await fetch(url);
-    if(!res.ok) {
-        if(res.status === 429) throw new Error('RateLimit');
-        throw new Error('API');
-    }
+    if(!res.ok) { if(res.status === 429) throw new Error('RateLimit'); throw new Error('API'); }
     const json = await res.json();
     if(!json.states) json.states = [];
     
@@ -352,30 +326,24 @@ async function fetchFlights(){
     }).filter(Boolean);
 
     const seen = new Set();
-    for(const nf of arr){
-      seen.add(nf.icao24);
-      const old = state.flights.get(nf.icao24);
-      if(old){ Object.assign(old, nf); } else { state.flights.set(nf.icao24, nf); }
-    }
-    for(const icao of state.flights.keys()){ 
-        if(!seen.has(icao)) state.flights.delete(icao);
-    }
+    for(const nf of arr){ seen.add(nf.icao24); const old = state.flights.get(nf.icao24); if(old){ Object.assign(old, nf); } else { state.flights.set(nf.icao24, nf); } }
+    for(const icao of state.flights.keys()){ if(!seen.has(icao)) state.flights.delete(icao); }
     
-    $('mapStatusText').textContent = `Tracking ${state.flights.size} in view`;
-    $('sheetSub').textContent = `${state.flights.size} Live Airborne`;
+    $('mapStatusText').textContent = `${state.flights.size} Live`;
+    $('sheetSub').textContent = `${state.flights.size} Aircraft in Area`;
     $('dotStatus').classList.remove('warn');
     
   }catch(e){ 
       $('dotStatus').classList.add('warn');
       if(e.message === 'RateLimit') {
-          $('mapStatusText').textContent = 'API Limit - Odota hetki...';
-          $('sheetSub').textContent = 'OpenSky API lukittu, odota n. 1 min';
+          $('mapStatusText').textContent = 'Cooling down...';
+          $('sheetSub').textContent = 'Rate Limit. Auto-retrying...';
       } else {
           $('mapStatusText').textContent = 'Network Error';
       }
   } finally{ 
       renderList(); updateMarkers();
-      setTimeout(fetchFlights, 12000); 
+      setTimeout(fetchFlights, 15000); // Nostettu 15 sekuntiin bännien välttämiseksi
   } 
 }
 
@@ -400,14 +368,11 @@ function startAnimation(){
     if(state.selectedIcao){
       const sf = state.flights.get(state.selectedIcao);
       if(sf) {
-          // Laske dynaaminen etäisyys liikkuessa
           sf.dist = haversine(state.userLat, state.userLon, sf.curLat, sf.curLon);
-          
           const alt = sf.baro_alt??sf.geo_alt;
           $('dAlt').textContent=fmtFt(alt); 
           $('dSpd').textContent=fmtKt(sf.velocity);
-          $('dDist').textContent = sf.dist.toFixed(1) + ' km'; // Etäisyys päivittyy sulavasti!
-          
+          $('dDist').textContent = sf.dist.toFixed(1) + ' km';
           $('hudAlt').textContent=fmtFt(alt); 
           $('hudSpd').textContent=fmtKt(sf.velocity);
       }
@@ -423,10 +388,10 @@ function renderList(){
   if(q) arr = arr.filter(f => (f.callsign||'').toLowerCase().includes(q));
   
   if(!arr.length){ 
-      if($('mapStatusText').textContent.includes('Limit')) {
-          $('flightList').innerHTML = '<div class="empty">API Rate Limit. Odota minuutti niin live-data palautuu!</div>';
+      if($('mapStatusText').textContent.includes('Cool')) {
+          $('flightList').innerHTML = '<div class="empty" style="margin-top: 40px;"><div style="font-size:32px;margin-bottom:10px;">⏳</div>API Rate Limit reached.<br>Please wait approx 1-2 minutes<br>for real-time data to resume.</div>';
       } else {
-          $('flightList').innerHTML = '<div class="empty">Loading...</div>'; 
+          $('flightList').innerHTML = '<div class="empty">Loading local airspace...</div>'; 
       }
       return; 
   }
@@ -442,7 +407,8 @@ function renderList(){
         <div class="card-sub">${(f.country||'').replace(/[<>]/g,'')}</div>
       </div>
       <div class="card-stats">
-        <div class="stat-big">${f.dist.toFixed(0)} km</div>
+        <div class="stat-big">${f.dist.toFixed(0)}</div>
+        <div class="stat-small">KM</div>
       </div>
     </div>`
   }).join('');
@@ -456,7 +422,6 @@ window.openDetailUI = async function(icao24) {
   $('island').classList.add('focus'); $('ifCall').textContent = f.callsign;
   $('hudWrap').classList.add('show');
   
-  // ASETETAAN KAIKKI UUDET SPEKSIT KORTTIIN
   $('dCall').textContent = f.callsign; 
   $('dRoute').textContent = f.country;
   $('dTrack').textContent = fmtHeading(f.track);
@@ -465,14 +430,12 @@ window.openDetailUI = async function(icao24) {
   $('dIcao').textContent = f.icao24.toUpperCase();
   $('dDist').textContent = f.dist.toFixed(1) + ' km';
   
-  // Oletusarvot kunnes rajapinta lataa lisätiedot
   $('dModel').textContent = 'Loading...'; 
   $('dOperator').textContent = 'Loading...';
   $('dReg').textContent = '—';
   
   state.map.setView([f.curLat, f.curLon], 9, {animate:true}); updateMarkers(); 
 
-  // Kuvan haku
   if(!state.photoCache.has(icao24)) {
       try {
           const res = await fetch(`https://api.planespotters.net/pub/photos/hex/${icao24.toLowerCase()}`);
@@ -491,14 +454,13 @@ window.openDetailUI = async function(icao24) {
       $('dImg').style.opacity = '1';
   }
 
-  // Koneen tietojen haku
   try {
       const dbRes = await fetch(`https://api.adsbdb.com/v0/aircraft/${icao24.toLowerCase()}`).then(r=>r.json());
       const m = dbRes?.response?.aircraft;
       if(m) {
           $('dModel').textContent = `${m.manufacturer} ${m.type}`;
           $('dOperator').textContent = m.registered_owner || m.icao_type || '—';
-          $('dReg').textContent = m.registration || '—'; // Rekisteritunnus lisätty!
+          $('dReg').textContent = m.registration || '—'; 
       } else {
           $('dModel').textContent = 'Unknown Aircraft';
           $('dOperator').textContent = '—';
@@ -511,7 +473,6 @@ $('detailClose').addEventListener('click', () => {
     $('detail').classList.remove('open'); 
     $('island').classList.remove('focus');
     $('hudWrap').classList.remove('show'); 
-    
     renderList(); updateMarkers();
 });
 
@@ -525,7 +486,7 @@ window.onload = () => {
     initMap();
     setUserLocation(60.4518, 22.2666, 6);
     startAnimation();
-    setTimeout(fetchFlights, 500);
+    setTimeout(fetchFlights, 800); // Pikku viive jotta kartta ehtii rekisteröidä zoomin ennen ekaa hakua
 };
 </script>
 </body>
