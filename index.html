@@ -113,9 +113,6 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:0 16px;height:52px;
   #det.open{transform:translateX(0)}
 }
 
-.leaflet-marker-icon {
-  transition: transform 1s linear;
-}
 
 </style>
 </head>
@@ -349,7 +346,30 @@ async function quickFind(){
 function startLive(){
   if(liveTimer) clearInterval(liveTimer);
   liveTimer = setInterval(fetchLive, 5000);
+  requestAnimationFrame(animatePlanes);
 }
+function animatePlanes(){
+  var now = Date.now();
+  var ids = Object.keys(mks);
+  for(var i=0; i<ids.length; i++){
+    var mk = mks[ids[i]];
+    var f = mk.f;
+    if(!f || !f.lat || !f.lon || f.ground || !f.velMs) continue;
+
+    var dt = (now - f.lastUpd) / 1000;
+    if(dt > 60 || dt < 0) continue; 
+
+    var d = f.velMs * dt;
+    var dy = d * Math.cos(f.track * Math.PI / 180);
+    var dx = d * Math.sin(f.track * Math.PI / 180);
+    var ilat = f.lat + (dy / 111320);
+    var ilon = f.lon + (dx / (111320 * Math.cos(f.lat * Math.PI / 180)));
+
+    mk.setLatLng([ilat, ilon]);
+  }
+  requestAnimationFrame(animatePlanes);
+}
+
 
 async function fetchLive(forceShowSheet){
   if(isFetching) return;
@@ -381,6 +401,7 @@ async function fetchLive(forceShowSheet){
 
 function parseAC(ac){
   var center = map.getCenter();
+  var now = Date.now();
   return ac.map(function(s){
     var lat=s.lat!=null?s.lat:null;
     var lon=s.lon!=null?s.lon:null;
@@ -399,7 +420,8 @@ function parseAC(ac){
       velKt:velKt,velMs:velMs,vrMs:vrMs,
       track:s.track!=null?s.track:0,
       squawk:s.squawk||'',dist:dist,
-      cat:s.category||''
+      cat:s.category||'',
+      lastUpd: now
     };
   }).filter(function(f){return f.lat&&f.lon;});
 }
@@ -444,6 +466,7 @@ function renderAll(){
       : '<svg width="22" height="22" viewBox="0 0 24 24" style="filter:drop-shadow(0 1px 3px rgba(0,0,0,.4))"><path transform-origin="12 12" transform="rotate('+f.track+')" d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="'+col+'"/></svg>';
 
     if(mks[f.id]){
+      mks[f.id].f = f;
       mks[f.id].setLatLng([f.lat, f.lon]);
       mks[f.id].setIcon(L.divIcon({
         html:iconSvg, className:'', iconSize:[22,22], iconAnchor:[11,11]
@@ -453,6 +476,7 @@ function renderAll(){
         html:iconSvg, className:'', iconSize:[22,22], iconAnchor:[11,11]
       })}).addTo(map);
       mk.on('click',function(){selFlight(f.id);});
+      mk.f = f;
       mks[f.id]=mk;
     }
   });
