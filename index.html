@@ -210,8 +210,9 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:0 16px;height:52px;
 <script>
 
 
+
 var map, flights=[], selId=null, mks={}, chip='all', mcache={}, liveTimer=null;
-var lastFetchTime=0, isFetching=false, userPos=null, userHeading=0, userMarker=null;
+var lastFetchTime=0, isFetching=false, userPos=null, userHeading=0, userMarker=null, pastRouteLine=null, futureRouteLine=null;
 
 
 function initMap(){
@@ -354,18 +355,44 @@ function animatePlanes(){
   for(var i=0; i<ids.length; i++){
     var mk = mks[ids[i]];
     var f = mk.f;
-    if(!f || !f.lat || !f.lon || f.ground || !f.velMs) continue;
+    if(!f || f.ground || !f.velMs) continue;
 
-    var dt = (now - f.lastUpd) / 1000;
-    if(dt > 60 || dt < 0) continue; 
+    var dt = now - mk.startTime;
+    var progress = dt / 5000;
 
-    var d = f.velMs * dt;
-    var dy = d * Math.cos(f.track * Math.PI / 180);
-    var dx = d * Math.sin(f.track * Math.PI / 180);
-    var ilat = f.lat + (dy / 111320);
-    var ilon = f.lon + (dx / (111320 * Math.cos(f.lat * Math.PI / 180)));
+    var cLat, cLon;
+    if(progress <= 1 && mk.startLat!=null && mk.targetLat!=null){
+      cLat = mk.startLat + (mk.targetLat - mk.startLat) * progress;
+      cLon = mk.startLon + (mk.targetLon - mk.startLon) * progress;
+    } else {
+      var extraTime = (dt - 5000) / 1000;
+      if(extraTime < 0) extraTime = 0;
+      if(extraTime > 60) continue; 
+      var d = f.velMs * extraTime;
+      var dy = d * Math.cos(f.track * Math.PI / 180);
+      var dx = d * Math.sin(f.track * Math.PI / 180);
+      cLat = mk.targetLat + (dy / 111320);
+      cLon = mk.targetLon + (dx / (111320 * Math.cos(mk.targetLat * Math.PI / 180)));
+    }
 
-    mk.setLatLng([ilat, ilon]);
+    mk.setLatLng([cLat, cLon]);
+
+    if(f.id === selId){
+      if(pastRouteLine){
+        var lls = pastRouteLine.getLatLngs();
+        if(lls.length > 0){
+          lls[lls.length-1] = L.latLng(cLat, cLon);
+          pastRouteLine.setLatLngs(lls);
+        }
+      }
+      if(futureRouteLine){
+        var lls2 = futureRouteLine.getLatLngs();
+        if(lls2.length > 0){
+          lls2[0] = L.latLng(cLat, cLon);
+          futureRouteLine.setLatLngs(lls2);
+        }
+      }
+    }
   }
   requestAnimationFrame(animatePlanes);
 }
@@ -466,9 +493,15 @@ function renderAll(){
       : '<svg width="22" height="22" viewBox="0 0 24 24" style="filter:drop-shadow(0 1px 3px rgba(0,0,0,.4))"><path transform-origin="12 12" transform="rotate('+f.track+')" d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="'+col+'"/></svg>';
 
     if(mks[f.id]){
-      mks[f.id].f = f;
-      mks[f.id].setLatLng([f.lat, f.lon]);
-      mks[f.id].setIcon(L.divIcon({
+      var mk = mks[f.id];
+      // Save for tweening
+      mk.startLat = mk.getLatLng().lat;
+      mk.startLon = mk.getLatLng().lng;
+      mk.targetLat = f.lat;
+      mk.targetLon = f.lon;
+      mk.startTime = Date.now();
+      mk.f = f;
+      mk.setIcon(L.divIcon({
         html:iconSvg, className:'', iconSize:[22,22], iconAnchor:[11,11]
       }));
     } else {
@@ -477,6 +510,11 @@ function renderAll(){
       })}).addTo(map);
       mk.on('click',function(){selFlight(f.id);});
       mk.f = f;
+      mk.startLat = f.lat;
+      mk.startLon = f.lon;
+      mk.targetLat = f.lat;
+      mk.targetLon = f.lon;
+      mk.startTime = Date.now();
       mks[f.id]=mk;
     }
   });
@@ -554,9 +592,30 @@ async function selFlight(id){
     set('dOp','–');
   }
 
+
+  if(pastRouteLine) map.removeLayer(pastRouteLine);
+  if(futureRouteLine) map.removeLayer(futureRouteLine);
+  pastRouteLine = null; futureRouteLine = null;
+
+
+  try {
+    var tr = await xhrGet('https://api.airplanes.live/v2/hex/'+id.toLowerCase());
+    if(tr && tr.trace && tr.trace.length > 0 && selId === id){
+      var pts = tr.trace.map(function(pt){ return [pt[1], pt[2]]; }).filter(function(pt){ return pt[0]!=null && pt[1]!=null; });
+      if(mks[id]) pts.push([mks[id].getLatLng().lat, mks[id].getLatLng().lng]);
+      if(pts.length > 1){
+        pastRouteLine = L.polyline(pts, {color: '#FFCC00', weight: 4, opacity: 0.9}).addTo(map);
+      }
+    }
+  } catch(e) {}
   if(route){
     var o=route.origin,d=route.destination;
     if(o||d)set('dSub',(o?(o.iata_code+' → '):'')+(d?d.iata_code:'?'));
+
+    if(d && d.latitude && d.longitude){
+      futureRouteLine = L.polyline([[f.lat, f.lon], [+d.latitude, +d.longitude]], {color: '#ff9500', weight: 3, dashArray: '8, 8', opacity: 0.8}).addTo(map);
+    }
+
     var eta=calcETA(f,route);
     if(eta){
       var eb=document.getElementById('deta');
@@ -681,7 +740,7 @@ function openSheet(){g('sheet').classList.add('open');}
 function closeSheet(){g('sheet').classList.remove('open');}
 function openCfg(){g('cfg').classList.add('open');g('cfgov').style.display='block';}
 function closeCfg(){g('cfg').classList.remove('open');g('cfgov').style.display='none';}
-function closeDetail(){g('det').classList.remove('open');selId=null;openSheet();renderAll();}
+function closeDetail(){g('det').classList.remove('open');selId=null;if(pastRouteLine)map.removeLayer(pastRouteLine);if(futureRouteLine)map.removeLayer(futureRouteLine);pastRouteLine=null;futureRouteLine=null;openSheet();renderAll();}
 
 window.addEventListener('load',function(){
   initMap();
@@ -690,6 +749,7 @@ window.addEventListener('load',function(){
   // We don't auto-request GPS/Compass here because iOS requires user gesture.
   // User must click "Use my location" or "Find Flights" to get the blue dot & compass.
 });
+
 
 
 </script>
