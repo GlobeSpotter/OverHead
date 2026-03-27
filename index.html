@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="fi">
+<html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-<title>Overhead Ultra — Apple Design</title>
+<title>Overhead Ultra</title>
 
 <!-- LEAFLET -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -13,28 +13,26 @@
 
 <style>
 :root {
-  /* APPLE SYSTEM COLORS */
-  --bg: #F2F2F7;
-  --text-main: #1D1D1F;
-  --text-sec: #86868B;
+  /* APPLE HIG COLORS (Light Mode) */
+  --bg-primary: #F2F2F7;
+  --bg-secondary: #FFFFFF;
+  --label-primary: #000000;
+  --label-secondary: #8E8E93;
+  --label-tertiary: #C7C7CC;
   --apple-blue: #007AFF;
   --apple-green: #34C759;
   --apple-orange: #FF9F0A;
+  --apple-gray-fill: rgba(118, 118, 128, 0.12);
   
-  /* REAL IOS VIBRANCY MATERIALS */
-  --glass-bg: rgba(255, 255, 255, 0.55);
-  --glass-solid: rgba(255, 255, 255, 0.85);
-  --glass-card: linear-gradient(180deg, rgba(255,255,255,0.7) 0%, rgba(255,255,255,0.4) 100%);
+  /* VIBRANCY & MATERIALS */
+  --glass-sheet: rgba(255, 255, 255, 0.85);
+  --glass-island: rgba(255, 255, 255, 0.65);
+  --glass-border: rgba(0, 0, 0, 0.05);
+  --blur-heavy: saturate(180%) blur(40px);
   
-  --glass-border: rgba(255, 255, 255, 0.6);
-  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.9);
-  
-  --blur: saturate(180%) blur(40px);
-  --spring: cubic-bezier(0.25, 1, 0.25, 1); /* Pehmeämpi Apple-jousi */
-  
-  /* IOS LAYERED SHADOWS */
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.12), 0 2px 10px rgba(0, 0, 0, 0.04);
+  --spring: cubic-bezier(0.32, 0.72, 0, 1);
+  --shadow-card: 0 4px 14px rgba(0, 0, 0, 0.06);
+  --shadow-sheet: 0 -8px 40px rgba(0, 0, 0, 0.12);
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -42,8 +40,8 @@
 /* APPLE TYPOGRAPHY */
 html, body { 
   margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; 
-  background: #000; color: var(--text-main); 
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Helvetica Neue", Arial, sans-serif; 
+  background: #000; color: var(--label-primary); 
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif; 
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -52,112 +50,121 @@ body { user-select: none; }
 #map { position: absolute; inset: 0; background: #000; z-index: 1; }
 .leaflet-control-zoom, .leaflet-control-attribution { display: none !important; }
 
-/* KUVAMARKKERI */
+/* SVG FLIGHT MARKERS */
 .plane-img { width: 32px; height: 32px; margin-left: -16px; margin-top: -16px; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4)); transition: transform 0.6s linear; }
 .plane-img.sel { width: 46px; height: 46px; margin-left: -23px; margin-top: -23px; filter: drop-shadow(0 6px 12px rgba(0,0,0,0.6)); z-index: 1000 !important; }
 
-/* LIQUID GLASS MIXIN CLASIT */
-.apple-glass {
-  background: var(--glass-bg);
-  backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
-  border: 0.5px solid var(--glass-border);
-  box-shadow: var(--shadow-lg), var(--glass-highlight);
-}
-
-/* UI ELEMENTS */
+/* DYNAMIC ISLAND / TOP SEARCH */
 .island-wrap { position: fixed; left: 0; right: 0; top: max(14px, env(safe-area-inset-top)); z-index: 2500; display: flex; justify-content: center; pointer-events: none; padding: 0 14px; }
 .island {
-  width: min(820px, 100%); min-height: 60px; border-radius: 32px; padding: 10px 14px; 
+  width: min(820px, 100%); min-height: 56px; border-radius: 28px; padding: 8px 12px; 
   display: flex; align-items: center; gap: 12px; pointer-events: auto;
+  background: var(--glass-island); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy);
+  border: 0.5px solid rgba(255,255,255,0.8); box-shadow: 0 8px 24px rgba(0,0,0,0.08);
   transition: transform .5s var(--spring), min-height .5s var(--spring), width .5s var(--spring);
 }
 
-.brand { flex: 0 0 auto; display: flex; align-items: center; gap: 10px; padding: 0 6px 0 4px; }
-.brand-badge { width: 36px; height: 36px; border-radius: 12px; background: linear-gradient(135deg, var(--apple-blue), #5eb1ff); box-shadow: 0 4px 12px rgba(0,122,255,0.3), inset 0 2px 4px rgba(255,255,255,0.4); position: relative; overflow: hidden; display: flex; justify-content: center; align-items: center; }
-.brand-badge::before { content: ''; position: absolute; bottom: -4px; left: -4px; width: 24px; height: 24px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.3); }
-.brand-badge::after { content: ''; position: absolute; width: 8px; height: 8px; background: #ffffff; border-radius: 50%; top: 8px; right: 8px; box-shadow: 0 0 10px rgba(255,255,255,0.8); }
-.brand-line { position: absolute; width: 20px; height: 2px; background: #ffffff; transform: rotate(-45deg); transform-origin: left center; bottom: 8px; left: 8px; border-radius: 2px; }
-.brand-text { font-size: 20px; font-weight: 800; letter-spacing: -0.05em; color: var(--text-main); }
-.brand-text span { color: var(--apple-blue); }
-
-.searchbox { flex: 1; min-height: 42px; border-radius: 21px; background: rgba(0,0,0,0.06); display: flex; align-items: center; padding: 0 16px; }
-.searchbox input { width: 100%; border: none; outline: none; background: transparent; color: var(--text-main); font-size: 16px; font-weight: 500; letter-spacing: -0.02em; }
-.searchbox input::placeholder { color: var(--text-sec); font-weight: 500; }
+/* APP STORE SEARCH BAR */
+.searchbox { flex: 1; height: 36px; border-radius: 10px; background: var(--apple-gray-fill); display: flex; align-items: center; padding: 0 10px; gap: 6px; }
+.search-icon { width: 16px; height: 16px; color: var(--label-secondary); opacity: 0.8; }
+.searchbox input { width: 100%; border: none; outline: none; background: transparent; color: var(--label-primary); font-size: 17px; letter-spacing: -0.02em; }
+.searchbox input::placeholder { color: var(--label-secondary); }
 .island.focus .searchbox { display: none; }
 
-.island-flight { display: none; flex: 1; align-items: center; gap: 12px; padding: 0 6px 0 10px; }
+/* FOCUS MODE ISLAND */
+.island-flight { display: none; flex: 1; align-items: center; gap: 10px; padding: 0 6px 0 4px; }
 .island.focus .island-flight { display: flex; }
-.if-main { display: flex; flex-direction: column; line-height: 1.1; }
-.if-call { font-size: 20px; font-weight: 800; letter-spacing: -0.04em; }
-.if-route { margin-top: 2px; font-size: 13px; font-weight: 600; color: var(--apple-blue); letter-spacing: -0.01em; }
+.if-main { display: flex; flex-direction: column; }
+.if-call { font-size: 17px; font-weight: 600; letter-spacing: -0.02em; line-height: 1.2; }
+.if-route { font-size: 13px; font-weight: 500; color: var(--apple-blue); }
 
-.ibtn { width: 40px; height: 40px; border: none; border-radius: 20px; background: rgba(255,255,255,0.6); border: 0.5px solid rgba(255,255,255,0.8); box-shadow: var(--shadow-sm); color: var(--text-main); cursor: pointer; font-size: 18px; display: grid; place-items: center; transition: transform 0.2s; }
-.ibtn:active { transform: scale(0.88); }
-.island-actions { display: flex; gap: 8px; }
+.icon-btn { 
+  width: 36px; height: 36px; border: none; border-radius: 18px; 
+  background: var(--apple-gray-fill); color: var(--apple-blue); 
+  cursor: pointer; display: grid; place-items: center; transition: transform 0.2s; 
+}
+.icon-btn svg { width: 18px; height: 18px; fill: currentColor; }
+.icon-btn:active { transform: scale(0.9); }
 
-/* HUD - TABULAR NUMS */
-.hud-wrap { position: fixed; left: 0; right: 0; top: calc(max(14px, env(safe-area-inset-top)) + 84px); z-index: 2200; display: flex; justify-content: center; pointer-events: none; opacity: 0; transform: translateY(-10px); transition: opacity 0.4s ease, transform 0.4s var(--spring); }
+/* HUD DASHBOARD */
+.hud-wrap { position: fixed; left: 0; right: 0; top: calc(max(14px, env(safe-area-inset-top)) + 78px); z-index: 2200; display: flex; justify-content: center; pointer-events: none; opacity: 0; transform: translateY(-10px); transition: opacity 0.4s ease, transform 0.4s var(--spring); }
 .hud-wrap.show { opacity: 1; transform: translateY(0); }
-.hud { border-radius: 24px; padding: 12px 28px; display: flex; align-items: center; gap: 24px; font-variant-numeric: tabular-nums; }
+.hud { border-radius: 20px; padding: 12px 24px; display: flex; align-items: center; gap: 24px; background: var(--glass-island); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); border: 0.5px solid rgba(255,255,255,0.6); box-shadow: var(--shadow-card); font-variant-numeric: tabular-nums; }
 .hud-block { display: flex; flex-direction: column; align-items: center; }
-.hud-label { font-size: 11px; font-weight: 700; color: var(--text-sec); letter-spacing: 0.06em; text-transform: uppercase; }
-.hud-value { margin-top: 4px; font-size: 18px; font-weight: 800; letter-spacing: -0.03em; color: var(--text-main); }
-.hud-divider { width: 1px; height: 28px; background: rgba(0,0,0,0.1); }
+.hud-label { font-size: 10px; font-weight: 600; color: var(--label-secondary); letter-spacing: 0.04em; text-transform: uppercase; }
+.hud-value { margin-top: 2px; font-size: 19px; font-weight: 700; letter-spacing: -0.03em; color: var(--label-primary); }
+.hud-divider { width: 1px; height: 24px; background: var(--glass-border); }
 
-/* SIDE CONTROLS */
-.map-status { position: fixed; left: 14px; top: calc(max(14px, env(safe-area-inset-top)) + 84px); z-index: 1700; padding: 10px 18px; border-radius: 20px; color: var(--text-main); font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 10px; transition: transform 0.5s var(--spring); letter-spacing: -0.01em; }
-.island.focus ~ .map-status { transform: translateY(64px); }
-.live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--apple-green); animation: pulse 2s ease-in-out infinite; box-shadow: 0 0 10px rgba(52,199,89,0.5); }
+/* SIDE STATUS & BUTTONS */
+.map-status { position: fixed; left: 14px; top: calc(max(14px, env(safe-area-inset-top)) + 78px); z-index: 1700; padding: 8px 14px; border-radius: 16px; background: var(--glass-island); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); color: var(--label-primary); font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px; transition: transform 0.5s var(--spring); box-shadow: var(--shadow-card); border: 0.5px solid rgba(255,255,255,0.5); }
+.island.focus ~ .map-status { transform: translateY(60px); }
+.live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--apple-green); animation: pulse 2s ease-in-out infinite; }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
-.live-dot.warn { background: var(--apple-orange); box-shadow: 0 0 10px rgba(255,159,10,0.5); animation: none; } 
+.live-dot.warn { background: var(--apple-orange); animation: none; } 
 
-.side-controls { position: fixed; right: 14px; top: calc(max(14px, env(safe-area-inset-top)) + 84px); z-index: 2100; display: flex; flex-direction: column; gap: 12px; transition: transform 0.5s var(--spring); }
-.island.focus ~ .side-controls { transform: translateY(64px); }
-.fab { width: 48px; height: 48px; border: none; border-radius: 24px; color: var(--text-main); cursor: pointer; font-weight: 700; font-size: 13px; transition: transform 0.2s; letter-spacing: -0.01em; }
+.side-controls { position: fixed; right: 14px; top: calc(max(14px, env(safe-area-inset-top)) + 78px); z-index: 2100; display: flex; flex-direction: column; gap: 10px; transition: transform 0.5s var(--spring); }
+.island.focus ~ .side-controls { transform: translateY(60px); }
+.fab { width: 44px; height: 44px; border: none; border-radius: 22px; color: var(--label-primary); cursor: pointer; background: var(--glass-island); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); font-weight: 600; font-size: 13px; transition: transform 0.2s; box-shadow: var(--shadow-card); border: 0.5px solid rgba(255,255,255,0.5); display: grid; place-items: center;}
+.fab svg { width: 20px; height: 20px; fill: currentColor; }
 .fab:active { transform: scale(0.9); }
 
-/* BOTTOM SHEET */
-.sheet { position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 1800; border-radius: 36px; overflow: hidden; transition: height .5s var(--spring); height: 180px; }
-.sheet.expanded { height: min(72vh, 820px); }
-.sheet-grab { display: flex; justify-content: center; align-items: center; padding: 14px 0 6px; cursor: pointer; }
-.sheet-grab div { width: 40px; height: 5px; border-radius: 3px; background: rgba(0,0,0,0.2); }
-.sheet-head { display: flex; justify-content: space-between; align-items: center; padding: 8px 24px 18px; }
-.sheet-title { font-size: 28px; font-weight: 800; letter-spacing: -0.04em; color: var(--text-main); }
-.sheet-sub { margin-top: 4px; font-size: 13px; font-weight: 700; color: var(--apple-blue); letter-spacing: 0.01em; text-transform: uppercase; }
-.sheet-list { height: calc(100% - 100px); overflow: auto; padding: 0 16px 16px; }
+/* APP STORE BOTTOM SHEET */
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 1800; border-radius: 36px 36px 0 0; background: var(--glass-sheet); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); border-top: 0.5px solid rgba(255,255,255,0.8); box-shadow: var(--shadow-sheet); overflow: hidden; transition: height .5s var(--spring); height: 180px; padding-bottom: env(safe-area-inset-bottom); }
+.sheet.expanded { height: min(75vh, 850px); }
+.sheet-grab { display: flex; justify-content: center; align-items: center; padding: 10px 0 10px; cursor: pointer; }
+.sheet-grab div { width: 36px; height: 5px; border-radius: 3px; background: rgba(0,0,0,0.25); }
+
+/* APP STORE 'TODAY' HEADER */
+.sheet-head { padding: 4px 20px 16px; display: flex; flex-direction: column; }
+.sheet-date { font-size: 13px; font-weight: 600; color: var(--label-secondary); text-transform: uppercase; letter-spacing: -0.01em; margin-bottom: 2px; }
+.sheet-title-row { display: flex; justify-content: space-between; align-items: flex-end; }
+.sheet-title { font-size: 34px; font-weight: 800; letter-spacing: -0.04em; color: var(--label-primary); line-height: 1.1; }
+.sheet-count { font-size: 15px; font-weight: 500; color: var(--label-secondary); }
+
+.sheet-list { height: calc(100% - 90px); overflow-y: auto; padding: 0 20px 20px; }
 .sheet-list::-webkit-scrollbar { display: none; }
 
-.card { display: flex; align-items: center; gap: 14px; padding: 12px; margin-bottom: 10px; border-radius: 24px; background: var(--glass-card); border: 0.5px solid rgba(255,255,255,0.7); cursor: pointer; box-shadow: var(--shadow-sm); transition: transform 0.2s var(--spring); }
-.card:active { transform: scale(0.96); }
-.card.sel { border-color: rgba(0,122,255,0.4); background: rgba(0,122,255,.06); box-shadow: inset 0 0 0 1px var(--apple-blue); }
-.plane-badge { width: 56px; height: 56px; border-radius: 20px; display: grid; place-items: center; background: rgba(0,0,0,0.04); flex: 0 0 auto; overflow: hidden; font-size:24px; opacity:0.6; }
-.plane-badge img { width: 100%; height: 100%; object-fit: cover; opacity: 1 !important; }
+/* APP STORE STYLE CELLS */
+.card { display: flex; align-items: center; gap: 14px; padding: 12px 0; margin-bottom: 0; border-bottom: 0.5px solid var(--glass-border); cursor: pointer; transition: opacity 0.2s, transform 0.2s var(--spring); }
+.card:last-child { border-bottom: none; }
+.card:active { opacity: 0.6; transform: scale(0.98); }
+.plane-badge { width: 56px; height: 56px; border-radius: 14px; display: grid; place-items: center; background: rgba(0,0,0,0.05); flex: 0 0 auto; overflow: hidden; border: 0.5px solid rgba(0,0,0,0.05); }
+.plane-badge img { width: 100%; height: 100%; object-fit: cover; }
+.plane-badge svg { width: 28px; height: 28px; fill: var(--label-tertiary); }
 .card-main { flex: 1; min-width: 0; }
-.card-call { font-size: 18px; font-weight: 700; letter-spacing: -0.03em; color: var(--text-main); }
-.card-sub { margin-top: 2px; color: var(--text-sec); font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.01em; }
-.card-stats { text-align: right; font-variant-numeric: tabular-nums; }
-.stat-big { font-size: 17px; font-weight: 700; color: var(--text-main); letter-spacing: -0.02em; }
-.stat-small { font-size: 11px; color: var(--text-sec); font-weight: 600; margin-top: 2px; text-transform: uppercase; letter-spacing: 0.04em; }
+.card-call { font-size: 17px; font-weight: 600; letter-spacing: -0.02em; color: var(--label-primary); }
+.card-sub { margin-top: 3px; color: var(--label-secondary); font-size: 14px; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.01em; }
+.card-stats { text-align: right; }
+/* "GET" button style for the list */
+.get-btn-small { background: var(--apple-gray-fill); color: var(--apple-blue); font-size: 14px; font-weight: 700; padding: 6px 16px; border-radius: 16px; display: inline-block; }
 
-/* DETAIL VIEW (APPLE WALLET STYLE) */
-.detail { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -40%) scale(0.95); width: min(92%, 480px); max-height: 85vh; z-index: 3200; border-radius: 36px; background: var(--glass-solid); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); border: 0.5px solid var(--glass-border); box-shadow: 0 40px 100px rgba(0,0,0,0.25), var(--glass-highlight); display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: transform .5s var(--spring), opacity .3s ease; }
-.detail.open { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
-.detail-close { position: absolute; right: 18px; top: 18px; width: 36px; height: 36px; border: none; border-radius: 18px; background: rgba(0,0,0,0.06); color: var(--text-main); cursor: pointer; z-index: 10; display: grid; place-items: center; font-size: 15px; font-weight: 800; transition: transform 0.2s; }
-.detail-close:active { transform: scale(0.85); }
-.detail-top { position: relative; padding: 28px 24px 20px; border-bottom: 0.5px solid rgba(0,0,0,0.08); display: flex; flex-direction: column; align-items: center; text-align: center; }
-.d-hero { width: 100%; height: 180px; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; border-radius: 26px; background: rgba(0,0,0,0.03); overflow: hidden; }
-.d-hero img { width: 100%; height: 100%; object-fit: cover; }
-.d-call { font-size: 40px; font-weight: 800; letter-spacing: -0.04em; line-height: 1; color: var(--text-main); }
-.d-route { margin-top: 8px; color: var(--apple-blue); font-size: 16px; font-weight: 600; letter-spacing: -0.01em; }
-.d-scroll { flex: 1; overflow-y: auto; padding: 20px; }
-.d-scroll::-webkit-scrollbar { display: none; }
+/* APP STORE DETAIL VIEW */
+.detail { position: fixed; left: 0; top: 0; right: 0; bottom: 0; z-index: 3200; background: var(--bg-secondary); display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: transform .4s var(--spring), opacity .3s ease; transform: translateY(100%); }
+.detail.open { opacity: 1; pointer-events: auto; transform: translateY(0); }
+.detail-scroll { flex: 1; overflow-y: auto; padding-bottom: 40px; }
 
-.grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
-.info { padding: 14px 16px; border-radius: 20px; background: var(--glass-card); border: 0.5px solid rgba(255,255,255,0.8); box-shadow: var(--shadow-sm); }
+/* App Page Header */
+.app-header { display: flex; padding: 20px; gap: 16px; align-items: center; border-bottom: 0.5px solid var(--glass-border); position: relative; margin-top: env(safe-area-inset-top); }
+.app-icon { width: 100px; height: 100px; border-radius: 22px; background: #f0f0f5; overflow: hidden; border: 0.5px solid rgba(0,0,0,0.1); box-shadow: var(--shadow-card); flex: 0 0 auto; display: grid; place-items: center; }
+.app-icon img { width: 100%; height: 100%; object-fit: cover; }
+.app-icon svg { width: 40px; height: 40px; fill: var(--label-tertiary); }
+.app-titles { flex: 1; display: flex; flex-direction: column; }
+.d-call { font-size: 24px; font-weight: 700; letter-spacing: -0.02em; color: var(--label-primary); line-height: 1.2; }
+.d-route { margin-top: 4px; font-size: 15px; font-weight: 400; color: var(--label-secondary); }
+.get-btn-large { margin-top: 12px; background: var(--apple-blue); color: white; border: none; font-size: 15px; font-weight: 700; padding: 8px 24px; border-radius: 16px; align-self: flex-start; letter-spacing: -0.01em; cursor: pointer; }
+
+.detail-close { position: absolute; right: 20px; top: 20px; width: 30px; height: 30px; border: none; border-radius: 15px; background: var(--apple-gray-fill); color: var(--label-secondary); cursor: pointer; display: grid; place-items: center; }
+.detail-close svg { width: 14px; height: 14px; fill: currentColor; }
+
+/* App Page Content Sections */
+.section-title { font-size: 20px; font-weight: 700; margin: 24px 20px 12px; letter-spacing: -0.02em; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; padding: 0 20px; }
+.info { padding: 14px 16px; border-radius: 16px; background: var(--apple-gray-fill); }
 .info.full { grid-column: 1 / -1; }
-.i-label { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--text-sec); }
-.i-value { margin-top: 6px; font-size: 17px; font-weight: 700; letter-spacing: -0.02em; color: var(--text-main); font-variant-numeric: tabular-nums; }
-.empty { padding: 40px 20px; text-align: center; color: var(--text-sec); font-weight: 600; font-size: 16px; letter-spacing: -0.01em; }
+.i-label { font-size: 12px; font-weight: 500; color: var(--label-secondary); margin-bottom: 4px; }
+.i-value { font-size: 17px; font-weight: 600; color: var(--label-primary); letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+
+.empty { padding: 40px 20px; text-align: center; color: var(--label-secondary); font-weight: 500; font-size: 16px; }
 
 </style>
 </head>
@@ -165,62 +172,97 @@ body { user-select: none; }
 
 <div id="map"></div>
 
+<!-- DYNAMIC ISLAND TOP BAR -->
 <div class="island-wrap">
-  <div class="island apple-glass" id="island">
+  <div class="island" id="island">
     <div class="brand">
       <div class="brand-badge"><div class="brand-line"></div></div>
       <div class="brand-text">Over<span>head</span></div>
     </div>
-    <div class="searchbox"><span style="opacity:0.4; margin-right:6px; font-size:15px;">🔎</span><input id="searchInput" placeholder="Search callsign..." /></div>
-    <div class="island-flight" id="islandFlight">
-      <div class="if-main"><div class="if-call" id="ifCall">FIN123</div><div class="if-route" id="ifRoute">Live focus</div></div>
+    
+    <div class="searchbox">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <input id="searchInput" placeholder="Search callsign..." autocomplete="off" />
     </div>
+    
+    <div class="island-flight" id="islandFlight">
+      <div class="if-main"><div class="if-call" id="ifCall">FLIGHT</div><div class="if-route" id="ifRoute">Tracking Active</div></div>
+    </div>
+    
     <div class="island-actions">
-      <button class="ibtn" id="gpsBtn" title="My Location">📍</button>
+      <button class="icon-btn" id="gpsBtn" title="My Location">
+        <svg viewBox="0 0 24 24"><path d="M12 2L2 22l10-4 10 4L12 2z"/></svg>
+      </button>
     </div>
   </div>
 </div>
 
+<!-- LIVE HUD -->
 <div class="hud-wrap" id="hudWrap">
-  <div class="hud apple-glass">
+  <div class="hud">
     <div class="hud-block"><div class="hud-label">Altitude</div><div class="hud-value" id="hudAlt">--- FT</div></div>
     <div class="hud-divider"></div>
     <div class="hud-block"><div class="hud-label">Speed</div><div class="hud-value" id="hudSpd">--- KT</div></div>
   </div>
 </div>
 
-<div class="map-status apple-glass" id="mapStatus"><span class="live-dot" id="dotStatus"></span><span id="mapStatusText">Connecting...</span></div>
+<!-- STATUS INDICATOR -->
+<div class="map-status" id="mapStatus"><span class="live-dot" id="dotStatus"></span><span id="mapStatusText">Connecting...</span></div>
 
+<!-- SIDE ACTION BUTTONS -->
 <div class="side-controls">
-  <button class="fab apple-glass" id="turkuBtn">TKU</button>
-  <button class="fab apple-glass" id="sheetBtn">☰</button>
+  <button class="fab" id="turkuBtn">TKU</button>
+  <button class="fab" id="sheetBtn">
+    <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
+  </button>
 </div>
 
-<div class="sheet expanded apple-glass" id="sheet">
+<!-- APP STORE 'TODAY' BOTTOM SHEET -->
+<div class="sheet expanded" id="sheet">
   <div class="sheet-grab" id="sheetGrab"><div></div></div>
   <div class="sheet-head">
-    <div><div class="sheet-title">Live Radar</div><div class="sheet-sub" id="sheetSub">Waiting for real data...</div></div>
+    <div class="sheet-date" id="sheetDate">TODAY</div>
+    <div class="sheet-title-row">
+      <div class="sheet-title">Live Radar</div>
+      <div class="sheet-count" id="sheetSub">Updating...</div>
+    </div>
   </div>
-  <div class="sheet-list" id="flightList"><div class="empty">Loading local airspace...</div></div>
+  <div class="sheet-list" id="flightList">
+    <div class="empty">Loading local airspace...</div>
+  </div>
 </div>
 
+<!-- APP STORE FULL SCREEN DETAIL VIEW -->
 <div class="detail" id="detail">
-  <button class="detail-close" id="detailClose">✕</button>
-  <div class="detail-top">
-    <div class="d-hero" id="dHero"><img id="dImg" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" style="opacity:0" /></div>
-    <div class="d-call" id="dCall">FLIGHT</div>
-    <div class="d-route" id="dRoute">—</div>
+  <div class="app-header">
+    <button class="detail-close" id="detailClose">
+      <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+    </button>
+    <div class="app-icon" id="dHero">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
+    </div>
+    <div class="app-titles">
+      <div class="d-call" id="dCall">FLIGHT</div>
+      <div class="d-route" id="dRoute">Loading Operator...</div>
+      <button class="get-btn-large" id="trackBtn">TRACK</button>
+    </div>
   </div>
-  <div class="d-scroll">
+  
+  <div class="detail-scroll">
+    <div class="section-title">Telemetry</div>
     <div class="grid">
       <div class="info"><div class="i-label">Altitude</div><div class="i-value" id="dAlt">—</div></div>
       <div class="info"><div class="i-label">Speed</div><div class="i-value" id="dSpd">—</div></div>
-      <div class="info"><div class="i-label">Track</div><div class="i-value" id="dTrack">—</div></div>
-      <div class="info"><div class="i-label">V. Rate</div><div class="i-value" id="dVRate">—</div></div>
+      <div class="info"><div class="i-label">Heading</div><div class="i-value" id="dTrack">—</div></div>
+      <div class="info"><div class="i-label">Vertical Rate</div><div class="i-value" id="dVRate">—</div></div>
       <div class="info"><div class="i-label">Distance</div><div class="i-value" id="dDist">—</div></div>
-      <div class="info"><div class="i-label">Squawk</div><div class="i-value" id="dSquawk">—</div></div>
-      <div class="info full"><div class="i-label">Aircraft Model</div><div class="i-value" id="dModel">Loading…</div></div>
-      <div class="info full"><div class="i-label">Operator</div><div class="i-value" id="dOperator">—</div></div>
+      <div class="info"><div class="i-label">Squawk Code</div><div class="i-value" id="dSquawk">—</div></div>
+    </div>
+    
+    <div class="section-title">Aircraft Information</div>
+    <div class="grid">
+      <div class="info full"><div class="i-label">Model</div><div class="i-value" id="dModel">Loading…</div></div>
+      <div class="info full"><div class="i-label">Registered Owner</div><div class="i-value" id="dOperator">—</div></div>
       <div class="info"><div class="i-label">Registration</div><div class="i-value" id="dReg">—</div></div>
       <div class="info"><div class="i-label">ICAO 24-bit</div><div class="i-value" id="dIcao">—</div></div>
     </div>
@@ -229,6 +271,10 @@ body { user-select: none; }
 
 <script>
 const $ = id => document.getElementById(id);
+
+// Set current date for "Today" header
+const todayOptions = { weekday: 'long', month: 'long', day: 'numeric' };
+$('sheetDate').textContent = new Date().toLocaleDateString('en-US', todayOptions).toUpperCase();
 
 const state = {
   map: null, 
@@ -240,6 +286,7 @@ const state = {
 const planeBlueURI = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z' fill='%23007AFF' stroke='%23FFFFFF' stroke-width='0.5'/%3E%3C/svg%3E";
 const planeGreenURI = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z' fill='%2334C759' stroke='%23FFFFFF' stroke-width='1'/%3E%3C/svg%3E";
 
+// Formatting Utilities
 function fmtFt(m){ return m==null?'—':Math.round(m*3.28084).toLocaleString('en-US')+' FT'; }
 function fmtKt(ms){ return ms==null?'—':Math.round(ms*1.94384)+' KT'; }
 function fmtVRate(ms) {
@@ -254,7 +301,7 @@ function fmtHeading(deg) {
 }
 function haversine(lat1, lon1, lat2, lon2){ const R=6371, p=Math.PI/180; const a=Math.sin((lat2-lat1)*p/2)**2 + Math.cos(lat1*p)*Math.cos(lat2*p)*Math.sin((lon2-lon1)*p/2)**2; return R*2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); }
 
-// ---------- 1. LEAFLET KARTTA ----------
+// ---------- 1. LEAFLET MAP ----------
 function initMap(){
   state.map = L.map('map', { zoomControl:false, attributionControl:false, minZoom: 3, maxBounds: [[-90, -180], [90, 180]], maxBoundsViscosity: 1.0 }).setView([state.userLat, state.userLon], 6);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19}).addTo(state.map);
@@ -330,24 +377,24 @@ async function fetchFlights(){
     for(const icao of state.flights.keys()){ if(!seen.has(icao)) state.flights.delete(icao); }
     
     $('mapStatusText').textContent = `${state.flights.size} Live`;
-    $('sheetSub').textContent = `${state.flights.size} Aircraft in Area`;
+    $('sheetSub').textContent = `${state.flights.size} Aircraft`;
     $('dotStatus').classList.remove('warn');
     
   }catch(e){ 
       $('dotStatus').classList.add('warn');
       if(e.message === 'RateLimit') {
-          $('mapStatusText').textContent = 'Cooling down...';
-          $('sheetSub').textContent = 'Rate Limit. Auto-retrying...';
+          $('mapStatusText').textContent = 'API Cooling down';
+          $('sheetSub').textContent = 'Auto-retrying in 1 min';
       } else {
           $('mapStatusText').textContent = 'Network Error';
       }
   } finally{ 
       renderList(); updateMarkers();
-      setTimeout(fetchFlights, 15000); // Nostettu 15 sekuntiin bännien välttämiseksi
+      setTimeout(fetchFlights, 15000); 
   } 
 }
 
-// ---------- 3. ANIMAATIO ----------
+// ---------- 3. ANIMATION ----------
 function startAnimation(){
   setInterval(() => { updateMarkers(); }, 1000);
 
@@ -381,7 +428,7 @@ function startAnimation(){
   requestAnimationFrame(tick);
 }
 
-// ---------- 4. UI PÄIVITYKSET ----------
+// ---------- 4. UI UPDATES ----------
 function renderList(){
   const q = state.search?.trim().toLowerCase() || "";
   let arr = [...state.flights.values()].sort((a,b) => (a.dist??999) - (b.dist??999));
@@ -389,26 +436,25 @@ function renderList(){
   
   if(!arr.length){ 
       if($('mapStatusText').textContent.includes('Cool')) {
-          $('flightList').innerHTML = '<div class="empty" style="margin-top: 40px;"><div style="font-size:32px;margin-bottom:10px;">⏳</div>API Rate Limit reached.<br>Please wait approx 1-2 minutes<br>for real-time data to resume.</div>';
+          $('flightList').innerHTML = '<div class="empty" style="margin-top: 40px;"><div style="font-size:32px;margin-bottom:10px;">⏳</div>API Rate Limit Reached.<br>Please wait approx 1-2 minutes<br>for real-time data to resume.</div>';
       } else {
-          $('flightList').innerHTML = '<div class="empty">Loading local airspace...</div>'; 
+          $('flightList').innerHTML = '<div class="empty">Loading airspace...</div>'; 
       }
       return; 
   }
 
   $('flightList').innerHTML = arr.slice(0,80).map(f => {
     const img = state.photoCache.get(f.icao24);
-    const imgHtml = img ? `<img src="${img}"/>` : `<div style="font-size:24px; opacity:0.3">✈</div>`;
+    const imgHtml = img ? `<img src="${img}"/>` : `<svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>`;
     return `
-    <div class="card ${state.selectedIcao===f.icao24?'sel':''}" onclick="openDetailUI('${f.icao24}')">
+    <div class="card" onclick="openDetailUI('${f.icao24}')">
       <div class="plane-badge">${imgHtml}</div>
       <div class="card-main">
         <div class="card-call">${(f.callsign||'').replace(/[<>]/g,'')}</div>
         <div class="card-sub">${(f.country||'').replace(/[<>]/g,'')}</div>
       </div>
       <div class="card-stats">
-        <div class="stat-big">${f.dist.toFixed(0)}</div>
-        <div class="stat-small">KM</div>
+        <div class="get-btn-small">${f.dist.toFixed(0)} KM</div>
       </div>
     </div>`
   }).join('');
@@ -418,7 +464,10 @@ window.openDetailUI = async function(icao24) {
   if(navigator.vibrate) navigator.vibrate(10);
   state.selectedIcao = icao24; const f = state.flights.get(icao24); if(!f) return;
 
-  $('detail').classList.add('open'); $('sheet').classList.remove('expanded');
+  $('detail').classList.add('open'); 
+  // Let bottom sheet slide down slightly when modal opens
+  $('sheet').style.transform = 'translateY(100%)'; 
+  
   $('island').classList.add('focus'); $('ifCall').textContent = f.callsign;
   $('hudWrap').classList.add('show');
   
@@ -430,30 +479,31 @@ window.openDetailUI = async function(icao24) {
   $('dIcao').textContent = f.icao24.toUpperCase();
   $('dDist').textContent = f.dist.toFixed(1) + ' km';
   
-  $('dModel').textContent = 'Loading...'; 
+  $('dModel').textContent = 'Loading details...'; 
   $('dOperator').textContent = 'Loading...';
   $('dReg').textContent = '—';
   
   state.map.setView([f.curLat, f.curLon], 9, {animate:true}); updateMarkers(); 
 
+  // Image load
   if(!state.photoCache.has(icao24)) {
+      $('dHero').innerHTML = `<svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>`;
       try {
           const res = await fetch(`https://api.planespotters.net/pub/photos/hex/${icao24.toLowerCase()}`);
           if(res.ok) {
               const data = await res.json();
               if(data.photos?.length) {
                   state.photoCache.set(icao24, data.photos[0].thumbnail_large.src);
-                  $('dImg').src = data.photos[0].thumbnail_large.src;
-                  $('dImg').style.opacity = '1';
+                  $('dHero').innerHTML = `<img src="${data.photos[0].thumbnail_large.src}"/>`;
                   renderList();
               }
           }
       } catch(e){}
   } else { 
-      $('dImg').src = state.photoCache.get(icao24); 
-      $('dImg').style.opacity = '1';
+      $('dHero').innerHTML = `<img src="${state.photoCache.get(icao24)}"/>`;
   }
 
+  // Database Load
   try {
       const dbRes = await fetch(`https://api.adsbdb.com/v0/aircraft/${icao24.toLowerCase()}`).then(r=>r.json());
       const m = dbRes?.response?.aircraft;
@@ -463,7 +513,7 @@ window.openDetailUI = async function(icao24) {
           $('dReg').textContent = m.registration || '—'; 
       } else {
           $('dModel').textContent = 'Unknown Aircraft';
-          $('dOperator').textContent = '—';
+          $('dOperator').textContent = 'Data unavailable';
       }
   } catch(e){}
 }
@@ -471,13 +521,24 @@ window.openDetailUI = async function(icao24) {
 $('detailClose').addEventListener('click', () => {
     state.selectedIcao = null; 
     $('detail').classList.remove('open'); 
+    $('sheet').style.transform = 'translateY(0)'; // Bring sheet back
     $('island').classList.remove('focus');
     $('hudWrap').classList.remove('show'); 
     renderList(); updateMarkers();
 });
 
+$('trackBtn').addEventListener('click', () => {
+   if(navigator.vibrate) navigator.vibrate(20);
+   const f = state.flights.get(state.selectedIcao);
+   if(f) state.map.setView([f.curLat, f.curLon], 10, {animate:true}); 
+});
+
 $('sheetGrab').addEventListener('click', () => $('sheet').classList.toggle('expanded'));
-$('sheetBtn').addEventListener('click', () => $('sheet').classList.toggle('expanded'));
+$('sheetBtn').addEventListener('click', () => {
+    $('sheet').classList.toggle('expanded');
+    $('sheet').style.transform = 'translateY(0)';
+    $('detail').classList.remove('open');
+});
 $('searchInput').addEventListener('input', e => { state.search=e.target.value; renderList(); });
 $('gpsBtn').addEventListener('click', () => { if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p=>setUserLocation(p.coords.latitude, p.coords.longitude, 8)); });
 $('turkuBtn').addEventListener('click', () => { setUserLocation(60.4518, 22.2666, 8); });
@@ -486,7 +547,7 @@ window.onload = () => {
     initMap();
     setUserLocation(60.4518, 22.2666, 6);
     startAnimation();
-    setTimeout(fetchFlights, 800); // Pikku viive jotta kartta ehtii rekisteröidä zoomin ennen ekaa hakua
+    setTimeout(fetchFlights, 800); 
 };
 </script>
 </body>
