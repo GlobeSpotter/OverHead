@@ -11,9 +11,9 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-<!-- THREE.JS (Vain peruskirjasto, ei ulkoisia Globe.gl tai lataajia) -->
+<!-- THREE.JS & ORBIT CONTROLS (Vanilja-versiot ilman moduuleja) -->
 <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
-<script src="https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js" type="module"></script>
+<script src="https://unpkg.com/three@0.160.0/examples/js/controls/OrbitControls.js"></script>
 
 <style>
 :root{
@@ -140,7 +140,6 @@ body::before{
 .toast.show{opacity:1;transform:translate(-50%,0)}
 .empty{padding:40px 20px;text-align:center;color:var(--text-3);font-weight:700;font-size:15px}
 
-/* POISTETAAN LEAFLETIN OMAT MARKER-ANIMATIONIT PERFORMANSSIN TAKIA YLEISNÄKYMÄSSÄ */
 .leaflet-marker-icon { transition: none !important; }
 </style>
 </head>
@@ -211,12 +210,9 @@ body::before{
 </div>
 <div class="toast" id="toast"></div>
 
-<script type="module">
-// Ladataan Three.js modulina CDN:stä
-import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
-import { OrbitControls } from 'https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+<script>
+// Ei type="module" - takaa skriptin latautumisen kaikissa selaimissa.
 
-// ---------- AIRCRAFT TECH DATABASE ----------
 const AC_DB = {
   "A319": { mtow:"75.5 t", len:"33.8 m" }, "A320": { mtow:"78.0 t", len:"37.6 m" }, "A321": { mtow:"93.5 t", len:"44.5 m" },
   "A20N": { mtow:"79.0 t", len:"37.6 m" }, "A21N": { mtow:"97.0 t", len:"44.5 m" }, "A332": { mtow:"242.0 t", len:"58.8 m" },
@@ -231,19 +227,16 @@ const state = {
   flights: new Map(), selectedIcao: null,
   photoCache: new Map(),
   
-  // Three.js
   renderer: null, scene: null, camera: null, controls: null,
-  instancedMesh: null, dummy: new THREE.Object3D(),
+  instancedMesh: null, dummy: null,
   globeSphere: null,
   
-  // Leaflet Canvas Overlay (Performanssi hack 2D puolelle)
   canvasLayer: null, ctx: null
 };
 
 const $ = id => document.getElementById(id);
 function toast(msg){ const el=$('toast'); el.textContent=msg; el.classList.add('show'); clearTimeout(el._t); el._t=setTimeout(()=>el.classList.remove('show'),2400); }
 
-// Math & Format
 function fmtFt(m){ return m==null?'—':Math.round(m*3.28084).toLocaleString('en-US')+' FT'; }
 function fmtM(m){ return m==null?'—':Math.round(m).toLocaleString('en-US')+' m'; }
 function fmtKt(ms){ return ms==null?'—':Math.round(ms*1.94384)+' KT'; }
@@ -270,41 +263,29 @@ function calculateOverhead(f) {
   return `Overhead in ${minAikaMins} min`;
 }
 
-function phaseOf(f){
-  if(f.on_ground) return {label:'On Ground', cls:'gnd'};
-  const vr = f.vertical_rate ?? 0;
-  if(vr > 2) return {label:'Climb', cls:'climb'};
-  if(vr < -2) return {label:'Descent', cls:'desc'};
-  return {label:'Cruise', cls:'cruise'};
-}
-
-// ---------- 1. LEAFLET 2D (CANVAS PERFORMANCE HACK) ----------
+// 1. LEAFLET KARTTA (CANVAS-PIIRROLLA)
 function initMap(){
-  // Kartan perusasetukset
-  state.map = L.map('map', {zoomControl:false, attributionControl:false, preferCanvas:true}).setView([state.userLat, state.userLon], 6);
-  
-  // Tyylikäs tumma karttapohja Apple Maps tyyliin (CartoDB Dark Matter on erinomainen performanssille)
+  state.map = L.map('map', {zoomControl:false, attributionControl:false}).setView([state.userLat, state.userLon], 6);
   L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19, subdomains:'abcd'}).addTo(state.map);
   
-  // Käyttäjän sijainti
   state.userMarker = L.circleMarker([state.userLat, state.userLon], {radius:6, color:'#fff', weight:2, fillColor:'#0A84FF', fillOpacity:1}).addTo(state.map);
-  L.circle([state.userLat, state.userLon], {radius:250000, color:'#0A84FF', weight:1, opacity:0.3, fill:false}).addTo(state.map);
 
-  // Transition logiikka (Zoom alle 4 = 3D Globe)
   state.map.on('zoomend', () => {
      if(state.map.getZoom() <= 3 && !state.isGlobe) {
         if(navigator.vibrate) navigator.vibrate(15);
         state.isGlobe = true;
         const center = state.map.getCenter();
-        latLonToVector3(center.lat, center.lng, 1.8, state.camera.position);
-        state.controls.update();
+        if(state.camera) {
+            latLonToVector3(center.lat, center.lng, 1.8, state.camera.position);
+            state.controls.update();
+        }
         $('globeWrap').classList.add('on');
         $('mapWrap').style.opacity = '0';
         $('mapWrap').style.transform = 'scale(1.1)';
      }
   });
 
-  // Kustomoitu nopea Canvas-piirto Leaflettiin (Tuhansia pisteitä ilman DOM-lagia)
+  // Canvas piirto taso ilman DOM lagia
   L.CanvasLayer = L.Layer.extend({
     onAdd: function(map) {
       this._canvas = L.DomUtil.create('canvas', 'leaflet-zoom-animated');
@@ -332,18 +313,16 @@ function initMap(){
       const flights = [...state.flights.values()];
       for(let i=0; i<flights.length; i++) {
         const f = flights[i];
-        if(!bounds.contains([f.curLat, f.curLon])) continue; // Älä piirrä ulkopuolella olevia
+        if(!bounds.contains([f.curLat, f.curLon])) continue;
         
         const pt = this._map.latLngToContainerPoint([f.curLat, f.curLon]);
-        
-        // Väri
         let fill = '#0A84FF';
         if(f.icao24 === state.selectedIcao) fill = '#30D158';
         else if(f.dist < 40) fill = '#BF5AF2';
         else if(f.on_ground) fill = '#FF9F0A';
 
         this._ctx.beginPath();
-        this._ctx.arc(pt.x, pt.y, f.icao24 === state.selectedIcao ? 6 : 3, 0, Math.PI * 2);
+        this._ctx.arc(pt.x, pt.y, f.icao24 === state.selectedIcao ? 5 : 2.5, 0, Math.PI * 2);
         this._ctx.fillStyle = fill;
         this._ctx.fill();
         
@@ -358,18 +337,15 @@ function initMap(){
 
   state.canvasLayer = new L.CanvasLayer().addTo(state.map);
   
-  // Klikkaus tunnistus Canvakselle
   state.map.on('click', (e) => {
       let closest = null; let minDist = Infinity;
       const clickPt = state.map.latLngToContainerPoint(e.latlng);
-      
       for(const f of state.flights.values()) {
           const pt = state.map.latLngToContainerPoint([f.curLat, f.curLon]);
-          const dx = pt.x - clickPt.x; const dy = pt.y - clickPt.y;
-          const dist = Math.sqrt(dx*dx + dy*dy);
+          const dist = Math.sqrt((pt.x-clickPt.x)**2 + (pt.y-clickPt.y)**2);
           if(dist < 15 && dist < minDist) { minDist = dist; closest = f.icao24; }
       }
-      if(closest) openDetail(closest);
+      if(closest) openDetailUI(closest);
   });
 }
 
@@ -379,11 +355,18 @@ function setUserLocation(lat, lon, zoom=6){
   if(state.map && !state.isGlobe) state.map.setView([lat, lon], zoom, {animate:true});
 }
 
-// ---------- 2. GENERATIVE 3D GLOBE (NO EXTERNAL ASSETS) ----------
+// 2. THREE.JS 3D PALLO
 function initThreeGlobe() {
+    if(!window.THREE || !window.THREE.OrbitControls) {
+        console.warn("Three.js not loaded yet. Retrying...");
+        setTimeout(initThreeGlobe, 200);
+        return;
+    }
+
+    state.dummy = new THREE.Object3D();
     const canvas = $('glCanvas');
     state.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
-    state.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // Performanssi limiitti
+    state.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     state.renderer.setSize(window.innerWidth, window.innerHeight);
 
     state.scene = new THREE.Scene();
@@ -392,14 +375,13 @@ function initThreeGlobe() {
     state.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
     state.camera.position.z = 2.5;
 
-    state.controls = new OrbitControls(state.camera, state.renderer.domElement);
+    state.controls = new THREE.OrbitControls(state.camera, state.renderer.domElement);
     state.controls.enableDamping = true;
     state.controls.dampingFactor = 0.05;
     state.controls.enablePan = false;
-    state.controls.minDistance = 1.05; // 1.0 on pinta
+    state.controls.minDistance = 1.05; 
     state.controls.maxDistance = 5.0;
 
-    // Kun zoomataan tarpeeksi lähelle 3D palloa, palataan saumattomasti 2D Leaflettiin
     state.controls.addEventListener('change', () => {
         if(!state.isGlobe) return;
         const dist = state.camera.position.length();
@@ -408,7 +390,6 @@ function initThreeGlobe() {
             state.isGlobe = false;
             $('globeWrap').classList.remove('on');
             
-            // Laske mihin kamera katsoo ja aseta 2D kartta sinne
             const dir = state.camera.position.clone().normalize();
             const lat = Math.asin(dir.y) * (180/Math.PI);
             const lng = Math.atan2(dir.x, dir.z) * (180/Math.PI);
@@ -419,10 +400,7 @@ function initThreeGlobe() {
         }
     });
 
-    // 2.1 Generatiivinen Maapallo (Shader-pohjainen)
     const earthGeo = new THREE.SphereGeometry(1, 64, 64);
-    
-    // Yksinkertainen mutta upea "Holo-Earth" tyylinen materiaali
     const earthMat = new THREE.MeshPhongMaterial({
         color: 0x051525, emissive: 0x020815, specular: 0x111111, shininess: 10,
         transparent: true, opacity: 0.95
@@ -430,25 +408,19 @@ function initThreeGlobe() {
     state.globeSphere = new THREE.Mesh(earthGeo, earthMat);
     state.scene.add(state.globeSphere);
 
-    // Atmosfääri hehku
     const atmosGeo = new THREE.SphereGeometry(1.03, 32, 32);
     const atmosMat = new THREE.MeshBasicMaterial({ color: 0x0A84FF, transparent: true, opacity: 0.1, side: THREE.BackSide });
-    const atmos = new THREE.Mesh(atmosGeo, atmosMat);
-    state.scene.add(atmos);
+    state.scene.add(new THREE.Mesh(atmosGeo, atmosMat));
 
-    // Valot
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.4);
-    state.scene.add(ambientLight);
+    state.scene.add(new THREE.AmbientLight(0xffffff, 0.4));
     const dirLight = new THREE.DirectionalLight(0xffffff, 1.5);
     dirLight.position.set(5, 3, 5);
     state.scene.add(dirLight);
 
-    // 2.2 InstancedMesh lentokoneille (Sallii tuhansien piirtämisen yhdellä draw-callilla!)
     const planeGeo = new THREE.ConeGeometry(0.003, 0.012, 4);
-    planeGeo.rotateX(Math.PI / 2); // Osoittamaan Z-akselin suuntaan
-    
+    planeGeo.rotateX(Math.PI / 2);
     const planeMat = new THREE.MeshPhongMaterial({ color: 0xffffff });
-    // Alustetaan max 5000 koneelle varaus
+    
     state.instancedMesh = new THREE.InstancedMesh(planeGeo, planeMat, 5000);
     state.instancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     state.instancedMesh.instanceColor.setUsage(THREE.DynamicDrawUsage);
@@ -471,60 +443,48 @@ function latLonToVector3(lat, lon, radius, targetVector) {
     );
 }
 
-// 3D Renderöintilooppi
 function renderThreeScene() {
-    if(state.isGlobe) {
-        state.controls.update();
-        
-        // Päivitetään InstancedMesh (Kaikki lennot 3D:ssä)
-        const flights = [...state.flights.values()];
-        state.instancedMesh.count = flights.length;
-        
-        const color = new THREE.Color();
-        const lookTarget = new THREE.Vector3();
+    if(!state.isGlobe || !state.instancedMesh) return;
+    state.controls.update();
+    
+    const flights = [...state.flights.values()];
+    state.instancedMesh.count = flights.length;
+    
+    const color = new THREE.Color();
+    const lookTarget = new THREE.Vector3();
 
-        for(let i=0; i<flights.length; i++) {
-            const f = flights[i];
-            
-            // Korkeus maanpinnasta (pieni korotus)
-            const h = 1.0 + Math.max(0.005, (f.baro_alt || 0) / 1500000);
-            
-            // Sijainti
-            latLonToVector3(f.curLat, f.curLon, h, state.dummy.position);
-            
-            // Laske mihin osoitetaan (Track)
-            const trackRad = (f.track || 0) * (Math.PI/180);
-            // Karkea approksimaatio mihin keula osoittaa pallolla
-            const lookLat = f.curLat + Math.cos(trackRad);
-            const lookLon = f.curLon + Math.sin(trackRad);
-            latLonToVector3(lookLat, lookLon, h, lookTarget);
-            
-            state.dummy.lookAt(lookTarget);
-            
-            // Korosta valittu
-            if(f.icao24 === state.selectedIcao) state.dummy.scale.set(3,3,3);
-            else state.dummy.scale.set(1,1,1);
-            
-            state.dummy.updateMatrix();
-            state.instancedMesh.setMatrixAt(i, state.dummy.matrix);
+    for(let i=0; i<flights.length; i++) {
+        const f = flights[i];
+        const h = 1.0 + Math.max(0.005, (f.baro_alt || 0) / 1500000);
+        
+        latLonToVector3(f.curLat, f.curLon, h, state.dummy.position);
+        
+        const trackRad = (f.track || 0) * (Math.PI/180);
+        const lookLat = f.curLat + Math.cos(trackRad);
+        const lookLon = f.curLon + Math.sin(trackRad);
+        latLonToVector3(lookLat, lookLon, h, lookTarget);
+        
+        state.dummy.lookAt(lookTarget);
+        if(f.icao24 === state.selectedIcao) state.dummy.scale.set(3,3,3);
+        else state.dummy.scale.set(1,1,1);
+        
+        state.dummy.updateMatrix();
+        state.instancedMesh.setMatrixAt(i, state.dummy.matrix);
 
-            // Väri
-            if(f.icao24 === state.selectedIcao) color.setHex(0x30D158);
-            else if(f.dist < 40) color.setHex(0xBF5AF2);
-            else if(f.on_ground) color.setHex(0xFF9F0A);
-            else color.setHex(0x0A84FF);
-            
-            state.instancedMesh.setColorAt(i, color);
-        }
+        if(f.icao24 === state.selectedIcao) color.setHex(0x30D158);
+        else if(f.dist < 40) color.setHex(0xBF5AF2);
+        else if(f.on_ground) color.setHex(0xFF9F0A);
+        else color.setHex(0x0A84FF);
         
-        state.instancedMesh.instanceMatrix.needsUpdate = true;
-        state.instancedMesh.instanceColor.needsUpdate = true;
-        
-        state.renderer.render(state.scene, state.camera);
+        state.instancedMesh.setColorAt(i, color);
     }
+    
+    state.instancedMesh.instanceMatrix.needsUpdate = true;
+    state.instancedMesh.instanceColor.needsUpdate = true;
+    state.renderer.render(state.scene, state.camera);
 }
 
-// ---------- DATA FETCHING (Kevyt Global All) ----------
+// 3. TIETOJEN HAKU
 async function fetchFlights(){
   $('mapStatusText').textContent = 'Fetching World...'; $('refreshBtn').classList.add('on');
   try{
@@ -543,7 +503,6 @@ async function fetchFlights(){
       };
     }).filter(Boolean);
 
-    // Karsitaan maailman 15 000 lennosta 3000 mielenkiintoisinta renderöintiä varten
     arr.sort((a,b) => a.dist - b.dist);
     if(arr.length > 3000) arr = arr.slice(0, 3000); 
 
@@ -560,19 +519,18 @@ async function fetchFlights(){
     $('mapStatusText').textContent = `${state.flights.size} live flights`;
     
     renderList();
-    if(!state.isGlobe && state.canvasLayer) state.canvasLayer.draw(); // Päivitä 2D heti
+    if(!state.isGlobe && state.canvasLayer) state.canvasLayer.draw(); 
     toast('Data updated');
   }catch(e){ $('mapStatusText').textContent = 'Network error'; } finally{ $('refreshBtn').classList.remove('on'); setTimeout(fetchFlights, 15000); }
 }
 
-// ---------- ANIMATION LOOP ----------
+// 4. ANIMAATIO
 function startAnimation(){
   const tick = (t) => {
     requestAnimationFrame(tick);
     if(!state.animLast) { state.animLast = t; return; }
     const dt = Math.min((t - state.animLast)/1000, 0.1); state.animLast = t;
 
-    // Interpoloidaan sijainteja (Project flight path)
     let needs2DUpdate = false;
     for(const f of state.flights.values()){
       if(f.velocity && !f.on_ground) {
@@ -591,18 +549,16 @@ function startAnimation(){
           const alt = sf.baro_alt??sf.geo_alt;
           $('dAlt').textContent=fmtFt(alt); $('dSpd').textContent=fmtKt(sf.velocity);
           $('hudAlt').textContent=fmtFt(alt); $('hudSpd').textContent=fmtKt(sf.velocity);
-          $('dDist').textContent = sf.dist.toFixed(1)+' km away';
       }
     }
 
-    // Renderöidään oikea moottori
     if(state.isGlobe) renderThreeScene();
     else if(needs2DUpdate && state.canvasLayer) state.canvasLayer.draw();
   };
   requestAnimationFrame(tick);
 }
 
-// ---------- UI & DETAIL ----------
+// 5. KÄYTTÖLIITTYMÄ
 const DEF_SVG = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%23fff"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>';
 
 function renderList(){
@@ -618,7 +574,7 @@ function renderList(){
     const img = state.photoCache.get(f.icao24) || DEF_SVG;
     
     return `
-    <div class="card ${state.selectedIcao===f.icao24?'sel':''}" onclick="window.openDetailUI('${f.icao24}')">
+    <div class="card ${state.selectedIcao===f.icao24?'sel':''}" onclick="openDetailUI('${f.icao24}')">
       <div class="plane-badge"><img src="${img}" style="${img===DEF_SVG?'width:28px;opacity:0.5':''}"/></div>
       <div class="card-main">
         <div class="card-call">${esc(f.callsign)}</div>
@@ -648,14 +604,9 @@ window.openDetailUI = async function(icao24) {
 
   $('island').classList.add('focus'); $('ifCall').textContent = f.callsign; $('ifRoute').textContent = 'Focusing...';
   
-  // Camera focus
-  if(!state.isGlobe) {
-      state.map.setView([f.curLat, f.curLon], 9, {animate:true});
-  }
-
+  if(!state.isGlobe) state.map.setView([f.curLat, f.curLon], 9, {animate:true});
   renderList();
 
-  // Hae extradata (Photo & DB)
   if(!state.photoCache.has(icao24)) {
       try {
           const res = await fetch(`https://api.planespotters.net/pub/photos/hex/${icao24.toLowerCase()}`);
@@ -668,9 +619,7 @@ window.openDetailUI = async function(icao24) {
               }
           }
       } catch(e){}
-  } else {
-      $('dImg').src = state.photoCache.get(icao24);
-  }
+  } else { $('dImg').src = state.photoCache.get(icao24); }
 
   try {
       const dbRes = await fetch(`https://api.adsbdb.com/v0/aircraft/${icao24.toLowerCase()}`).then(r=>r.json());
@@ -687,7 +636,6 @@ window.openDetailUI = async function(icao24) {
   } catch(e){}
 }
 
-// Events
 $('detailClose').addEventListener('click', () => {
     state.selectedIcao = null; $('detail').classList.remove('open'); $('island').classList.remove('focus');
     $('hudAlt').textContent='--- FT'; $('hudSpd').textContent='--- KT';
@@ -697,13 +645,13 @@ $('sheetGrab').addEventListener('click', () => $('sheet').classList.toggle('expa
 $('sheetBtn').addEventListener('click', () => $('sheet').classList.toggle('expanded'));
 $('searchInput').addEventListener('input', e => { state.search=e.target.value; renderList(); });
 
-// Init
-initMap();
-initThreeGlobe();
-setUserLocation(60.4518, 22.2666, 6);
-startAnimation();
-fetchFlights();
-
+window.onload = () => {
+    initMap();
+    initThreeGlobe();
+    setUserLocation(60.4518, 22.2666, 6);
+    startAnimation();
+    fetchFlights();
+};
 </script>
 </body>
 </html>
