@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<title>Overhead Ultra — Vision Maps</title>
+<title>Overhead Ultra — Fail-Safe Edition</title>
 
 <!-- LEAFLET -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -17,67 +17,57 @@
 
 <style>
 :root {
-  /* APPLE VISION / iOS DARK MAPS THEME */
   --bg: #000000;
-  
-  /* Raskas, upea tumma lasi */
-  --surface: rgba(30, 30, 32, 0.65);
+  --surface: rgba(30, 30, 32, 0.75);
   --surface-solid: rgba(28, 28, 30, 0.95);
-  
-  /* Apple-tyylinen ohut, kirkas sisäreunus */
   --glass-border: rgba(255, 255, 255, 0.15);
-  --glass-highlight: inset 0 1px 1px rgba(255, 255, 255, 0.15);
-  
   --text: #ffffff;
   --text-2: rgba(235, 235, 245, 0.6);
   --text-3: rgba(235, 235, 245, 0.3);
-  
-  --blue: #0A84FF; --green: #30D158; --orange: #FF9F0A; --purple: #BF5AF2;
-  
-  --blur: saturate(200%) blur(40px);
+  --blue: #0A84FF; --green: #30D158; --purple: #BF5AF2;
+  --blur: saturate(200%) blur(30px);
   --spring: cubic-bezier(0.25, 1, 0.3, 1);
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; }
-body { user-select: none; }
+html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; color: #fff; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", sans-serif; }
 
+/* MAP & GLOBE CONTAINERS */
 #mapWrap { position: fixed; inset: 0; z-index: 1; transition: opacity .6s ease, transform .6s var(--spring); }
 #map { position: absolute; inset: 0; background: #000; }
-
-#globeWrap { position: fixed; inset: 0; z-index: 2; opacity: 0; pointer-events: none; transition: opacity .6s ease, transform .6s var(--spring); transform: scale(0.95); background: var(--bg); display: flex; justify-content: center; align-items: center; }
+#globeWrap { position: fixed; inset: 0; z-index: 2; opacity: 0; pointer-events: none; transition: opacity .6s ease, transform .6s var(--spring); transform: scale(0.95); background: #000; display: flex; justify-content: center; align-items: center; }
 #globeWrap.on { opacity: 1; pointer-events: auto; transform: scale(1); }
 #glCanvas { width: 100%; height: 100%; position: absolute; top: 0; left: 0; outline: none; }
 
 .leaflet-control-zoom, .leaflet-control-attribution { display: none !important; }
 
-/* -- AITO APPLE-TYYLINEN JET ICON (DOM) -- */
-.plane-icon {
-  width: 28px; height: 28px;
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g stroke="%23ffffff" stroke-width="6" stroke-linejoin="round"><path d="M50 15 L50 45 L20 65 L20 70 L50 60 L50 85 L35 95 L35 98 L50 92 L65 98 L65 95 L50 85 L50 60 L80 70 L80 65 L50 45 L50 15 C50 5 50 5 50 15 Z" fill="%230A84FF"/></g></svg>');
+/* THE PLANE ICON - Simple HTML/CSS marker */
+.basic-plane {
+  width: 30px; height: 30px;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M50 15 L50 45 L20 65 L20 70 L50 60 L50 85 L35 95 L35 98 L50 92 L65 98 L65 95 L50 85 L50 60 L80 70 L80 65 L50 45 L50 15 Z" fill="%230A84FF" stroke="%23FFFFFF" stroke-width="4"/></svg>');
   background-size: contain; background-repeat: no-repeat; background-position: center;
-  filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.8));
-  /* EI transitioita tähän jotta se seuraa konetta frame-by-frame pehmeästi 60fps! */
-  margin-left: -14px; margin-top: -14px;
+  margin-left: -15px; margin-top: -15px; /* Center */
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8));
+  transition: transform 0.5s linear;
 }
-.plane-icon.sel {
+.basic-plane.sel {
   width: 44px; height: 44px; margin-left: -22px; margin-top: -22px;
-  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><g stroke="%23ffffff" stroke-width="5" stroke-linejoin="round"><path d="M50 15 L50 45 L20 65 L20 70 L50 60 L50 85 L35 95 L35 98 L50 92 L65 98 L65 95 L50 85 L50 60 L80 70 L80 65 L50 45 L50 15 C50 5 50 5 50 15 Z" fill="%2330D158"/></g></svg>');
-  filter: drop-shadow(0px 8px 16px rgba(0,0,0,0.9)); z-index: 1000 !important;
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><path d="M50 15 L50 45 L20 65 L20 70 L50 60 L50 85 L35 95 L35 98 L50 92 L65 98 L65 95 L50 85 L50 60 L80 70 L80 65 L50 45 L50 15 Z" fill="%2330D158" stroke="%23FFFFFF" stroke-width="4"/></svg>');
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,1)); z-index: 1000 !important;
 }
 
-/* UI ELEMENTS - GLASS */
+/* UI ELEMENTS */
 .island-wrap { position: fixed; left: 0; right: 0; top: max(14px, env(safe-area-inset-top)); z-index: 2500; display: flex; justify-content: center; pointer-events: none; padding: 0 14px; }
 .island {
   width: min(820px, 100%); min-height: 56px; border-radius: 28px; padding: 8px 10px; display: flex; align-items: center; gap: 8px; pointer-events: auto;
-  background: var(--surface); border: 1px solid var(--glass-border); box-shadow: 0 16px 40px rgba(0,0,0,0.4), var(--glass-highlight);
+  background: var(--surface); border: 1px solid var(--glass-border); box-shadow: 0 16px 40px rgba(0,0,0,0.4);
   backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
   transition: transform .4s var(--spring), min-height .4s var(--spring), width .4s var(--spring);
 }
 .brand { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 0 6px 0 4px; }
-.brand-badge { width: 34px; height: 34px; border-radius: 17px; display: grid; place-items: center; background: linear-gradient(135deg, var(--blue), #5eb1ff); box-shadow: 0 4px 12px rgba(10,132,255,.3); font-size: 16px; }
+.brand-badge { width: 34px; height: 34px; border-radius: 17px; display: grid; place-items: center; background: linear-gradient(135deg, var(--blue), #5eb1ff); font-size: 16px; }
 .brand-text { font-size: 18px; font-weight: 850; letter-spacing: -.03em; }
-.searchbox { flex: 1; min-height: 40px; border-radius: 20px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; gap: 10px; padding: 0 16px; }
+.searchbox { flex: 1; min-height: 40px; border-radius: 20px; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.06); display: flex; align-items: center; padding: 0 16px; }
 .searchbox input { width: 100%; border: none; outline: none; background: transparent; color: #fff; font-size: 16px; font-weight: 600; }
 .searchbox input::placeholder { color: var(--text-2); font-weight: 500; }
 .island.focus .searchbox { display: none; }
@@ -87,22 +77,19 @@ body { user-select: none; }
 .if-main { display: flex; flex-direction: column; line-height: 1.1; }
 .if-call { font-size: 18px; font-weight: 850; letter-spacing: -.03em; }
 .if-route { margin-top: 2px; font-size: 13px; font-weight: 700; color: var(--blue); }
-.ibtn { width: 40px; height: 40px; border: none; border-radius: 20px; background: rgba(255,255,255,0.1); color: #fff; display: grid; place-items: center; cursor: pointer; font-size: 17px; transition: transform .2s var(--spring), background .2s; }
-.ibtn:active { transform: scale(.9); background: rgba(255,255,255,0.2); }
-.island-actions { display: flex; gap: 6px; }
+.ibtn { width: 40px; height: 40px; border: none; border-radius: 20px; background: rgba(255,255,255,0.1); color: #fff; cursor: pointer; font-size: 17px; display: grid; place-items: center; }
 
 .hud-wrap { position: fixed; left: 0; right: 0; top: calc(max(14px, env(safe-area-inset-top)) + 74px); z-index: 2200; display: flex; justify-content: center; pointer-events: none; }
-.hud { border-radius: 24px; padding: 10px 24px; display: flex; align-items: center; gap: 20px; background: var(--surface); border: 1px solid var(--glass-border); box-shadow: 0 8px 32px rgba(0,0,0,0.3), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); font-variant-numeric: tabular-nums; }
+.hud { border-radius: 24px; padding: 10px 24px; display: flex; align-items: center; gap: 20px; background: var(--surface); border: 1px solid var(--glass-border); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); font-variant-numeric: tabular-nums; }
 .hud-block { display: flex; flex-direction: column; align-items: center; }
 .hud-label { font-size: 11px; font-weight: 800; color: var(--text-2); letter-spacing: .06em; text-transform: uppercase; }
 .hud-value { margin-top: 2px; font-size: 18px; font-weight: 850; letter-spacing: -.04em; }
 .hud-divider { width: 1px; height: 28px; background: rgba(255,255,255,0.15); }
 
 .side-controls { position: fixed; right: 14px; top: calc(max(14px, env(safe-area-inset-top)) + 140px); z-index: 2100; display: flex; flex-direction: column; gap: 12px; }
-.fab { width: 50px; height: 50px; border: none; border-radius: 25px; color: #fff; cursor: pointer; background: var(--surface); border: 1px solid var(--glass-border); box-shadow: 0 8px 32px rgba(0,0,0,0.3), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); font-weight: 800; font-size: 14px; transition: transform 0.2s; }
-.fab:active { transform: scale(.92); }
+.fab { width: 50px; height: 50px; border: none; border-radius: 25px; color: #fff; cursor: pointer; background: var(--surface); border: 1px solid var(--glass-border); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); font-weight: 800; font-size: 14px; }
 
-.sheet { position: fixed; left: 14px; right: 14px; bottom: 14px; z-index: 1800; border-radius: 36px; background: linear-gradient(180deg, rgba(30,30,32,0.85), rgba(15,15,18,0.98)); border: 1px solid var(--glass-border); box-shadow: 0 24px 60px rgba(0,0,0,0.7), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); overflow: hidden; transition: height .45s var(--spring); height: 190px; }
+.sheet { position: fixed; left: 14px; right: 14px; bottom: 14px; z-index: 1800; border-radius: 36px; background: linear-gradient(180deg, rgba(30,30,32,0.85), rgba(15,15,18,0.98)); border: 1px solid var(--glass-border); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); overflow: hidden; transition: height .45s var(--spring); height: 190px; }
 .sheet.expanded { height: min(72vh, 820px); }
 .sheet-grab { display: flex; justify-content: center; align-items: center; padding: 14px 0 8px; cursor: pointer; }
 .sheet-grab div { width: 48px; height: 5px; border-radius: 999px; background: rgba(255,255,255,0.3); }
@@ -112,10 +99,9 @@ body { user-select: none; }
 .sheet-list { height: calc(100% - 100px); overflow: auto; padding: 0 14px 14px; }
 .sheet-list::-webkit-scrollbar { display: none; }
 
-.card { display: flex; align-items: center; gap: 14px; padding: 12px; margin-bottom: 12px; border-radius: 24px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.05); cursor: pointer; transition: transform .2s var(--spring), background 0.2s; }
-.card:active { transform: scale(.97); }
-.card.sel { border-color: rgba(10,132,255,0.5); background: rgba(10,132,255,.15); box-shadow: 0 0 20px rgba(10,132,255,.2); }
-.plane-badge { width: 60px; height: 60px; border-radius: 22px; display: grid; place-items: center; background: rgba(0,0,0,0.5); flex: 0 0 auto; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); position: relative; }
+.card { display: flex; align-items: center; gap: 14px; padding: 12px; margin-bottom: 12px; border-radius: 24px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.05); cursor: pointer; }
+.card.sel { border-color: rgba(10,132,255,0.5); background: rgba(10,132,255,.15); }
+.plane-badge { width: 60px; height: 60px; border-radius: 22px; display: grid; place-items: center; background: rgba(0,0,0,0.5); flex: 0 0 auto; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
 .plane-badge img { width: 100%; height: 100%; object-fit: cover; }
 .card-main { flex: 1; min-width: 0; }
 .card-call { font-size: 19px; font-weight: 850; letter-spacing: -.03em; }
@@ -124,19 +110,18 @@ body { user-select: none; }
 .stat-big { font-size: 17px; font-weight: 850; }
 .stat-small { font-size: 11px; color: var(--text-3); font-weight: 800; margin-top: 4px; text-transform: uppercase; }
 
-.detail { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -40%) scale(0.95); width: min(92%, 480px); max-height: 85vh; z-index: 3200; border-radius: 36px; background: linear-gradient(180deg, rgba(30,30,32,0.9), rgba(15,15,18,0.98)); border: 1px solid var(--glass-border); box-shadow: 0 40px 100px rgba(0,0,0,0.9), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: transform .45s var(--spring), opacity .3s ease; }
+.detail { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -40%) scale(0.95); width: min(92%, 480px); max-height: 85vh; z-index: 3200; border-radius: 36px; background: var(--surface-solid); border: 1px solid var(--glass-border); box-shadow: 0 40px 100px rgba(0,0,0,0.9); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: transform .45s var(--spring), opacity .3s ease; }
 .detail.open { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
-.detail-close { position: absolute; right: 16px; top: 16px; width: 36px; height: 36px; border: none; border-radius: 18px; background: rgba(255,255,255,0.15); color: #fff; cursor: pointer; z-index: 10; display: grid; place-items: center; font-size: 16px; font-weight: 800; backdrop-filter: blur(10px); }
-.detail-close:active { transform: scale(0.9); }
+.detail-close { position: absolute; right: 16px; top: 16px; width: 36px; height: 36px; border: none; border-radius: 18px; background: rgba(255,255,255,0.15); color: #fff; cursor: pointer; z-index: 10; display: grid; place-items: center; font-size: 16px; font-weight: 800; }
 .detail-top { position: relative; padding: 24px 20px 16px; border-bottom: 1px solid rgba(255,255,255,0.08); display: flex; flex-direction: column; align-items: center; text-align: center; }
-.d-hero { width: 100%; height: 180px; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; border-radius: 24px; background: rgba(0,0,0,0.6); overflow: hidden; position: relative; border: 1px solid rgba(255,255,255,0.08); box-shadow: inset 0 0 40px rgba(0,0,0,0.5); }
-.d-hero img { width: 100%; height: 100%; object-fit: cover; transition: opacity 0.4s ease; }
+.d-hero { width: 100%; height: 180px; display: flex; justify-content: center; align-items: center; margin-bottom: 20px; border-radius: 24px; background: rgba(0,0,0,0.6); overflow: hidden; border: 1px solid rgba(255,255,255,0.08); }
+.d-hero img { width: 100%; height: 100%; object-fit: cover; }
 .d-call { font-size: 42px; font-weight: 850; letter-spacing: -.05em; line-height: 1; }
 .d-route { margin-top: 10px; color: var(--blue); font-size: 17px; font-weight: 700; }
 .d-scroll { flex: 1; overflow-y: auto; padding: 20px; }
 .d-scroll::-webkit-scrollbar { display: none; }
 .grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 12px; }
-.info { padding: 16px; border-radius: 22px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.06); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+.info { padding: 16px; border-radius: 22px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.06); }
 .info.full { grid-column: 1 / -1; }
 .i-label { font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; color: var(--text-3); }
 .i-value { margin-top: 6px; font-size: 18px; font-weight: 850; letter-spacing: -.02em; }
@@ -152,7 +137,7 @@ body { user-select: none; }
 <div class="island-wrap">
   <div class="island" id="island">
     <div class="brand"><div class="brand-badge">✈</div><div class="brand-text">Overhead</div></div>
-    <div class="searchbox"><span style="opacity:.55">🔎</span><input id="searchInput" placeholder="Search callsign..." /></div>
+    <div class="searchbox"><input id="searchInput" placeholder="Search callsign..." /></div>
     <div class="island-flight" id="islandFlight">
       <div class="if-main"><div class="if-call" id="ifCall">FIN123</div><div class="if-route" id="ifRoute">Live focus</div></div>
     </div>
@@ -179,9 +164,9 @@ body { user-select: none; }
 <div class="sheet expanded" id="sheet">
   <div class="sheet-grab" id="sheetGrab"><div></div></div>
   <div class="sheet-head">
-    <div><div class="sheet-title">Live Radar</div><div class="sheet-sub" id="sheetSub">Waiting for radar data...</div></div>
+    <div><div class="sheet-title">Live Radar</div><div class="sheet-sub" id="sheetSub">Waiting...</div></div>
   </div>
-  <div class="sheet-list" id="flightList"><div class="empty">Loading Live World...</div></div>
+  <div class="sheet-list" id="flightList"><div class="empty">Loading...</div></div>
 </div>
 
 <div class="detail" id="detail">
@@ -204,47 +189,43 @@ body { user-select: none; }
 <script>
 const $ = id => document.getElementById(id);
 
+// STATE
 const state = {
   map: null, isGlobe: false, userLat: 60.4518, userLon: 22.2666,
   flights: new Map(), selectedIcao: null, photoCache: new Map(),
-  markers: new Map(), // Varma viittaus Leaflet-markkereihin
+  markers: new Map(), 
   renderer: null, scene: null, camera: null, controls: null,
   instancedMesh: null, dummy: null, globeSphere: null
 };
 
+// HELPERS
 function fmtFt(m){ return m==null?'—':Math.round(m*3.28084).toLocaleString('en-US')+' FT'; }
 function fmtKt(ms){ return ms==null?'—':Math.round(ms*1.94384)+' KT'; }
 function haversine(lat1, lon1, lat2, lon2){ const R=6371, p=Math.PI/180; const a=Math.sin((lat2-lat1)*p/2)**2 + Math.cos(lat1*p)*Math.cos(lat2*p)*Math.sin((lon2-lon1)*p/2)**2; return R*2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); }
 function esc(s){ return String(s??'').replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])); }
 
-// ---------- 1. LEAFLET KARTTA & TÄYSIN VARMAT MARKKERIT ----------
+// ---------- 1. KARTTA & TAVALLISET MARKKERIT ----------
 function initMap(){
   state.map = L.map('map', {zoomControl:false, attributionControl:false}).setView([state.userLat, state.userLon], 6);
   
-  // Applen tapainen selkeä mutta upea tumma satelliittikartta (Esri)
+  // Toimiva, Apple-tyylinen satelliittikartta
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19}).addTo(state.map);
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{maxZoom:19, opacity:0.85}).addTo(state.map);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{maxZoom:19, opacity:0.8}).addTo(state.map);
 
-  state.userMarker = L.circleMarker([state.userLat, state.userLon], {radius:7, color:'#fff', weight:3, fillColor:'#0A84FF', fillOpacity:1}).addTo(state.map);
+  state.userMarker = L.circleMarker([state.userLat, state.userLon], {radius:7, color:'#fff', weight:2, fillColor:'#0A84FF', fillOpacity:1}).addTo(state.map);
 
+  // VAIHTOEHTO 3D:lle: Jos Three.js toimii, siirrytään sinne
   state.map.on('zoomend', () => {
-     if(state.map.getZoom() <= 3 && !state.isGlobe) {
-        if(navigator.vibrate) navigator.vibrate(15);
+     if(state.map.getZoom() <= 3 && !state.isGlobe && state.camera) {
         state.isGlobe = true;
         const center = state.map.getCenter();
-        if(state.camera && state.controls) {
-            latLonToVector3(center.lat, center.lng, 2.2, state.camera.position); 
-            state.controls.update();
-        }
+        latLonToVector3(center.lat, center.lng, 2.2, state.camera.position); 
+        state.controls.update();
         $('globeWrap').classList.add('on');
         $('mapWrap').style.opacity = '0';
         $('mapWrap').style.transform = 'scale(1.1)';
      }
   });
-
-  // Varmistetaan että markkerit päivitetään AINA kun karttaa liikutetaan
-  state.map.on('move', renderMarkers);
-  state.map.on('moveend', renderMarkers);
 }
 
 function setUserLocation(lat, lon, zoom=6){
@@ -253,105 +234,100 @@ function setUserLocation(lat, lon, zoom=6){
   if(state.map && !state.isGlobe) state.map.setView([lat, lon], zoom, {animate:true});
 }
 
-// Tämä funktio pitää huolen että KAIKKI ruudulla olevat koneet ovat oikeasti DOMissa.
-function renderMarkers() {
+// Päivittää DOM-markkerit - Ei monimutkaista bounds-laskentaa, lisätään suoraan Leaflettiin.
+function updateMarkers() {
     if(state.isGlobe || !state.map) return;
     
-    // Varalta pieni puskuri (pad), jotta reunalla olevat koneet näkyvät heti kun niihin panoidaan
-    const bounds = state.map.getBounds().pad(0.2); 
+    // Piirrä max 400 lähintä konetta jottei mene jumiin.
+    let arr = [...state.flights.values()].sort((a,b) => a.dist - b.dist).slice(0, 400);
+    // Varmistetaan että valittu kone on aina mukana
+    if(state.selectedIcao && !arr.find(f => f.icao24 === state.selectedIcao)){
+        const sf = state.flights.get(state.selectedIcao);
+        if(sf) arr.push(sf);
+    }
 
-    for(const [icao, f] of state.flights.entries()) {
-        const inBounds = bounds.contains([f.curLat, f.curLon]);
-        let marker = state.markers.get(icao);
-        
-        // Poista ulkopuolella olevat DOM-roskan välttämiseksi
-        if(!inBounds && state.selectedIcao !== icao) {
-            if(marker) { state.map.removeLayer(marker); state.markers.delete(icao); }
-            continue;
+    const currentIcaos = new Set(arr.map(f => f.icao24));
+
+    // Poista vanhat joita ei näytetä
+    for(const [icao, marker] of state.markers.entries()){
+        if(!currentIcaos.has(icao)){
+            state.map.removeLayer(marker);
+            state.markers.delete(icao);
         }
+    }
 
-        // Luo markkeri tai liikuta olemassaolevaa
+    // Päivitä / luo uudet
+    for(const f of arr){
+        let marker = state.markers.get(f.icao24);
         if(!marker) {
             const icon = L.divIcon({
                 className: '',
-                html: `<div class="plane-icon ${icao===state.selectedIcao?'sel':''}"></div>`,
+                html: `<div class="basic-plane ${f.icao24===state.selectedIcao?'sel':''}" style="transform: rotate(${f.track||0}deg)"></div>`,
                 iconSize: [0, 0]
             });
-            marker = L.marker([f.curLat, f.curLon], {icon, zIndexOffset: icao===state.selectedIcao?1000:0}).addTo(state.map);
-            marker.on('click', () => openDetailUI(icao));
-            state.markers.set(icao, marker);
-            
-            // Pyöritä ikonit manuaalisesti CSS kautta ilman että koko markkeri ladataan uudestaan
-            setTimeout(() => {
-                const el = marker.getElement();
-                if(el && el.firstChild) el.firstChild.style.transform = `rotate(${f.track||0}deg)`;
-            }, 0);
+            marker = L.marker([f.curLat, f.curLon], {icon, zIndexOffset: f.icao24===state.selectedIcao?1000:0}).addTo(state.map);
+            marker.on('click', () => openDetailUI(f.icao24));
+            state.markers.set(f.icao24, marker);
         } else {
-            // Päivitä Sijainti
             marker.setLatLng([f.curLat, f.curLon]);
-            // Päivitä Kierto ja Valinta DOMissa erittäin nopeasti
             const el = marker.getElement();
             if(el && el.firstChild) {
                 el.firstChild.style.transform = `rotate(${f.track||0}deg)`;
-                if(icao === state.selectedIcao) el.firstChild.classList.add('sel');
+                if(f.icao24 === state.selectedIcao) el.firstChild.classList.add('sel');
                 else el.firstChild.classList.remove('sel');
             }
-            marker.setZIndexOffset(icao===state.selectedIcao?1000:0);
+            marker.setZIndexOffset(f.icao24===state.selectedIcao?1000:0);
         }
     }
 }
 
 // ---------- 2. THREE.JS 3D GLOBE ----------
 function initThreeGlobe() {
-    if(!window.THREE || !window.THREE.OrbitControls) { setTimeout(initThreeGlobe, 200); return; }
+    if(!window.THREE || !window.THREE.OrbitControls) { 
+        console.log("Three not found, retrying...");
+        setTimeout(initThreeGlobe, 300); 
+        return; 
+    }
 
-    state.dummy = new THREE.Object3D();
     const canvas = $('glCanvas');
     state.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
     state.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     state.renderer.setSize(window.innerWidth, window.innerHeight);
 
     state.scene = new THREE.Scene();
-    state.scene.background = new THREE.Color(0x000000); // Tila-avaruus Apple-tyyliin
+    state.scene.background = new THREE.Color(0x000000); 
 
     state.camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
     state.camera.position.z = 2.5;
 
     state.controls = new THREE.OrbitControls(state.camera, state.renderer.domElement);
     state.controls.enableDamping = true; state.controls.dampingFactor = 0.05;
-    state.controls.enablePan = false; state.controls.minDistance = 1.05; state.controls.maxDistance = 15.0; 
+    state.controls.enablePan = false; state.controls.minDistance = 1.05; state.controls.maxDistance = 10.0; 
 
     state.controls.addEventListener('change', () => {
         if(!state.isGlobe) return;
         if(state.camera.position.length() < 1.15) { 
-            if(navigator.vibrate) navigator.vibrate(15);
             state.isGlobe = false;
             $('globeWrap').classList.remove('on');
-            
             const dir = state.camera.position.clone().normalize();
             const lat = Math.asin(dir.y) * (180/Math.PI);
             const lng = Math.atan2(dir.x, dir.z) * (180/Math.PI);
-            
             state.map.setView([lat, lng], 4, {animate:false});
             $('mapWrap').style.opacity = '1';
             $('mapWrap').style.transform = 'scale(1)';
-            renderMarkers(); 
         }
     });
 
     const earthGeo = new THREE.SphereGeometry(1, 64, 64);
-    const earthMat = new THREE.MeshPhongMaterial({ color: 0x051525, emissive: 0x020815, specular: 0x223344, shininess: 25 });
+    const earthMat = new THREE.MeshPhongMaterial({ color: 0x051525, emissive: 0x020815, specular: 0x112233, shininess: 15 });
     state.globeSphere = new THREE.Mesh(earthGeo, earthMat);
     state.scene.add(state.globeSphere);
 
-    const atmosGeo = new THREE.SphereGeometry(1.03, 32, 32);
-    const atmosMat = new THREE.MeshBasicMaterial({ color: 0x0A84FF, transparent: true, opacity: 0.1, side: THREE.BackSide });
-    state.scene.add(new THREE.Mesh(atmosGeo, atmosMat));
-
-    state.scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+    state.scene.add(new THREE.AmbientLight(0xffffff, 0.5));
     const dirLight = new THREE.DirectionalLight(0xffffff, 1.2); dirLight.position.set(5, 3, 5);
     state.scene.add(dirLight);
 
+    state.dummy = new THREE.Object3D();
     const planeGeo = new THREE.ConeGeometry(0.005, 0.018, 4); planeGeo.rotateX(Math.PI / 2);
     const planeMat = new THREE.MeshPhongMaterial({ color: 0xffffff }); 
     
@@ -359,12 +335,6 @@ function initThreeGlobe() {
     state.instancedMesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
     state.instancedMesh.instanceColor.setUsage(THREE.DynamicDrawUsage);
     state.scene.add(state.instancedMesh);
-
-    window.addEventListener('resize', () => {
-        state.camera.aspect = window.innerWidth / window.innerHeight;
-        state.camera.updateProjectionMatrix();
-        state.renderer.setSize(window.innerWidth, window.innerHeight);
-    });
 }
 
 function latLonToVector3(lat, lon, radius, targetVector) {
@@ -413,7 +383,6 @@ function renderThreeScene() {
 
 // ---------- 3. DATA FETCH ----------
 async function fetchFlights(){
-  $('refreshBtn').style.opacity = '0.5';
   try{
     const res = await fetch(`https://opensky-network.org/api/states/all`);
     if(!res.ok) throw new Error('API');
@@ -430,9 +399,6 @@ async function fetchFlights(){
       };
     }).filter(Boolean);
 
-    arr.sort((a,b) => a.dist - b.dist);
-    if(arr.length > 2000) arr = arr.slice(0, 2000); 
-
     const seen = new Set();
     for(const nf of arr){
       seen.add(nf.icao24);
@@ -440,37 +406,35 @@ async function fetchFlights(){
       if(old){ Object.assign(old, nf); } else { state.flights.set(nf.icao24, nf); }
     }
     for(const icao of state.flights.keys()){ 
-        if(!seen.has(icao)) {
-            state.flights.delete(icao);
-            if(state.markers.has(icao)) {
-                state.map.removeLayer(state.markers.get(icao));
-                state.markers.delete(icao);
-            }
-        } 
+        if(!seen.has(icao)) state.flights.delete(icao);
     }
 
     $('sheetSub').textContent = `${state.flights.size} Live Airborne`;
     
     renderList();
-    renderMarkers(); // Erittäin tärkeä: Piirrä heti kun data tulee!
-  }catch(e){ console.warn("Fetch error"); } finally{ $('refreshBtn').style.opacity = '1'; setTimeout(fetchFlights, 15000); }
+    updateMarkers(); 
+  }catch(e){ console.warn("Fetch error"); } finally{ setTimeout(fetchFlights, 15000); }
 }
 
-// ---------- 4. ANIMAATIO ----------
+// ---------- 4. ANIMAATIO JA LIIKE ----------
 function startAnimation(){
+  // Päivitetään DOM-markkerien sijainti sekunnin välein, EI 60 fps jottei puhelin kaadu
+  setInterval(() => {
+    if(!state.isGlobe) updateMarkers();
+  }, 1000);
+
   const tick = (t) => {
     requestAnimationFrame(tick);
     if(!state.animLast) { state.animLast = t; return; }
     const dt = Math.min((t - state.animLast)/1000, 0.1); state.animLast = t;
 
-    let needs2DUpdate = false;
+    // Laske uusi lokaatio mutta älä renderöi DOMia täällä
     for(const f of state.flights.values()){
       if(f.velocity && !f.on_ground) {
           const trackRad = (f.track||0) * Math.PI/180;
           const distM = f.velocity * dt;
           f.curLat += (distM * Math.cos(trackRad))/111320; 
           f.curLon += (distM * Math.sin(trackRad))/(111320 * Math.max(0.2, Math.cos(f.lat*Math.PI/180)));
-          needs2DUpdate = true;
       }
     }
 
@@ -483,8 +447,7 @@ function startAnimation(){
       }
     }
 
-    if(state.isGlobe) renderThreeScene();
-    else if(needs2DUpdate) renderMarkers();
+    if(state.isGlobe && state.renderer) renderThreeScene();
   };
   requestAnimationFrame(tick);
 }
@@ -509,7 +472,7 @@ function renderList(){
         <div class="card-sub">${esc(f.country)}</div>
       </div>
       <div class="card-stats">
-        <div class="stat-big">${f.dist.toFixed(0)} km</div><div class="stat-small">Dist</div>
+        <div class="stat-big">${f.dist.toFixed(0)} km</div>
       </div>
     </div>`
   }).join('');
@@ -521,12 +484,11 @@ window.openDetailUI = async function(icao24) {
 
   $('detail').classList.add('open'); $('sheet').classList.remove('expanded');
   $('dCall').textContent = f.callsign; $('dRoute').textContent = f.country;
-  $('dModel').textContent = 'Loading…'; $('dOperator').textContent = 'Loading…';
 
-  $('island').classList.add('focus'); $('ifCall').textContent = f.callsign; $('ifRoute').textContent = 'Focusing...';
+  $('island').classList.add('focus'); $('ifCall').textContent = f.callsign;
   
   if(!state.isGlobe) state.map.setView([f.curLat, f.curLon], 9, {animate:true});
-  renderList(); renderMarkers();
+  renderList(); updateMarkers();
 
   if(!state.photoCache.has(icao24)) {
       try {
@@ -559,11 +521,12 @@ window.openDetailUI = async function(icao24) {
 $('detailClose').addEventListener('click', () => {
     state.selectedIcao = null; $('detail').classList.remove('open'); $('island').classList.remove('focus');
     $('hudAlt').textContent='--- FT'; $('hudSpd').textContent='--- KT';
-    renderList(); renderMarkers();
+    renderList(); updateMarkers();
 });
 $('sheetGrab').addEventListener('click', () => $('sheet').classList.toggle('expanded'));
 $('sheetBtn').addEventListener('click', () => $('sheet').classList.toggle('expanded'));
 $('searchInput').addEventListener('input', e => { state.search=e.target.value; renderList(); });
+$('gpsBtn').addEventListener('click', () => { if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p=>setUserLocation(p.coords.latitude, p.coords.longitude, 8)); });
 
 window.onload = () => {
     initMap();
