@@ -695,6 +695,26 @@ async function selFlight(id){
       }
     }
   } catch(e) {}
+  
+  var eta=calcETA(f, route);
+  if(eta){
+    var eb=document.getElementById('deta');
+    eb.style.cssText='display:block;margin:12px 16px 0;border-radius:16px;padding:12px 16px;font-size:15px;font-weight:600;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,0.03);';
+    if(eta.status === 'now'){
+      eb.style.background='rgba(52,199,89,.15)';eb.style.color='#1a7a35';
+      eb.innerHTML='🎯 Passing overhead right now! <span style="opacity:0.7;font-size:13px;display:block;margin-top:2px;">(' + eta.dist + ' km away)</span>';
+    } else if (eta.status === 'future') {
+      eb.style.background='rgba(0,122,255,.15)';eb.style.color='#007aff';
+      eb.innerHTML='✅ Passing overhead in ~'+eta.mins+' min <span style="opacity:0.7;font-size:13px;display:block;margin-top:2px;">(Closest: ' + eta.dist + ' km)</span>';
+    } else if (eta.status === 'past') {
+      eb.style.background='rgba(255,149,0,.15)';eb.style.color='#d57d00';
+      eb.innerHTML='🛫 Passed overhead ~'+eta.mins+' min ago <span style="opacity:0.7;font-size:13px;display:block;margin-top:2px;">(Closest was: ' + eta.dist + ' km)</span>';
+    } else {
+      eb.style.background='rgba(255,59,48,.1)';eb.style.color='#ff3b30';
+      eb.innerHTML='❌ Will not pass overhead <span style="opacity:0.7;font-size:13px;display:block;margin-top:2px;">(Closest approach: ~'+eta.closestKm+' km)</span>';
+    }
+  }
+
   if(route){
     var o=route.origin,d=route.destination;
     if(o||d)set('dSub',(o?(o.iata_code+' → '):'')+(d?d.iata_code:'?'));
@@ -703,18 +723,9 @@ async function selFlight(id){
       futureRouteLine = L.polyline([[f.lat, f.lon], [+d.latitude, +d.longitude]], {color: '#ff9500', weight: 3, dashArray: '8, 8', opacity: 0.8}).addTo(map);
     }
 
-    var eta=calcETA(f,route);
-    if(eta){
-      var eb=document.getElementById('deta');
-      eb.style.cssText='display:block;margin:12px 16px 0;border-radius:12px;padding:11px 16px;font-size:14px;font-weight:700;text-align:center';
-      if(eta.willPass){
-        eb.style.background='rgba(52,199,89,.15)';eb.style.color='#1a7a35';
-        eb.textContent=eta.mins<=2?'🎯 Passing overhead now!':'✅ Passing overhead in ~'+eta.mins+' min';
-      }else{
-        eb.style.background='rgba(255,59,48,.1)';eb.style.color='#ff3b30';
-        eb.textContent='❌ Will not pass overhead (closest ~'+eta.closestKm+' km)';
-      }
-    }
+    // Instead of passing route to calcETA, we just calculate it anytime
+    // Actually we can do it even if route is null! So I will move this OUTSIDE the `if(route)` block.
+
   }
 }
 
@@ -770,21 +781,52 @@ async function fetchBuiltYear(reg){
 }
 
 function calcETA(f,route){
-  var center=map.getCenter();
+  // Use actual user location if available, otherwise map center
+  var myLat = userPos ? userPos[0] : map.getCenter().lat;
+  var myLon = userPos ? userPos[1] : map.getCenter().lng;
+
   if(!route||!f.lat||!f.lon||!f.velMs||f.velMs<5)return null;
-  var pts=[];
-  if(route.origin&&route.origin.latitude)pts.push([+route.origin.latitude,+route.origin.longitude]);
-  if(route.destination&&route.destination.latitude)pts.push([+route.destination.latitude,+route.destination.longitude]);
-  if(pts.length<2)return null;
-  var minD=9999,minT=0;
-  for(var i=0;i<pts.length-1;i++){
-    var res=segD(center.lat,center.lng,pts[i][0],pts[i][1],pts[i+1][0],pts[i+1][1]);
-    if(res.d<minD){minD=res.d;minT=res.t;}
+
+  // Calculate exact distance from plane to user right now
+  var currentDist = hav(myLat, myLon, f.lat, f.lon);
+
+  // Predict if it will come within 50km based on current trajectory
+  // Instead of using origin/destination which might be thousands of km away and not perfectly straight, 
+  // let's project the plane's path forward by 1000km to find the closest point of approach to the user.
+
+  var dProj = 1000; // km
+  var dy = dProj * Math.cos(f.track * Math.PI / 180);
+  var dx = dProj * Math.sin(f.track * Math.PI / 180);
+  var projLat = f.lat + (dy / 111.32);
+  var projLon = f.lon + (dx / (111.32 * Math.cos(f.lat * Math.PI / 180)));
+
+  var res = segD(myLat, myLon, f.lat, f.lon, projLat, projLon);
+  var closestDist = res.d;
+
+  // Did it already pass us? Let's trace backwards too to check.
+  var bProjLat = f.lat - (dy / 111.32);
+  var bProjLon = f.lon - (dx / (111.32 * Math.cos(f.lat * Math.PI / 180)));
+  var bRes = segD(myLat, myLon, bProjLat, bProjLon, f.lat, f.lon);
+
+  // Determine status
+  if (currentDist <= 50) {
+    return { status: 'now', dist: Math.round(currentDist) };
+  } else if (closestDist <= 50) {
+    // It's coming towards us and will pass within 50km
+    var distToClosest = hav(f.lat, f.lon, f.lat + res.t*(projLat-f.lat), f.lon + res.t*(projLon-f.lon));
+    var minsToClosest = Math.round((distToClosest * 1000) / f.velMs / 60);
+    return { status: 'future', mins: minsToClosest, dist: Math.round(closestDist) };
+  } else if (bRes.d <= 50) {
+    // It already passed us within 50km
+    var distSinceClosest = hav(f.lat, f.lon, bProjLat + bRes.t*(f.lat-bProjLat), bProjLon + bRes.t*(f.lon-bProjLon));
+    var minsSinceClosest = Math.round((distSinceClosest * 1000) / f.velMs / 60);
+    return { status: 'past', mins: minsSinceClosest, dist: Math.round(bRes.d) };
   }
-  if(minD>80)return{willPass:false,closestKm:Math.round(minD)};
-  var cx=pts[0][0]+minT*(pts[1][0]-pts[0][0]);
-  var cy=pts[0][1]+minT*(pts[1][1]-pts[0][1]);
-  return{willPass:true,mins:Math.max(0,Math.round(hav(f.lat,f.lon,cx,cy)/f.velMs/60))};
+
+  // Won't pass within 50km
+  // Return the closest it will get (or got)
+  var absClosest = Math.min(closestDist, bRes.d);
+  return { status: 'none', closestKm: Math.round(absClosest) };
 }
 function segD(px,py,ax,ay,bx,by){
   var dx=bx-ax,dy=by-ay,l2=dx*dx+dy*dy;
