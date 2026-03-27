@@ -5,11 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<title>Overhead Ultra — Pro Edition</title>
+<title>Overhead Ultra Max — Pro Edition</title>
 
+<!-- LEAFLET -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- THREE.JS & GLOBE.GL -->
 <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+<script src="https://unpkg.com/three@0.160.0/examples/js/loaders/GLTFLoader.js"></script>
 <script src="https://unpkg.com/globe.gl"></script>
 
 <style>
@@ -44,39 +48,16 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 body{user-select:none}
 
 body::before{
-  content:"";
-  position:fixed;
-  inset:0;
-  z-index:35;
-  pointer-events:none;
+  content:""; position:fixed; inset:0; z-index:35; pointer-events:none;
   background:
     radial-gradient(circle at 50% 8%, rgba(255,255,255,.06), transparent 25%),
     radial-gradient(circle at 50% 120%, rgba(0,0,0,0), rgba(0,0,0,.42) 70%);
 }
 
-#mapWrap{
-  position:fixed;
-  inset:0;
-  z-index:0;
-  transition:opacity .55s var(--spring);
-}
-#map{
-  position:absolute;
-  inset:0;
-}
-#globeWrap{
-  position:fixed;
-  inset:0;
-  z-index:10;
-  opacity:0;
-  pointer-events:none;
-  transition:opacity .6s var(--spring);
-  background:#000;
-}
-#globeWrap.on{
-  opacity:1;
-  pointer-events:auto;
-}
+#mapWrap{ position:fixed; inset:0; z-index:0; transition:opacity .55s var(--spring); }
+#map{ position:absolute; inset:0; }
+#globeWrap{ position:fixed; inset:0; z-index:10; opacity:0; pointer-events:none; transition:opacity .6s var(--spring); background:#000; }
+#globeWrap.on{ opacity:1; pointer-events:auto; }
 #globeViz{position:absolute;inset:0;}
 
 .leaflet-control-zoom,.leaflet-control-attribution{display:none!important}
@@ -84,65 +65,31 @@ body::before{
 
 /* Dynamic island */
 .island-wrap{
-  position:fixed;
-  left:0;right:0;
-  top:max(14px, env(safe-area-inset-top));
-  z-index:2500;
-  display:flex;
-  justify-content:center;
-  pointer-events:none;
-  padding:0 14px;
+  position:fixed; left:0;right:0; top:max(14px, env(safe-area-inset-top));
+  z-index:2500; display:flex; justify-content:center; pointer-events:none; padding:0 14px;
 }
 .island{
-  width:min(820px,100%);
-  min-height:58px;
-  border-radius:30px;
-  padding:10px 12px;
-  display:flex;
-  align-items:center;
-  gap:10px;
-  pointer-events:auto;
+  width:min(820px,100%); min-height:58px; border-radius:30px; padding:10px 12px;
+  display:flex; align-items:center; gap:10px; pointer-events:auto;
   background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03)), var(--surface);
-  border:1px solid var(--line);
-  box-shadow:var(--shadow-2);
-  backdrop-filter:var(--blur);
-  -webkit-backdrop-filter:var(--blur);
+  border:1px solid var(--line); box-shadow:var(--shadow-2);
+  backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
   transition:transform .45s var(--spring), min-height .45s var(--spring), width .45s var(--spring);
 }
 .island:active{transform:scale(.995)}
-.brand{
-  flex:0 0 auto;
-  display:flex;
-  align-items:center;
-  gap:10px;
-  padding:0 10px 0 4px;
-}
+.brand{ flex:0 0 auto; display:flex; align-items:center; gap:10px; padding:0 10px 0 4px; }
 .brand-badge{
-  width:32px;height:32px;border-radius:16px;
-  display:grid;place-items:center;
-  background:linear-gradient(135deg,var(--blue),#58b3ff);
-  box-shadow:0 8px 18px rgba(10,132,255,.35);
-  font-size:15px;
+  width:32px;height:32px;border-radius:16px; display:grid;place-items:center;
+  background:linear-gradient(135deg,var(--blue),#58b3ff); box-shadow:0 8px 18px rgba(10,132,255,.35); font-size:15px;
 }
-.brand-text{
-  font-size:17px;font-weight:850;letter-spacing:-.04em;
-}
+.brand-text{ font-size:17px;font-weight:850;letter-spacing:-.04em; }
 .searchbox{
-  flex:1;
-  min-height:38px;
-  border-radius:20px;
-  background:rgba(255,255,255,.06);
-  border:1px solid rgba(255,255,255,.05);
-  display:flex;align-items:center;gap:10px;padding:0 14px;
+  flex:1; min-height:38px; border-radius:20px; background:rgba(255,255,255,.06);
+  border:1px solid rgba(255,255,255,.05); display:flex;align-items:center;gap:10px;padding:0 14px;
 }
-.searchbox input{
-  width:100%;border:none;outline:none;background:transparent;
-  color:#fff;font-size:15px;font-weight:650;
-}
+.searchbox input{ width:100%;border:none;outline:none;background:transparent; color:#fff;font-size:15px;font-weight:650; }
 .searchbox input::placeholder{color:var(--text-3)}
-.island-flight{
-  display:none;flex:0 0 auto;align-items:center;gap:12px;padding:0 6px 0 4px;
-}
+.island-flight{ display:none;flex:0 0 auto;align-items:center;gap:12px;padding:0 6px 0 4px; }
 .island.focus .island-flight{display:flex}
 .island.focus{min-height:66px}
 .if-main{display:flex;flex-direction:column;line-height:1.05}
@@ -151,25 +98,21 @@ body::before{
 .if-pill{font-size:11px;font-weight:850;letter-spacing:.08em;color:var(--green)}
 .island-actions{display:flex;gap:8px}
 .ibtn{
-  width:38px;height:38px;border:none;border-radius:19px;
-  background:rgba(255,255,255,.08);color:#fff;
-  display:grid;place-items:center;cursor:pointer;
-  transition:transform .22s var(--spring), background .2s ease;
+  width:38px;height:38px;border:none;border-radius:19px; background:rgba(255,255,255,.08);color:#fff;
+  display:grid;place-items:center;cursor:pointer; transition:transform .22s var(--spring), background .2s ease;
 }
 .ibtn:active{transform:scale(.93)}
 .ibtn.on{background:rgba(10,132,255,.22);box-shadow:0 0 0 1px rgba(10,132,255,.35) inset}
 
-/* top HUD */
+/* Top HUD */
 .hud-wrap{
-  position:fixed;left:0;right:0;
-  top:calc(max(14px, env(safe-area-inset-top)) + 74px);
+  position:fixed;left:0;right:0; top:calc(max(14px, env(safe-area-inset-top)) + 74px);
   z-index:2200;display:flex;justify-content:center;pointer-events:none;
 }
 .hud{
   border-radius:24px;padding:8px 18px;display:flex;align-items:center;gap:15px;
   background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03)), var(--surface);
-  border:1px solid var(--line);box-shadow:var(--shadow-2);
-  backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  border:1px solid var(--line);box-shadow:var(--shadow-2); backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
   font-variant-numeric:tabular-nums;
 }
 .hud-block{display:flex;flex-direction:column}
@@ -177,53 +120,41 @@ body::before{
 .hud-value{font-size:18px;font-weight:950;letter-spacing:-.05em}
 .hud-divider{width:1px;height:28px;background:rgba(255,255,255,.15)}
 
-/* map status tag */
+/* Map status tag */
 .map-status{
-  position:fixed;left:16px;
-  top:calc(max(14px, env(safe-area-inset-top)) + 136px);
-  z-index:1700;padding:10px 14px;border-radius:18px;
-  background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03)), var(--surface);
-  border:1px solid var(--line);box-shadow:var(--shadow-1);
-  backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  position:fixed;left:16px; top:calc(max(14px, env(safe-area-inset-top)) + 136px); z-index:1700;
+  padding:10px 14px;border-radius:18px; background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03)), var(--surface);
+  border:1px solid var(--line);box-shadow:var(--shadow-1); backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
   color:var(--text-2);font-size:13px;font-weight:750;
 }
 .live-dot{
-  width:8px;height:8px;border-radius:50%;background:var(--green);
-  display:inline-block;margin-right:8px;
+  width:8px;height:8px;border-radius:50%;background:var(--green); display:inline-block;margin-right:8px;
   animation:pulse 1.8s ease-in-out infinite;
 }
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
-/* floating buttons */
+/* Floating buttons */
 .side-controls{
-  position:fixed;right:14px;
-  top:calc(max(14px, env(safe-area-inset-top)) + 132px);
+  position:fixed;right:14px; top:calc(max(14px, env(safe-area-inset-top)) + 132px);
   z-index:2100;display:flex;flex-direction:column;gap:10px;
 }
 .fab{
   width:50px;height:50px;border:none;border-radius:25px;color:#fff;cursor:pointer;
   background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03)), var(--surface);
-  border:1px solid var(--line);box-shadow:var(--shadow-1);
-  backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  border:1px solid var(--line);box-shadow:var(--shadow-1); backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
 }
 .fab:active{transform:scale(.93)}
 
-/* sheet */
+/* Sheet */
 .sheet{
-  position:fixed;left:14px;right:14px;bottom:14px;
-  z-index:1800;border-radius:36px;
+  position:fixed;left:14px;right:14px;bottom:14px; z-index:1800;border-radius:36px;
   background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03)), var(--surface);
-  border:1px solid var(--line);box-shadow:var(--shadow-3);
-  backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
-  overflow:hidden;
-  transition:height .45s var(--spring), transform .45s var(--spring);
-  height:182px;
+  border:1px solid var(--line);box-shadow:var(--shadow-3); backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  overflow:hidden; transition:height .45s var(--spring), transform .45s var(--spring); height:182px;
 }
 .sheet.expanded{height:min(72vh,820px)}
 .sheet.hidden{transform:translateY(120%)}
-.sheet-grab{
-  display:flex;justify-content:center;align-items:center;padding:10px 0 3px;cursor:pointer;
-}
+.sheet-grab{ display:flex;justify-content:center;align-items:center;padding:10px 0 3px;cursor:pointer; }
 .sheet-grab div{width:42px;height:5px;border-radius:999px;background:rgba(255,255,255,.20)}
 .sheet-head{display:flex;justify-content:space-between;align-items:center;padding:8px 18px 14px}
 .sheet-title{font-size:26px;font-weight:950;letter-spacing:-.06em}
@@ -232,10 +163,9 @@ body::before{
 .sheet-list{height:calc(100% - 86px);overflow:auto;padding:0 12px 14px}
 .sheet-list::-webkit-scrollbar{display:none}
 
-/* cards */
+/* Cards */
 .card{
-  display:flex;align-items:center;gap:14px;
-  padding:14px;margin-bottom:10px;border-radius:22px;
+  display:flex;align-items:center;gap:14px; padding:14px;margin-bottom:10px;border-radius:22px;
   background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.05);
   cursor:pointer;transition:transform .18s var(--spring), background .18s ease;
 }
@@ -256,46 +186,40 @@ body::before{
 .stat-big{font-size:15px;font-weight:850}
 .stat-small{font-size:11px;color:var(--text-3);font-weight:700;margin-top:2px}
 
-/* DETAIL PANEL - Kompaktimpi, keskitetty versio */
+/* DETAIL PANEL - Premium Design */
 .detail{
-  position:fixed;
-  left:50%; top:50%;
-  transform:translate(-50%, -40%) scale(0.95);
-  width:min(92%, 480px);
-  max-height:85vh;
-  z-index:3200;
-  border-radius:32px;
+  position:fixed; left:50%; top:50%; transform:translate(-50%, -40%) scale(0.95);
+  width:min(92%, 480px); max-height:85vh; z-index:3200; border-radius:32px;
   background:linear-gradient(180deg, rgba(30,30,36,.94), rgba(20,20,26,.97));
-  border:1px solid var(--line-2);
-  box-shadow:var(--shadow-3);
-  backdrop-filter:var(--blur-heavy);
-  -webkit-backdrop-filter:var(--blur-heavy);
-  display:flex;flex-direction:column;
-  opacity:0;pointer-events:none;
+  border:1px solid var(--line-2); box-shadow:var(--shadow-3);
+  backdrop-filter:var(--blur-heavy); -webkit-backdrop-filter:var(--blur-heavy);
+  display:flex;flex-direction:column; opacity:0;pointer-events:none;
   transition:transform .4s var(--spring), opacity .3s ease;
 }
-.detail.open{
-  opacity:1;
-  pointer-events:auto;
-  transform:translate(-50%, -50%) scale(1);
-}
+.detail.open{ opacity:1; pointer-events:auto; transform:translate(-50%, -50%) scale(1); }
 .detail-close{
-  position:absolute;right:14px;top:14px;
-  width:32px;height:32px;border:none;border-radius:16px;
-  background:rgba(255,255,255,.15);color:#fff;
-  cursor:pointer;z-index:10;display:grid;place-items:center;
+  position:absolute;right:14px;top:14px; width:32px;height:32px;border:none;border-radius:16px;
+  background:rgba(255,255,255,.2);color:#fff; cursor:pointer;z-index:10;display:grid;place-items:center;
   font-size:14px;font-weight:700;
 }
 .detail-close:active{transform:scale(.9)}
 .detail-top{
-  padding:20px 20px 12px;
-  border-bottom:1px solid rgba(255,255,255,.06);
+  position:relative; padding:24px 20px 16px; border-bottom:1px solid rgba(255,255,255,.06);
+  display:flex; flex-direction:column; align-items:center; text-align:center;
 }
-.d-call{font-size:32px;font-weight:900;letter-spacing:-.05em;line-height:1.1}
-.d-route{margin-top:6px;color:var(--text-2);font-size:14px;font-weight:650}
+/* Plane Image Holder */
+.d-hero{
+  width:100%; height:120px; display:flex; justify-content:center; align-items:center;
+  margin-bottom:16px; border-radius:20px; background:rgba(255,255,255,0.03);
+  overflow:hidden; position:relative;
+}
+.d-hero img{ width:80%; height:100%; object-fit:contain; opacity:0.9; }
+
+.d-call{font-size:36px;font-weight:900;letter-spacing:-.05em;line-height:1}
+.d-route{margin-top:6px;color:var(--blue);font-size:15px;font-weight:700}
 .phase{
-  display:inline-flex;align-items:center;gap:6px;margin-top:10px;
-  padding:6px 12px;border-radius:999px;font-size:12px;font-weight:900;
+  display:inline-flex;align-items:center;gap:6px;margin-top:12px;
+  padding:6px 14px;border-radius:999px;font-size:12px;font-weight:900;
   letter-spacing:.06em;text-transform:uppercase;
 }
 .phase.cruise{background:rgba(10,132,255,.15);color:#73b6ff}
@@ -303,30 +227,22 @@ body::before{
 .phase.desc{background:rgba(255,159,10,.15);color:#ffbf66}
 .phase.gnd{background:rgba(255,255,255,.10);color:var(--text-2)}
 
-.d-scroll{
-  flex:1;overflow-y:auto;padding:16px;
-}
+.d-scroll{ flex:1;overflow-y:auto;padding:16px; }
 .d-scroll::-webkit-scrollbar{display:none}
-.grid{
-  display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;
-}
+.grid{ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px; }
 .info{
-  padding:12px;border-radius:18px;
+  padding:14px;border-radius:20px;
   background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.03);
 }
 .info.full{grid-column:1/-1}
 .i-label{
-  font-size:10px;font-weight:800;letter-spacing:.05em;
+  font-size:11px;font-weight:800;letter-spacing:.05em;
   text-transform:uppercase;color:rgba(255,255,255,.4);
 }
-.i-value{
-  margin-top:4px;font-size:15px;font-weight:800;letter-spacing:-.02em;
-}
-.i-sub{
-  margin-top:2px;font-size:11px;color:rgba(255,255,255,.6);
-}
+.i-value{ margin-top:6px;font-size:16px;font-weight:800;letter-spacing:-.02em; }
+.i-sub{ margin-top:2px;font-size:12px;color:rgba(255,255,255,.6); }
 
-/* toast & popup */
+/* Toast & Popup */
 .toast{
   position:fixed;left:50%;bottom:34px;transform:translate(-50%,80px);
   z-index:5000;opacity:0;pointer-events:none;
@@ -347,10 +263,8 @@ body::before{
 .empty{padding:34px 18px;text-align:center;color:var(--text-3)}
 
 @media (max-width:760px){
-  .brand-text{display:none}
-  .brand{padding-right:4px}
-  .if-route{max-width:120px}
-  .sheet-title{font-size:22px}
+  .brand-text{display:none} .brand{padding-right:4px}
+  .if-route{max-width:120px} .sheet-title{font-size:22px}
 }
 </style>
 </head>
@@ -423,6 +337,10 @@ body::before{
   <button class="detail-close" id="detailClose">✕</button>
 
   <div class="detail-top">
+    <div class="d-hero" id="dHero">
+      <!-- Generinen siluetti tai valokuva -->
+      <img id="dImg" src="https://upload.wikimedia.org/wikipedia/commons/4/41/Airliner_silhouette.svg" style="filter:invert(1) opacity(0.8);" />
+    </div>
     <div class="d-call" id="dCall">FLIGHT</div>
     <div class="d-route" id="dRoute">—</div>
     <div class="phase cruise" id="dPhase">→ Cruise</div>
@@ -450,16 +368,6 @@ body::before{
         <div class="i-value" id="dVr">—</div>
         <div class="i-sub" id="dDist">—</div>
       </div>
-      <div class="info">
-        <div class="i-label">Country</div>
-        <div class="i-value" id="dCountry">—</div>
-        <div class="i-sub">Origin state</div>
-      </div>
-      <div class="info">
-        <div class="i-label">ICAO24</div>
-        <div class="i-value" id="dIcao">—</div>
-        <div class="i-sub">Unique transponder ID</div>
-      </div>
       <div class="info full">
         <div class="i-label">Aircraft</div>
         <div class="i-value" id="dModel">Loading…</div>
@@ -470,6 +378,14 @@ body::before{
         <div class="i-value" id="dOperator">—</div>
         <div class="i-sub" id="dRouteLong">—</div>
       </div>
+      <div class="info">
+        <div class="i-label">ICAO24</div>
+        <div class="i-value" id="dIcao">—</div>
+      </div>
+      <div class="info">
+        <div class="i-label">Squawk</div>
+        <div class="i-value" id="dSquawk">—</div>
+      </div>
     </div>
   </div>
 </div>
@@ -477,13 +393,15 @@ body::before{
 <div class="toast" id="toast"></div>
 
 <script>
+// ---------- CONFIG & STATE ----------
 const state = {
   map: null, globe: null, globeReady: false, isGlobe: false,
   userLat: 60.4518, userLon: 22.2666, radiusKm: 180,
   flights: new Map(), markers: new Map(), selectedIcao: null,
   refreshTimer: null, animFrame: null, animLast: 0, lastGlobeSync: 0,
   search: '', sheetExpanded: true,
-  metaCache: new Map(), routeCache: new Map()
+  metaCache: new Map(), routeCache: new Map(),
+  basePlaneScene: null // 3D malli välimuistissa
 };
 
 const $ = id => document.getElementById(id);
@@ -494,7 +412,7 @@ function toast(msg){
   clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('show'), 2400);
 }
 
-// Oikeat yksikkömuunnokset
+// Yksikkömuunnokset
 function fmtFt(m){ return m == null ? '—' : Math.round(m * 3.28084).toLocaleString('en-US') + ' FT'; }
 function fmtM(m){ return m == null ? '—' : Math.round(m).toLocaleString('en-US') + ' m'; }
 function fmtKt(ms){ return ms == null ? '—' : Math.round(ms * 1.94384) + ' KT'; }
@@ -520,11 +438,12 @@ function phaseOf(f){
   return {label:'Cruise', cls:'cruise', icon:'→'};
 }
 function colorOf(f){
-  if(f.on_ground) return '#FF9F0A';
-  if((f.dist ?? 9999) < 50) return '#30D158';
-  return '#0A84FF';
+  if(f.on_ground) return '#FF9F0A'; // Orange
+  if((f.dist ?? 9999) < 50) return '#30D158'; // Green
+  return '#0A84FF'; // Blue
 }
 
+// ---------- LEAFLET 2D MAP ----------
 function initMap(){
   state.map = L.map('map', {zoomControl:false, attributionControl:false}).setView([state.userLat, state.userLon], 7);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19}).addTo(state.map);
@@ -540,6 +459,7 @@ function setUserLocation(lat, lon, zoom=8){
   if(state.map) state.map.setView([lat, lon], zoom, {animate:true});
 }
 
+// ---------- DATA FETCHING ----------
 function parseStates(states){
   const now = Date.now();
   return (states || []).map(s => {
@@ -626,6 +546,145 @@ function projectFlight(f, now){
   };
 }
 
+// ---------- 3D GLOBE ----------
+function loadAirplaneModel(){
+  return new Promise(resolve => {
+    // Käytetään Three.js esimerkeistä tuttua kevyttä konemallia, ladataan jsdelivr CDN:stä:
+    const loader = new THREE.GLTFLoader();
+    loader.load('https://cdn.jsdelivr.net/gh/mrdoob/three.js@r128/examples/models/gltf/Flamingo.glb', (gltf) => {
+      const plane = gltf.scene;
+      
+      // Käännetään malli osoittamaan Z-akselin suuntaan
+      plane.rotation.y = Math.PI; 
+      plane.scale.set(0.003, 0.003, 0.003); // Skaalataan sopivaksi maapallolle
+      
+      // Luodaan valkoinen materiaali (värjätään myöhemmin klooneissa)
+      plane.traverse((child) => {
+        if (child.isMesh) {
+          child.material = new THREE.MeshStandardMaterial({ 
+            color: 0xffffff,
+            metalness: 0.3,
+            roughness: 0.4
+          });
+        }
+      });
+      state.basePlaneScene = plane;
+      resolve(plane);
+    }, undefined, () => {
+      // Jos laataus epäonnistuu, tehdään fallback "nuoli"
+      const fallback = new THREE.Mesh(
+        new THREE.ConeGeometry(0.02, 0.08, 4).rotateX(Math.PI/2),
+        new THREE.MeshStandardMaterial()
+      );
+      state.basePlaneScene = fallback;
+      resolve(fallback);
+    });
+  });
+}
+
+async function initGlobe(){
+  if(state.globeReady) return;
+  await loadAirplaneModel(); // Odotetaan että 3D malli latautuu
+
+  state.globe = Globe()($('globeViz'))
+    .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
+    .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
+    .backgroundColor('#000')
+    .showAtmosphere(true)
+    .atmosphereColor('#4dabff')
+    .atmosphereAltitude(0.15)
+    .objectLat('gLat')
+    .objectLng('gLon')
+    .objectAltitude('gAlt')
+    .objectThreeObject(d => {
+      // Kloonataan alkuperäinen 3D malli
+      const clone = state.basePlaneScene.clone();
+      
+      // Värjätään malli valitun värin mukaan
+      clone.traverse((child) => {
+        if (child.isMesh) {
+          child.material = child.material.clone(); // Jotta ei värjätä kaikkia
+          child.material.color.set(d.gColor);
+        }
+      });
+
+      // Kiertokulmat! Laitetaan oikeaan asentoonsa Globe.gl päällä
+      const trackRad = (90 - d.track) * (Math.PI / 180);
+      
+      // Pitch lasketaan vertical_ratesta. m/s ja velMs suhde.
+      let pitchRad = 0;
+      if(d.vel > 5) {
+         pitchRad = Math.atan((d.vrate || 0) / d.vel);
+      }
+      
+      // Kolmiulotteinen rotation group
+      const wrapper = new THREE.Group();
+      wrapper.add(clone);
+      
+      // Globe.gl asettaa Z-akselin ylöspäin maapallosta ja Y-akselin pohjoiseen.
+      // Säädetään asento trackin mukaan.
+      clone.rotation.y = trackRad; // Yaw
+      clone.rotation.x = pitchRad; // Pitch (nokkka ylös/alas)
+      
+      // Kallistus käännöksissä (Roll) - visuaalinen jippo
+      if(!d.on_ground) {
+          // Teeskennellään kallistusta vähän satunnaisesti tai oletetaan että se lentää suoraan
+          // clone.rotation.z = Math.sin(Date.now() / 1000 + d.icao24.charCodeAt(0)) * 0.1;
+      }
+      
+      wrapper.scale.set(d.gScale, d.gScale, d.gScale);
+      return wrapper;
+    });
+
+  // Parempi valaistus konemalleille
+  state.globe.scene().add(new THREE.AmbientLight(0xffffff, 0.8));
+  const sun = new THREE.DirectionalLight(0xffffff, 1.5);
+  sun.position.set(1, 1, 1);
+  state.globe.scene().add(sun);
+
+  state.globe.controls().enableDamping=true; 
+  state.globe.controls().dampingFactor=0.08;
+  state.globe.pointOfView({lat: state.userLat, lng: state.userLon, altitude: 1.5}, 0);
+  
+  state.globeReady = true;
+}
+
+function syncGlobe(force=false){
+  if(!state.globeReady || (!force && performance.now()-state.lastGlobeSync<250)) return;
+  state.lastGlobeSync = performance.now();
+  
+  state.globe.objectsData([...state.flights.values()].slice(0,250).map(f => {
+    const p = projectFlight(f, Date.now());
+    // Laske korkeus: minimi on 0.002 jotta ei uppoa maahan
+    // 30,000 jalkaa = ~10km. Maapallon säde Globe.gl:ssä on 1. 10km / 6371km = 0.0015
+    const altitudeGlobe = f.on_ground ? 0.001 : Math.max(0.002, (f.baro_alt??f.geo_alt??0) / 6371000 * 20); 
+
+    return {
+      id: f.icao24, 
+      gLat: p.lat, 
+      gLon: p.lon, 
+      gAlt: altitudeGlobe, 
+      gColor: state.selectedIcao===f.icao24 ? '#30D158' : colorOf(f), 
+      gScale: state.selectedIcao===f.icao24 ? 1.8 : 1.2,
+      track: f.track || 0,
+      vrate: f.vertical_rate || 0,
+      vel: f.velocity || 250,
+      on_ground: f.on_ground
+    };
+  }));
+
+  // Kameran seuranta jos lennossa kiinni
+  if(state.selectedIcao){
+    const sf = state.flights.get(state.selectedIcao);
+    if(sf) {
+        const curCam = state.globe.pointOfView();
+        // Mennään hieman lähemmäs konetta ja seurataan
+        state.globe.pointOfView({lat:sf.curLat, lng:sf.curLon, altitude: 0.4}, 800);
+    }
+  }
+}
+
+// ---------- ANIMATION LOOP ----------
 function startAnimation(){
   const tick = (t) => {
     state.animFrame = requestAnimationFrame(tick);
@@ -656,6 +715,7 @@ function startAnimation(){
   state.animFrame = requestAnimationFrame(tick);
 }
 
+// ---------- UI & DETAIL ----------
 function renderList(){
   const q = state.search.trim().toLowerCase();
   let arr = [...state.flights.values()].sort((a,b) => (a.dist??9999) - (b.dist??9999));
@@ -679,29 +739,34 @@ function renderList(){
   `).join('');
 }
 
-// Detail View
 async function openDetail(icao24){
+  // Haptic feedback simulointi
+  if(navigator.vibrate) navigator.vibrate(10);
+
   state.selectedIcao = icao24; renderList();
   const f = state.flights.get(icao24); if(!f) return;
 
   $('detail').classList.add('open');
   $('sheet').classList.remove('expanded');
 
+  // Nollaa ensin kuvat ja tekstit
+  $('dHero').innerHTML = `<img id="dImg" src="https://upload.wikimedia.org/wikipedia/commons/4/41/Airliner_silhouette.svg" style="filter:invert(1) opacity(0.8);" />`;
+  
   $('dCall').textContent = f.callsign; $('dRoute').textContent = f.country;
   $('dCountry').textContent = f.country; $('dIcao').textContent = f.icao24.toUpperCase();
+  $('dSquawk').textContent = f.squawk || 'None';
   $('dModel').textContent = 'Loading…'; $('dMeta').textContent = 'Fetching data';
   $('dOperator').textContent = 'Loading…'; $('dRouteLong').textContent = 'Looking up route';
 
   const ph = phaseOf(f);
   $('dPhase').className = `phase ${ph.cls}`; $('dPhase').textContent = `${ph.icon} ${ph.label}`;
 
-  // TÄMÄ ON TÄRKEÄÄ: Päivitä live-arvot heti paneelin avaamisen yhteydessä
   updateDetailLive(f);
-
+  
   $('island').classList.add('focus');
   $('ifCall').textContent = f.callsign; $('ifRoute').textContent = 'Live focus';
 
-  if(!state.isGlobe) state.map.setView([f.curLat??f.lat, f.curLon??f.lon], Math.max(state.map.getZoom(),8), {animate:true});
+  if(!state.isGlobe) state.map.setView([f.curLat??f.lat, f.curLon??f.lon], Math.max(state.map.getZoom(), 9), {animate:true});
   else syncGlobe(true);
 
   // Fetch metadata
@@ -713,6 +778,13 @@ async function openDetail(icao24){
         $('dModel').textContent = [m.manufacturer, m.type].filter(Boolean).join(' ') || 'Unknown';
         $('dMeta').textContent = `${m.icao_type||'—'} · ${m.registration||'—'}`;
         $('dOperator').textContent = m.registered_owner || 'Unknown operator';
+        
+        // Hieno kikka: Vaihdetaan siluetti oikean yhtiön/koneen kuvaan jos loytyy
+        // Käytetään DuckDuckGo/Wikipedia rajapintaa tai placeholderia logoille
+        if(m.registered_owner) {
+             const cleanName = m.registered_owner.replace(/Airlines|Airways|Ltd|Inc/ig, '').trim();
+             $('dHero').innerHTML = `<div style="font-size:28px; font-weight:900; color:var(--blue);">${cleanName}</div>`;
+        }
       }
     }
   }catch(e){ $('dModel').textContent='No data'; $('dMeta').textContent='—'; $('dOperator').textContent='—'; }
@@ -740,63 +812,32 @@ function closeDetail(){
 }
 
 function updateDetailLive(f){
-  // Käytetään varmasti oikeita yksikkömuunnoksia
   const altM = f.baro_alt ?? f.geo_alt;
-  const speedMs = f.velocity; // s[9] on m/s
+  const speedMs = f.velocity;
   const phase = phaseOf(f);
 
-  $('dAlt').textContent = fmtFt(altM);
-  $('dAltM').textContent = fmtM(altM);
-  $('dSpd').textContent = fmtKt(speedMs);
-  $('dSpdKmh').textContent = fmtKmh(speedMs);
+  $('dAlt').textContent = fmtFt(altM); $('dAltM').textContent = fmtM(altM);
+  $('dSpd').textContent = fmtKt(speedMs); $('dSpdKmh').textContent = fmtKmh(speedMs);
   $('dHdg').textContent = f.track != null ? `${Math.round(f.track)}° ${dir(f.track)}` : '—';
   $('dHeadingSub').textContent = phase.label;
-  $('dVr').textContent = fmtVr(f.vertical_rate); // s[11] on m/s
+  $('dVr').textContent = fmtVr(f.vertical_rate); 
   $('dDist').textContent = f.dist != null ? `${f.dist.toFixed(1)} km from you` : '—';
 
-  $('hudAlt').textContent = fmtFt(altM);
-  $('hudSpd').textContent = fmtKt(speedMs);
+  $('hudAlt').textContent = fmtFt(altM); $('hudSpd').textContent = fmtKt(speedMs);
 }
 
-function scheduleRefresh(){ clearTimeout(state.refreshTimer); state.refreshTimer = setTimeout(fetchFlights, 25000); }
+function scheduleRefresh(){ clearTimeout(state.refreshTimer); state.refreshTimer = setTimeout(fetchFlights, 20000); }
 
-// Globe logic
-function initGlobe(){
-  if(state.globeReady) return;
-  state.globe = Globe()($('globeViz'))
-    .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
-    .backgroundColor('#000')
-    .objectLat('gLat').objectLng('gLon').objectAltitude('gAlt')
-    .objectThreeObject(d => {
-      const g = new THREE.Group();
-      const m = new THREE.Mesh(new THREE.CylinderGeometry(.04,.03,.42,8).rotateX(Math.PI/2), new THREE.MeshStandardMaterial({color:d.gColor}));
-      g.add(m); g.scale.set(d.gScale,d.gScale,d.gScale); return g;
-    });
-  state.globe.scene().add(new THREE.AmbientLight(0xffffff, .8));
-  state.globe.controls().enableDamping=true; state.globe.pointOfView({lat:40,lng:20,altitude:2},0);
-  state.globeReady = true;
-}
-function syncGlobe(force=false){
-  if(!state.globeReady || (!force && performance.now()-state.lastGlobeSync<250)) return;
-  state.lastGlobeSync = performance.now();
-  state.globe.objectsData([...state.flights.values()].slice(0,300).map(f => {
-    const p = projectFlight(f, Date.now());
-    return {id:f.icao24, gLat:p.lat, gLon:p.lon, gAlt:(f.baro_alt??0)*3.28/150000+.01, gColor:state.selectedIcao===f.icao24?'#30D158':colorOf(f), gScale:state.selectedIcao===f.icao24?3:1.5};
-  }));
-  if(state.selectedIcao){
-    const sf = state.flights.get(state.selectedIcao);
-    if(sf) state.globe.pointOfView({lat:sf.curLat, lng:sf.curLon, altitude:1.8}, 260);
-  }
-}
-
-// Events & Init
+// ---------- INIT & EVENTS ----------
 $('searchInput').addEventListener('input', e => { state.search = e.target.value; renderList(); });
 $('gpsBtn').addEventListener('click', () => {
+  if(navigator.vibrate) navigator.vibrate(15);
   if(!navigator.geolocation) return toast('GPS ei tuettu');
   $('gpsBtn').classList.add('on');
   navigator.geolocation.getCurrentPosition(p => { setUserLocation(p.coords.latitude, p.coords.longitude); fetchFlights(); $('gpsBtn').classList.remove('on'); }, () => { $('gpsBtn').classList.remove('on'); toast('GPS epäonnistui'); });
 });
 $('globeBtn').addEventListener('click', () => {
+  if(navigator.vibrate) navigator.vibrate(20);
   if(!state.globeReady) initGlobe();
   state.isGlobe = !state.isGlobe;
   $('globeWrap').classList.toggle('on', state.isGlobe); $('globeBtn').classList.toggle('on', state.isGlobe);
@@ -804,11 +845,15 @@ $('globeBtn').addEventListener('click', () => {
   syncGlobe(true);
 });
 $('turkuBtn').addEventListener('click', () => { setUserLocation(60.4518, 22.2666, 7); fetchFlights(); });
-$('refreshBtn').addEventListener('click', fetchFlights);
+$('refreshBtn').addEventListener('click', () => {
+  if(navigator.vibrate) navigator.vibrate(10);
+  fetchFlights();
+});
 $('detailClose').addEventListener('click', closeDetail);
 $('sheetBtn').addEventListener('click', () => { state.sheetExpanded = !state.sheetExpanded; $('sheet').classList.toggle('expanded', state.sheetExpanded); });
 $('sheetGrab').addEventListener('click', () => { state.sheetExpanded = !state.sheetExpanded; $('sheet').classList.toggle('expanded', state.sheetExpanded); });
 
+// Launch
 initMap(); setUserLocation(60.4518, 22.2666, 7); startAnimation(); fetchFlights();
 </script>
 </body>
