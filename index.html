@@ -104,7 +104,7 @@ body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "S
 
 
 /* Map UI Controls */
-.controls { position: absolute; top: 60px; right: 16px; z-index: 500; display: flex; flex-direction: column; gap: 12px; }
+.controls { position: absolute; top: 80px; right: 16px; z-index: 500; display: flex; flex-direction: column; gap: 12px; }
 .btn { 
   background: var(--panel); backdrop-filter: var(--sat); -webkit-backdrop-filter: var(--sat); 
   border: none; border-radius: 24px; padding: 14px 20px; font-size: 16px; font-weight: 600; 
@@ -130,11 +130,34 @@ body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "S
 .switch .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
 input:checked + .slider { background-color: #34c759; }
 input:checked + .slider:before { transform: translateX(20px); }
+
+.search-bar { position: absolute; top: 16px; left: 16px; right: 16px; height: 50px; background: rgba(255,255,255,0.85); backdrop-filter: saturate(200%) blur(40px); -webkit-backdrop-filter: saturate(200%) blur(40px); border-radius: 16px; z-index: 1500; display: flex; align-items: center; padding: 0 16px; gap: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border: 1px solid rgba(255,255,255,0.6); transition: 0.3s; }
+.search-bar:focus-within { background: rgba(255,255,255,0.95); box-shadow: 0 8px 25px rgba(0,0,0,0.15); transform: translateY(-2px); }
+.search-bar input { border: none; background: transparent; font-size: 17px; font-weight: 500; width: 100%; outline: none; color: #1d1d1f; font-family: inherit; }
+.search-bar input::placeholder { color: #8e8e93; }
+.search-results { position: absolute; top: 76px; left: 16px; right: 16px; background: rgba(255,255,255,0.9); backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px); border-radius: 16px; z-index: 1499; max-height: 40vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.15); display: none; flex-direction: column; padding: 8px 0; border: 1px solid rgba(255,255,255,0.6); }
+.s-item { padding: 12px 16px; border-bottom: 1px solid rgba(0,0,0,0.05); display: flex; align-items: center; gap: 12px; cursor: pointer; }
+.s-item:last-child { border-bottom: none; }
+.s-ic { width: 32px; height: 32px; background: #e5e5ea; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: #0a84ff; }
+.s-text { font-size: 16px; font-weight: 600; color: #1d1d1f; }
+.s-sub { font-size: 13px; color: #8e8e93; font-weight: 500; }
+
+
+.glowing-line { filter: drop-shadow(0 0 4px rgba(255, 149, 0, 0.8)); }
+.glowing-line-blue { filter: drop-shadow(0 0 4px rgba(10, 132, 255, 0.6)); }
 </style>
 </head>
 <body>
 
 <div id="map"></div>
+
+<!-- Top Search Bar -->
+<div class="search-bar" onclick="focusSearch()">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.35-4.35"></path></svg>
+  <input type="text" id="searchInput" placeholder="Search flights, airlines..." onkeyup="if(event.key==='Enter') doSearch()" oninput="handleSearchInput()">
+</div>
+<div class="search-results" id="searchResults"></div>
+
 
 
 <div class="controls" id="controls" onclick="event.stopPropagation()">
@@ -149,17 +172,38 @@ input:checked + .slider:before { transform: translateX(20px); }
 </div>
 
 <!-- Settings Modal -->
-<div class="det" id="cfg" style="z-index: 3000; height: auto; bottom: 0; top: auto; border-radius: 32px 32px 0 0; background: rgba(255,255,255,0.85);">
-  <div class="sh-drag-area" onclick="toggleSheet()"><div class="sh-handle"></div></div>
-  <div style="padding: 24px;">
-    <h2 style="margin: 0 0 20px; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">Radar Settings</h2>
-
-    <div style="background: rgba(255,255,255,0.8); border-radius: 20px; padding: 16px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); margin-bottom: 24px;">
-      <div style="font-weight: 600; margin-bottom: 12px; color: #1d1d1f;">Search Radius: <span id="radVal" style="color: #007aff;">250 km</span></div>
-      <input type="range" id="iRad" min="10" max="1500" value="250" style="width: 100%; accent-color: #007aff;" oninput="document.getElementById('radVal').innerText=this.value+' km'">
+<div class="sheet hidden" id="cfg" style="z-index: 3000; height: auto; transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);">
+  <div class="sh-drag-area" onclick="closeCfg()">
+    <div class="sh-handle"></div>
+  </div>
+  <div style="padding: 0 24px 32px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+      <h2 style="margin: 0; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">Radar Settings</h2>
+      <div style="background: #e5e5ea; border-radius: 16px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: #8e8e93; cursor: pointer;" onclick="closeCfg()">✕</div>
     </div>
 
-    <button class="btn blue" style="width: 100%; justify-content: center;" onclick="applySettings()">Apply & Reload</button>
+    <div style="background: rgba(255,255,255,0.6); border: 1px solid rgba(0,0,0,0.04); border-radius: 20px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); margin-bottom: 24px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 16px; border-bottom: 1px solid rgba(0,0,0,0.05);">
+        <div style="display: flex; flex-direction: column;">
+          <span style="font-weight: 600; color: #1d1d1f; font-size: 17px; margin-bottom: 4px;">Global Mode</span>
+          <span style="font-size: 13px; color: #8e8e93; font-weight: 500;">Show all flights worldwide</span>
+        </div>
+        <label class="switch">
+          <input type="checkbox" id="iGlob" onchange="toggleGlobal(this)">
+          <span class="slider round"></span>
+        </label>
+      </div>
+
+      <div id="radWrap" style="transition: opacity 0.3s;">
+        <div style="font-weight: 600; margin-bottom: 16px; color: #1d1d1f; font-size: 17px; display: flex; justify-content: space-between;">
+          <span>Search Radius</span>
+          <span id="radVal" style="color: #007aff;">250 km</span>
+        </div>
+        <input type="range" id="iRad" min="10" max="1500" value="250" style="width: 100%; accent-color: #007aff;" oninput="document.getElementById('radVal').innerText=this.value+' km'">
+      </div>
+    </div>
+
+    <button class="btn blue" style="width: 100%; justify-content: center; padding: 16px; font-size: 17px; border-radius: 20px;" onclick="applySettings()">Apply & Reload</button>
   </div>
 </div>
 
@@ -190,12 +234,13 @@ input:checked + .slider:before { transform: translateX(20px); }
     <div class="d-cr" id="dCr"></div>
   </div>
   <div class="d-scroll">
-    <div class="d-head">
+    <div class="d-head" style="display: flex; justify-content: space-between; align-items: center;">
       <div>
         <div class="d-cs" id="dCs">FLIGHT</div>
         <div class="d-sub" id="dSub">ROUTE</div>
         <div class="d-tags" id="dTags"></div>
       </div>
+      <img id="dLogo" style="width: 50px; height: 50px; object-fit: contain; border-radius: 8px; display: none; mix-blend-mode: multiply;" />
     </div>
 
     <div id="deta" style="display:none; margin-bottom: 24px;"></div>
@@ -474,6 +519,51 @@ function animatePlanes(){
 }
 
 
+
+function focusSearch(){ document.getElementById('searchInput').focus(); }
+function handleSearchInput(){
+  var val = document.getElementById('searchInput').value.toLowerCase().trim();
+  var resBox = document.getElementById('searchResults');
+  if(val.length < 2) { resBox.style.display = 'none'; return; }
+
+  var matches = flights.filter(function(f){
+    return (f.cs && f.cs.toLowerCase().includes(val)) || 
+           (f.reg && f.reg.toLowerCase().includes(val)) || 
+           (f.desc && f.desc.toLowerCase().includes(val));
+  }).slice(0, 5);
+
+  if(matches.length > 0){
+    resBox.style.display = 'flex';
+    resBox.innerHTML = matches.map(function(m){
+      var t = m.desc || m.type || 'Unknown';
+      return '<div class="s-item" onclick="selSearch(\''+m.id+'\')">' +
+             '<div class="s-ic">✈</div>' +
+             '<div><div class="s-text">'+(m.cs||m.reg)+'</div><div class="s-sub">'+t+'</div></div>' +
+             '</div>';
+    }).join('');
+  } else {
+    resBox.style.display = 'none';
+  }
+}
+function selSearch(id){
+  document.getElementById('searchResults').style.display = 'none';
+  document.getElementById('searchInput').value = '';
+  document.getElementById('searchInput').blur();
+  var f = flights.find(function(x){return x.id === id;});
+  if(f){
+    map.setView([f.lat, f.lon], 9);
+    selFlight(id);
+  }
+}
+function doSearch(){
+  var val = document.getElementById('searchInput').value.toLowerCase().trim();
+  if(val.length > 0){
+    var resBox = document.getElementById('searchResults');
+    var items = resBox.querySelectorAll('.s-item');
+    if(items.length > 0) items[0].click();
+  }
+}
+
 var searchRadius = 250;
 
 var isGlobal = false;
@@ -645,6 +735,7 @@ function updateDetailStats(f){
 }
 
 async function selFlight(id){
+  if(navigator.vibrate) navigator.vibrate(50);
   selId=id;
   var f=flights.find(function(x){return x.id===id;});
   if(!f)return;
@@ -693,6 +784,17 @@ async function selFlight(id){
     }
     var mdl=[meta.manufacturer,meta.type].filter(Boolean).join(' ')||f.desc||'–';
     set('dOp',meta.registered_owner||'–');
+    var logo = document.getElementById('dLogo');
+    logo.style.display = 'none';
+    logo.src = '';
+    if(meta.registered_owner){
+      var op = meta.registered_owner.split(' ')[0].replace(/[^a-zA-Z]/g, '');
+      if(op.length > 2) {
+        logo.src = 'https://logo.clearbit.com/' + op.toLowerCase() + '.com';
+        logo.onload = function(){ logo.style.display = 'block'; };
+      }
+    }
+
     set('dMd',mdl);
     var tags2=[];
     if(meta.icao_type)tags2.push(meta.icao_type);
@@ -715,12 +817,16 @@ async function selFlight(id){
 
 
   try {
-    var tr = await xhrGet('https://api.airplanes.live/v2/hex/'+id.toLowerCase());
+    var tr = null;
+    try { tr = await xhrGet('https://api.airplanes.live/v2/hex/'+id.toLowerCase()); } catch(e){}
+    if(!tr || !tr.trace) {
+      try { tr = await xhrGet('https://api.adsb.lol/v2/hex/'+id.toLowerCase()); } catch(e){}
+    }
     if(tr && tr.trace && tr.trace.length > 0 && selId === id){
       var pts = tr.trace.map(function(pt){ return [pt[1], pt[2]]; }).filter(function(pt){ return pt[0]!=null && pt[1]!=null; });
       if(mks[id]) pts.push([mks[id].getLatLng().lat, mks[id].getLatLng().lng]);
       if(pts.length > 1){
-        pastRouteLine = L.polyline(pts, {color: '#ff9500', weight: 4, opacity: 0.8, lineCap: 'round', lineJoin: 'round'}).addTo(map);
+        pastRouteLine = L.polyline(pts, {color: '#ff9500', weight: 5, opacity: 0.8, lineCap: 'round', lineJoin: 'round', className: 'glowing-line'}).addTo(map);
       }
     }
   } catch(e) {}
@@ -757,7 +863,7 @@ async function selFlight(id){
     }
 
     if(d && d.latitude && d.longitude){
-      futureRouteLine = L.polyline([[f.lat, f.lon], [+d.latitude, +d.longitude]], {color: '#0a84ff', weight: 4, dashArray: '6, 10', opacity: 0.9, lineCap: 'round'}).addTo(map);
+      futureRouteLine = L.polyline([[f.lat, f.lon], [+d.latitude, +d.longitude]], {color: '#0a84ff', weight: 4, dashArray: '8, 12', opacity: 0.7, lineCap: 'round', className: 'glowing-line-blue'}).addTo(map);
     }
   }
 
@@ -928,6 +1034,7 @@ function toast(msg,bg){
 
 var sheetCollapsed = false;
 function toggleSheet(){
+  if(navigator.vibrate) navigator.vibrate(30);
   var sheet = document.getElementById('sheet');
   if(sheetCollapsed){
     sheet.classList.remove('collapsed');
@@ -938,7 +1045,8 @@ function toggleSheet(){
   }
 }
 function openSheet(){g('sheet').classList.add('open');}
-function closeSheet(){g('sheet').classList.remove('open');}
+function closeSheet(){
+  if(navigator.vibrate) navigator.vibrate(30);g('sheet').classList.remove('open');}
 function openCfg(){g('cfg').classList.add('open');g('cfgov').style.display='block';}
 
 function openCfg(e){
@@ -946,7 +1054,8 @@ function openCfg(e){
   document.getElementById('cfg').classList.remove('hidden');
 }
 function closeCfg(){g('cfg').classList.remove('open');g('cfgov').style.display='none';}
-function closeDetail(){document.getElementById('det').classList.remove('open');selId=null;if(pastRouteLine)map.removeLayer(pastRouteLine);if(futureRouteLine)map.removeLayer(futureRouteLine);pastRouteLine=null;futureRouteLine=null;openSheet();renderAll();}
+function closeDetail(){
+  if(navigator.vibrate) navigator.vibrate(30);document.getElementById('det').classList.remove('open');selId=null;if(pastRouteLine)map.removeLayer(pastRouteLine);if(futureRouteLine)map.removeLayer(futureRouteLine);pastRouteLine=null;futureRouteLine=null;openSheet();renderAll();}
 
 window.addEventListener('load',function(){
   initMap();
