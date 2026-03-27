@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-<title>Overhead Ultra — Liquid Light</title>
+<title>Overhead Ultra — Branded Light</title>
 
 <!-- LEAFLET -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -17,14 +17,13 @@
 
 <style>
 :root {
-  /* APPLE LIQUID GLASS LIGHT THEME */
+  /* LIQUID GLASS LIGHT THEME */
   --bg: #F2F2F7;
   
-  /* Erittäin kirkas huurrelasi */
-  --surface: rgba(255, 255, 255, 0.76);
+  --surface: rgba(255, 255, 255, 0.78);
   --surface-solid: rgba(255, 255, 255, 0.95);
   
-  --glass-border: rgba(255, 255, 255, 0.5);
+  --glass-border: rgba(255, 255, 255, 0.6);
   --glass-highlight: inset 0 1px 1px rgba(255, 255, 255, 0.9);
   
   --text: #1C1C1E;
@@ -35,7 +34,7 @@
   
   --blur: saturate(200%) blur(40px);
   --spring: cubic-bezier(0.22, 1, 0.36, 1);
-  --shadow: 0 12px 36px rgba(0, 0, 0, 0.15);
+  --shadow: 0 14px 40px rgba(0, 0, 0, 0.15);
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -51,10 +50,7 @@ body { user-select: none; }
 
 .leaflet-control-zoom, .leaflet-control-attribution { display: none !important; }
 
-/* 
-  PUHTAAT CSS-MARKKERIT (EI SVG-HAKKEROINTIA)
-  Nämä toimivat varmasti kaikissa selaimissa, sillä kyseessä on pelkkä väritetty div.
-*/
+/* PUHTAAT CSS-MARKKERIT (100% Varmat ja suorituskykyiset) */
 .css-plane {
   width: 20px; height: 20px;
   background: var(--blue);
@@ -65,7 +61,6 @@ body { user-select: none; }
   position: relative;
   transition: transform 0.5s ease-out, background 0.3s;
 }
-/* Suuntanuoli pisteen päällä! */
 .css-plane::after {
   content: ''; position: absolute;
   top: -8px; left: 5px;
@@ -74,7 +69,6 @@ body { user-select: none; }
   border-bottom: 8px solid var(--blue);
 }
 
-/* Valittu lentokone */
 .css-plane.sel {
   background: var(--green);
   width: 26px; height: 26px;
@@ -93,54 +87,100 @@ body { user-select: none; }
 /* UI ELEMENTS - LIQUID GLASS LIGHT */
 .island-wrap { position: fixed; left: 0; right: 0; top: max(14px, env(safe-area-inset-top)); z-index: 2500; display: flex; justify-content: center; pointer-events: none; padding: 0 14px; }
 .island {
-  width: min(820px, 100%); min-height: 58px; border-radius: 30px; padding: 10px 12px; display: flex; align-items: center; gap: 8px; pointer-events: auto;
+  width: min(820px, 100%); min-height: 58px; border-radius: 30px; padding: 10px 12px; display: flex; align-items: center; gap: 10px; pointer-events: auto;
   background: var(--surface); border: 1px solid var(--glass-border); box-shadow: var(--shadow), var(--glass-highlight);
   backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
   transition: transform .45s var(--spring), min-height .45s var(--spring), width .45s var(--spring);
 }
-.brand { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 0 6px 0 4px; }
-.brand-badge { width: 32px; height: 32px; border-radius: 16px; display: grid; place-items: center; background: linear-gradient(135deg, var(--blue), #5eb1ff); box-shadow: 0 4px 12px rgba(10,132,255,.3); font-size: 15px; color: #fff; }
-.brand-text { font-size: 17px; font-weight: 850; letter-spacing: -.04em; color: var(--text); }
-.searchbox { flex: 1; min-height: 38px; border-radius: 20px; background: rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.03); display: flex; align-items: center; padding: 0 14px; }
+
+/* NEW OVERHEAD BRAND LOGO */
+.brand { flex: 0 0 auto; display: flex; align-items: center; gap: 10px; padding: 0 8px 0 4px; }
+.brand-badge { 
+  width: 36px; height: 36px; border-radius: 12px; 
+  background: linear-gradient(135deg, #0A84FF, #5eb1ff); 
+  box-shadow: 0 4px 12px rgba(10,132,255,.3), inset 0 2px 4px rgba(255,255,255,0.4);
+  position: relative; overflow: hidden;
+  display: flex; justify-content: center; align-items: center;
+}
+/* Logokuva: Tutka/Lentorata -elementti */
+.brand-badge::before {
+  content: ''; position: absolute;
+  bottom: -4px; left: -4px;
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,0.3);
+}
+.brand-badge::after {
+  content: ''; position: absolute;
+  width: 8px; height: 8px;
+  background: #ffffff; border-radius: 50%;
+  top: 8px; right: 8px;
+  box-shadow: 0 0 10px rgba(255,255,255,0.8);
+}
+.brand-line {
+  position: absolute;
+  width: 20px; height: 2px;
+  background: #ffffff;
+  transform: rotate(-45deg);
+  transform-origin: left center;
+  bottom: 8px; left: 8px;
+  border-radius: 2px;
+}
+.brand-text { font-size: 19px; font-weight: 900; letter-spacing: -.05em; color: var(--text); }
+.brand-text span { color: var(--blue); }
+
+.searchbox { flex: 1; min-height: 40px; border-radius: 20px; background: rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.03); display: flex; align-items: center; padding: 0 16px; }
 .searchbox input { width: 100%; border: none; outline: none; background: transparent; color: var(--text); font-size: 15px; font-weight: 650; }
-.searchbox input::placeholder { color: var(--text-3); font-weight: 500; }
+.searchbox input::placeholder { color: var(--text-3); font-weight: 600; }
 .island.focus .searchbox { display: none; }
 
 .island-flight { display: none; flex: 1; align-items: center; gap: 12px; padding: 0 6px 0 10px; }
 .island.focus .island-flight { display: flex; }
 .if-main { display: flex; flex-direction: column; line-height: 1.05; }
-.if-call { font-size: 17px; font-weight: 900; letter-spacing: -.04em; }
+.if-call { font-size: 18px; font-weight: 900; letter-spacing: -.04em; }
 .if-route { margin-top: 4px; font-size: 13px; font-weight: 700; color: var(--blue); }
-.ibtn { width: 38px; height: 38px; border: none; border-radius: 19px; background: rgba(0,0,0,0.06); color: var(--text); cursor: pointer; font-size: 16px; display: grid; place-items: center; transition: transform 0.2s; }
-.ibtn:active { transform: scale(0.9); }
-.island-actions { display: flex; gap: 6px; }
+.ibtn { width: 38px; height: 38px; border: none; border-radius: 19px; background: rgba(0,0,0,0.06); color: var(--text); cursor: pointer; font-size: 16px; display: grid; place-items: center; transition: transform 0.2s, background 0.2s; }
+.ibtn:active { transform: scale(0.9); background: rgba(0,0,0,0.1); }
+.island-actions { display: flex; gap: 8px; }
 
-.hud-wrap { position: fixed; left: 0; right: 0; top: calc(max(14px, env(safe-area-inset-top)) + 74px); z-index: 2200; display: flex; justify-content: center; pointer-events: none; }
-.hud { border-radius: 22px; padding: 8px 20px; display: flex; align-items: center; gap: 18px; background: var(--surface); border: 1px solid var(--glass-border); box-shadow: var(--shadow), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); font-variant-numeric: tabular-nums; }
-.hud-block { display: flex; flex-direction: column; }
-.hud-label { font-size: 10px; font-weight: 800; color: var(--text-3); letter-spacing: .08em; text-transform: uppercase; }
-.hud-value { font-size: 17px; font-weight: 950; letter-spacing: -.05em; color: var(--text); }
-.hud-divider { width: 1px; height: 24px; background: rgba(0,0,0,0.1); }
+/* HUD - Nyt piilotettu by default, näytetään vain kun kone on valittu */
+.hud-wrap { position: fixed; left: 0; right: 0; top: calc(max(14px, env(safe-area-inset-top)) + 78px); z-index: 2200; display: flex; justify-content: center; pointer-events: none; opacity: 0; transform: translateY(-10px); transition: opacity 0.4s ease, transform 0.4s var(--spring); }
+.hud-wrap.show { opacity: 1; transform: translateY(0); }
 
-.map-status { position: fixed; left: 16px; top: calc(max(14px, env(safe-area-inset-top)) + 136px); z-index: 1700; padding: 10px 14px; border-radius: 18px; background: var(--surface); border: 1px solid var(--glass-border); box-shadow: var(--shadow), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); color: var(--text-2); font-size: 13px; font-weight: 750; display: flex; align-items: center; gap: 8px; }
-.live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 1.8s ease-in-out infinite; box-shadow: 0 0 8px var(--green); }
+.hud { border-radius: 22px; padding: 10px 24px; display: flex; align-items: center; gap: 20px; background: var(--surface); border: 1px solid var(--glass-border); box-shadow: var(--shadow), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); font-variant-numeric: tabular-nums; }
+.hud-block { display: flex; flex-direction: column; align-items: center; }
+.hud-label { font-size: 10px; font-weight: 850; color: var(--text-3); letter-spacing: .08em; text-transform: uppercase; }
+.hud-value { margin-top: 2px; font-size: 17px; font-weight: 950; letter-spacing: -.05em; color: var(--text); }
+.hud-divider { width: 1px; height: 26px; background: rgba(0,0,0,0.1); }
+
+/* SIDE CONTROLS */
+.map-status { position: fixed; left: 16px; top: calc(max(14px, env(safe-area-inset-top)) + 84px); z-index: 1700; padding: 10px 16px; border-radius: 18px; background: var(--surface); border: 1px solid var(--glass-border); box-shadow: var(--shadow), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); color: var(--text-2); font-size: 13px; font-weight: 750; display: flex; align-items: center; gap: 8px; transition: transform 0.4s var(--spring); }
+.island.focus ~ .map-status { transform: translateY(60px); } /* Siirretään alas kun HUD on auki */
+
+.live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 1.8s ease-in-out infinite; box-shadow: 0 0 8px rgba(52,199,89,0.6); }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
 
-.side-controls { position: fixed; right: 14px; top: calc(max(14px, env(safe-area-inset-top)) + 132px); z-index: 2100; display: flex; flex-direction: column; gap: 10px; }
-.fab { width: 50px; height: 50px; border: none; border-radius: 25px; color: var(--text); cursor: pointer; background: var(--surface); border: 1px solid var(--glass-border); box-shadow: var(--shadow), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); font-weight: 800; font-size: 13px; }
+.side-controls { position: fixed; right: 14px; top: calc(max(14px, env(safe-area-inset-top)) + 84px); z-index: 2100; display: flex; flex-direction: column; gap: 10px; transition: transform 0.4s var(--spring); }
+.island.focus ~ .side-controls { transform: translateY(60px); }
 
-.sheet { position: fixed; left: 14px; right: 14px; bottom: 14px; z-index: 1800; border-radius: 36px; background: linear-gradient(180deg, rgba(255,255,255,0.9), rgba(240,240,245,0.98)); border: 1px solid var(--glass-border); box-shadow: 0 24px 60px rgba(0,0,0,0.2), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); overflow: hidden; transition: height .45s var(--spring); height: 182px; }
+.fab { width: 50px; height: 50px; border: none; border-radius: 25px; color: var(--text); cursor: pointer; background: var(--surface); border: 1px solid var(--glass-border); box-shadow: var(--shadow), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); font-weight: 800; font-size: 13px; transition: transform 0.2s; }
+.fab:active { transform: scale(0.92); }
+
+/* BOTTOM SHEET */
+.sheet { position: fixed; left: 14px; right: 14px; bottom: 14px; z-index: 1800; border-radius: 36px; background: linear-gradient(180deg, rgba(255,255,255,0.92), rgba(240,240,245,0.98)); border: 1px solid var(--glass-border); box-shadow: 0 24px 60px rgba(0,0,0,0.2), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); overflow: hidden; transition: height .45s var(--spring); height: 182px; }
 .sheet.expanded { height: min(72vh, 820px); }
 .sheet-grab { display: flex; justify-content: center; align-items: center; padding: 12px 0 4px; cursor: pointer; }
 .sheet-grab div { width: 48px; height: 6px; border-radius: 999px; background: rgba(0,0,0,0.15); }
 .sheet-head { display: flex; justify-content: space-between; align-items: center; padding: 8px 20px 16px; }
 .sheet-title { font-size: 28px; font-weight: 950; letter-spacing: -.05em; color: var(--text); }
-.sheet-sub { margin-top: 2px; font-size: 13px; font-weight: 800; color: var(--text-3); letter-spacing: .06em; text-transform: uppercase; }
+.sheet-sub { margin-top: 2px; font-size: 13px; font-weight: 850; color: var(--blue); letter-spacing: .02em; text-transform: uppercase; }
 .sheet-list { height: calc(100% - 94px); overflow: auto; padding: 0 14px 14px; }
 .sheet-list::-webkit-scrollbar { display: none; }
 
-.card { display: flex; align-items: center; gap: 14px; padding: 12px; margin-bottom: 12px; border-radius: 24px; background: rgba(255,255,255,0.6); border: 1px solid rgba(255,255,255,0.8); cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
-.card.sel { border-color: var(--blue); background: rgba(10,132,255,.08); box-shadow: 0 0 0 1px var(--blue); }
+/* CARDS */
+.card { display: flex; align-items: center; gap: 14px; padding: 12px; margin-bottom: 12px; border-radius: 24px; background: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.9); cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.03); transition: transform 0.2s var(--spring), background 0.2s; }
+.card:active { transform: scale(0.97); }
+.card.sel { border-color: rgba(10,132,255,0.3); background: rgba(10,132,255,.08); box-shadow: 0 0 0 1px var(--blue); }
 .plane-badge { width: 56px; height: 56px; border-radius: 20px; display: grid; place-items: center; background: rgba(0,0,0,0.04); flex: 0 0 auto; overflow: hidden; border: 1px solid rgba(0,0,0,0.05); }
 .plane-badge img { width: 100%; height: 100%; object-fit: cover; }
 .card-main { flex: 1; min-width: 0; }
@@ -148,11 +188,13 @@ body { user-select: none; }
 .card-sub { margin-top: 2px; color: var(--text-2); font-size: 13px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .card-stats { text-align: right; font-variant-numeric: tabular-nums; }
 .stat-big { font-size: 16px; font-weight: 900; color: var(--text); }
-.stat-small { font-size: 11px; color: var(--text-3); font-weight: 800; margin-top: 2px; text-transform: uppercase; }
+.stat-small { font-size: 11px; color: var(--text-3); font-weight: 850; margin-top: 2px; text-transform: uppercase; }
 
-.detail { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -40%) scale(0.95); width: min(92%, 480px); max-height: 85vh; z-index: 3200; border-radius: 36px; background: var(--surface-solid); border: 1px solid var(--glass-border); box-shadow: 0 30px 80px rgba(0,0,0,0.3), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: transform .45s var(--spring), opacity .3s ease; }
+/* DETAIL VIEW */
+.detail { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -40%) scale(0.95); width: min(92%, 480px); max-height: 85vh; z-index: 3200; border-radius: 36px; background: var(--surface-solid); border: 1px solid var(--glass-border); box-shadow: 0 40px 100px rgba(0,0,0,0.25), var(--glass-highlight); backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur); display: flex; flex-direction: column; opacity: 0; pointer-events: none; transition: transform .45s var(--spring), opacity .3s ease; }
 .detail.open { opacity: 1; pointer-events: auto; transform: translate(-50%, -50%) scale(1); }
-.detail-close { position: absolute; right: 16px; top: 16px; width: 34px; height: 34px; border: none; border-radius: 17px; background: rgba(0,0,0,0.06); color: var(--text); cursor: pointer; z-index: 10; display: grid; place-items: center; font-size: 15px; font-weight: 800; }
+.detail-close { position: absolute; right: 16px; top: 16px; width: 34px; height: 34px; border: none; border-radius: 17px; background: rgba(0,0,0,0.08); color: var(--text); cursor: pointer; z-index: 10; display: grid; place-items: center; font-size: 15px; font-weight: 800; transition: transform 0.2s; }
+.detail-close:active { transform: scale(0.9); }
 .detail-top { position: relative; padding: 24px 20px 16px; border-bottom: 1px solid rgba(0,0,0,0.06); display: flex; flex-direction: column; align-items: center; text-align: center; }
 .d-hero { width: 100%; height: 160px; display: flex; justify-content: center; align-items: center; margin-bottom: 18px; border-radius: 24px; background: rgba(0,0,0,0.03); overflow: hidden; border: 1px solid rgba(0,0,0,0.05); }
 .d-hero img { width: 100%; height: 100%; object-fit: cover; }
@@ -161,7 +203,7 @@ body { user-select: none; }
 .d-scroll { flex: 1; overflow-y: auto; padding: 18px; }
 .d-scroll::-webkit-scrollbar { display: none; }
 .grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; }
-.info { padding: 14px 16px; border-radius: 20px; background: rgba(255,255,255,0.7); border: 1px solid rgba(255,255,255,0.9); }
+.info { padding: 14px 16px; border-radius: 20px; background: rgba(255,255,255,0.8); border: 1px solid rgba(255,255,255,1); box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
 .info.full { grid-column: 1 / -1; }
 .i-label { font-size: 11px; font-weight: 850; letter-spacing: .06em; text-transform: uppercase; color: var(--text-3); }
 .i-value { margin-top: 6px; font-size: 16px; font-weight: 900; letter-spacing: -.02em; color: var(--text); }
@@ -176,8 +218,11 @@ body { user-select: none; }
 
 <div class="island-wrap">
   <div class="island" id="island">
-    <div class="brand"><div class="brand-badge">✈</div><div class="brand-text">Overhead</div></div>
-    <div class="searchbox"><span style="opacity:0.5; margin-right:4px;">🔎</span><input id="searchInput" placeholder="Search callsign..." /></div>
+    <div class="brand">
+      <div class="brand-badge"><div class="brand-line"></div></div>
+      <div class="brand-text">Over<span>head</span></div>
+    </div>
+    <div class="searchbox"><span style="opacity:0.4; margin-right:6px; font-size:14px;">🔎</span><input id="searchInput" placeholder="Search callsign..." /></div>
     <div class="island-flight" id="islandFlight">
       <div class="if-main"><div class="if-call" id="ifCall">FIN123</div><div class="if-route" id="ifRoute">Live focus</div></div>
     </div>
@@ -187,7 +232,7 @@ body { user-select: none; }
   </div>
 </div>
 
-<div class="hud-wrap">
+<div class="hud-wrap" id="hudWrap">
   <div class="hud">
     <div class="hud-block"><div class="hud-label">Altitude</div><div class="hud-value" id="hudAlt">--- FT</div></div>
     <div class="hud-divider"></div>
@@ -195,7 +240,7 @@ body { user-select: none; }
   </div>
 </div>
 
-<div class="map-status" id="mapStatus"><span class="live-dot"></span><span id="mapStatusText">Waiting...</span></div>
+<div class="map-status" id="mapStatus"><span class="live-dot"></span><span id="mapStatusText">Connecting...</span></div>
 
 <div class="side-controls">
   <button class="fab" id="turkuBtn">TKU</button>
@@ -205,9 +250,9 @@ body { user-select: none; }
 <div class="sheet expanded" id="sheet">
   <div class="sheet-grab" id="sheetGrab"><div></div></div>
   <div class="sheet-head">
-    <div><div class="sheet-title">Live Radar</div><div class="sheet-sub" id="sheetSub">Waiting for radar data...</div></div>
+    <div><div class="sheet-title">Live Radar</div><div class="sheet-sub" id="sheetSub">Waiting for data...</div></div>
   </div>
-  <div class="sheet-list" id="flightList"><div class="empty">Loading...</div></div>
+  <div class="sheet-list" id="flightList"><div class="empty">Loading world airspace...</div></div>
 </div>
 
 <div class="detail" id="detail">
@@ -230,7 +275,6 @@ body { user-select: none; }
 <script>
 const $ = id => document.getElementById(id);
 
-// Yksinkertaistettu State
 const state = {
   map: null, isGlobe: false, userLat: 60.4518, userLon: 22.2666,
   flights: new Map(), selectedIcao: null, photoCache: new Map(),
@@ -239,23 +283,19 @@ const state = {
   instancedMesh: null, dummy: null, globeSphere: null
 };
 
-// Helpers
 function fmtFt(m){ return m==null?'—':Math.round(m*3.28084).toLocaleString('en-US')+' FT'; }
 function fmtKt(ms){ return ms==null?'—':Math.round(ms*1.94384)+' KT'; }
 function haversine(lat1, lon1, lat2, lon2){ const R=6371, p=Math.PI/180; const a=Math.sin((lat2-lat1)*p/2)**2 + Math.cos(lat1*p)*Math.cos(lat2*p)*Math.sin((lon2-lon1)*p/2)**2; return R*2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); }
 
-// ---------- 1. LEAFLET KARTTA (VARMA) ----------
+// ---------- 1. KARTTA & MARKKERIT ----------
 function initMap(){
-  // Tällä kertaa ei yritetä mitään outoa, perus Leaflet pystyyn.
   state.map = L.map('map', {zoomControl:false, attributionControl:false}).setView([state.userLat, state.userLon], 6);
   
-  // Upea tumma satelliittikartta on silti käytössä kontrastin vuoksi (Liquid Light UI + Dark Map = Kaunis)
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19}).addTo(state.map);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{maxZoom:19, opacity:0.85}).addTo(state.map);
 
   state.userMarker = L.circleMarker([state.userLat, state.userLon], {radius:7, color:'#fff', weight:2, fillColor:'#0A84FF', fillOpacity:1}).addTo(state.map);
 
-  // 3D laukaisin
   state.map.on('zoomend', () => {
      if(state.map.getZoom() <= 3 && !state.isGlobe && state.camera) {
         state.isGlobe = true;
@@ -275,11 +315,9 @@ function setUserLocation(lat, lon, zoom=6){
   if(state.map && !state.isGlobe) state.map.setView([lat, lon], zoom, {animate:true});
 }
 
-// Päivitetään KAIKKEIN YKSINKERTAISIMMAT CSS-MARKKERIT kartalle
 function updateMarkers() {
     if(state.isGlobe || !state.map) return;
     
-    // Piirrä max 500 konetta
     let arr = [...state.flights.values()].sort((a,b) => a.dist - b.dist).slice(0, 500);
     if(state.selectedIcao && !arr.find(f => f.icao24 === state.selectedIcao)){
         const sf = state.flights.get(state.selectedIcao);
@@ -298,7 +336,6 @@ function updateMarkers() {
     for(const f of arr){
         let marker = state.markers.get(f.icao24);
         if(!marker) {
-            // EI SVG:TÄ, vaan pelkkä tyhjä Div jossa on CSS-muotoilu!
             const icon = L.divIcon({
                 className: '',
                 html: `<div class="css-plane ${f.icao24===state.selectedIcao?'sel':''}" style="transform: rotate(${f.track||0}deg)"></div>`,
@@ -320,11 +357,10 @@ function updateMarkers() {
     }
 }
 
-// ---------- 2. YKSINKERTAINEN 3D GLOBE ----------
+// ---------- 2. THREE.JS 3D GLOBE ----------
 function initThreeGlobe() {
-    if(!window.THREE || !window.THREE.OrbitControls) { 
-        setTimeout(initThreeGlobe, 300); return; 
-    }
+    if(!window.THREE || !window.THREE.OrbitControls) { setTimeout(initThreeGlobe, 300); return; }
+    
     const canvas = $('glCanvas');
     state.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
     state.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
@@ -406,7 +442,7 @@ function renderThreeScene() {
         state.dummy.updateMatrix();
         state.instancedMesh.setMatrixAt(i, state.dummy.matrix);
 
-        if(f.icao24 === state.selectedIcao) color.setHex(0x30D158);
+        if(f.icao24 === state.selectedIcao) color.setHex(0x34C759);
         else color.setHex(0x0A84FF);
         
         state.instancedMesh.setColorAt(i, color);
@@ -419,7 +455,7 @@ function renderThreeScene() {
 
 // ---------- 3. DATA FETCH ----------
 async function fetchFlights(){
-  $('mapStatusText').textContent = 'Fetching...';
+  $('mapStatusText').textContent = 'Updating...';
   try{
     const res = await fetch(`https://opensky-network.org/api/states/all`);
     if(!res.ok) throw new Error('API');
@@ -447,19 +483,16 @@ async function fetchFlights(){
     }
 
     $('sheetSub').textContent = `${state.flights.size} Live Airborne`;
-    $('mapStatusText').textContent = `Tracking ${state.flights.size}`;
+    $('mapStatusText').textContent = `Tracking ${state.flights.size} globally`;
     
     renderList();
     updateMarkers(); 
   }catch(e){ $('mapStatusText').textContent = 'Network Error'; } finally{ setTimeout(fetchFlights, 15000); }
 }
 
-// ---------- 4. ANIMAATIO SILMUKKA ----------
+// ---------- 4. ANIMAATIO ----------
 function startAnimation(){
-  // Päivitä markerit Leaflettiin tasaisesti kerran sekunnissa
-  setInterval(() => {
-    if(!state.isGlobe) updateMarkers();
-  }, 1000);
+  setInterval(() => { if(!state.isGlobe) updateMarkers(); }, 1000);
 
   const tick = (t) => {
     requestAnimationFrame(tick);
@@ -490,8 +523,6 @@ function startAnimation(){
 }
 
 // ---------- 5. UI PÄIVITYKSET ----------
-const DEF_SVG = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="%231C1C1E"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>';
-
 function renderList(){
   const q = state.search?.trim().toLowerCase() || "";
   let arr = [...state.flights.values()].sort((a,b) => (a.dist??999) - (b.dist??999));
@@ -500,10 +531,11 @@ function renderList(){
   if(!arr.length){ $('flightList').innerHTML = '<div class="empty">No flights found.</div>'; return; }
 
   $('flightList').innerHTML = arr.slice(0,80).map(f => {
-    const img = state.photoCache.get(f.icao24) || DEF_SVG;
+    const img = state.photoCache.get(f.icao24);
+    const imgHtml = img ? `<img src="${img}"/>` : `<div style="font-size:24px; opacity:0.3">✈</div>`;
     return `
     <div class="card ${state.selectedIcao===f.icao24?'sel':''}" onclick="openDetailUI('${f.icao24}')">
-      <div class="plane-badge"><img src="${img}" style="${img===DEF_SVG?'width:28px;opacity:0.4':''}"/></div>
+      <div class="plane-badge">${imgHtml}</div>
       <div class="card-main">
         <div class="card-call">${(f.callsign||'').replace(/[<>]/g,'')}</div>
         <div class="card-sub">${(f.country||'').replace(/[<>]/g,'')}</div>
@@ -521,8 +553,11 @@ window.openDetailUI = async function(icao24) {
 
   $('detail').classList.add('open'); $('sheet').classList.remove('expanded');
   $('dCall').textContent = f.callsign; $('dRoute').textContent = f.country;
+  $('dModel').textContent = 'Loading...'; $('dOperator').textContent = 'Loading...';
 
+  // Näytä HUD ja Island-tieto
   $('island').classList.add('focus'); $('ifCall').textContent = f.callsign;
+  $('hudWrap').classList.add('show');
   
   if(!state.isGlobe) state.map.setView([f.curLat, f.curLon], 9, {animate:true});
   renderList(); updateMarkers();
@@ -556,8 +591,11 @@ window.openDetailUI = async function(icao24) {
 }
 
 $('detailClose').addEventListener('click', () => {
-    state.selectedIcao = null; $('detail').classList.remove('open'); $('island').classList.remove('focus');
-    $('hudAlt').textContent='--- FT'; $('hudSpd').textContent='--- KT';
+    state.selectedIcao = null; 
+    $('detail').classList.remove('open'); 
+    $('island').classList.remove('focus');
+    $('hudWrap').classList.remove('show'); // Piilota HUD!
+    
     renderList(); updateMarkers();
 });
 $('sheetGrab').addEventListener('click', () => $('sheet').classList.toggle('expanded'));
