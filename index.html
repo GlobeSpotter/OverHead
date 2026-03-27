@@ -590,6 +590,7 @@ function animatePlanes(){
          map.setView([cLat, cLon], map.getZoom(), {animate: false});
       }
 
+
       // LIVE ALTITUDE TICKING
       if(f.altFt != null && f.vrMs != null && !f.ground) {
           var liveAlt = f.altFt + (f.vrMs * 3.28084 * age_sec);
@@ -604,6 +605,42 @@ function animatePlanes(){
               else elAl.style.color = '#1d1d1f';
           }
       }
+
+      // LIVE FUEL BURN & WEIGHT ESTIMATION (ULTIMATE FLEX)
+      if (selRoute && !f.ground && f.velMs > 50) {
+          var tStr = (f.type||'').toUpperCase();
+          if(ACSPECS[tStr]) {
+             var sp = ACSPECS[tStr]; // [Range, MTOW, Empty, MaxFuel]
+             var o = selRoute.origin, dest = selRoute.destination;
+             if(o && o.latitude && dest && dest.latitude) {
+                 var dFlown = hav(+o.latitude, +o.longitude, cLat, cLon);
+                 var dRem = hav(cLat, cLon, +dest.latitude, +dest.longitude);
+                 var totalTrip = dFlown + dRem;
+
+                 // Estimate: Plane loads enough fuel for trip + 15% reserve.
+                 // Max fuel gives Max Range. So burn rate per km = MaxFuel / Range
+                 var burnPerKm = sp[3] / sp[0]; 
+                 var fuelLoaded = Math.min(sp[3], (totalTrip * burnPerKm) * 1.15);
+                 var fuelRemaining = fuelLoaded - (dFlown * burnPerKm);
+                 if(fuelRemaining < 0) fuelRemaining = 0;
+
+                 // Jet fuel weighs ~0.8 kg/L
+                 var curWeight = sp[2] + (fuelRemaining * 0.8) + ((sp[1]-sp[2]-sp[3]*0.8)*0.7); // Empty + Fuel + 70% of max payload
+
+                 var elFc = document.getElementById('dFc');
+                 var elTw = document.getElementById('dTw'); // Repurpose this visually for Current Weight
+
+                 if(elFc) {
+                     elFc.innerHTML = '<span style="color:#ff9500; font-family: ui-monospace, SF Mono, Menlo, monospace; font-variant-numeric: tabular-nums;">' + Math.round(fuelRemaining).toLocaleString() + ' L</span> (Est. Live)';
+                 }
+                 if(elTw) {
+                     document.getElementById('dTw').parentElement.querySelector('.dl').innerText = 'Current Est. Gross Wt';
+                     elTw.innerHTML = '<span style="color:#8e8e93; font-family: ui-monospace, SF Mono, Menlo, monospace; font-variant-numeric: tabular-nums;">' + Math.round(curWeight).toLocaleString() + ' kg</span>';
+                 }
+             }
+          }
+      }
+
 
       // 1000FPS REALTIME PROGRESS BAR UPDATE
       if(selRoute && !f.ground) {
@@ -1223,66 +1260,86 @@ function card(f){
 var ACLEN={A318:31.4,A319:33.8,A320:37.6,A321:44.5,A20N:37.6,A21N:44.5,A332:58.8,A333:63.7,A338:63.7,A339:63.7,A359:66.8,A35K:73.8,A388:72.7,B736:31.1,B737:33.6,B738:39.5,B739:42.1,B744:70.7,B748:76.3,B752:47.3,B753:54.5,B762:48.5,B763:54.9,B764:61.4,B772:63.7,B77L:64.8,B77W:73.9,B77X:76.7,B788:57,B789:63,B78X:68.3,E170:29.9,E175:31.7,E190:36.2,E195:38.7,CRJ2:24.4,CRJ7:32.5,CRJ9:36.2,DH8D:32.8,AT72:27.2};
 
 
+
 var ACSPECS = {
-  // Narrowbodies
+  // Airbus
+  'A318': [5750, 68000, 39500, 23859],
   'A319': [6950, 75500, 40800, 24210],
   'A320': [6100, 78000, 42600, 24210],
   'A321': [5950, 93500, 47500, 24050],
   'A20N': [6300, 79000, 44300, 26730], // A320neo
-  'A21N': [7400, 97000, 50100, 32940], // A321neo (LR)
+  'A21N': [7400, 97000, 50100, 32940], // A321neo
   'A221': [6390, 60781, 35290, 21508], // CS100
   'A223': [6204, 67585, 37080, 21508], // CS300
-  'B737': [4600, 68000, 32900, 20100], // 737-700
-  'B738': [5436, 79010, 41413, 26020], // 737-800
-  'B739': [5460, 85130, 44676, 26020], // 737-900ER
-  'B38M': [6570, 82190, 45070, 25816], // 737 MAX 8
-  'B39M': [6570, 88314, 47490, 25816], // 737 MAX 9
-  // Widebodies
   'A332': [13450, 242000, 119600, 139090],
   'A333': [11750, 242000, 124500, 139090],
-  'A339': [13334, 251000, 137000, 139090], // A330-900neo
-  'A359': [15372, 280000, 142400, 141000], // A350-900
-  'A35K': [16100, 319000, 155000, 159000], // A350-1000
+  'A338': [15094, 251000, 132000, 139090],
+  'A339': [13334, 251000, 137000, 139090],
+  'A343': [10500, 276500, 129275, 147850],
+  'A359': [15372, 280000, 142400, 141000],
+  'A35K': [16100, 319000, 155000, 159000],
   'A388': [14800, 575000, 276800, 320000],
+  'A400': [8700, 141000, 76500, 50500], // Atlas
+
+  // Boeing
+  'B736': [5648, 65540, 36378, 26020],
+  'B737': [4600, 68000, 32900, 20100],
+  'B738': [5436, 79010, 41413, 26020],
+  'B739': [5460, 85130, 44676, 26020],
+  'B38M': [6570, 82190, 45070, 25816],
+  'B39M': [6570, 88314, 47490, 25816],
+  'B744': [13450, 396890, 183500, 216840],
+  'B748': [14310, 447700, 220100, 238610],
+  'B752': [7222, 115680, 58440, 43490],
+  'B753': [6287, 123830, 64590, 43400],
+  'B762': [7130, 142880, 80130, 91370],
   'B763': [11070, 186880, 90010, 91370],
+  'B764': [10415, 204110, 103870, 91370],
   'B772': [13080, 297550, 135870, 171170],
-  'B77W': [13649, 351534, 167829, 181283], // 777-300ER
+  'B77W': [13649, 351534, 167829, 181283],
+  'B77L': [15843, 347450, 145150, 181283],
   'B788': [13620, 227930, 119500, 126206],
   'B789': [14140, 254011, 128850, 126206],
   'B78X': [11910, 254011, 135500, 126206],
-  'B744': [13450, 396890, 183500, 216840],
-  'B748': [14310, 447700, 220100, 238610],
-  // Regional & Turboprops
+
+  // Embraer
   'E170': [3982, 38600, 21140, 9335],
   'E175': [4074, 40370, 21810, 9335],
   'E190': [4537, 51800, 27837, 16250],
   'E195': [4260, 52290, 28667, 16250],
   'E290': [5278, 56400, 33000, 13690],
   'E295': [4815, 61500, 35700, 13690],
+
+  // Bombardier / CRJ
   'CRJ2': [3148, 24040, 13835, 8081],
   'CRJ7': [2553, 34019, 19731, 7492],
   'CRJ9': [2870, 38330, 21433, 8822],
+  'CRJX': [3004, 41640, 22589, 8822], // CRJ-1000
+
+  // Turboprops
+  'DH8A': [1889, 15650, 10250, 3160], // Q100
+  'DH8C': [1558, 19500, 11791, 3160], // Q300
   'DH8D': [2040, 29257, 17185, 5776], // Q400
   'AT72': [1528, 23000, 13311, 5000],
   'AT75': [1528, 23000, 13311, 5000],
-  'AT76': [1528, 23000, 13311, 5000]
-};
+  'AT76': [1528, 23000, 13311, 5000],
+  'AT43': [1500, 18600, 11250, 4500],
+  'AT45': [1500, 18600, 11250, 4500],
+  'SB20': [1759, 22800, 13200, 5400], // Saab 2000
 
-var ACREL={
-A318:2003,A319:1996,A320:1988,A321:1994,A20N:2017,A21N:2018,A332:1998,A333:1994,A338:2020,A339:2018,
-A359:2015,A35K:2018,A388:2007,
-B736:1998,B737:1998,B738:1998,B739:2001,B38M:2017,B39M:2018,
-B744:1989,B748:2011,
-B752:1983,B753:1999,
-B762:1982,B763:1986,B764:2000,
-B772:1995,B77L:2006,B77W:2004,
-B788:2011,B789:2014,B78X:2018,
-E170:2004,E175:2005,E190:2005,E195:2006,E290:2018,E295:2019,
-CRJ2:1992,CRJ7:2001,CRJ9:2003,CRJX:2010,
-DH8D:2000,AT72:1989,AT75:2007,AT76:2012,
-BCS1:2016,BCS3:2016
+  // Bizjets
+  'GL5T': [9630, 41957, 22600, 17804], // Global 5000
+  'GL6T': [11112, 45132, 23690, 20385], // Global 6000
+  'GLEX': [11112, 44452, 23360, 20385], // Global Express
+  'CL60': [7408, 21863, 12315, 9072],  // Challenger 600
+  'F2TH': [7400, 19277, 10500, 6800],  // Falcon 2000
+  'FA7X': [11019, 31751, 16110, 14488], // Falcon 7X
+  'C56X': [3889, 9163, 5307, 3600],    // Citation Excel
+  'C680': [5315, 13925, 8437, 5133],   // Sovereign
+  'GLF4': [7820, 33203, 19278, 13410], // Gulfstream IV
+  'GLF5': [10742, 41277, 21773, 18712], // Gulfstream V
+  'GLF6': [12964, 45178, 24040, 20138], // Gulfstream G650
 };
-
 var ACENG={A320:'2× CFM56-5B / IAE V2500',A321:'2× CFM56-5B / IAE V2500',A20N:'2× CFM LEAP-1A',A21N:'2× CFM LEAP-1A',A332:'2× GE CF6 / RR Trent 700',A333:'2× RR Trent 700',A338:'2× RR Trent 7000',A339:'2× RR Trent 7000',A359:'2× RR Trent XWB-84',A35K:'2× RR Trent XWB-97',A388:'4× GP7200 / RR Trent 970',B737:'2× CFM56-3',B738:'2× CFM56-7B',B739:'2× CFM56-7B',B744:'4× CF6-80C2',B748:'4× GEnx-2B67',B752:'2× RB211-535',B763:'2× CF6-80C2',B772:'2× GE90-94B',B77L:'2× GE90-110B1',B77W:'2× GE90-115B1',B77X:'2× GE9X-105B1A',B788:'2× GEnx-1B / RR Trent 1000',B789:'2× GEnx-1B / RR Trent 1000',B78X:'2× GEnx-1B76',E190:'2× GE CF34-10E',E195:'2× GE CF34-10E',CRJ2:'2× GE CF34-3B1',CRJ7:'2× GE CF34-8C5',DH8D:'2× PW150A',AT72:'2× PW127F'};
 
 function dir(t){return['N','NE','E','SE','S','SW','W','NW'][Math.round((t||0)/45)%8];}
