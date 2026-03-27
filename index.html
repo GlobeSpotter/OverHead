@@ -62,7 +62,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:0 16px;height:52px;
 #det{position:fixed;inset:0;z-index:300;background:var(--bg);overflow-y:auto;
   -webkit-overflow-scrolling:touch;transform:translateY(100%);transition:transform .42s cubic-bezier(.32,1,.5,1)}
 #det.open{transform:translateY(0)}
-.dph{width:100%;height:220px;background:#f2f2f7;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+.dph{width:100%;height:220px;background:linear-gradient(135deg, #e5e5ea 0%, #f2f2f7 100%);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
 .dph-ic{font-size:80px;color:rgba(0,0,0,.04)}
 .dph img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .5s}
 .dph img.ok{opacity:1}
@@ -70,7 +70,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:0 16px;height:52px;
 .dbk{position:absolute;top:14px;left:14px;z-index:5;background:rgba(0,0,0,.45);backdrop-filter:blur(8px);
   border:none;border-radius:50%;width:34px;height:34px;color:#fff;font-size:22px;cursor:pointer;
   display:flex;align-items:center;justify-content:center;line-height:1}
-.dhr{background:rgba(255,255,255,0.8);backdrop-filter:blur(20px);border-bottom:1px solid var(--sep);padding:18px 20px 22px} /* Black gradient header */
+.dhr{background:transparent;border-bottom:1px solid rgba(0,0,0,0.1);padding:18px 20px 22px} /* Black gradient header */
 .dcs{font-size:30px;font-weight:800;color:#000;letter-spacing:-.6px}
 .dsub{font-size:14px;color:var(--sub);margin-top:3px}
 .dtags{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}
@@ -102,7 +102,7 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:0 16px;height:52px;
 .tog input{opacity:0;width:0;height:0;position:absolute}
 .tgt{position:absolute;inset:0;border-radius:15.5px;background:rgba(120,120,128,.24);cursor:pointer;transition:background .2s}
 .tog input:checked~.tgt{background:var(--green)}
-.tgt::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,.22);transition:transform .2s cubic-bezier(.32,1,.5,1)}
+.tgt::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;box-shadow:0 2px 8px rgba(0,0,0,.22);transition:transform .2s cubic-bezier(.32,1,.5,1)}
 .tog input:checked~.tgt::after{transform:translateX(20px)}
 @keyframes spin{to{transform:rotate(360deg)}}
 .spin{display:inline-block;animation:spin .9s linear infinite}
@@ -113,6 +113,22 @@ nav{position:fixed;top:0;left:0;right:0;z-index:200;padding:0 16px;height:52px;
   #det.open{transform:translateX(0)}
 }
 
+
+
+.sheet, .det {
+  background: rgba(255, 255, 255, 0.85) !important;
+  backdrop-filter: blur(35px) saturate(200%) !important;
+  -webkit-backdrop-filter: blur(35px) saturate(200%) !important;
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  box-shadow: 0 -8px 40px rgba(0,0,0,0.12) !important;
+}
+.dhr { background: transparent !important; border-bottom: 1px solid rgba(0,0,0,0.08) !important; }
+.fc { background: rgba(255, 255, 255, 0.6) !important; box-shadow: 0 2px 10px rgba(0,0,0,0.03) !important; border: 1px solid rgba(0,0,0,0.04) !important; border-radius: 16px !important; transition: all 0.2s cubic-bezier(0.25, 0.1, 0.25, 1) !important; }
+.fc:active { transform: scale(0.97); background: rgba(255,255,255,0.9) !important; }
+.btnp { font-weight: 600 !important; letter-spacing: -0.3px !important; border-radius: 18px !important; }
+.dph-ic { font-size: 80px; color: rgba(0,0,0,0.08); text-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+.fcb { font-weight: 600 !important; letter-spacing: -0.2px !important; }
 
 </style>
 </head>
@@ -494,12 +510,14 @@ function renderAll(){
 
     if(mks[f.id]){
       var mk = mks[f.id];
-      // Save for tweening
-      mk.startLat = mk.getLatLng().lat;
-      mk.startLon = mk.getLatLng().lng;
-      mk.targetLat = f.lat;
-      mk.targetLon = f.lon;
-      mk.startTime = Date.now();
+      // Only reset tween if API actually gave a new coordinate!
+      if(mk.targetLat !== f.lat || mk.targetLon !== f.lon){
+        mk.startLat = mk.getLatLng().lat;
+        mk.startLon = mk.getLatLng().lng;
+        mk.targetLat = f.lat;
+        mk.targetLon = f.lon;
+        mk.startTime = Date.now();
+      }
       mk.f = f;
       mk.setIcon(L.divIcon({
         html:iconSvg, className:'', iconSize:[22,22], iconAnchor:[11,11]
@@ -571,7 +589,7 @@ async function selFlight(id){
 
   var img=document.getElementById('dImg');
   img.classList.remove('ok');img.src='';img.style.display='block';
-  fetchPhoto(id).then(function(p){if(p){img.src=p.src;set('dCr',p.credit);}});
+  fetchPhoto(id).then(function(p){if(p){img.onload=function(){img.classList.add('ok');};img.src=p.src;set('dCr',p.credit);}});
 
   var results=await Promise.all([fetchMeta(id),fetchRoute(f.cs)]);
   var meta=results[0],route=results[1];
@@ -655,17 +673,19 @@ async function fetchPhoto(id){
       return{src:(p.thumbnail_large&&p.thumbnail_large.src)||p.thumbnail.src,
         credit:p.photographer?'📷 '+p.photographer:''};
     }
-  }catch(e){
-    try{
-      var r2=await xhrGet('https://api.allorigins.win/get?url='+encodeURIComponent('https://api.planespotters.net/pub/photos/hex/'+id));
-      var d=JSON.parse(r2.contents);
-      if(d.photos&&d.photos.length>0){
-        var p=d.photos[0];
-        return{src:(p.thumbnail_large&&p.thumbnail_large.src)||p.thumbnail.src,
-          credit:p.photographer?'📷 '+p.photographer:''};
-      }
-    }catch(e2){}
-  }
+  }catch(e){}
+
+  try{
+    var r2=await xhrGet('https://api.allorigins.win/get?url='+encodeURIComponent('https://api.planespotters.net/pub/photos/hex/'+id));
+    var d=JSON.parse(r2.contents);
+    if(d.photos&&d.photos.length>0){
+      var p=d.photos[0];
+      return{src:(p.thumbnail_large&&p.thumbnail_large.src)||p.thumbnail.src,
+        credit:p.photographer?'📷 '+p.photographer:''};
+    }
+  }catch(e2){}
+
+  // Ultimate fallback to duckduckgo image search via proxy (less reliable but catches some) or just planespotters fallback
   return null;
 }
 async function fetchBuiltYear(reg){
