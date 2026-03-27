@@ -17,7 +17,7 @@
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background: var(--bg); color: var(--text); overflow: hidden; user-select: none; }
-#map { position: fixed; inset: 0; z-index: 0; background: #000; }
+#map { position: fixed; inset: 0; z-index: 0; background: #000 !important; } .leaflet-container { background: #000 !important; }
 
 /* Main Bottom Sheet List */
 
@@ -123,6 +123,13 @@ body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "S
 .leaflet-control-attribution { display: none !important; }
 .leaflet-control-zoom { display: none !important; }
 
+
+.switch { position: relative; display: inline-block; width: 50px; height: 30px; flex-shrink: 0; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.switch .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #e5e5ea; transition: .4s; border-radius: 30px; }
+.switch .slider:before { position: absolute; content: ""; height: 26px; width: 26px; left: 2px; bottom: 2px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+input:checked + .slider { background-color: #34c759; }
+input:checked + .slider:before { transform: translateX(20px); }
 </style>
 </head>
 <body>
@@ -193,6 +200,24 @@ body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "S
 
     <div id="deta" style="display:none; margin-bottom: 24px;"></div>
 
+    <div class="dsec" id="routeSec" style="display: none;">
+      <div class="dsec-t">Route</div>
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 4px 4px 12px; margin-bottom: 12px; border-bottom: 1px solid #f2f2f7;">
+        <div style="flex: 1;">
+          <div style="font-size: 13px; color: #8e8e93; font-weight: 600; margin-bottom: 4px;">FROM</div>
+          <div id="rFrom" style="font-weight: 700; font-size: 18px; color: #1d1d1f; line-height: 1.2;">–</div>
+        </div>
+        <div style="padding: 0 16px; color: #c7c7cc;">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </div>
+        <div style="flex: 1; text-align: right;">
+          <div style="font-size: 13px; color: #8e8e93; font-weight: 600; margin-bottom: 4px;">TO</div>
+          <div id="rTo" style="font-weight: 700; font-size: 18px; color: #1d1d1f; line-height: 1.2;">–</div>
+        </div>
+      </div>
+    </div>
+
+
     <div class="dsec">
       <div class="dsec-t">Live Telemetry</div>
       <div class="dr"><div class="dl">Altitude</div><div class="dv" id="dAl">–</div></div>
@@ -235,8 +260,20 @@ var lastFetchTime=0, isFetching=false, userPos=null, userHeading=0, userMarker=n
 
 function initMap(){
   if(map)return;
-  map=L.map('map',{zoomControl:false,attributionControl:false}).setView([60.45,22.27],6);
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19}).addTo(map);
+  map=L.map('map',{
+    zoomControl:false,
+    attributionControl:false,
+    maxBounds:[[-90,-180],[90,180]],
+    maxBoundsViscosity:1.0,
+    minZoom: 3,
+    bounceAtZoomLimits: true
+  }).setView([60.45,22.27],6);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{
+    maxZoom:19, 
+    minZoom:3,
+    noWrap:true,
+    bounds: [[-90, -180], [90, 180]]
+  }).addTo(map);
   L.control.zoom({position:'bottomright'}).addTo(map);
 
   // Update data when user moves the map
@@ -438,6 +475,14 @@ function animatePlanes(){
 
 
 var searchRadius = 250;
+
+var isGlobal = false;
+function toggleGlobal(el){
+  isGlobal = el.checked;
+  document.getElementById('radWrap').style.opacity = isGlobal ? '0.3' : '1';
+  document.getElementById('radWrap').style.pointerEvents = isGlobal ? 'none' : 'auto';
+}
+
 async function fetchLive(forceShowSheet){
   if(isFetching) return;
   isFetching = true;
@@ -448,9 +493,9 @@ async function fetchLive(forceShowSheet){
   // If searchRadius is very large or zoom is zoomed out, /all is much faster than /point.
   // The API servers cache /all heavily and it responds in 50ms.
   // We just fetch /all and let our local JS filter it by bounds and radius!
-  var directUrl = searchRadius > 400 || zoom < 7 
-    ? 'https://api.airplanes.live/v2/all' 
-    : 'https://api.airplanes.live/v2/point/'+center.lat+'/'+center.lng+'/' + searchRadius;
+  var directUrl = isGlobal 
+    ? 'https://api.airplanes.live/v2/point/0/0/25000' 
+    : (searchRadius > 400 || zoom < 7 ? 'https://api.airplanes.live/v2/all' : 'https://api.airplanes.live/v2/point/'+center.lat+'/'+center.lng+'/' + searchRadius);
 
   var ac=null;
   try{
@@ -506,6 +551,9 @@ function renderAll(){
   var center = map.getCenter();
   var bnds = map.getBounds().pad(0.8);
   var visible = flights.filter(function(f){ 
+    if(isGlobal) {
+        return bnds.contains([f.lat, f.lon]); 
+    }
     if(!bnds.contains([f.lat, f.lon])) return false;
     var d = hav(center.lat, center.lng, f.lat, f.lon);
     return d <= searchRadius;
@@ -672,7 +720,7 @@ async function selFlight(id){
       var pts = tr.trace.map(function(pt){ return [pt[1], pt[2]]; }).filter(function(pt){ return pt[0]!=null && pt[1]!=null; });
       if(mks[id]) pts.push([mks[id].getLatLng().lat, mks[id].getLatLng().lng]);
       if(pts.length > 1){
-        pastRouteLine = L.polyline(pts, {color: '#FFCC00', weight: 4, opacity: 0.9}).addTo(map);
+        pastRouteLine = L.polyline(pts, {color: '#ff9500', weight: 4, opacity: 0.8, lineCap: 'round', lineJoin: 'round'}).addTo(map);
       }
     }
   } catch(e) {}
@@ -696,18 +744,23 @@ async function selFlight(id){
     }
   }
 
+
+  document.getElementById('routeSec').style.display = 'none';
   if(route){
     var o=route.origin,d=route.destination;
     if(o||d)set('dSub',(o?(o.iata_code+' → '):'')+(d?d.iata_code:'?'));
 
-    if(d && d.latitude && d.longitude){
-      futureRouteLine = L.polyline([[f.lat, f.lon], [+d.latitude, +d.longitude]], {color: '#ff9500', weight: 3, dashArray: '8, 8', opacity: 0.8}).addTo(map);
+    if(o || d) {
+      document.getElementById('routeSec').style.display = 'block';
+      document.getElementById('rFrom').innerText = o ? (o.name || o.iata_code || o.icao_code) : 'Unknown';
+      document.getElementById('rTo').innerText = d ? (d.name || d.iata_code || d.icao_code) : 'Unknown';
     }
 
-    // Instead of passing route to calcETA, we just calculate it anytime
-    // Actually we can do it even if route is null! So I will move this OUTSIDE the `if(route)` block.
-
+    if(d && d.latitude && d.longitude){
+      futureRouteLine = L.polyline([[f.lat, f.lon], [+d.latitude, +d.longitude]], {color: '#0a84ff', weight: 4, dashArray: '6, 10', opacity: 0.9, lineCap: 'round'}).addTo(map);
+    }
   }
+
 }
 
 async function fetchMeta(id){
