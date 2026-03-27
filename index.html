@@ -252,6 +252,7 @@ input:checked + .slider:before { transform: translateX(20px); }
     <div class="chip on" id="ch-all" onclick="setChip('all')">All Flights</div>
     <div class="chip" id="ch-near" onclick="setChip('near')">Nearest</div>
     <div class="chip" id="ch-over" onclick="setChip('over')">Overhead</div>
+    <div class="chip" id="ch-ghost" onclick="setChip('ghost')" style="color: #5e5ce6;">🕵️ Ghosts</div>
   </div>
   <div class="flist" id="flist">
     <!-- Cards go here -->
@@ -264,6 +265,7 @@ input:checked + .slider:before { transform: translateX(20px); }
     <div style="background: rgba(255,255,255,0.9); width: 48px; height: 5px; border-radius: 3px; margin: 0 auto; box-shadow: 0 1px 3px rgba(0,0,0,0.2);"></div>
   </div>
   <div class="d-top">
+    <div id="smartContext" style="position: absolute; top: 16px; left: 16px; z-index: 40; background: rgba(0,0,0,0.6); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: white; padding: 6px 12px; border-radius: 16px; font-weight: 800; font-size: 11px; letter-spacing: 1px; display: none; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">CRUISING</div>
     <img id="dImg" src="" alt="Aircraft">
     <div class="d-top-grad"></div>
     
@@ -333,6 +335,22 @@ input:checked + .slider:before { transform: translateX(20px); }
 
 
     
+    
+    <div class="dsec" id="spotSec" style="display: none; background: linear-gradient(135deg, #1c1c1e, #2c2c2e); color: white;">
+      <div class="dsec-t" style="color: rgba(255,255,255,0.6);">Live Spotter Guide (Uncensored)</div>
+      <div style="display: flex; align-items: center; padding: 8px 4px;">
+        <div style="position: relative; width: 48px; height: 48px; background: rgba(255,255,255,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);">
+          <div id="spotIcon" style="position: absolute; transform-origin: center; transition: transform 0.2s;">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="#34c759"><path d="M12 2L20 20L12 17L4 20L12 2Z"/></svg>
+          </div>
+        </div>
+        <div style="flex: 1; padding-left: 16px;">
+          <div id="spotText" style="font-weight: 800; font-size: 17px; letter-spacing: -0.5px;">–</div>
+          <div id="spotElev" style="font-size: 14px; color: #a1a1a6; font-weight: 500; margin-top: 2px;">–</div>
+        </div>
+      </div>
+    </div>
+
     <div class="dsec">
       <div class="dsec-t">Aircraft Info</div>
       <div class="dr"><div class="dl">Operator</div><div class="dv" id="dOp">–</div></div>
@@ -917,6 +935,69 @@ function updateDetailStats(f){
   set('dVr',f.vrMs!=null?((f.vrMs>0?'+':'')+Math.round(f.vrMs)+' m/s'):'–');
   set('dDs',f.dist!=null?f.dist.toFixed(1)+' km':'–');
 
+  // SMART CONTEXT BANNER
+  var ctx = 'CRUISING'; var ctxCol = 'rgba(0,0,0,0.6)'; var ctxGlow = 'none';
+  if(f.squawk === '7700') { ctx = '🚨 EMERGENCY SQUAWK'; ctxCol = '#ff3b30'; ctxGlow = '0 0 15px rgba(255,59,48,0.8)'; }
+  else if(f.squawk === '7600') { ctx = '⚠️ RADIO FAILURE'; ctxCol = '#ff9500'; }
+  else if(f.squawk === '7500') { ctx = '🛑 HIJACKING'; ctxCol = '#ff3b30'; }
+  else if(f.ground) { ctx = 'TAXIING / PARKED'; }
+  else if(f.vrMs > 4) { ctx = '🚀 RAPID CLIMB'; ctxCol = '#34c759'; }
+  else if(f.vrMs > 1) { ctx = '🛫 CLIMBING'; ctxCol = 'rgba(52,199,89,0.8)'; }
+  else if(f.vrMs < -4) { ctx = '🪂 RAPID DESCENT'; ctxCol = '#0a84ff'; }
+  else if(f.vrMs < -1) { ctx = '🛬 DESCENDING'; ctxCol = 'rgba(10,132,255,0.8)'; }
+  else if(!f.cs || f.cs.trim() === '') { ctx = '🕵️ GHOST / BLOCKED FLIGHT'; ctxCol = '#5e5ce6'; ctxGlow = '0 0 10px rgba(94,92,230,0.8)'; }
+
+  var ctxEl = document.getElementById('smartContext');
+  if(ctxEl) {
+    ctxEl.innerText = ctx;
+    ctxEl.style.background = ctxCol;
+    ctxEl.style.boxShadow = ctxGlow !== 'none' ? ctxGlow : '0 4px 15px rgba(0,0,0,0.2)';
+    ctxEl.style.display = 'block';
+  }
+
+  // SPOTTER GUIDE AR-MATH
+  var spotSec = document.getElementById('spotSec');
+  if(userPos && !f.ground && f.dist < 100) {
+     spotSec.style.display = 'block';
+     var bear = getBearing(userPos[0], userPos[1], f.lat, f.lon);
+     var relBear = bear;
+     // If we have device compass heading, we can point relative to phone!
+     if(userHeading) {
+        relBear = bear - userHeading;
+     }
+     document.getElementById('spotIcon').style.transform = 'rotate(' + relBear + 'deg)';
+
+     // Elevation math
+     var distM = f.dist * 1000;
+     var altM = f.altM || 0;
+     var elevDeg = Math.atan2(altM, distM) * (180 / Math.PI);
+
+     // Convert bearing to words
+     var dirs = ['North', 'North-East', 'East', 'South-East', 'South', 'South-West', 'West', 'North-West'];
+     var dirW = dirs[Math.round(bear / 45) % 8];
+
+     var lookText = "Look " + dirW;
+     if(userHeading) {
+         var relMod = ((relBear % 360) + 360) % 360;
+         if(relMod > 330 || relMod < 30) lookText = "Look Straight Ahead";
+         else if(relMod >= 30 && relMod <= 150) lookText = "Look to your Right";
+         else if(relMod > 150 && relMod < 210) lookText = "Look Behind You";
+         else lookText = "Look to your Left";
+     }
+
+     document.getElementById('spotText').innerText = lookText + " (" + Math.round(bear) + "°)";
+
+     var elevText = "Very Low";
+     if(elevDeg > 10) elevText = "Low in the sky";
+     if(elevDeg > 30) elevText = "High in the sky";
+     if(elevDeg > 60) elevText = "Directly overhead";
+
+     document.getElementById('spotElev').innerText = elevText + " • Elevation: " + Math.round(elevDeg) + "° up";
+  } else {
+     spotSec.style.display = 'none';
+  }
+
+
   if (selRoute) {
     var o = selRoute.origin, d = selRoute.destination;
     if (o && o.latitude && o.longitude && d && d.latitude && d.longitude && f.lat && f.lon && !f.ground) {
@@ -1365,6 +1446,13 @@ var ACREL={
 };
 var ACENG={A320:'2× CFM56-5B / IAE V2500',A321:'2× CFM56-5B / IAE V2500',A20N:'2× CFM LEAP-1A',A21N:'2× CFM LEAP-1A',A332:'2× GE CF6 / RR Trent 700',A333:'2× RR Trent 700',A338:'2× RR Trent 7000',A339:'2× RR Trent 7000',A359:'2× RR Trent XWB-84',A35K:'2× RR Trent XWB-97',A388:'4× GP7200 / RR Trent 970',B737:'2× CFM56-3',B738:'2× CFM56-7B',B739:'2× CFM56-7B',B744:'4× CF6-80C2',B748:'4× GEnx-2B67',B752:'2× RB211-535',B763:'2× CF6-80C2',B772:'2× GE90-94B',B77L:'2× GE90-110B1',B77W:'2× GE90-115B1',B77X:'2× GE9X-105B1A',B788:'2× GEnx-1B / RR Trent 1000',B789:'2× GEnx-1B / RR Trent 1000',B78X:'2× GEnx-1B76',E190:'2× GE CF34-10E',E195:'2× GE CF34-10E',CRJ2:'2× GE CF34-3B1',CRJ7:'2× GE CF34-8C5',DH8D:'2× PW150A',AT72:'2× PW127F'};
 
+
+function getBearing(lat1, lon1, lat2, lon2) {
+  var r = Math.PI/180;
+  var y = Math.sin((lon2-lon1)*r) * Math.cos(lat2*r);
+  var x = Math.cos(lat1*r)*Math.sin(lat2*r) - Math.sin(lat1*r)*Math.cos(lat2*r)*Math.cos((lon2-lon1)*r);
+  return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+}
 function dir(t){return['N','NE','E','SE','S','SW','W','NW'][Math.round((t||0)/45)%8];}
 function g(id){return document.getElementById(id);}
 function set(id,v){var e=g(id);if(e)e.textContent=v;}
