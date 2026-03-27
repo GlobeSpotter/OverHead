@@ -5,136 +5,125 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>Overhead Pro Live</title>
+<title>Overhead Ultimate</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
 <script src="https://unpkg.com/globe.gl"></script>
 <style>
-    /* APPLE VISION & iOS 18 DESIGN SYSTEM */
+    /* APPLE SPATIAL DESIGN SYSTEM */
     :root {
-        --bg: #000000; --text: #ffffff; --text-sec: #ebebf599; --blue: #0A84FF; --green: #30D158; --orange: #FF9F0A; --red: #FF453A;
-        --glass-bg: rgba(28, 28, 30, 0.55); --glass-border: rgba(255, 255, 255, 0.15); --glass-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-        --sat-blur: saturate(200%) blur(40px); --spring: cubic-bezier(0.175, 0.885, 0.32, 1.15); --ease: cubic-bezier(0.25, 1, 0.5, 1);
+        --bg: #000; --text: #fff; --text-sec: rgba(235, 235, 245, 0.6);
+        --blue: #0A84FF; --green: #30D158; --orange: #FF9F0A; --red: #FF453A;
+        --glass-bg: rgba(30, 30, 32, 0.65);
+        --glass-border: rgba(255, 255, 255, 0.1);
+        --sat-blur: saturate(200%) blur(40px);
+        --spring: cubic-bezier(0.175, 0.885, 0.32, 1.15);
     }
     * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-    body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", Helvetica, sans-serif; background: var(--bg); color: var(--text); overflow: hidden; user-select: none; }
+    body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Rounded", "SF Pro Display", sans-serif; background: var(--bg); color: var(--text); overflow: hidden; user-select: none; }
     
-    #mapWrapper { position: fixed; inset: 0; z-index: 0; background: #000; perspective: 1200px; }
-    #map { position: absolute; inset: 0; transform-style: preserve-3d; will-change: transform; filter: saturate(1.1) contrast(1.1) brightness(0.85); }
+    /* MAP ENGINE */
+    #mapWrapper { position: fixed; inset: 0; z-index: 0; background: #000; transition: filter 0.8s ease; }
+    #map { position: absolute; inset: 0; will-change: filter, transform; }
+    #mapWrapper.cinematic-mode { filter: saturate(0.3) brightness(0.4); }
     .leaflet-control-attribution, .leaflet-control-zoom { display: none !important; }
-    #globeViz { position: fixed; inset: 0; z-index: 50; opacity: 0; pointer-events: none; transition: opacity 0.8s var(--ease); background: #000; }
-    .plane-icon-inner { width: 100%; height: 100%; transform-style: preserve-3d; transition: transform 0.15s linear; will-change: transform; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.6)); }
+    
+    #globeViz { position: fixed; inset: 0; z-index: 50; opacity: 0; pointer-events: none; transition: opacity 0.8s ease; background: #000; }
+    
+    /* HARDWARE ACCELERATED ICONS */
+    .plane-icon-inner { width: 100%; height: 100%; will-change: transform; transition: opacity 0.4s; filter: drop-shadow(0 4px 12px rgba(0,0,0,0.8)); }
+    .plane-unselected { opacity: 0.2 !important; filter: grayscale(1) blur(1px); }
 
     /* DYNAMIC ISLAND */
     .island-wrapper { position: absolute; top: 16px; left: 0; right: 0; z-index: 2000; display: flex; justify-content: center; pointer-events: none; }
     .dynamic-island {
-        background: rgba(0, 0, 0, 0.8); backdrop-filter: var(--sat-blur); -webkit-backdrop-filter: var(--sat-blur);
-        border: 1px solid rgba(255,255,255,0.1); border-radius: 32px; box-shadow: 0 8px 32px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.05);
+        background: rgba(10, 10, 12, 0.85); backdrop-filter: var(--sat-blur); -webkit-backdrop-filter: var(--sat-blur);
+        border: 1px solid var(--glass-border); border-radius: 32px; box-shadow: 0 10px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1);
         pointer-events: auto; cursor: pointer; display: flex; align-items: center; overflow: hidden;
-        width: auto; height: 50px; padding: 0 20px; gap: 12px; transition: all 0.5s var(--spring); will-change: width, height, transform;
+        width: auto; height: 50px; padding: 0 20px; gap: 12px; transition: all 0.5s var(--spring);
     }
     .dynamic-island:active { transform: scale(0.96); }
-    .island-logo { font-size: 18px; font-weight: 900; letter-spacing: -0.5px; display: flex; align-items: center; gap: 6px; background: linear-gradient(135deg, #fff, #a1c4fd); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .island-logo { font-size: 18px; font-weight: 900; letter-spacing: -0.5px; display: flex; align-items: center; gap: 6px; }
     .island-search { display: none; width: 100%; opacity: 0; transition: opacity 0.3s; }
-    .island-search input { background: transparent; border: none; outline: none; color: #fff; font-size: 16px; width: 100%; font-family: inherit; font-weight: 500; }
-    .island-search input::placeholder { color: rgba(255,255,255,0.4); }
+    .island-search input { background: transparent; border: none; outline: none; color: #fff; font-size: 16px; width: 100%; font-weight: 600; }
     .island-flight-info { display: none; width: 100%; opacity: 0; justify-content: space-between; align-items: center; }
-    .ifi-main { font-size: 16px; font-weight: 800; color: #fff; }
-    .ifi-sub { font-size: 12px; font-weight: 600; color: var(--blue); font-family: ui-monospace, monospace; }
-    .island.search-mode { width: calc(100% - 32px); height: 56px; border-radius: 28px; background: rgba(30,30,32,0.85); }
-    .island.flight-mode { width: calc(100% - 32px); height: 60px; background: rgba(10, 132, 255, 0.15); border-color: rgba(10, 132, 255, 0.4); }
+    .ifi-main { font-size: 18px; font-weight: 900; color: #fff; letter-spacing: -0.5px; }
+    .ifi-sub { font-size: 13px; font-weight: 700; color: var(--blue); }
+    .island.search-mode { width: calc(100% - 32px); height: 56px; }
+    .island.flight-mode { width: calc(100% - 32px); height: 64px; background: rgba(10, 132, 255, 0.15); border-color: rgba(10, 132, 255, 0.4); }
 
-    .recenter-btn { display: none; align-items: center; justify-content: center; width: 32px; height: 32px; background: rgba(255,255,255,0.15); border-radius: 16px; color: var(--green); cursor: pointer; margin-left: 12px; transition: 0.2s; border: 1px solid rgba(48,209,88,0.4); }
-    .recenter-btn.show { display: flex; animation: pulse-glow 2s infinite; }
-    .recenter-btn:active { transform: scale(0.9); background: rgba(48,209,88,0.3); }
-    @keyframes pulse-glow { 0% { box-shadow: 0 0 0 0 rgba(48,209,88,0.4); } 70% { box-shadow: 0 0 0 10px rgba(48,209,88,0); } 100% { box-shadow: 0 0 0 0 rgba(48,209,88,0); } }
+    .recenter-btn { display: none; align-items: center; justify-content: center; width: 34px; height: 34px; background: rgba(48,209,88,0.2); border-radius: 17px; color: var(--green); cursor: pointer; border: 1px solid rgba(48,209,88,0.5); animation: pulse-glow 2s infinite; }
+    .recenter-btn.show { display: flex; }
+    @keyframes pulse-glow { 0% { box-shadow: 0 0 0 0 rgba(48,209,88,0.4); } 70% { box-shadow: 0 0 0 12px rgba(48,209,88,0); } 100% { box-shadow: 0 0 0 0 rgba(48,209,88,0); } }
 
-    .search-results { position: absolute; top: 80px; left: 16px; right: 16px; background: var(--glass-bg); backdrop-filter: var(--sat-blur); -webkit-backdrop-filter: var(--sat-blur); border-radius: 24px; z-index: 1900; box-shadow: var(--glass-shadow); border: 1px solid var(--glass-border); display: none; max-height: 40vh; overflow-y: auto; padding: 8px 0; }
-    .s-res-item { padding: 14px 20px; display: flex; align-items: center; gap: 14px; cursor: pointer; border-bottom: 1px solid rgba(255,255,255,0.05); transition: background 0.2s; }
-    .s-res-item:active { background: rgba(255,255,255,0.1); }
-    .empty-state { text-align: center; color: var(--text-sec); font-weight: 600; padding: 30px 20px; }
-
-    .sheet { position: fixed; bottom: 16px; left: 16px; right: 16px; height: 65vh; background: var(--glass-bg); backdrop-filter: var(--sat-blur); -webkit-backdrop-filter: var(--sat-blur); border-radius: 36px; border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); z-index: 1000; display: flex; flex-direction: column; transition: transform 0.5s var(--spring), height 0.5s var(--spring); will-change: transform, height; transform: translateZ(0); }
-    .sheet.collapsed { height: 110px; transform: translateY(0); }
-    .sheet.hidden { transform: translateY(150%); }
-    .sh-drag-area { padding: 16px 0 8px; cursor: pointer; display: flex; justify-content: center; }
-    .sh-handle { width: 44px; height: 5px; background: rgba(255,255,255,0.3); border-radius: 3px; transition: 0.2s; }
-    .sh-drag-area:active .sh-handle { background: rgba(255,255,255,0.6); width: 52px; }
-    .sh-head { display: flex; justify-content: space-between; align-items: center; padding: 0 24px 16px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-    .sh-title { font-size: 24px; font-weight: 800; letter-spacing: -0.5px; }
-
-    .chips { display: flex; gap: 8px; padding: 12px 16px; overflow-x: auto; scrollbar-width: none; border-bottom: 1px solid rgba(255,255,255,0.05); }
-    .chips::-webkit-scrollbar { display: none; }
-    .chip { background: rgba(255,255,255,0.1); padding: 10px 20px; border-radius: 20px; font-weight: 700; font-size: 15px; color: var(--text-sec); border: 1px solid rgba(255,255,255,0.05); transition: 0.3s; }
-    .chip.on { background: #fff; color: #000; }
-
-    .flist { flex: 1; overflow-y: auto; padding: 12px 0 30px; }
-    .fc { margin: 0 16px 12px; padding: 16px; border-radius: 24px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; cursor: pointer; transition: 0.3s var(--spring); }
-    .fc:active { transform: scale(0.95); background: rgba(255,255,255,0.1); }
-    .fc.sel { background: rgba(10, 132, 255, 0.2); border-color: rgba(10, 132, 255, 0.5); box-shadow: 0 4px 20px rgba(10,132,255,0.2); }
-    .fci { font-size: 26px; margin-right: 16px; width: 32px; text-align: center; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); }
-    .fcm { flex: 1; overflow: hidden; }
-    .fcc { font-weight: 800; font-size: 18px; margin-bottom: 2px; color: #fff; }
-    .fcs { font-size: 14px; color: var(--text-sec); text-overflow: ellipsis; white-space: nowrap; overflow: hidden; font-weight: 500; }
-    .fcr { text-align: right; }
-    .fcd { font-weight: 800; font-size: 16px; color: var(--blue); font-family: ui-monospace, monospace; }
-
-    .controls { position: absolute; top: 80px; right: 16px; z-index: 500; display: flex; flex-direction: column; gap: 12px; }
-    .btn-fab { width: 48px; height: 48px; border-radius: 24px; background: var(--glass-bg); backdrop-filter: var(--sat-blur); -webkit-backdrop-filter: var(--sat-blur); border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow); display: flex; align-items: center; justify-content: center; color: #fff; cursor: pointer; transition: 0.3s var(--spring); }
-    .btn-fab:active { transform: scale(0.9); background: rgba(255,255,255,0.2); }
-    .btn-fab.active-blue { background: var(--blue); border-color: #005bb5; }
-
-    .det { position: fixed; inset: 0; z-index: 3000; background: #000; display: flex; flex-direction: column; transform: translateY(100%); transition: transform 0.6s var(--spring); overflow: hidden; will-change: transform; }
-    .det.open { transform: translateY(0); }
-    .d-top { position: relative; height: 40vh; background: #111; overflow: hidden; }
-    .d-top img { width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.8s; }
-    .d-top img.ok { opacity: 0.8; }
-    .d-top-grad { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.6) 50%, #000 100%); }
-    .d-close { position: absolute; top: 50px; right: 20px; width: 40px; height: 40px; border-radius: 20px; background: rgba(255,255,255,0.15); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); display: flex; align-items: center; justify-content: center; font-size: 20px; color: #fff; cursor: pointer; z-index: 10; border: 1px solid rgba(255,255,255,0.1); }
-    .d-logo { position: absolute; bottom: 30px; left: 24px; width: 64px; height: 64px; object-fit: contain; background: rgba(255,255,255,0.9); border-radius: 16px; padding: 6px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); display: none; z-index: 10; }
-    .d-scroll { flex: 1; overflow-y: auto; padding: 0 24px 60px; margin-top: -20px; position: relative; z-index: 5; }
-    .d-cs { font-size: 42px; font-weight: 900; letter-spacing: -1.5px; margin-bottom: 4px; color: #fff; text-shadow: 0 4px 12px rgba(0,0,0,0.5); }
-    .d-sub { font-size: 18px; color: var(--text-sec); font-weight: 600; }
-
-    .route-card { background: rgba(255,255,255,0.08); border-radius: 28px; padding: 24px; margin-bottom: 24px; border: 1px solid rgba(255,255,255,0.05); }
-    .rc-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    .rc-apt { font-size: 34px; font-weight: 900; letter-spacing: -1px; color: #fff; text-shadow: 0 2px 8px rgba(0,0,0,0.3); }
-    .rc-line { flex: 1; margin: 0 20px; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; position: relative; overflow: hidden; }
-    .rc-prog { position: absolute; left: 0; top: 0; bottom: 0; width: 0%; background: linear-gradient(90deg, var(--blue), #5E5CE6); border-radius: 3px; box-shadow: 0 0 10px var(--blue); }
-    .rc-plane { position: absolute; top: -9px; left: 0%; width: 24px; height: 24px; color: #fff; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); transition: none; margin-left: -12px; }
-    .rc-bot { display: flex; justify-content: space-between; background: rgba(0,0,0,0.3); padding: 14px 16px; border-radius: 16px; }
-    .rc-l { font-size: 12px; color: var(--text-sec); font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-    .rc-v { font-size: 18px; font-weight: 800; color: #fff; font-family: ui-monospace, monospace; margin-top: 2px; }
-
-    .dsec { background: rgba(255,255,255,0.05); border-radius: 28px; padding: 20px; margin-bottom: 24px; border: 1px solid rgba(255,255,255,0.05); }
-    .dsec-t { font-size: 14px; font-weight: 800; color: var(--text-sec); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; padding-left: 4px; }
-    .dr { display: flex; justify-content: space-between; padding: 14px 4px; border-bottom: 1px solid rgba(255,255,255,0.05); }
-    .dr:last-child { border-bottom: none; padding-bottom: 4px; }
-    .dl { color: var(--text-sec); font-size: 16px; font-weight: 600; }
-    .dv { font-weight: 700; font-size: 16px; text-align: right; color: #fff; }
-
-    .pfd-container { width: 100%; height: 200px; border-radius: 24px; background: #000; overflow: hidden; position: relative; box-shadow: inset 0 4px 20px rgba(0,0,0,1); display: flex; align-items: center; justify-content: center; perspective: 800px; border: 1px solid rgba(255,255,255,0.1); }
-    .svs-world { position: absolute; width: 400%; height: 400%; top: -150%; left: -150%; display: flex; flex-direction: column; transform: translateZ(0); will-change: transform; }
-    .svs-sky { flex: 1; background: linear-gradient(180deg, #02112A 0%, #0A2E5C 50%, #155B9E 100%); }
-    .svs-ground { flex: 1; background: linear-gradient(180deg, #1C1512 0%, #112211 20%, #000000 100%); }
-    .svs-grid { position: absolute; inset: -100%; background-image: linear-gradient(rgba(48,209,88,0.2) 1px, transparent 1px), linear-gradient(90deg, rgba(48,209,88,0.2) 1px, transparent 1px); background-size: 100px 100px; transform: perspective(400px) rotateX(75deg); transform-origin: top center; }
-    .svs-skyline { position: absolute; bottom: 50%; width: 100%; height: 2px; background: #fff; box-shadow: 0 0 10px #fff; }
+    /* FLOATING APP DASHBOARD */
+    .dashboard {
+        position: fixed; bottom: 20px; left: 20px; right: 20px;
+        background: var(--glass-bg); backdrop-filter: var(--sat-blur); -webkit-backdrop-filter: var(--sat-blur);
+        border-radius: 36px; border: 1px solid var(--glass-border); box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        z-index: 1000; display: flex; flex-direction: column; overflow: hidden;
+        transition: transform 0.6s var(--spring), height 0.6s var(--spring);
+        will-change: transform, height;
+    }
+    .dash-main { height: 120px; padding: 20px 24px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+    .dash-main:active { background: rgba(255,255,255,0.05); }
+    .dm-title { font-size: 28px; font-weight: 900; letter-spacing: -1px; margin-bottom: 4px; }
+    .dm-sub { color: var(--text-sec); font-weight: 700; font-size: 14px; text-transform: uppercase; letter-spacing: 1px; }
     
-    .hud-tape { position: absolute; top: 20px; bottom: 20px; width: 60px; background: rgba(0,0,0,0.5); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; z-index: 5; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-    .hud-tape.spd { left: 16px; } .hud-tape.alt { right: 16px; }
-    .hud-val { font-size: 18px; font-weight: 900; color: #fff; font-family: ui-monospace, monospace; text-shadow: 0 2px 4px #000; }
-    .hud-lbl { position: absolute; top: 4px; font-size: 10px; font-weight: 800; color: var(--green); letter-spacing: 1px; }
-    .hud-center { position: absolute; z-index: 10; display: flex; gap: 40px; align-items: center; }
-    .hud-wing { width: 50px; height: 6px; border-top: 4px solid var(--orange); border-right: 4px solid var(--orange); filter: drop-shadow(0 2px 4px #000); }
-    .hud-wing.l { border-right: none; border-left: 4px solid var(--orange); }
-    .hud-dot { width: 8px; height: 8px; background: var(--orange); border-radius: 50%; filter: drop-shadow(0 2px 4px #000); }
+    .dash-content { flex: 1; padding: 0 20px 20px; overflow-y: auto; display: none; opacity: 0; transition: opacity 0.4s; }
+    .dashboard.expanded { height: 75vh; }
+    .dashboard.expanded .dash-content { display: block; opacity: 1; }
+    .dashboard.hidden { transform: translateY(150%); }
 
-    .t-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 16px; }
-    .tc { background: rgba(255,255,255,0.08); border-radius: 20px; padding: 16px; border: 1px solid rgba(255,255,255,0.05); }
+    .flist-item { padding: 16px; border-radius: 20px; background: rgba(255,255,255,0.03); margin-bottom: 12px; display: flex; align-items: center; border: 1px solid rgba(255,255,255,0.02); transition: 0.2s; }
+    .flist-item:active { transform: scale(0.97); background: rgba(255,255,255,0.08); }
+    
+    .controls { position: absolute; top: 90px; right: 20px; z-index: 500; display: flex; flex-direction: column; gap: 16px; }
+    .btn-fab { width: 50px; height: 50px; border-radius: 25px; background: rgba(20,20,22,0.8); backdrop-filter: var(--sat-blur); -webkit-backdrop-filter: var(--sat-blur); border: 1px solid var(--glass-border); box-shadow: 0 8px 20px rgba(0,0,0,0.4); display: flex; align-items: center; justify-content: center; color: #fff; cursor: pointer; transition: 0.3s var(--spring); }
+    .btn-fab:active { transform: scale(0.9); background: rgba(255,255,255,0.2); }
+    .btn-fab.active-blue { background: var(--blue); color: #fff; border-color: #0A84FF; box-shadow: 0 8px 24px rgba(10,132,255,0.4); }
 
-    @keyframes sel-pulse { 0% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(3); opacity: 0; } }
-    .sel-pulse { position: absolute; top: 50%; left: 50%; width: 50px; height: 50px; border: 3px solid var(--green); border-radius: 50%; animation: sel-pulse 1.5s ease-out infinite; pointer-events: none; }
+    /* DETAIL VIEW (IMMERSIVE CARD) */
+    .det-card {
+        position: fixed; inset: 20px; top: 100px; z-index: 3000;
+        background: rgba(15, 15, 18, 0.75); backdrop-filter: saturate(200%) blur(60px); -webkit-backdrop-filter: saturate(200%) blur(60px);
+        border-radius: 40px; border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+        display: flex; flex-direction: column; transform: scale(0.9) translateY(100%); opacity: 0; pointer-events: none;
+        transition: all 0.6s var(--spring); overflow: hidden;
+    }
+    .det-card.open { transform: scale(1) translateY(0); opacity: 1; pointer-events: auto; }
+    
+    .d-close { position: absolute; top: 20px; right: 20px; width: 40px; height: 40px; border-radius: 20px; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 10; }
+    
+    /* APPLE WATCH STYLE RINGS */
+    .rings-row { display: flex; justify-content: space-around; padding: 30px 20px; background: rgba(0,0,0,0.2); border-bottom: 1px solid rgba(255,255,255,0.05); }
+    .ring-box { position: relative; width: 100px; height: 100px; display: flex; align-items: center; justify-content: center; flex-direction: column; }
+    .ring-svg { position: absolute; inset: 0; transform: rotate(-90deg); width: 100%; height: 100%; }
+    .ring-bg { fill: none; stroke: rgba(255,255,255,0.1); stroke-width: 8; }
+    .ring-prog { fill: none; stroke-width: 8; stroke-linecap: round; stroke-dasharray: 251.2; stroke-dashoffset: 251.2; transition: stroke-dashoffset 0.5s ease-out; }
+    .ring-prog.blue { stroke: var(--blue); filter: drop-shadow(0 0 6px var(--blue)); }
+    .ring-prog.green { stroke: var(--green); filter: drop-shadow(0 0 6px var(--green)); }
+    .ring-val { font-size: 20px; font-weight: 900; font-family: ui-monospace, monospace; margin-top: 5px; }
+    .ring-lbl { font-size: 11px; font-weight: 800; color: var(--text-sec); text-transform: uppercase; letter-spacing: 1px; }
+
+    .d-scroll { flex: 1; overflow-y: auto; padding: 24px; }
+    
+    /* APPLE ROUTE PROGRESS */
+    .route-bar { background: rgba(255,255,255,0.05); border-radius: 24px; padding: 24px; margin-bottom: 24px; border: 1px solid rgba(255,255,255,0.05); }
+    .rb-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .rb-apt { font-size: 32px; font-weight: 900; letter-spacing: -1px; }
+    .rb-track { flex: 1; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; margin: 0 20px; position: relative; }
+    .rb-fill { position: absolute; left: 0; top: 0; bottom: 0; background: linear-gradient(90deg, #5E5CE6, var(--blue)); border-radius: 4px; width: 0%; box-shadow: 0 0 12px var(--blue); }
+    .rb-icon { position: absolute; top: -8px; left: 0%; color: #fff; width: 24px; height: 24px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.8)); margin-left: -12px; }
+
+    .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .ig-card { background: rgba(255,255,255,0.05); padding: 16px; border-radius: 20px; }
+    .ig-lbl { font-size: 12px; font-weight: 800; color: var(--text-sec); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+    .ig-val { font-size: 18px; font-weight: 800; color: #fff; }
+
+    @keyframes sel-pulse { 0% { transform: translate(-50%, -50%) scale(1); opacity: 1; } 100% { transform: translate(-50%, -50%) scale(4); opacity: 0; } }
+    .sel-pulse { position: absolute; top: 50%; left: 50%; width: 40px; height: 40px; border: 3px solid var(--green); border-radius: 50%; animation: sel-pulse 1.5s ease-out infinite; pointer-events: none; }
 </style>
 </head>
 <body>
@@ -145,161 +134,130 @@
 <div class="island-wrapper">
     <div id="dynIsland" class="dynamic-island search-mode" onclick="handleIslandClick()">
         <div id="islandLogo" class="island-logo">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
-            OVERHEAD<span style="color:var(--blue)">PRO</span>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="var(--blue)"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
+            OVERHEAD
         </div>
-        <div id="islandSearch" class="island-search"><input type="text" id="searchInput" placeholder="Search flight or tail..." onkeyup="if(event.key==='Enter') doSearch()" oninput="handleSearchInput()"></div>
+        <div id="islandSearch" class="island-search"><input type="text" id="searchInput" placeholder="Search flights..." onkeyup="if(event.key==='Enter') document.activeElement.blur()"></div>
         <div id="islandFlight" class="island-flight-info">
-            <div style="display:flex; align-items:center; gap:12px;">
-                <div style="width:32px; height:32px; background:var(--blue); border-radius:10px; display:flex; align-items:center; justify-content:center; color:#fff; font-size:18px;">✈️</div>
-                <div><div id="islCs" class="ifi-main">FIN1A</div><div id="islRoute" class="ifi-sub" style="color:var(--text-sec)">Live</div></div>
-            </div>
+            <div><div id="islCs" class="ifi-main">FIN1A</div><div id="islRoute" class="ifi-sub">Live Focus</div></div>
             <div style="display:flex; align-items:center;">
-                <div style="text-align:right;">
-                    <div id="islAlt" class="ifi-main" style="color:var(--green)">--- ft</div>
-                    <div id="islSpd" class="ifi-sub">--- kt</div>
-                </div>
-                <!-- RE-CENTER Nappi ilmestyy, jos kamera-lock katkeaa -->
-                <div id="btnRecenter" class="recenter-btn" onclick="recenterCamera(event)">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="4"/></svg>
-                </div>
+                <div style="text-align:right;"><div id="islAlt" class="ifi-main" style="color:var(--green)">---</div><div id="islSpd" class="ifi-sub" style="color:var(--text-sec)">---</div></div>
+                <div id="btnRecenter" class="recenter-btn" onclick="recenterCamera(event)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="3"/></svg></div>
             </div>
         </div>
     </div>
 </div>
-
-<div class="search-results" id="searchResults"></div>
 
 <div class="controls">
-  <div class="btn-fab" id="btnFind" onclick="quickFind()">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-  </div>
-  <div class="btn-fab" id="btn3D" onclick="toggleGlobeMode()">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-  </div>
+  <div class="btn-fab" id="btnFind" onclick="quickFind()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg></div>
+  <div class="btn-fab" id="btn3D" onclick="toggleGlobeMode()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg></div>
 </div>
 
-<div class="sheet" id="sheet">
-  <div class="sh-drag-area" onclick="toggleSheet()"><div class="sh-handle"></div></div>
-  <div class="sh-head">
-    <div class="sh-title" id="shS">Live Radar</div>
-    <div style="color:var(--text-sec); font-weight:700; font-size:14px; background:rgba(255,255,255,0.1); padding:4px 10px; border-radius:10px;" id="ch-count">0 VISIBLE</div>
-  </div>
-  <div class="chips" id="chips">
-    <div class="chip on" id="ch-all" onclick="setChip('all')">All Flights</div>
-    <div class="chip" id="ch-over" onclick="setChip('over')">Airborne</div>
-  </div>
-  <div class="flist" id="flist"></div>
+<div class="dashboard" id="dash">
+    <div class="dash-main" onclick="toggleDash()">
+        <div><div class="dm-title">Live Radar</div><div class="dm-sub" id="dCount">SCANNING...</div></div>
+        <div style="width: 40px; height: 40px; background: rgba(255,255,255,0.1); border-radius: 20px; display: flex; align-items: center; justify-content: center;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" id="dashArrow"><path d="M6 15l6-6 6 6"/></svg></div>
+    </div>
+    <div class="dash-content" id="flist"></div>
 </div>
 
-<div class="det" id="det">
-  <div class="d-top">
-    <img id="dImg" src="" alt="Aircraft">
-    <div class="d-top-grad"></div>
-    <div class="d-close" onclick="closeDetail()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg></div>
-    <img id="dLogo" class="d-logo" src="">
-  </div>
-
-  <div class="d-scroll">
-    <div class="d-head">
-      <div class="d-cs" id="dCs">FLIGHT</div>
-      <div class="d-sub" id="dSub">ROUTE</div>
-    </div>
-
-    <div id="routeCard" class="route-card" style="display:none;">
-      <div class="rc-top">
-        <div class="rc-apt" id="rOrig">HEL</div>
-        <div class="rc-line">
-            <div id="rProg" class="rc-prog"></div>
-            <svg id="rPlane" class="rc-plane" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="currentColor" transform="rotate(90 12 12)"/></svg>
+<div class="det-card" id="det">
+    <div class="d-close" onclick="closeDetail()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></div>
+    
+    <div class="rings-row">
+        <div class="ring-box">
+            <svg class="ring-svg"><circle class="ring-bg" cx="50" cy="50" r="40"/><circle class="ring-prog blue" id="ringSpd" cx="50" cy="50" r="40"/></svg>
+            <div class="ring-lbl">SPEED</div><div class="ring-val" id="rVSpd">0</div>
         </div>
-        <div class="rc-apt" id="rDest">OUL</div>
-      </div>
-    </div>
-
-    <div class="dsec" style="padding: 0; overflow: hidden; border: none; background: transparent;">
-      <div class="pfd-container" id="pfdBox">
-        <div class="svs-world" id="pfdHorizon">
-          <div class="svs-sky"></div>
-          <div class="svs-ground"><div class="svs-grid" id="pfdGrid"></div></div>
-          <div class="svs-skyline"></div>
+        <div class="ring-box">
+            <svg class="ring-svg"><circle class="ring-bg" cx="50" cy="50" r="40"/><circle class="ring-prog green" id="ringAlt" cx="50" cy="50" r="40"/></svg>
+            <div class="ring-lbl">ALTITUDE</div><div class="ring-val" id="rVAlt" style="color:var(--green)">0</div>
         </div>
-        <div class="hud-tape spd"><div class="hud-lbl">IAS</div><div class="hud-val" id="pfdSpd">---</div></div>
-        <div class="hud-tape alt"><div class="hud-lbl">ALT</div><div class="hud-val" id="pfdAlt" style="color:var(--green)">---</div></div>
-        <div class="hud-center"><div class="hud-wing l"></div><div class="hud-dot"></div><div class="hud-wing"></div></div>
-        <div style="position: absolute; top: 12px; font-weight: 800; color: #fff; font-family: monospace; font-size: 16px; text-shadow: 0 2px 4px #000;" id="pfdHdg">HDG 000°</div>
-      </div>
-      <div class="t-grid">
-        <div class="tc"><div class="rc-l">Vertical Rate</div><div class="rc-v" id="dVrT">0 ft/min</div></div>
-        <div class="tc"><div class="rc-l">Ground Speed</div><div class="rc-v" id="dSpT">0 km/h</div></div>
-      </div>
     </div>
 
-    <div class="dsec">
-      <div class="dsec-t">Aircraft Info</div>
-      <div class="dr"><div class="dl">Type</div><div class="dv" id="dMd">–</div></div>
-      <div class="dr"><div class="dl">Registration</div><div class="dv" id="dRgTxt">–</div></div>
-      <div class="dr"><div class="dl">Operator</div><div class="dv" id="dOp">–</div></div>
+    <div class="d-scroll">
+        <div style="margin-bottom: 24px;">
+            <div style="font-size: 40px; font-weight: 900; letter-spacing: -1.5px; line-height: 1;" id="dCs">FLIGHT</div>
+            <div style="font-size: 18px; font-weight: 700; color: var(--text-sec);" id="dSub">Aircraft</div>
+        </div>
+
+        <div class="route-bar" id="routeCard" style="display:none;">
+            <div class="rb-top">
+                <div class="rb-apt" id="rOrig">HEL</div>
+                <div class="rb-track">
+                    <div class="rb-fill" id="rProg"></div>
+                    <svg class="rb-icon" id="rPlane" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="currentColor" transform="rotate(90 12 12)"/></svg>
+                </div>
+                <div class="rb-apt" id="rDest">OUL</div>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-weight: 800; font-size: 14px; color: var(--text-sec);">
+                <span id="rTime">En Route</span>
+            </div>
+        </div>
+
+        <div class="info-grid">
+            <div class="ig-card"><div class="ig-lbl">Operator</div><div class="ig-val" id="dOp">–</div></div>
+            <div class="ig-card"><div class="ig-lbl">Vertical Rate</div><div class="ig-val" id="dVrT">–</div></div>
+            <div class="ig-card"><div class="ig-lbl">Aircraft Type</div><div class="ig-val" id="dMd">–</div></div>
+            <div class="ig-card"><div class="ig-lbl">Registration</div><div class="ig-val" id="dRgTxt">–</div></div>
+        </div>
     </div>
-  </div>
 </div>
 
 <script>
+// FAST DOM UPDATER
 function setFast(id, val) { var el = document.getElementById(id); if(el && el._lastVal !== val) { el.innerText = val; el._lastVal = val; } }
-function setStyleFast(id, prop, val) { var el = document.getElementById(id); if(el && el['_last'+prop] !== val) { el.style[prop] = val; el['_last'+prop] = val; } }
 function vibrate(ms) { if(navigator.vibrate) navigator.vibrate(ms); }
 
-var map, flights=[], selId=null, mks={}, chip='all', isGlobeMode=false, world=null;
-var isCameraLocked = false, routeDataCache = null, lastFrameTime = Date.now(), lastGlobeFrame = Date.now();
+var map, flights=[], selId=null, mks={}, isGlobeMode=false, world=null;
+var isCameraLocked=false, routeDataCache=null, lastFrameTime=performance.now();
 
 function initMap(){
-  map=L.map('map',{zoomControl:false,attributionControl:false}).setView([60.45,22.27],6);
+  map=L.map('map',{zoomControl:false,attributionControl:false, zoomAnimation: false}).setView([60.45,22.27],6);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19}).addTo(map);
-  
-  // Käyttäjä rikkoo kameran lukituksen raahaamalla karttaa!
-  map.on('dragstart', () => { if(selId) { isCameraLocked = false; document.getElementById('btnRecenter').classList.add('show'); } });
+  map.on('dragstart', () => { if(selId){ isCameraLocked=false; document.getElementById('btnRecenter').classList.add('show'); } });
 }
-
 function xhrGet(url){ return new Promise((res,rej)=>{ var x=new XMLHttpRequest(); x.open('GET',url,true); x.timeout=10000; x.onload=()=>res(JSON.parse(x.responseText)); x.onerror=rej; x.send(); }); }
 
-var islandMode = 'search'; 
+var dashOpen = false;
+function toggleDash(){ 
+    dashOpen = !dashOpen; vibrate(10);
+    document.getElementById('dash').classList.toggle('expanded');
+    document.getElementById('dashArrow').style.transform = dashOpen ? 'rotate(180deg)' : 'none';
+}
+
 function handleIslandClick() {
     var isl = document.getElementById('dynIsland');
     if(selId) { if(!document.getElementById('det').classList.contains('open')) document.getElementById('det').classList.add('open'); } 
-    else { vibrate(10); document.getElementById('islandLogo').style.display='none'; document.getElementById('islandSearch').style.display='block'; document.getElementById('searchInput').focus(); isl.style.width='calc(100% - 32px)'; isl.style.height='60px'; }
-}
-function setIslandFlightMode(f, route) {
-    islandMode = 'flight'; var isl = document.getElementById('dynIsland');
-    document.getElementById('islandLogo').style.display='none'; document.getElementById('islandSearch').style.display='none'; document.getElementById('islandFlight').style.display='flex';
-    isl.className = 'dynamic-island flight-mode'; setFast('islCs', f.cs||f.reg||'UNKNOWN');
-    if(route && route.origin && route.destination) setFast('islRoute', route.origin.iata_code + ' ➔ ' + route.destination.iata_code); else setFast('islRoute', f.desc||'Live');
+    else { vibrate(10); document.getElementById('islandLogo').style.display='none'; document.getElementById('islandSearch').style.display='block'; isl.style.width='calc(100% - 32px)'; isl.style.height='60px'; }
 }
 function resetIsland() {
-    islandMode = 'search'; selId = null; var isl = document.getElementById('dynIsland');
-    isl.className = 'dynamic-island search-mode'; document.getElementById('islandFlight').style.display='none'; document.getElementById('islandSearch').style.display='none'; document.getElementById('islandLogo').style.display='flex';
+    selId = null; var isl = document.getElementById('dynIsland'); isl.className = 'dynamic-island search-mode';
+    document.getElementById('islandFlight').style.display='none'; document.getElementById('islandSearch').style.display='none'; document.getElementById('islandLogo').style.display='flex';
     isl.style.width = 'auto'; isl.style.height = '50px'; isCameraLocked = false; document.getElementById('btnRecenter').classList.remove('show');
+    document.getElementById('mapWrapper').classList.remove('cinematic-mode');
 }
-
-function recenterCamera(e) {
-    if(e) e.stopPropagation(); vibrate(10);
-    isCameraLocked = true; document.getElementById('btnRecenter').classList.remove('show');
-}
+function recenterCamera(e) { if(e) e.stopPropagation(); vibrate(10); isCameraLocked = true; document.getElementById('btnRecenter').classList.remove('show'); }
 
 async function selFlight(id){
-  vibrate(50); selId=id; isCameraLocked=true; document.getElementById('btnRecenter').classList.remove('show');
+  vibrate(50); selId=id; isCameraLocked=true; 
+  document.getElementById('btnRecenter').classList.remove('show');
+  document.getElementById('mapWrapper').classList.add('cinematic-mode'); // Cinematic Focus!
+  document.getElementById('dash').classList.add('hidden');
+  document.getElementById('det').classList.add('open');
+  
   var f=flights.find(x=>x.id===id); if(!f)return;
-  closeSheet(); document.getElementById('det').classList.add('open');
+  update2DIcons(); // Päivittää CSS luokat (himmentää muut)
 
   setFast('dCs',f.cs||id); setFast('dSub',f.desc||f.reg); setFast('dRgTxt', f.reg||'–');
-  setIslandFlightMode(f, null);
+  
+  var isl = document.getElementById('dynIsland'); isl.className = 'dynamic-island flight-mode';
+  document.getElementById('islandLogo').style.display='none'; document.getElementById('islandSearch').style.display='none'; document.getElementById('islandFlight').style.display='flex';
+  setFast('islCs', f.cs||f.reg||'UNKNOWN'); setFast('islRoute', f.desc||'Live Focus');
 
-  var img=document.getElementById('dImg'); img.classList.remove('ok'); img.src='';
   var res = await Promise.all([fetchMeta(id), fetchRoute(f.cs)]); var meta=res[0], route=res[1];
-  
-  if(route) setIslandFlightMode(f, route);
+  if(route && route.origin) setFast('islRoute', route.origin.iata_code + ' ➔ ' + route.destination.iata_code);
   setFast('dOp', meta?.registered_owner || '–'); setFast('dMd', [meta?.manufacturer, meta?.type].filter(Boolean).join(' ') || f.desc || '–');
-  
-  fetchPhoto(id).then(p=>{ if(p){ img.onload=()=>img.classList.add('ok'); img.src=p.src; } });
 
   if(route && route.origin && route.destination){
       document.getElementById('routeCard').style.display='block'; setFast('rOrig', route.origin.iata_code); setFast('rDest', route.destination.iata_code);
@@ -307,202 +265,177 @@ async function selFlight(id){
   } else { document.getElementById('routeCard').style.display='none'; routeDataCache=null; }
 }
 
-function closeDetail(){ vibrate(20); document.getElementById('det').classList.remove('open'); resetIsland(); openSheet(); }
-
-// 3D GLOBE MATERIAALIT
-var planeGeoCache = null;
-function getPlaneGeometries() {
-    if(planeGeoCache) return planeGeoCache;
-    var matAir = new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: 0.8, roughness: 0.2 });
-    var matSel = new THREE.MeshPhysicalMaterial({ color: 0x30D158, emissive: 0x114411, metalness: 0.5, roughness: 0.2 });
-    var fuseGeo = new THREE.CylinderGeometry(0.025, 0.015, 0.4, 12); fuseGeo.rotateX(Math.PI / 2);
-    var wingGeo = new THREE.BoxGeometry(0.35, 0.005, 0.08);
-    var wPos = wingGeo.attributes.position; for(var i=0; i<wPos.count; i++) wPos.setZ(i, wPos.getZ(i) + Math.abs(wPos.getX(i)) * 0.5); wingGeo.computeVertexNormals();
-    var tailGeo = new THREE.BoxGeometry(0.008, 0.08, 0.08);
-    var tPos = tailGeo.attributes.position; for(var i=0; i<tPos.count; i++) if(tPos.getY(i) > 0) tPos.setZ(i, tPos.getZ(i) + 0.06); tailGeo.computeVertexNormals();
-    planeGeoCache = { fuseGeo, wingGeo, tailGeo, matAir, matSel }; return planeGeoCache;
+function closeDetail(){ 
+    vibrate(20); document.getElementById('det').classList.remove('open'); 
+    document.getElementById('dash').classList.remove('hidden'); resetIsland(); update2DIcons(); 
 }
-function create3DPlaneObj(d) {
-    var p = getPlaneGeometries(), isSel = (d.id === selId);
-    var grp = new THREE.Group(), mat = isSel ? p.matSel : p.matAir;
-    grp.add(new THREE.Mesh(p.fuseGeo, mat));
-    var w=new THREE.Mesh(p.wingGeo, mat); w.position.set(0,0,0.02); grp.add(w);
-    var t=new THREE.Mesh(p.tailGeo, mat); t.position.set(0,0.035,0.16); grp.add(t);
-    var s = isSel ? 3.0 : 1.5; grp.scale.set(s,s,s);
-    return grp;
+
+// 3D GLOBE ENGINE (CUSTOM OVERRIDE)
+function getPlaneGeometries() {
+    var matAir = new THREE.MeshPhysicalMaterial({ color: 0xffffff, metalness: 0.7, roughness: 0.2, clearcoat: 1 });
+    var matSel = new THREE.MeshPhysicalMaterial({ color: 0x30D158, emissive: 0x113311, metalness: 0.5, roughness: 0.2 });
+    var fuse = new THREE.CylinderGeometry(0.025, 0.015, 0.4, 12); fuse.rotateX(Math.PI/2);
+    var wing = new THREE.BoxGeometry(0.35, 0.005, 0.08); var wp = wing.attributes.position; for(var i=0; i<wp.count; i++) wp.setZ(i, wp.getZ(i) + Math.abs(wp.getX(i))*0.5); wing.computeVertexNormals();
+    var tail = new THREE.BoxGeometry(0.008, 0.08, 0.08); var tp = tail.attributes.position; for(var i=0; i<tp.count; i++) if(tp.getY(i)>0) tp.setZ(i, tp.getZ(i)+0.06); tail.computeVertexNormals();
+    return { fuse, wing, tail, matAir, matSel };
+}
+function create3DPlane(d) {
+    var p = getPlaneGeometries(), isSel = (d.id === selId), mat = isSel ? p.matSel : p.matAir;
+    var grp = new THREE.Group(); grp.add(new THREE.Mesh(p.fuse, mat));
+    var w=new THREE.Mesh(p.wing, mat); w.position.set(0,0,0.02); grp.add(w);
+    var t=new THREE.Mesh(p.tail, mat); t.position.set(0,0.035,0.16); grp.add(t);
+    var s = isSel ? 3.0 : 1.5; grp.scale.set(s,s,s); return grp;
 }
 
 function initGlobe() {
   world = Globe()(document.getElementById('globeViz'))
     .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg')
-    .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
     .showAtmosphere(true).atmosphereColor('#32ADE6').atmosphereAltitude(0.2)
-    .objectLat('currentLat').objectLng('currentLon')  // KÄYTÄÄ REAALIAIKAISTA SIJAINTIA!
-    .objectAltitude(d => d.ground ? 0.002 : 0.02 + ((d.altFt||0) / 100000))
-    .objectThreeObject(d => { var obj = create3DPlaneObj(d); d.__threeObj = obj; return obj; })
-    .objectTransitionDuration(50) // Smoothaa päivitykset, jotka tehdään lennossa
-    .ringsData([]).ringLat('currentLat').ringLng('currentLon').ringColor(()=>'#30D158').ringMaxRadius(2).ringPropagationSpeed(3).ringRepeatPeriod(800);
-    
-  world.scene().add(new THREE.AmbientLight(0xffffff, 0.4));
+    .objectLat('currentLat').objectLng('currentLon')
+    .objectAltitude(d => d.ground ? 0.002 : 0.02 + ((d.altFt||0)/100000))
+    .objectThreeObject(d => { var o = create3DPlane(d); d.__threeObj = o; return o; });
+  world.scene().add(new THREE.AmbientLight(0xffffff, 0.6));
   var d1 = new THREE.DirectionalLight(0xffffff, 2.0); d1.position.set(1, 1, 1); world.scene().add(d1);
-  var d2 = new THREE.DirectionalLight(0x0A84FF, 1.5); d2.position.set(-1, -0.5, -1); world.scene().add(d2);
-
   world.controls().enableDamping = true; world.controls().dampingFactor = 0.05;
-  // Jos käyttäjä pyörittää maapalloa manuaalisesti, poista lukitus!
-  world.controls().addEventListener('start', () => { if(selId) { isCameraLocked = false; document.getElementById('btnRecenter').classList.add('show'); } });
+  world.controls().addEventListener('start', () => { if(selId){ isCameraLocked=false; document.getElementById('btnRecenter').classList.add('show'); } });
 }
-
 function toggleGlobeMode() {
     vibrate(20); var btn = document.getElementById('btn3D');
-    if(isGlobeMode) {
-        isGlobeMode = false; document.getElementById('globeViz').style.opacity = 0; document.getElementById('globeViz').style.pointerEvents = 'none'; btn.classList.remove('active-blue');
-        if(world) map.setView([world.pointOfView().lat, world.pointOfView().lng], 6, {animate: false});
-    } else {
-        if(!world) initGlobe(); isGlobeMode = true; document.getElementById('globeViz').style.opacity = 1; document.getElementById('globeViz').style.pointerEvents = 'auto'; btn.classList.add('active-blue');
-        if(flights.length) world.objectsData([...flights]);
-    }
+    if(isGlobeMode) { isGlobeMode=false; document.getElementById('globeViz').style.opacity=0; btn.classList.remove('active-blue'); if(world) map.setView([world.pointOfView().lat, world.pointOfView().lng], 6, {animate: false}); } 
+    else { if(!world) initGlobe(); isGlobeMode=true; document.getElementById('globeViz').style.opacity=1; btn.classList.add('active-blue'); world.objectsData([...flights]); }
 }
 
-// 🚀 LIVE PHYSICS ENGINE (60 FPS) 🚀
-function animatePlanes(){
-  var now = Date.now(), dt = (now - lastFrameTime) / 1000; lastFrameTime = now;
+// 🚀 SMOOTH-GLIDE PHYSICS ENGINE 🚀
+function animatePlanes(time){
+  var dt = (time - lastFrameTime) / 1000; lastFrameTime = time; if(dt > 0.1) dt = 0.1;
   var isDetOpen = document.getElementById('det').classList.contains('open');
 
-  // 1. Laske uusi sijainti jokaiselle koneelle (Extrapolation)
   flights.forEach(f => {
+      // 1. Calculate Future Extrapolated Point
       if(!f.ground && f.velMs > 0 && f.lastUpd) {
-          var age = (now - f.lastUpd) / 1000;
-          if(age > 60) age = 60; // Katkaise, jos yhteys katoaa pitkäksi aikaa
-          var dDist = f.velMs * age;
-          var dy = dDist * Math.cos(f.track * Math.PI / 180);
-          var dx = dDist * Math.sin(f.track * Math.PI / 180);
-          f.currentLat = f.baseLat + (dy / 111320);
-          f.currentLon = f.baseLon + (dx / (111320 * Math.cos(f.baseLat * Math.PI / 180)));
-      } else { f.currentLat = f.baseLat; f.currentLon = f.baseLon; }
+          var age = (Date.now() - f.lastUpd) / 1000; if(age > 60) age = 60;
+          var dy = (f.velMs * age) * Math.cos(f.track * Math.PI / 180);
+          var dx = (f.velMs * age) * Math.sin(f.track * Math.PI / 180);
+          f.targetLat = f.baseLat + (dy / 111320);
+          f.targetLon = f.baseLon + (dx / (111320 * Math.cos(f.baseLat * Math.PI / 180)));
+      } else { f.targetLat = f.baseLat; f.targetLon = f.baseLon; }
 
-      // 3D Käännökset livenä
-      if(isGlobeMode && f.__threeObj) {
-          f.__threeObj.rotation.y = (-(f.smoothHdg || f.track || 0) + 180) * Math.PI / 180;
-          if(f.vrMs) f.__threeObj.rotation.x = Math.max(-0.3, Math.min(0.3, f.vrMs / 15));
+      // 2. Mathematical Easing (Interpolation) -> Absolutely Smooth Motion
+      if(!f.currentLat) { f.currentLat = f.targetLat; f.currentLon = f.targetLon; }
+      f.currentLat += (f.targetLat - f.currentLat) * (dt * 5);
+      f.currentLon += (f.targetLon - f.currentLon) * (dt * 5);
+
+      // Smooth heading & speed
+      if(f.smoothHdg == null) f.smoothHdg = f.track; var hD = f.track - f.smoothHdg; if(hD>180) hD-=360; if(hD<-180) hD+=360; f.smoothHdg += hD * (dt*3);
+      if(f.smoothSpd == null) f.smoothSpd = f.velKt; f.smoothSpd += (f.velKt - f.smoothSpd) * (dt*3);
+      if(f.smoothAlt == null) f.smoothAlt = f.altFt; f.smoothAlt += (f.altFt - f.smoothAlt) * (dt*3);
+
+      // 3. Update 2D Map DOM (GPU Accelerated)
+      if(!isGlobeMode && mks[f.id]) {
+          mks[f.id].setLatLng([f.currentLat, f.currentLon]);
+          var icon = mks[f.id].getElement();
+          if(icon) {
+              var inner = icon.querySelector('.plane-icon-inner');
+              // Päivitetään kompassisuunta pyörittämällä
+              if(inner) inner.style.transform = `rotate(${f.smoothHdg}deg)`;
+          }
+      }
+
+      // 4. Update 3D Globe directly bypassing world.objectsData
+      if(isGlobeMode && f.__threeObj && world) {
+          var coords = world.getCoords(f.currentLat, f.currentLon, 0.02 + ((f.altFt||0)/100000));
+          f.__threeObj.position.set(coords.x, coords.y, coords.z);
+          // Look at next extrapolated point for perfect 3D orientation
+          var nCoords = world.getCoords(f.targetLat, f.targetLon, 0.02);
+          f.__threeObj.lookAt(nCoords.x, nCoords.y, nCoords.z);
+          f.__threeObj.rotateY(Math.PI); 
+          if(f.vrMs) f.__threeObj.rotateX(Math.max(-0.3, Math.min(0.3, f.vrMs / 15))); // Pitch
+      }
+
+      // 5. Update HUD if selected
+      if(f.id === selId) {
+          if(isCameraLocked) {
+              if(isGlobeMode && world) world.pointOfView({ lat: f.currentLat, lng: f.currentLon, altitude: world.pointOfView().altitude }, 0);
+              else if(!isGlobeMode && map) { var px = map.project([f.currentLat, f.currentLon], map.getZoom()); px.y += window.innerHeight * 0.15; map.setView(map.unproject(px, map.getZoom()), map.getZoom(), {animate: false}); }
+          }
+          if(islandMode === 'flight') { setFast('islAlt', Math.round(f.smoothAlt).toLocaleString()+' FT'); setFast('islSpd', Math.round(f.smoothSpd)+' KT'); }
+          if(isDetOpen) {
+              // Apple Watch Rings Logic
+              var maxSpd = 600, maxAlt = 40000;
+              var spdPct = Math.min(1, f.smoothSpd / maxSpd), altPct = Math.min(1, f.smoothAlt / maxAlt);
+              document.getElementById('ringSpd').style.strokeDashoffset = 251.2 - (251.2 * spdPct);
+              document.getElementById('ringAlt').style.strokeDashoffset = 251.2 - (251.2 * altPct);
+              setFast('rVSpd', Math.round(f.smoothSpd)); setFast('rVAlt', Math.round(f.smoothAlt).toLocaleString());
+              
+              var vr = f.vrMs * 196.85; var elVr = document.getElementById('dVrT'); if(elVr){ elVr.innerText = (vr>0?'▲ ':'▼ ') + Math.abs(Math.round(vr)) + ' ft/min'; elVr.style.color = vr>100?'var(--green)':(vr<-100?'var(--blue)':'#fff'); }
+              
+              if(routeDataCache) {
+                  var dG = hav(routeDataCache.oLat, routeDataCache.oLon, f.currentLat, f.currentLon), dR = hav(f.currentLat, f.currentLon, routeDataCache.dLat, routeDataCache.dLon);
+                  var pct = Math.max(0, Math.min(100, (dG / (dG + dR)) * 100));
+                  document.getElementById('rProg').style.width = pct + '%'; document.getElementById('rPlane').style.left = pct + '%';
+              }
+          }
       }
   });
-
-  // 2. Päivitä 2D Ikonit
-  var ids = Object.keys(mks);
-  for(var i=0; i<ids.length; i++){
-      var mk = mks[ids[i]], f = mk.f;
-      mk.setLatLng([f.currentLat, f.currentLon]);
-      
-      // Päivitä ikonien rotaatio livenä sisältä
-      var g = mk.getElement()?.querySelector('.plane-g');
-      if(g && f.smoothHdg != null) g.setAttribute('transform', `rotate(${f.smoothHdg} 12 12)`);
-  }
-
-  // 3. Päivitä 3D Maapallo vain 20 kertaa sekunnissa suorituskyvyn takaamiseksi
-  if(isGlobeMode && world && (now - lastGlobeFrame > 50)) {
-      lastGlobeFrame = now;
-      world.objectsData([...flights]); // Levitys pakottaa globe.gl päivityksen olemassa oleville referensseille
-  }
-
-  // 4. Live Seuranta ja PFD (Glass Cockpit) valitulle lennolle
-  if(selId) {
-      var f = flights.find(x => x.id === selId);
-      if(f) {
-          // CAMERA LOCK-ON (Seuraa konetta automaattisesti)
-          if(isCameraLocked) {
-              if(isGlobeMode && world) {
-                  world.pointOfView({ lat: f.currentLat, lng: f.currentLon, altitude: world.pointOfView().altitude }, 0);
-              } else if(!isGlobeMode && map) {
-                  var px = map.project([f.currentLat, f.currentLon], map.getZoom());
-                  px.y += window.innerHeight * 0.15; // Offset valikolle
-                  map.setView(map.unproject(px, map.getZoom()), map.getZoom(), {animate: false});
-              }
-          }
-
-          // Mittareiden sulava animointi
-          if(f.smoothHdg == null) f.smoothHdg = f.track || 0; var hD = (f.track || 0) - f.smoothHdg; if(hD > 180) hD -= 360; if(hD < -180) hD += 360; f.smoothHdg += hD * (dt * 2);
-          if(f.smoothSpd == null) f.smoothSpd = f.velKt || 0; f.smoothSpd += ((f.velKt || 0) - f.smoothSpd) * (dt * 2);
-          var tgtR = ((f.track || 0) - (f.oldTrack || 0)) * 0.8; if(!f.curRoll) f.curRoll = 0; f.curRoll += (tgtR - f.curRoll) * (dt * 3);
-
-          if(islandMode === 'flight') {
-              setFast('islAlt', Math.round(f.altFt||0).toLocaleString() + ' FT'); setFast('islSpd', Math.round(f.smoothSpd) + ' KT');
-          }
-
-          if(isDetOpen) {
-              // PFD Tärinä-efekti (Live Turbulence) nopeuden mukaan
-              var turbulence = Math.sin(now / 150) * 0.5 * (f.velMs / 250);
-              var vP = (f.vrMs || 0) * 1.5 + turbulence;
-              setStyleFast('pfdHorizon', 'transform', `translateY(${vP}px) rotate(${f.curRoll}deg) translateZ(0)`);
-              setStyleFast('pfdGrid', 'backgroundPosition', `0px ${(now/10)%100}px`);
-              setFast('pfdSpd', Math.round(f.smoothSpd)); setFast('pfdAlt', Math.round(f.altFt||0).toLocaleString()); 
-              setFast('pfdHdg', 'HDG ' + Math.round((f.smoothHdg+360)%360).toString().padStart(3,'0') + '°');
-              var vr = f.vrMs * 196.85; var elVr = document.getElementById('dVrT'); if(elVr){ elVr.innerText = (vr>0?'▲ ':'▼ ') + Math.abs(Math.round(vr)) + ' ft/min'; elVr.style.color = vr>100?'var(--green)':(vr<-100?'var(--blue)':'#fff'); }
-              setFast('dSpT', Math.round(f.velKt * 1.852) + ' km/h');
-
-              // Liukuva reittipalkki livenä!
-              if(routeDataCache && routeDataCache.oLat && routeDataCache.dLat) {
-                  var dGone = hav(routeDataCache.oLat, routeDataCache.oLon, f.currentLat, f.currentLon), dRem = hav(f.currentLat, f.currentLon, routeDataCache.dLat, routeDataCache.dLon);
-                  var pct = Math.max(0, Math.min(100, (dGone / (dGone + dRem)) * 100));
-                  setStyleFast('rProg', 'width', pct + '%'); setStyleFast('rPlane', 'left', pct + '%');
-              }
-          }
-      }
-  }
   requestAnimationFrame(animatePlanes);
 }
 
-// Datan Hakeminen: Yhdistää uuden datan vanhaan, ettei animaatiot hajoa
+// FETCH DATA
+var isFetching = false;
 async function fetchLive(){
   if(isFetching) return; isFetching = true; var c = map.getCenter();
   try{ 
     var res=await xhrGet(`https://api.airplanes.live/v2/point/${c.lat}/${c.lng}/300`); 
-    var nTime = Date.now();
-    var incomingIds = new Set(res.ac.map(s => s.hex));
-    flights = flights.filter(f => incomingIds.has(f.id)); // Poista poistuneet koneet
+    var nTime = Date.now(), inIds = new Set(res.ac.map(s => s.hex));
+    flights = flights.filter(f => inIds.has(f.id)); 
     
     res.ac.forEach(s => {
-        if(!s.lat) return;
-        var f = flights.find(x => x.id === s.hex);
-        if(f) {
-            f.baseLat = s.lat; f.baseLon = s.lon; f.altFt = s.alt_baro==='ground'?0:s.alt_baro; f.ground = s.alt_baro==='ground'||s.gs<5;
-            f.velKt = s.gs; f.velMs = s.gs?s.gs*0.514444:0; f.vrMs = s.baro_rate?s.baro_rate*0.00508:0;
-            f.oldTrack = f.track; f.track = s.track||0; f.lastUpd = nTime;
-        } else {
-            flights.push({ id:s.hex, cs:(s.flight||'').trim()||s.hex, reg:s.r, type:s.t, desc:s.desc, baseLat:s.lat, baseLon:s.lon, currentLat:s.lat, currentLon:s.lon, altFt:s.alt_baro==='ground'?0:s.alt_baro, ground:s.alt_baro==='ground'||s.gs<5, velKt:s.gs, velMs:s.gs?s.gs*0.514444:0, vrMs:s.baro_rate?s.baro_rate*0.00508:0, track:s.track||0, oldTrack:s.track||0, squawk:s.squawk, cat:s.category, lastUpd:nTime });
-        }
+        if(!s.lat) return; var f = flights.find(x => x.id === s.hex);
+        if(f) { f.baseLat=s.lat; f.baseLon=s.lon; f.altFt=s.alt_baro==='ground'?0:s.alt_baro; f.ground=s.alt_baro==='ground'||s.gs<5; f.velKt=s.gs||0; f.velMs=s.gs?s.gs*0.514444:0; f.vrMs=s.baro_rate?s.baro_rate*0.00508:0; f.track=s.track||0; f.lastUpd=nTime; } 
+        else flights.push({ id:s.hex, cs:(s.flight||'').trim()||s.hex, reg:s.r, desc:s.desc, baseLat:s.lat, baseLon:s.lon, currentLat:s.lat, currentLon:s.lon, altFt:s.alt_baro==='ground'?0:s.alt_baro, ground:s.alt_baro==='ground'||s.gs<5, velKt:s.gs||0, velMs:s.gs?s.gs*0.514444:0, vrMs:s.baro_rate?s.baro_rate*0.00508:0, track:s.track||0, lastUpd:nTime });
     });
     
-    // Piirrä 2D Markkerit Listalle
-    var cIds = {};
-    flights.forEach(f=>{
-      cIds[f.id] = true; var isS = (f.id === selId), col = isS ? '#30D158' : (f.ground?'#FF9F0A':'#ffffff');
-      if(mks[f.id]){ 
-          var g = mks[f.id].getElement()?.querySelector('.plane-g');
-          if(g) g.setAttribute('fill', col); // Päivitä vain väri, renderointi hoitaa paikan
-      } else { 
-          var svg = `<svg width="24" height="24" viewBox="0 0 24 24"><g class="plane-g" transform="rotate(${f.track} 12 12)" fill="${col}" stroke="rgba(0,0,0,0.5)" stroke-width="1"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></g></svg>`;
-          var html = `<div class="plane-icon-inner">`+(isS?`<div class="sel-pulse"></div>`:'')+svg+`</div>`;
-          var mk=L.marker([f.currentLat,f.currentLon],{icon:L.divIcon({html, className:'', iconSize:[24,24], iconAnchor:[12,12]})}).addTo(map); mk.onclick=()=>selFlight(f.id); mk.f=f; mks[f.id]=mk; 
-      }
-    });
-    Object.keys(mks).forEach(id=>{ if(!cIds[id]){ map.removeLayer(mks[id]); delete mks[id]; } });
+    update2DIcons();
+    if(isGlobeMode && world) world.objectsData([...flights]); // Päivitetään 3D-lista vain kun koneita tulee/menee
+    
+    // Update Dashboard List
+    var vis = flights.slice(0,50); setFast('dCount', vis.length + ' AIRCRAFT');
+    document.getElementById('flist').innerHTML = vis.map(f=>`<div class="flist-item" onclick="selFlight('${f.id}')"><div style="font-size:24px; margin-right:16px;">✈️</div><div style="flex:1;"><div style="font-weight:800; font-size:16px;">${f.cs||f.reg||'???'}</div><div style="font-size:12px; color:var(--text-sec);">${f.desc||'Aircraft'}</div></div><div style="font-weight:800; color:var(--blue);">${f.altFt?f.altFt.toLocaleString()+' ft':'GND'}</div></div>`).join('');
   }catch(e){}
   isFetching = false;
 }
 
-// Helpers
+function update2DIcons() {
+    var cIds = {};
+    flights.forEach(f => {
+        cIds[f.id] = true;
+        var isS = (f.id === selId), col = isS ? 'var(--green)' : (f.ground ? 'var(--orange)' : '#fff');
+        var clss = (selId && !isS) ? 'plane-icon-inner plane-unselected' : 'plane-icon-inner';
+        if(mks[f.id]) {
+            var el = mks[f.id].getElement();
+            if(el) {
+                el.querySelector('svg path').setAttribute('fill', col);
+                el.querySelector('.plane-icon-inner').className = clss;
+                var pulse = el.querySelector('.sel-pulse');
+                if(isS && !pulse) el.querySelector('.plane-icon-inner').innerHTML += `<div class="sel-pulse"></div>`;
+                else if(!isS && pulse) pulse.remove();
+            }
+        } else {
+            var svg = `<svg width="32" height="32" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="${col}" stroke="rgba(0,0,0,0.5)" stroke-width="1" transform="translate(0, -2)"/></svg>`;
+            var html = `<div class="${clss}">` + (isS?`<div class="sel-pulse"></div>`:'') + svg + `</div>`;
+            var mk = L.marker([f.currentLat, f.currentLon], {icon: L.divIcon({html, className:'', iconSize:[32,32], iconAnchor:[16,16]})}).addTo(map);
+            mk.onclick = () => selFlight(f.id); mks[f.id] = mk;
+        }
+    });
+    Object.keys(mks).forEach(id=>{ if(!cIds[id]){ map.removeLayer(mks[id]); delete mks[id]; } });
+}
+
 function hav(la1,lo1,la2,lo2){ var R=6371,r=Math.PI/180, a=Math.pow(Math.sin((la2-la1)*r/2),2)+Math.cos(la1*r)*Math.cos(la2*r)*Math.pow(Math.sin((lo2-lo1)*r/2),2); return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a)); }
 async function fetchMeta(id){ try{ var r=await xhrGet('https://api.adsbdb.com/v0/aircraft/'+id.toLowerCase()); return r?.response?.aircraft; }catch(e){return null;} }
 async function fetchRoute(cs){ if(!cs)return null; try{ var r=await xhrGet('https://api.adsbdb.com/v0/callsign/'+cs); return r?.response?.flightroute; }catch(e){return null;} }
-async function fetchPhoto(id){ try{ var r=await xhrGet('https://api.planespotters.net/pub/photos/hex/'+id); if(r.photos?.length) return{src:(r.photos[0].thumbnail_large?.src||r.photos[0].thumbnail.src)}; }catch(e){} return null; }
-
-var shC = false;
-function toggleSheet(){ var s=document.getElementById('sheet'); vibrate(10); if(shC){s.classList.remove('collapsed'); shC=false;}else{s.classList.add('collapsed'); shC=true;} }
-function openSheet(){ document.getElementById('sheet').classList.remove('collapsed'); shC=false; document.getElementById('sheet').classList.remove('hidden'); }
-function closeSheet(){ document.getElementById('sheet').classList.add('hidden'); }
 
 window.addEventListener('load', ()=>{
-  initMap(); fetchLive(); setInterval(fetchLive, 5000); requestAnimationFrame(animatePlanes);
+  initMap(); fetchLive(); setInterval(fetchLive, 4000); requestAnimationFrame(animatePlanes);
 });
 </script>
 </body>
