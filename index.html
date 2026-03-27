@@ -261,6 +261,28 @@ input:checked + .slider:before { transform: translateX(20px); }
           <div id="rTo" style="font-weight: 700; font-size: 18px; color: #1d1d1f; line-height: 1.2;">–</div>
         </div>
       </div>
+
+      <!-- PROGRESS BAR UI -->
+      <div id="routeProgress" style="display: none; padding: 4px 4px 8px;">
+        <div style="display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; color: #8e8e93; margin-bottom: 8px;">
+          <div style="display: flex; flex-direction: column;">
+            <span style="color: #1d1d1f; font-size: 15px;" id="tElapsed" style="font-variant-numeric: tabular-nums;" style="font-family: ui-monospace, SF Mono, Menlo, monospace; font-variant-numeric: tabular-nums;">0h 00m 00s</span>
+            <span>Elapsed</span>
+          </div>
+          <div style="display: flex; flex-direction: column; text-align: right;">
+            <span style="color: #0a84ff; font-size: 15px;" id="tRemain" style="font-variant-numeric: tabular-nums;" style="font-family: ui-monospace, SF Mono, Menlo, monospace; font-variant-numeric: tabular-nums;">0h 00m 00s</span>
+            <span>Remaining</span>
+          </div>
+        </div>
+        <div style="position: relative; height: 6px; background: #e5e5ea; border-radius: 3px; overflow: visible;">
+          <div id="pBar" style="position: absolute; top: 0; left: 0; height: 100%; width: 0%; background: linear-gradient(90deg, #34c759, #34c759, #0a84ff); border-radius: 3px; transition: width 1s cubic-bezier(0.2, 0.8, 0.2, 1);"></div>
+          <div id="pPlane" style="position: absolute; top: 50%; left: 0%; transform: translate(-50%, -50%) rotate(90deg); transition: left 1s cubic-bezier(0.2, 0.8, 0.2, 1); filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="#007aff"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 00-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
+          </div>
+        </div>
+        <div style="text-align: center; font-size: 12px; font-weight: 600; color: #8e8e93; margin-top: 12px; letter-spacing: 0.5px; text-transform: uppercase;" id="tTotalDist">0 km Total</div>
+      </div>
+
     </div>
 
 
@@ -523,6 +545,7 @@ function animatePlanes(){
           pastRouteLine.setLatLngs(lls);
         }
       }
+
       if(futureRouteLine){
         var lls2 = futureRouteLine.getLatLngs();
         if(lls2.length > 0){
@@ -530,6 +553,52 @@ function animatePlanes(){
           futureRouteLine.setLatLngs(lls2);
         }
       }
+
+      // 1000FPS REALTIME PROGRESS BAR UPDATE
+      if(selRoute && !f.ground) {
+        var o = selRoute.origin, dest = selRoute.destination;
+        if(o && o.latitude && dest && dest.latitude) {
+            var distFlown = hav(+o.latitude, +o.longitude, cLat, cLon);
+            var distRem = hav(cLat, cLon, +dest.latitude, +dest.longitude);
+            var totalD = distFlown + distRem;
+            var prog = (distFlown / totalD) * 100;
+            if(prog>100)prog=100; if(prog<0)prog=0;
+
+            var pBar = document.getElementById('pBar');
+            var pPlane = document.getElementById('pPlane');
+            if(pBar && pPlane) {
+                // Disable CSS transition during realtime updates to prevent lag/stutter
+                pBar.style.transition = 'none';
+                pPlane.style.transition = 'none';
+                pBar.style.width = prog + '%';
+                pPlane.style.left = prog + '%';
+            }
+
+            // Realtime time remaining
+            var vKmh = f.velKt ? (f.velKt * 1.852) : (f.velMs ? f.velMs * 3.6 : 800);
+            if(vKmh < 150) vKmh = 800;
+            var hrsElapsed = distFlown / vKmh;
+            var hrsRem = distRem / vKmh;
+
+            var mE = Math.floor((hrsElapsed * 60) % 60);
+            var hE = Math.floor(hrsElapsed);
+            var mR = Math.floor((hrsRem * 60) % 60);
+            var hR = Math.floor(hrsRem);
+
+            // Adding seconds for an ultra-precise feel? Actually, hours and minutes is standard. 
+            // But if we want 1000fps feel, let's just stick to smooth bar movement.
+
+            var secE = Math.floor((hrsElapsed * 3600) % 60);
+            var secR = Math.floor((hrsRem * 3600) % 60);
+
+            var elEl = document.getElementById('tElapsed');
+            var elRem = document.getElementById('tRemain');
+            if(elEl) elEl.innerText = hE + 'h ' + (mE<10?'0':'')+mE+'m ' + (secE<10?'0':'')+secE+'s';
+            if(elRem) elRem.innerText = hR + 'h ' + (mR<10?'0':'')+mR+'m ' + (secR<10?'0':'')+secR+'s';
+
+        }
+      }
+
     }
   }
   requestAnimationFrame(animatePlanes);
@@ -749,6 +818,42 @@ function updateDetailStats(f){
   set('dHd',f.track!=null?(Math.round(f.track)+'°  '+dir(f.track)):'–');
   set('dVr',f.vrMs!=null?((f.vrMs>0?'+':'')+Math.round(f.vrMs)+' m/s'):'–');
   set('dDs',f.dist!=null?f.dist.toFixed(1)+' km':'–');
+
+  if (selRoute) {
+    var o = selRoute.origin, d = selRoute.destination;
+    if (o && o.latitude && o.longitude && d && d.latitude && d.longitude && f.lat && f.lon && !f.ground) {
+        document.getElementById('routeProgress').style.display = 'block';
+
+        var totalDist = hav(+o.latitude, +o.longitude, +d.latitude, +d.longitude);
+        var distFlown = hav(+o.latitude, +o.longitude, f.lat, f.lon);
+        var distRem = hav(f.lat, f.lon, +d.latitude, +d.longitude);
+
+        var progress = (distFlown / (distFlown + distRem)) * 100;
+        if(progress > 100) progress = 100; if(progress < 0) progress = 0;
+
+        document.getElementById('pBar').style.width = progress + '%';
+        document.getElementById('pPlane').style.left = progress + '%';
+
+        document.getElementById('tTotalDist').innerText = Math.round(totalDist).toLocaleString() + ' km Direct Route';
+
+        var vKmh = f.velKt ? (f.velKt * 1.852) : (f.velMs ? f.velMs * 3.6 : 800);
+        if(vKmh < 150) vKmh = 800;
+
+        var hrsElapsed = distFlown / vKmh;
+        var hrsRem = distRem / vKmh;
+
+        var mE = Math.floor((hrsElapsed * 60) % 60);
+        var hE = Math.floor(hrsElapsed);
+        var mR = Math.floor((hrsRem * 60) % 60);
+        var hR = Math.floor(hrsRem);
+        var secE = Math.floor((hrsElapsed * 3600) % 60);
+        var secR = Math.floor((hrsRem * 3600) % 60);
+        document.getElementById('tElapsed').innerText = hE + 'h ' + (mE<10?'0':'')+mE+'m ' + (secE<10?'0':'')+secE+'s';
+        document.getElementById('tRemain').innerText = hR + 'h ' + (mR<10?'0':'')+mR+'m ' + (secR<10?'0':'')+secR+'s';
+    } else {
+        document.getElementById('routeProgress').style.display = 'none';
+    }
+  }
 }
 
 async function selFlight(id){
@@ -869,6 +974,8 @@ async function selFlight(id){
 
 
   document.getElementById('routeSec').style.display = 'none';
+  document.getElementById('routeProgress').style.display = 'none';
+  selRoute = null;
   if(route){
     var o=route.origin,d=route.destination;
     if(o||d)set('dSub',(o?(o.iata_code+' → '):'')+(d?d.iata_code:'?'));
@@ -879,9 +986,45 @@ async function selFlight(id){
       document.getElementById('rTo').innerText = d ? (d.name || d.iata_code || d.icao_code) : 'Unknown';
     }
 
+    
     if(d && d.latitude && d.longitude){
       futureRouteLine = L.polyline([[f.lat, f.lon], [+d.latitude, +d.longitude]], {color: '#0a84ff', weight: 4, dashArray: '8, 12', opacity: 0.7, lineCap: 'round', className: 'glowing-line-blue'}).addTo(map);
     }
+
+    if (o && o.latitude && o.longitude && d && d.latitude && d.longitude && f.lat && f.lon && !f.ground) {
+        document.getElementById('routeProgress').style.display = 'block';
+
+        var totalDist = hav(+o.latitude, +o.longitude, +d.latitude, +d.longitude);
+        var distFlown = hav(+o.latitude, +o.longitude, f.lat, f.lon);
+        var distRem = hav(f.lat, f.lon, +d.latitude, +d.longitude);
+
+        var progress = (distFlown / (distFlown + distRem)) * 100;
+        if(progress > 100) progress = 100; if(progress < 0) progress = 0;
+
+        document.getElementById('pBar').style.width = progress + '%';
+        document.getElementById('pPlane').style.left = progress + '%';
+
+        document.getElementById('tTotalDist').innerText = Math.round(totalDist).toLocaleString() + ' km Direct Route';
+
+        var vKmh = f.velKt ? (f.velKt * 1.852) : (f.velMs ? f.velMs * 3.6 : 800);
+        if(vKmh < 150) vKmh = 800; // rough cruise avg if no valid speed or taxiing mid air
+
+        var hrsElapsed = distFlown / vKmh;
+        var hrsRem = distRem / vKmh;
+
+        var mE = Math.floor((hrsElapsed * 60) % 60);
+        var hE = Math.floor(hrsElapsed);
+        var mR = Math.floor((hrsRem * 60) % 60);
+        var hR = Math.floor(hrsRem);
+        var secE = Math.floor((hrsElapsed * 3600) % 60);
+        var secR = Math.floor((hrsRem * 3600) % 60);
+        document.getElementById('tElapsed').innerText = hE + 'h ' + (mE<10?'0':'')+mE+'m ' + (secE<10?'0':'')+secE+'s';
+        document.getElementById('tRemain').innerText = hR + 'h ' + (mR<10?'0':'')+mR+'m ' + (secR<10?'0':'')+secR+'s';
+    } else {
+        document.getElementById('routeProgress').style.display = 'none';
+  selRoute = null;
+    }
+
   }
 
 }
@@ -1127,7 +1270,7 @@ function closeCfg(){
 }
 
 function closeDetail(){
-  if(navigator.vibrate) navigator.vibrate(30);document.getElementById('det').classList.remove('open');selId=null;if(pastRouteLine)map.removeLayer(pastRouteLine);if(futureRouteLine)map.removeLayer(futureRouteLine);pastRouteLine=null;futureRouteLine=null;openSheet();renderAll();}
+  if(navigator.vibrate) navigator.vibrate(30);document.getElementById('det').classList.remove('open');selId=null;selRoute=null;if(pastRouteLine)map.removeLayer(pastRouteLine);if(futureRouteLine)map.removeLayer(futureRouteLine);pastRouteLine=null;futureRouteLine=null;openSheet();renderAll();}
 
 window.addEventListener('load',function(){
   initMap();
