@@ -131,7 +131,7 @@ body { user-select: none; }
 .card-sub { margin-top: 2px; color: var(--label-secondary); font-size: 14px; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.01em; }
 .card-chevron { width: 12px; height: 12px; fill: var(--label-tertiary); flex: 0 0 auto; margin-left: 8px; }
 
-/* WALLET BOARDING PASS (UUSI OMINAISUUS: TIMELINE) */
+/* WALLET BOARDING PASS (TIMELINE) */
 #viewDetail { opacity: 0; transform: translateX(30px); pointer-events: none; padding-bottom: 50px; }
 .sheet.mode-detail #viewDetail { opacity: 1; transform: translateX(0); pointer-events: auto; }
 
@@ -151,7 +151,7 @@ body { user-select: none; }
 .w-airline { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
 .w-class { font-size: 12px; font-weight: 800; opacity: 0.9; letter-spacing: 0.08em; text-transform: uppercase; z-index: 2; position: relative;}
 
-/* UUSI: TIMELINE PROGRESS */
+/* TIMELINE PROGRESS */
 .w-progress-container { padding: 28px 24px 16px; display: flex; justify-content: space-between; align-items: center; }
 .w-city { display: flex; flex-direction: column; flex: 1; }
 .w-city.right { align-items: flex-end; text-align: right; }
@@ -276,7 +276,6 @@ body { user-select: none; }
               </div>
               <div class="wallet-divider"></div>
               
-              <!-- UUSI: APPLE TIMELINE NÄKYMÄ -->
               <div class="w-progress-container">
                   <div class="w-city">
                       <div class="w-code" id="bpDep">DEP</div>
@@ -442,7 +441,6 @@ function initMap(){
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19}).addTo(state.map);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{maxZoom:19, opacity:0.85}).addTo(state.map);
   state.userMarker = L.circleMarker([state.userLat, state.userLon], {radius:8, color:'#fff', weight:3, fillColor:'#007AFF', fillOpacity:1}).addTo(state.map);
-  // HISTORIALLINEN REITTI (Yhtenäinen paksu viiva Applen sinisenä)
   state.pastPath = L.polyline([], {color: '#007AFF', weight: 4, opacity: 0.9, lineCap: 'round', lineJoin: 'round'}).addTo(state.map);
   state.futurePath = L.polyline([], {color: '#007AFF', weight: 3, opacity: 0.6, dashArray: '6, 8'}).addTo(state.map);
 }
@@ -533,7 +531,6 @@ async function fetchFlights(){
   finally{ renderList(); updateMarkers(); setTimeout(fetchFlights, 10000); } 
 }
 
-// Oikea Trace API Parsing!
 async function fetchFullTrace(icao24) {
     const f = state.flights.get(icao24);
     if(!f || f.full_trace_loaded) {
@@ -545,7 +542,6 @@ async function fetchFullTrace(icao24) {
         if(res.ok) {
             const data = await res.json();
             if(data && data.trace && data.trace.length > 0) {
-                // api.airplanes.live trace array format: [time_offset, lat, lon, alt, ...]
                 const apiHistory = data.trace.map(pt => [pt[1], pt[2]]);
                 f.history = [...apiHistory, [f.curLat, f.curLon]];
                 f.full_trace_loaded = true;
@@ -584,7 +580,6 @@ function startAnimation(){
           } else { badge.classList.add('none'); $('ifRoute').textContent = 'Tracking Active'; }
           updateWidgets(sf);
 
-          // Päivitä reitin vika piste animoidusti
           if(sf.history && sf.history.length > 0) {
               const currentPath = [...sf.history];
               currentPath[currentPath.length - 1] = [sf.curLat, sf.curLon];
@@ -650,6 +645,12 @@ window.openDetailUI = async function(icao24) {
   $('island').classList.add('focus'); $('ifCall').textContent = f.callsign; $('hudWrap').classList.add('show');
   $('detailControls').style.display = 'flex';
   
+  // Nollaa vanhat tiedot varmuuden vuoksi heti uuden koneen avautuessa!
+  $('dAirline').textContent = 'Loading...';
+  $('bpLogo').textContent = '';
+  $('bpHeaderBg').style.background = 'var(--apple-blue)';
+  $('dOperator').textContent = 'Loading...';
+  
   $('bpCall').textContent = f.callsign.substring(0, 6) || f.icao24.toUpperCase();
   $('bpSquawk').textContent = f.squawk;
   
@@ -661,15 +662,23 @@ window.openDetailUI = async function(icao24) {
   const specs = aircraftSpecs[f.type];
   if(specs) { $('dPax').textContent = specs.pax; $('dMtow').textContent = specs.mtow; $('dFuel').textContent = specs.fuel; $('dLen').textContent = specs.len; }
   
+  // HAE LENTOYHTIÖ PERUS-LYHENTEESTÄ HETI (Jos löytyy listasta)
   const code3 = f.callsign.substring(0,3).toUpperCase();
-  const al = airlines[code3] || {n: "Commercial Flight", c: "var(--apple-blue)"};
+  const al = airlines[code3];
   
-  $('dAirline').textContent = al.n;
-  $('bpHeaderBg').style.background = al.c;
-  
-  if(al.c === '#FFCC00' || al.c === '#73CBE6' || al.c === '#FF7A00') { $('bpLogo').style.color = '#000'; } 
-  else { $('bpLogo').style.color = al.c !== "var(--apple-blue)" ? al.c : "var(--apple-blue)"; }
-  $('bpLogo').textContent = al.n.substring(0,2).toUpperCase();
+  if (al) {
+      $('dAirline').textContent = al.n;
+      $('bpHeaderBg').style.background = al.c;
+      if(al.c === '#FFCC00' || al.c === '#73CBE6' || al.c === '#FF7A00') { $('bpLogo').style.color = '#000'; } 
+      else { $('bpLogo').style.color = al.c !== "var(--apple-blue)" ? al.c : "var(--apple-blue)"; }
+      $('bpLogo').textContent = al.n.substring(0,2).toUpperCase();
+  } else {
+      // Oletustila niille, joita ei löydy omasta listasta vielä
+      $('dAirline').textContent = 'Commercial Flight';
+      $('bpHeaderBg').style.background = 'var(--apple-blue)';
+      $('bpLogo').style.color = 'var(--apple-blue)';
+      $('bpLogo').textContent = 'FL';
+  }
 
   const hexNum = parseInt(icao24, 16) || 0;
   const gates = ['A12', 'B22', 'C4', 'D10', 'E1', 'F14', 'G3', 'H8'];
@@ -677,19 +686,16 @@ window.openDetailUI = async function(icao24) {
   $('bpGate').textContent = gates[hexNum % gates.length];
   $('bpSeat').textContent = seats[(hexNum * 3) % seats.length];
 
-  // TIMELINE PROGRESS SIMULAATIO (Perustuu korkeuteen / ICAO:on)
   let progressPct = 50; 
   if(f.on_ground) { progressPct = 0; } 
-  else if (f.baro_alt < 10000) { progressPct = 20 + (hexNum % 20); } // Nousemassa tai laskemassa
-  else { progressPct = 40 + (hexNum % 40); } // Matkalennolla (randomisoitu 40-80% väliin)
+  else if (f.baro_alt < 10000) { progressPct = 20 + (hexNum % 20); } 
+  else { progressPct = 40 + (hexNum % 40); } 
   
-  // Fake lentokenttäkoodit ICAO:n ja lennon mukaan estetiikan luomiseksi
   const depCodes = ['HEL', 'ARN', 'CPH', 'LHR', 'FRA', 'CDG', 'AMS', 'BER'];
   const arrCodes = ['JFK', 'DXB', 'NRT', 'SIN', 'LAX', 'SFO', 'BKK', 'HND'];
   $('bpDep').textContent = depCodes[hexNum % depCodes.length];
   $('bpArr').textContent = arrCodes[(hexNum * 2) % arrCodes.length];
 
-  // Nollataan viiva hetkeksi ja animoidaan nätisti
   $('bpProgressLine').style.width = '0%';
   $('bpProgressIcon').style.left = '0%';
   setTimeout(() => {
@@ -710,6 +716,7 @@ window.openDetailUI = async function(icao24) {
       $('dHero').onload = () => { $('dHero').style.opacity = '1'; renderList(); };
   }
 
+  // TARKISTA API:STA YKSITYISKONET / PUUTTUVAT LENTOYHTIÖT
   try {
       const dbRes = await fetch(`https://api.adsbdb.com/v0/aircraft/${icao24.toLowerCase()}`);
       if(dbRes.ok) {
@@ -718,7 +725,9 @@ window.openDetailUI = async function(icao24) {
           if(m) {
               if (!f.desc && f.type === 'Unknown') $('dModel').textContent = `${m.manufacturer} ${m.type}`;
               $('dOperator').textContent = m.registered_owner || m.icao_type || '—';
-              if(m.registered_owner && !airlines[code3]) {
+              
+              // Jos lentoyhtiötä ei löytynyt meidän sanakirjasta, mutta API antaa omistajan:
+              if(m.registered_owner && !al) {
                   $('dAirline').textContent = m.registered_owner.substring(0, 15);
                   $('bpLogo').textContent = m.registered_owner.substring(0,2).toUpperCase();
               }
