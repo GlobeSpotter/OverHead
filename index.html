@@ -16,58 +16,63 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <style>
-/* LIGHT MODE (Airy & Bright) */
+/* LIGHT MODE (Apple System Colors) */
 :root {
   --bg-primary: #F2F2F7;
   --bg-secondary: #FFFFFF;
-  --label-primary: #1C1C1E;
+  --bg-tertiary: #E5E5EA;
+  
+  --label-primary: #000000;
   --label-secondary: #8E8E93;
   --label-tertiary: #C7C7CC;
+  --label-quaternary: #E5E5EA;
   
-  --apple-blue: #0A84FF;
-  --apple-blue-press: #0062CC;
+  --apple-blue: #007AFF;
   --apple-green: #34C759;
   --apple-orange: #FF9F0A;
-  --apple-purple: #AF52DE;
   
-  --apple-gray-fill: rgba(118, 118, 128, 0.08);
-  --apple-gray-press: rgba(118, 118, 128, 0.16);
+  --apple-gray-fill: rgba(118, 118, 128, 0.12);
+  --apple-gray-press: rgba(118, 118, 128, 0.24);
   
-  --glass-sheet: rgba(255, 255, 255, 0.90);
-  --glass-island: rgba(255, 255, 255, 0.75);
-  --glass-border: rgba(0, 0, 0, 0.06);
+  --glass-sheet: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(0, 0, 0, 0.08);
   --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 1);
-  --blur-heavy: saturate(200%) blur(40px);
+  --blur-heavy: saturate(200%) blur(50px);
   
   --spring: cubic-bezier(0.32, 0.72, 0, 1);
-  --shadow-card: 0 4px 14px rgba(0, 0, 0, 0.04);
-  --shadow-sheet: 0 -8px 40px rgba(0, 0, 0, 0.12);
+  --shadow-card: 0 4px 14px rgba(0, 0, 0, 0.05);
+  --shadow-sheet: 0 -10px 40px rgba(0, 0, 0, 0.15);
 }
 
-/* DARK MODE (Cockpit Night Mode) */
+/* DARK MODE (Apple System Colors) */
 @media (prefers-color-scheme: dark) {
   :root {
     --bg-primary: #000000;
     --bg-secondary: #1C1C1E;
+    --bg-tertiary: #2C2C2E;
+    
     --label-primary: #FFFFFF;
     --label-secondary: #EBEBF599;
     --label-tertiary: #EBEBF54D;
+    --label-quaternary: #EBEBF526;
     
-    --apple-gray-fill: rgba(118, 118, 128, 0.18);
-    --apple-gray-press: rgba(118, 118, 128, 0.28);
+    --apple-blue: #0A84FF;
+    
+    --apple-gray-fill: rgba(118, 118, 128, 0.24);
+    --apple-gray-press: rgba(118, 118, 128, 0.36);
     
     --glass-sheet: rgba(28, 28, 30, 0.85);
-    --glass-island: rgba(28, 28, 30, 0.75);
-    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-border: rgba(255, 255, 255, 0.15);
     --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.15);
     
-    --shadow-card: 0 4px 14px rgba(0, 0, 0, 0.25);
-    --shadow-sheet: 0 -12px 40px rgba(0, 0, 0, 0.4);
+    --shadow-card: 0 4px 14px rgba(0, 0, 0, 0.3);
+    --shadow-sheet: 0 -10px 40px rgba(0, 0, 0, 0.5);
   }
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
+/* APPLE TYPOGRAPHY */
 html, body { 
   margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; 
   background: var(--bg-primary); color: var(--label-primary); 
@@ -84,70 +89,74 @@ body { user-select: none; }
 .plane-img { width: 36px; height: 36px; margin-left: -18px; margin-top: -18px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)); transition: transform 0.6s linear; }
 .plane-img.sel { width: 52px; height: 52px; margin-left: -26px; margin-top: -26px; filter: drop-shadow(0 8px 16px rgba(0,0,0,0.7)); z-index: 1000 !important; }
 
-/* DYNAMIC ISLAND */
+/* THE TRUE DYNAMIC ISLAND */
 .island-wrap { position: fixed; left: 0; right: 0; top: max(14px, env(safe-area-inset-top)); z-index: 2500; display: flex; justify-content: center; pointer-events: none; padding: 0 14px; }
 .island {
-  width: min(820px, 100%); min-height: 56px; border-radius: 28px; padding: 8px 12px; 
+  width: min(820px, 100%); min-height: 48px; border-radius: 30px; padding: 8px 12px; 
   display: flex; align-items: center; gap: 12px; pointer-events: auto;
-  background: var(--glass-island); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy);
-  border: 0.5px solid var(--glass-border); box-shadow: var(--shadow-card), var(--glass-highlight);
+  
+  /* Always true black to match hardware cutout */
+  background: #000000; color: #FFFFFF;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4), inset 0 0 0 0.5px rgba(255,255,255,0.15);
   transition: transform .5s var(--spring), min-height .5s var(--spring), width .5s var(--spring);
 }
 
-/* BRANDING */
+/* BRANDING inside Island */
 .brand { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 0 4px; }
-.brand-icon { width: 28px; height: 28px; border-radius: 9px; background: linear-gradient(135deg, var(--apple-blue), #47A1FF); color: white; display: grid; place-items: center; box-shadow: 0 4px 10px rgba(10,132,255,0.4), inset 0 2px 4px rgba(255,255,255,0.3); }
-.brand-icon svg { width: 18px; height: 18px; transform: rotate(-45deg); fill: currentColor; }
-.brand-text { font-size: 20px; font-weight: 800; letter-spacing: -0.04em; color: var(--label-primary); }
-.brand-text span { color: var(--apple-blue); font-weight: 800; }
+.brand-icon { width: 28px; height: 28px; border-radius: 50%; background: var(--apple-blue); color: white; display: grid; place-items: center; box-shadow: inset 0 2px 4px rgba(255,255,255,0.3); }
+.brand-icon svg { width: 16px; height: 16px; fill: currentColor; }
+.brand-text { font-size: 18px; font-weight: 700; letter-spacing: -0.03em; color: #FFFFFF; }
+.brand-text span { font-weight: 500; opacity: 0.8; }
 
-.searchbox { flex: 1; height: 38px; border-radius: 12px; background: var(--apple-gray-fill); display: flex; align-items: center; padding: 0 10px; gap: 6px; transition: background 0.2s; }
-.searchbox:focus-within { background: var(--apple-gray-press); }
-.search-icon { width: 16px; height: 16px; color: var(--label-secondary); opacity: 0.8; }
-.searchbox input { width: 100%; border: none; outline: none; background: transparent; color: var(--label-primary); font-size: 17px; letter-spacing: -0.02em; }
-.searchbox input::placeholder { color: var(--label-secondary); }
+/* Dark searchbox inside the black island */
+.searchbox { flex: 1; height: 36px; border-radius: 18px; background: #1C1C1E; display: flex; align-items: center; padding: 0 12px; gap: 8px; transition: background 0.2s; }
+.searchbox:focus-within { background: #2C2C2E; }
+.search-icon { width: 16px; height: 16px; color: #8E8E93; }
+.searchbox input { width: 100%; border: none; outline: none; background: transparent; color: #FFFFFF; font-size: 16px; letter-spacing: -0.02em; }
+.searchbox input::placeholder { color: #8E8E93; }
 .island.focus .searchbox { display: none; }
 
 .island-flight { display: none; flex: 1; align-items: center; gap: 10px; padding: 0 6px 0 4px; }
 .island.focus .island-flight { display: flex; }
 .if-main { display: flex; flex-direction: column; }
-.if-call { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
-.if-route { font-size: 13px; font-weight: 500; color: var(--apple-blue); }
+.if-call { font-size: 16px; font-weight: 700; letter-spacing: -0.02em; color: #FFFFFF; line-height: 1.2; }
+.if-route { font-size: 12px; font-weight: 500; color: var(--apple-blue); }
 
-.icon-btn { width: 38px; height: 38px; border: none; border-radius: 19px; background: var(--apple-gray-fill); color: var(--apple-blue); cursor: pointer; display: grid; place-items: center; transition: transform 0.2s, background 0.2s; }
-.icon-btn svg { width: 18px; height: 18px; fill: currentColor; }
-.icon-btn:active { transform: scale(0.85); background: var(--apple-gray-press); }
+.icon-btn { width: 36px; height: 36px; border: none; border-radius: 18px; background: #1C1C1E; color: var(--apple-blue); cursor: pointer; display: grid; place-items: center; transition: transform 0.2s, background 0.2s; }
+.icon-btn svg { width: 16px; height: 16px; fill: currentColor; }
+.icon-btn:active { transform: scale(0.85); background: #2C2C2E; }
 
 /* LIVE HUD DASHBOARD */
-.hud-wrap { position: fixed; left: 0; right: 0; top: calc(max(14px, env(safe-area-inset-top)) + 78px); z-index: 2200; display: flex; justify-content: center; pointer-events: none; opacity: 0; transform: translateY(-10px) scale(0.95); transition: opacity 0.4s ease, transform 0.5s var(--spring); }
+.hud-wrap { position: fixed; left: 0; right: 0; top: calc(max(14px, env(safe-area-inset-top)) + 74px); z-index: 1750; display: flex; justify-content: center; pointer-events: none; opacity: 0; transform: translateY(-10px) scale(0.95); transition: opacity 0.4s ease, transform 0.5s var(--spring); }
 .hud-wrap.show { opacity: 1; transform: translateY(0) scale(1); }
-.hud { border-radius: 20px; padding: 12px 28px; display: flex; align-items: center; gap: 28px; background: var(--glass-island); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); border: 0.5px solid var(--glass-border); box-shadow: var(--shadow-card), var(--glass-highlight); font-variant-numeric: tabular-nums; }
+.hud { border-radius: 24px; padding: 12px 32px; display: flex; align-items: center; gap: 32px; background: var(--glass-sheet); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); border: 0.5px solid var(--glass-border); box-shadow: var(--shadow-card), var(--glass-highlight); font-variant-numeric: tabular-nums; }
 .hud-block { display: flex; flex-direction: column; align-items: center; }
 .hud-label { font-size: 10px; font-weight: 600; color: var(--label-secondary); letter-spacing: 0.05em; text-transform: uppercase; }
-.hud-value { margin-top: 2px; font-size: 20px; font-weight: 800; letter-spacing: -0.03em; color: var(--label-primary); }
-.hud-divider { width: 1px; height: 26px; background: var(--glass-border); }
+.hud-value { margin-top: 2px; font-size: 22px; font-weight: 700; letter-spacing: -0.03em; color: var(--label-primary); }
+.hud-divider { width: 1px; height: 26px; background: var(--label-quaternary); }
 
 /* SIDE CONTROLS */
-.map-status { position: fixed; left: 14px; top: calc(max(14px, env(safe-area-inset-top)) + 78px); z-index: 1700; padding: 8px 14px; border-radius: 16px; background: var(--glass-island); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); color: var(--label-primary); font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: transform 0.5s var(--spring); border: 0.5px solid var(--glass-border); box-shadow: var(--shadow-card); }
+.map-status { position: fixed; left: 16px; top: calc(max(14px, env(safe-area-inset-top)) + 74px); z-index: 1750; padding: 10px 16px; border-radius: 20px; background: var(--glass-sheet); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); color: var(--label-primary); font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: transform 0.5s var(--spring); border: 0.5px solid var(--glass-border); box-shadow: var(--shadow-card); }
 .island.focus ~ .map-status { transform: translateY(60px); }
 .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--apple-green); animation: pulse 2s ease-in-out infinite; }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .4; } }
 .live-dot.warn { background: var(--apple-orange); animation: none; } 
 
-.side-controls { position: fixed; right: 14px; top: calc(max(14px, env(safe-area-inset-top)) + 78px); z-index: 2100; display: flex; flex-direction: column; gap: 12px; transition: transform 0.5s var(--spring); }
+.side-controls { position: fixed; right: 16px; top: calc(max(14px, env(safe-area-inset-top)) + 74px); z-index: 1750; display: flex; flex-direction: column; gap: 12px; transition: transform 0.5s var(--spring); }
 .island.focus ~ .side-controls { transform: translateY(60px); }
-.fab { width: 46px; height: 46px; border: none; border-radius: 23px; color: var(--label-primary); cursor: pointer; background: var(--glass-island); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); font-weight: 700; font-size: 14px; transition: transform 0.2s; box-shadow: var(--shadow-card); border: 0.5px solid var(--glass-border); display: grid; place-items: center;}
-.fab svg { width: 22px; height: 22px; fill: currentColor; }
+.fab { width: 44px; height: 44px; border: none; border-radius: 22px; color: var(--label-primary); cursor: pointer; background: var(--glass-sheet); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); transition: transform 0.2s; box-shadow: var(--shadow-card); border: 0.5px solid var(--glass-border); display: grid; place-items: center;}
+.fab svg { width: 20px; height: 20px; fill: currentColor; }
 .fab:active { transform: scale(0.85); background: var(--apple-gray-press); }
 
 /* BOTTOM SHEET - CORE UI */
 .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 1800; border-radius: 38px 38px 0 0; background: var(--glass-sheet); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); border-top: 0.5px solid var(--glass-border); box-shadow: var(--shadow-sheet), var(--glass-highlight); overflow: hidden; transition: transform .5s var(--spring), height .5s var(--spring); height: 200px; padding-bottom: env(safe-area-inset-bottom); display: flex; flex-direction: column; }
 
 .sheet.expanded { height: min(50vh, 450px); }
-.sheet.full { height: min(90vh, 850px); }
+.sheet.full { height: calc(100vh - 80px); max-height: 900px; }
 
-.sheet-grab { display: flex; justify-content: center; align-items: center; padding: 12px 0; cursor: pointer; flex-shrink: 0; }
-.sheet-grab div { width: 40px; height: 5px; border-radius: 3px; background: rgba(118,118,128,0.3); }
+/* iOS grabber handle */
+.sheet-grab { display: flex; justify-content: center; align-items: center; padding: 10px 0 16px; cursor: pointer; flex-shrink: 0; }
+.sheet-grab div { width: 36px; height: 5px; border-radius: 2.5px; background: var(--label-tertiary); opacity: 0.8; }
 
 .sheet-content { position: relative; flex: 1; width: 100%; overflow: hidden; }
 .view { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transition: opacity 0.4s ease, transform 0.4s var(--spring); overflow-y: auto; }
@@ -157,59 +166,74 @@ body { user-select: none; }
 #viewList { opacity: 1; transform: translateX(0); pointer-events: auto; }
 .sheet.mode-detail #viewList { opacity: 0; transform: translateX(-30px); pointer-events: none; }
 
-.sheet-head { padding: 4px 24px 16px; display: flex; flex-direction: column; }
+.sheet-head { padding: 0 24px 12px; display: flex; flex-direction: column; }
 .sheet-date { font-size: 13px; font-weight: 600; color: var(--label-secondary); text-transform: uppercase; letter-spacing: -0.01em; margin-bottom: 2px; }
-.sheet-title-row { display: flex; justify-content: space-between; align-items: flex-end; }
-.sheet-title { font-size: 34px; font-weight: 800; letter-spacing: -0.04em; color: var(--label-primary); line-height: 1.1; }
+.sheet-title-row { display: flex; justify-content: space-between; align-items: flex-baseline; }
+.sheet-title { font-size: 32px; font-weight: 800; letter-spacing: -0.04em; color: var(--label-primary); line-height: 1; }
 .sheet-count { font-size: 15px; font-weight: 500; color: var(--label-secondary); }
 
-.sheet-list { padding: 0 24px 40px; }
-.card { display: flex; align-items: center; gap: 16px; padding: 14px 0; border-bottom: 0.5px solid var(--glass-border); cursor: pointer; transition: opacity 0.2s, transform 0.2s var(--spring); }
-.card:last-child { border-bottom: none; }
-.card:active { opacity: 0.5; transform: scale(0.97); }
-.plane-badge { width: 64px; height: 64px; border-radius: 16px; display: grid; place-items: center; background: var(--apple-gray-fill); flex: 0 0 auto; overflow: hidden; border: 0.5px solid var(--glass-border); }
+/* iOS Tyylinen lista (hairlines) */
+.sheet-list { padding: 0 0 40px; }
+.card { display: flex; align-items: center; gap: 16px; padding: 10px 24px; position: relative; cursor: pointer; transition: background 0.2s; }
+.card:active { background: var(--apple-gray-fill); }
+/* Inset separator like iOS Settings */
+.card::after { content: ''; position: absolute; bottom: 0; left: 88px; right: 0; height: 0.5px; background: var(--glass-border); }
+.card:last-child::after { display: none; }
+
+.plane-badge { width: 48px; height: 48px; border-radius: 12px; display: grid; place-items: center; background: var(--apple-gray-fill); flex: 0 0 auto; overflow: hidden; border: 0.5px solid var(--glass-border); }
 .plane-badge img { width: 100%; height: 100%; object-fit: cover; }
-.plane-badge svg { width: 30px; height: 30px; fill: var(--label-tertiary); }
+.plane-badge svg { width: 24px; height: 24px; fill: var(--label-tertiary); }
 .card-main { flex: 1; min-width: 0; }
-.card-call { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; color: var(--label-primary); }
-.card-sub { margin-top: 4px; color: var(--label-secondary); font-size: 14px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.01em; }
-.get-btn-small { background: var(--apple-gray-fill); color: var(--apple-blue); font-size: 15px; font-weight: 700; padding: 6px 18px; border-radius: 16px; display: inline-block; transition: background 0.2s; }
-.card:active .get-btn-small { background: var(--apple-gray-press); }
+.card-call { font-size: 17px; font-weight: 600; letter-spacing: -0.02em; color: var(--label-primary); }
+.card-sub { margin-top: 2px; color: var(--label-secondary); font-size: 14px; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.01em; }
+
+/* iOS List Chevron */
+.card-chevron { width: 12px; height: 12px; fill: var(--label-tertiary); flex: 0 0 auto; margin-left: 8px; }
 
 /* NÄKYMÄ 2: KOMPAKTI LENTOKONEDETAIL */
-#viewDetail { opacity: 0; transform: translateX(30px); pointer-events: none; padding-bottom: 40px; }
+#viewDetail { opacity: 0; transform: translateX(30px); pointer-events: none; padding-bottom: 50px; }
 .sheet.mode-detail #viewDetail { opacity: 1; transform: translateX(0); pointer-events: auto; }
 
-.detail-header { display: flex; padding: 0 24px 16px; gap: 16px; align-items: center; }
-.d-icon { width: 80px; height: 80px; border-radius: 20px; background: var(--apple-gray-fill); overflow: hidden; border: 0.5px solid var(--glass-border); box-shadow: var(--shadow-card); flex: 0 0 auto; display: grid; place-items: center; }
+.detail-header { display: flex; padding: 0 24px 20px; gap: 16px; align-items: center; position: relative; }
+.d-icon { width: 72px; height: 72px; border-radius: 18px; background: var(--apple-gray-fill); overflow: hidden; border: 0.5px solid var(--glass-border); box-shadow: var(--shadow-card); flex: 0 0 auto; display: grid; place-items: center; cursor: pointer; transition: transform 0.2s; }
+.d-icon:active { transform: scale(0.95); }
 .d-icon img { width: 100%; height: 100%; object-fit: cover; }
-.d-icon svg { width: 36px; height: 36px; fill: var(--label-tertiary); }
-.d-titles { flex: 1; display: flex; flex-direction: column; }
-.d-call { font-size: 28px; font-weight: 800; letter-spacing: -0.04em; color: var(--label-primary); line-height: 1.1; }
+.d-icon svg { width: 32px; height: 32px; fill: var(--label-tertiary); }
+.d-titles { flex: 1; display: flex; flex-direction: column; padding-right: 40px; /* space for close btn */ }
+.d-call { font-size: 26px; font-weight: 800; letter-spacing: -0.04em; color: var(--label-primary); line-height: 1.1; }
 
-/* OVERHEAD STATUS IN HEADER */
-.overhead-badge { margin-top: 4px; display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 700; padding: 4px 8px; border-radius: 8px; align-self: flex-start; }
+.overhead-badge { margin-top: 4px; display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 600; padding: 4px 8px; border-radius: 6px; align-self: flex-start; letter-spacing: -0.01em; text-transform: uppercase;}
 .overhead-badge.approaching { background: rgba(52, 199, 89, 0.15); color: var(--apple-green); }
 .overhead-badge.passed { background: rgba(142, 142, 147, 0.15); color: var(--label-secondary); }
 .overhead-badge.none { display: none; }
 
-.detail-actions { display: flex; gap: 10px; margin-top: 10px; }
-.action-btn { background: var(--apple-blue); color: white; border: none; font-size: 14px; font-weight: 700; padding: 8px 20px; border-radius: 16px; cursor: pointer; transition: transform 0.2s; }
-.action-btn:active { transform: scale(0.92); }
-.action-close { background: var(--apple-gray-fill); color: var(--label-secondary); border: none; font-size: 14px; font-weight: 700; padding: 8px 16px; border-radius: 16px; cursor: pointer; transition: transform 0.2s; }
-.action-close:active { transform: scale(0.92); background: var(--apple-gray-press); }
+.detail-actions { display: flex; gap: 8px; margin-top: 12px; }
+/* Apple Pill Button */
+.action-btn { background: var(--apple-blue); color: white; border: none; font-size: 15px; font-weight: 600; padding: 8px 24px; border-radius: 20px; cursor: pointer; transition: transform 0.2s; letter-spacing: -0.01em; }
+.action-btn:active { transform: scale(0.92); opacity: 0.9; }
 
-/* Sections */
-.section-title { font-size: 18px; font-weight: 700; margin: 24px 24px 12px; letter-spacing: -0.02em; color: var(--label-primary); display: flex; align-items: center; gap: 8px; }
-.section-icon { width: 20px; height: 20px; fill: var(--apple-blue); }
+/* App Store Style Circle Close Button */
+.close-circle { position: absolute; top: 0; right: 24px; width: 30px; height: 30px; border-radius: 15px; background: var(--apple-gray-fill); border: none; display: grid; place-items: center; cursor: pointer; color: var(--label-secondary); transition: transform 0.2s, background 0.2s; }
+.close-circle:active { transform: scale(0.9); background: var(--apple-gray-press); }
+.close-circle svg { width: 12px; height: 12px; fill: currentColor; }
 
-.grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px; padding: 0 24px; }
-.info { padding: 12px 14px; border-radius: 16px; background: var(--apple-gray-fill); border: 0.5px solid var(--glass-border); }
+/* Sections (iOS Settings/Widget Grouped Style) */
+.section-title { font-size: 16px; font-weight: 700; margin: 24px 24px 8px; letter-spacing: -0.02em; color: var(--label-secondary); text-transform: uppercase; }
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1px; padding: 0 24px; background: var(--glass-border); border-radius: 16px; overflow: hidden; border: 0.5px solid var(--glass-border); }
+.info { padding: 14px 16px; background: var(--bg-secondary); }
 .info.full { grid-column: 1 / -1; }
-.i-label { font-size: 12px; font-weight: 500; color: var(--label-secondary); margin-bottom: 4px; letter-spacing: -0.01em; }
-.i-value { font-size: 16px; font-weight: 700; color: var(--label-primary); letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+.i-label { font-size: 13px; font-weight: 500; color: var(--label-secondary); margin-bottom: 2px; letter-spacing: -0.01em; }
+.i-value { font-size: 16px; font-weight: 600; color: var(--label-primary); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
 
-.empty { padding: 40px 20px; text-align: center; color: var(--label-secondary); font-weight: 500; font-size: 16px; }
+.empty { padding: 40px 20px; text-align: center; color: var(--label-secondary); font-weight: 500; font-size: 15px; }
+
+/* FULLSCREEN IMAGE OVERLAY */
+.img-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 4000; background: rgba(0,0,0,0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
+.img-overlay.open { opacity: 1; pointer-events: auto; }
+.img-overlay img { max-width: 90%; max-height: 80%; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); object-fit: contain; }
+.overlay-close { position: absolute; top: calc(20px + env(safe-area-inset-top)); right: 20px; width: 36px; height: 36px; border-radius: 18px; background: rgba(255,255,255,0.2); color: #FFF; border: none; display: grid; place-items: center; cursor: pointer; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transition: transform 0.2s; }
+.overlay-close:active { transform: scale(0.85); }
+.overlay-close svg { width: 14px; height: 14px; fill: currentColor; }
 
 </style>
 </head>
@@ -217,12 +241,12 @@ body { user-select: none; }
 
 <div id="map"></div>
 
-<!-- DYNAMIC ISLAND TOP BAR -->
+<!-- TRUE BLACK DYNAMIC ISLAND -->
 <div class="island-wrap">
   <div class="island" id="island">
     <div class="brand">
       <div class="brand-icon">
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
       </div>
       <div class="brand-text">Over<span>head</span></div>
     </div>
@@ -256,7 +280,7 @@ body { user-select: none; }
 <div class="map-status" id="mapStatus"><span class="live-dot" id="dotStatus"></span><span id="mapStatusText">Connecting...</span></div>
 
 <div class="side-controls">
-  <button class="fab" id="turkuBtn">TKU</button>
+  <button class="fab" id="turkuBtn" style="font-size: 12px;">TKU</button>
   <button class="fab" id="sheetBtn">
     <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
   </button>
@@ -267,7 +291,6 @@ body { user-select: none; }
   <div class="sheet-grab" id="sheetGrab"><div></div></div>
   
   <div class="sheet-content">
-      
       <!-- NÄKYMÄ 1: Lentokonelista -->
       <div class="view" id="viewList">
           <div class="sheet-head">
@@ -286,41 +309,39 @@ body { user-select: none; }
       <div class="view" id="viewDetail">
           
           <div class="detail-header">
-            <div class="d-icon" id="dHeroWrap">
+            <div class="d-icon" id="dHeroWrap" title="View Image">
               <img id="dHero" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" style="opacity:0" />
             </div>
             <div class="d-titles">
               <div class="d-call" id="dCall">FLIGHT</div>
               
-              <!-- UUSI OVERHEAD STATUS BADGE -->
+              <!-- OVERHEAD STATUS BADGE -->
               <div class="overhead-badge none" id="dOverhead">Not Crossing</div>
               
               <div class="detail-actions">
-                  <button class="action-btn" id="trackBtn">Track</button>
-                  <button class="action-close" id="detailClose">Close</button>
+                  <button class="action-btn" id="trackBtn">Track Route</button>
               </div>
             </div>
+            
+            <!-- Pyöreä Apple Close Button -->
+            <button class="close-circle" id="detailClose">
+                <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+            </button>
           </div>
           
-          <!-- TELEMETRY -->
-          <div class="section-title">
-            <svg class="section-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm0-18c4.41 0 8 3.59 8 8s-3.59 8-8 8-8-3.59-8-8 3.59-8 8-8zm-1 3h2v6l5 3-1 1.5-6.5-4z"/></svg>
-            Live Telemetry
-          </div>
+          <!-- TELEMETRY (Widget tyyli) -->
+          <div class="section-title">Telemetry</div>
           <div class="grid">
             <div class="info"><div class="i-label">Altitude</div><div class="i-value" id="dAlt">—</div></div>
             <div class="info"><div class="i-label">Speed</div><div class="i-value" id="dSpd">—</div></div>
             <div class="info"><div class="i-label">Heading</div><div class="i-value" id="dTrack">—</div></div>
             <div class="info"><div class="i-label">Vertical Rate</div><div class="i-value" id="dVRate">—</div></div>
             <div class="info"><div class="i-label">Distance</div><div class="i-value" id="dDist">—</div></div>
-            <div class="info"><div class="i-label">Squawk Code</div><div class="i-value" id="dSquawk">—</div></div>
+            <div class="info"><div class="i-label">Squawk</div><div class="i-value" id="dSquawk">—</div></div>
           </div>
           
           <!-- PERFORMANCE (+ Fuel) -->
-          <div class="section-title">
-            <svg class="section-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
-            Aircraft Performance
-          </div>
+          <div class="section-title">Performance</div>
           <div class="grid">
             <div class="info full"><div class="i-label">Model</div><div class="i-value" id="dModel">Loading…</div></div>
             <div class="info"><div class="i-label">Max Passengers</div><div class="i-value" id="dPax">—</div></div>
@@ -330,10 +351,7 @@ body { user-select: none; }
           </div>
 
           <!-- IDENTITY -->
-          <div class="section-title">
-            <svg class="section-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
-            Identity
-          </div>
+          <div class="section-title">Identity</div>
           <div class="grid">
             <div class="info full"><div class="i-label">Registered Owner</div><div class="i-value" id="dOperator">—</div></div>
             <div class="info"><div class="i-label">Registration</div><div class="i-value" id="dReg">—</div></div>
@@ -344,6 +362,14 @@ body { user-select: none; }
   </div>
 </div>
 
+<!-- KUVAGALLERIA OVERLAY -->
+<div class="img-overlay" id="imgOverlay">
+  <button class="overlay-close" id="imgClose">
+    <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+  </button>
+  <img id="overlayImg" src="" />
+</div>
+
 <script>
 const $ = id => document.getElementById(id);
 
@@ -351,7 +377,7 @@ const $ = id => document.getElementById(id);
 const todayOptions = { weekday: 'long', month: 'long', day: 'numeric' };
 $('sheetDate').textContent = new Date().toLocaleDateString('en-US', todayOptions).toUpperCase();
 
-// OFFLINE AIRCRAFT SPECS DATABASE (+ FUEL)
+// OFFLINE AIRCRAFT SPECS DATABASE
 const aircraftSpecs = {
     "A320": {"len": "37.57 m", "mtow": "78,000 kg", "pax": "150-180", "year": "1988", "fuel": "24,210 L"},
     "A20N": {"len": "37.57 m", "mtow": "79,000 kg", "pax": "150-180", "year": "2016", "fuel": "26,730 L"},
@@ -371,14 +397,9 @@ const aircraftSpecs = {
     "E190": {"len": "36.24 m", "mtow": "51,800 kg", "pax": "96-114", "year": "2006", "fuel": "16,250 L"}
 };
 
-const state = {
-  map: null, 
-  userLat: 60.4518, userLon: 22.2666,
-  flights: new Map(), selectedIcao: null, photoCache: new Map(),
-  markers: new Map()
-};
+const state = { map: null, userLat: 60.4518, userLon: 22.2666, flights: new Map(), selectedIcao: null, photoCache: new Map(), markers: new Map() };
 
-const planeBlueURI = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z' fill='%230A84FF' stroke='%23FFFFFF' stroke-width='0.5'/%3E%3C/svg%3E";
+const planeBlueURI = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z' fill='%23007AFF' stroke='%23FFFFFF' stroke-width='0.5'/%3E%3C/svg%3E";
 const planeGreenURI = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z' fill='%2334C759' stroke='%23FFFFFF' stroke-width='1'/%3E%3C/svg%3E";
 
 function fmtFt(alt, isGround){ return isGround ? 'GROUND' : (alt==null?'—':Math.round(alt).toLocaleString('en-US')+' FT'); }
@@ -387,46 +408,28 @@ function fmtVRate(fpm) { if (!fpm) return 'Level'; return fpm > 0 ? `↗ ${Math.
 function fmtHeading(deg) { if (deg == null) return '—'; const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']; return `${Math.round(deg)}° ${dirs[Math.round(deg / 45) % 8]}`; }
 function haversine(lat1, lon1, lat2, lon2){ const R=6371, p=Math.PI/180; const a=Math.sin((lat2-lat1)*p/2)**2 + Math.cos(lat1*p)*Math.cos(lat2*p)*Math.sin((lon2-lon1)*p/2)**2; return R*2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); }
 
-// UUSI: OVERHEAD ENGINE
-// Laskee lentokoneen lentosuunnan (track) ja käyttäjän sijainnin välisen suhteen.
+// OVERHEAD ENGINE
 function calculateOverhead(f) {
     if(!f || !f.velocity || f.on_ground) return null;
-    
-    // 1. Calculate bearing from User to Plane
-    const lat1 = state.userLat * Math.PI/180;
-    const lon1 = state.userLon * Math.PI/180;
-    const lat2 = f.curLat * Math.PI/180;
-    const lon2 = f.curLon * Math.PI/180;
-    
+    const lat1 = state.userLat * Math.PI/180, lon1 = state.userLon * Math.PI/180;
+    const lat2 = f.curLat * Math.PI/180, lon2 = f.curLon * Math.PI/180;
     const y = Math.sin(lon2-lon1) * Math.cos(lat2);
     const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(lon2-lon1);
     const bearingToPlane = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
-    
-    // 2. Bearing from Plane to User
     const bearingToUser = (bearingToPlane + 180) % 360;
     
-    // 3. Difference between Plane's current Track and the Bearing to User
     let angleDiff = Math.abs((f.track || 0) - bearingToUser);
     if(angleDiff > 180) angleDiff = 360 - angleDiff;
     
-    // Tässä määritetään kulkeeko yli: Jos koneen suunta on < 30 asteen sisällä käyttäjästä
     const isCrossing = angleDiff < 30; 
-    
-    // Jos etäisyys on pieni (< 5km), se on käytännössä suoraan päällä nyt
     if (f.dist < 5) return { status: 'overhead', text: 'Directly Overhead' };
 
     if (isCrossing) {
-        // Kuinka kauan menee saapua tähän pisteeseen nopeudella X
-        const speedKmh = f.velocity * 1.852; 
-        const hours = f.dist / speedKmh;
-        const mins = Math.round(hours * 60);
+        const mins = Math.round((f.dist / (f.velocity * 1.852)) * 60);
         return { status: 'approaching', text: `Overhead in ${mins} min` };
     } else {
-        // Jos kulma on suuri (> 120), se on jo mennyt ohi
-        if(angleDiff > 120 && f.dist < 50) { // Mennyt ohi ja vielä alle 50km päässä
-            const speedKmh = f.velocity * 1.852;
-            const hours = f.dist / speedKmh;
-            const mins = Math.round(hours * 60);
+        if(angleDiff > 120 && f.dist < 50) { 
+            const mins = Math.round((f.dist / (f.velocity * 1.852)) * 60);
             return { status: 'passed', text: `Passed ${mins} min ago` };
         }
     }
@@ -437,24 +440,22 @@ function updateOverheadUI(f) {
     if(!f) return;
     const oh = calculateOverhead(f);
     const badge = $('dOverhead');
-    
-    badge.className = 'overhead-badge'; // reset
+    badge.className = 'overhead-badge'; 
     if(oh && oh.status !== 'none') {
-        badge.classList.add(oh.status);
-        badge.textContent = oh.text;
-        $('ifRoute').textContent = oh.text; // Päivitä myös yläpalkkiin
+        badge.classList.add(oh.status); badge.textContent = oh.text; $('ifRoute').textContent = oh.text; 
     } else {
-        badge.classList.add('none');
-        $('ifRoute').textContent = 'Tracking Active';
+        badge.classList.add('none'); $('ifRoute').textContent = 'Tracking Active';
     }
 }
 
-// ---------- 1. MAP ----------
+// ---------- 1. MAP & FLIGHT PATHS ----------
 function initMap(){
   state.map = L.map('map', { zoomControl:false, attributionControl:false, minZoom: 3, maxBounds: [[-90, -180], [90, 180]], maxBoundsViscosity: 1.0 }).setView([state.userLat, state.userLon], 6);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19}).addTo(state.map);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{maxZoom:19, opacity:0.85}).addTo(state.map);
-  state.userMarker = L.circleMarker([state.userLat, state.userLon], {radius:8, color:'#fff', weight:3, fillColor:'#0A84FF', fillOpacity:1}).addTo(state.map);
+  state.userMarker = L.circleMarker([state.userLat, state.userLon], {radius:8, color:'#fff', weight:3, fillColor:'#007AFF', fillOpacity:1}).addTo(state.map);
+  state.pastPath = L.polyline([], {color: '#007AFF', weight: 4, opacity: 0.9}).addTo(state.map);
+  state.futurePath = L.polyline([], {color: '#007AFF', weight: 3, opacity: 0.6, dashArray: '6, 8'}).addTo(state.map);
 }
 
 function setUserLocation(lat, lon, zoom=6){
@@ -500,12 +501,9 @@ async function fetchFlights(){
   try{
     const center = state.map ? state.map.getCenter() : {lat: state.userLat, lng: state.userLon};
     const zoom = state.map ? state.map.getZoom() : 6;
-    let radius = 250; 
-    if(zoom <= 5) radius = 500;
-    if(zoom <= 4) radius = 1000;
+    let radius = 250; if(zoom <= 5) radius = 500; if(zoom <= 4) radius = 1000;
     
     const url = `https://api.airplanes.live/v2/point/${center.lat.toFixed(3)}/${center.lng.toFixed(3)}/${radius}`;
-
     const res = await fetch(url);
     if(!res.ok) throw new Error('API');
     const json = await res.json();
@@ -514,41 +512,41 @@ async function fetchFlights(){
     const now = Date.now();
     let arr = json.ac.map(a => {
       if(a.lat==null || a.lon==null) return null;
-      const isGround = a.alt_baro === 'ground';
-      const altFeet = isGround ? 0 : (a.alt_baro || a.alt_geom || 0);
-
       return {
-        icao24: a.hex, 
-        callsign: (a.flight||'').trim() || a.hex.toUpperCase(), 
+        icao24: a.hex, callsign: (a.flight||'').trim() || a.hex.toUpperCase(), 
         type: a.t || 'Unknown', desc: a.desc || '', reg: a.r || '—',
-        lon: a.lon, lat: a.lat, baro_alt: altFeet, on_ground: isGround, 
-        velocity: a.gs || 0, track: a.track || 0, vertical_rate: a.baro_rate || 0, 
-        squawk: a.squawk || '—', sampleTime: now, curLat: a.lat, curLon: a.lon, 
+        lon: a.lon, lat: a.lat, baro_alt: a.alt_baro === 'ground' ? 0 : (a.alt_baro || a.alt_geom || 0), 
+        on_ground: a.alt_baro === 'ground', velocity: a.gs || 0, track: a.track || 0, 
+        vertical_rate: a.baro_rate || 0, squawk: a.squawk || '—', sampleTime: now, curLat: a.lat, curLon: a.lon, 
         dist: haversine(state.userLat, state.userLon, a.lat, a.lon)
       };
     }).filter(Boolean);
 
     const seen = new Set();
-    for(const nf of arr){ seen.add(nf.icao24); const old = state.flights.get(nf.icao24); if(old){ Object.assign(old, nf); } else { state.flights.set(nf.icao24, nf); } }
+    for(const nf of arr){ 
+        seen.add(nf.icao24); 
+        const old = state.flights.get(nf.icao24); 
+        if(old){ 
+            nf.history = old.history || [];
+            if (old.curLat !== nf.lat || old.curLon !== nf.lon) nf.history.push([old.curLat, old.curLon]); 
+            if(nf.history.length > 300) nf.history.shift(); 
+            Object.assign(old, nf); 
+        } else { 
+            nf.history = [[nf.lat, nf.lon]]; state.flights.set(nf.icao24, nf); 
+        } 
+    }
     for(const icao of state.flights.keys()){ if(!seen.has(icao)) state.flights.delete(icao); }
     
     $('mapStatusText').textContent = `${state.flights.size} Live`;
     $('sheetSub').textContent = `${state.flights.size} Aircraft in Range`;
     $('dotStatus').classList.remove('warn');
-    
-  }catch(e){ 
-      $('dotStatus').classList.add('warn');
-      $('mapStatusText').textContent = 'Network Error';
-  } finally{ 
-      renderList(); updateMarkers();
-      setTimeout(fetchFlights, 10000); 
-  } 
+  }catch(e){ $('dotStatus').classList.add('warn'); $('mapStatusText').textContent = 'Network Error';
+  } finally{ renderList(); updateMarkers(); setTimeout(fetchFlights, 10000); } 
 }
 
 // ---------- 3. SMOOTH 60FPS ----------
 function startAnimation(){
   setInterval(() => { updateMarkers(); }, 1000);
-
   const tick = (t) => {
     requestAnimationFrame(tick);
     if(!state.animLast) { state.animLast = t; return; }
@@ -568,14 +566,17 @@ function startAnimation(){
       const sf = state.flights.get(state.selectedIcao);
       if(sf) {
           sf.dist = haversine(state.userLat, state.userLon, sf.curLat, sf.curLon);
-          $('dAlt').textContent=fmtFt(sf.baro_alt, sf.on_ground); 
-          $('dSpd').textContent=fmtKt(sf.velocity);
+          $('dAlt').textContent=fmtFt(sf.baro_alt, sf.on_ground); $('dSpd').textContent=fmtKt(sf.velocity);
           $('dDist').textContent = sf.dist.toFixed(1) + ' km';
-          $('hudAlt').textContent=fmtFt(sf.baro_alt, sf.on_ground); 
-          $('hudSpd').textContent=fmtKt(sf.velocity);
-          
-          // Päivitetään Overhead-status livenä (esim. minuutit juoksevat alaspäin)
+          $('hudAlt').textContent=fmtFt(sf.baro_alt, sf.on_ground); $('hudSpd').textContent=fmtKt(sf.velocity);
           updateOverheadUI(sf);
+
+          // PATHS
+          state.pastPath.setLatLngs([...(sf.history || []), [sf.curLat, sf.curLon]]);
+          const d = 100, R = 6371, lat1 = sf.curLat * Math.PI/180, lon1 = sf.curLon * Math.PI/180, trackRad = (sf.track || 0) * Math.PI/180;
+          const lat2 = Math.asin( Math.sin(lat1)*Math.cos(d/R) + Math.cos(lat1)*Math.sin(d/R)*Math.cos(trackRad) );
+          const lon2 = lon1 + Math.atan2(Math.sin(trackRad)*Math.sin(d/R)*Math.cos(lat1), Math.cos(d/R)-Math.sin(lat1)*Math.sin(lat2));
+          state.futurePath.setLatLngs([[sf.curLat, sf.curLon], [lat2 * 180/Math.PI, lon2 * 180/Math.PI]]);
       }
     }
   };
@@ -589,12 +590,7 @@ function renderList(){
   if(q) arr = arr.filter(f => (f.callsign||'').toLowerCase().includes(q));
   
   if(!arr.length){ 
-      if($('mapStatusText').textContent === 'Network Error') {
-          $('flightList').innerHTML = '<div class="empty">Connection failed. Retrying...</div>';
-      } else {
-          $('flightList').innerHTML = '<div class="empty">Scanning airspace...</div>'; 
-      }
-      return; 
+      $('flightList').innerHTML = `<div class="empty">${$('mapStatusText').textContent === 'Network Error'?'Connection failed.':'Scanning airspace...'}</div>`; return; 
   }
 
   $('flightList').innerHTML = arr.slice(0,80).map(f => {
@@ -602,13 +598,10 @@ function renderList(){
     const imgHtml = img ? `<img src="${img}"/>` : `<svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>`;
     const subText = f.reg !== '—' ? `${f.type} • ${f.reg}` : f.type;
     
-    // Lista näyttää nopeasti "Tuleeko yli" tiedon
-    let ohText = '';
-    const oh = calculateOverhead(f);
-    if(oh && oh.status === 'approaching') {
-        ohText = `<span style="color:var(--apple-green); font-size:12px; font-weight:700;">${oh.text}</span>`;
-    }
+    let ohText = ''; const oh = calculateOverhead(f);
+    if(oh && oh.status === 'approaching') ohText = `<span style="color:var(--apple-green); font-weight:600;">${oh.text}</span>`;
     
+    // Uusi iOS tyylinen rivi, jossa ohut chevron
     return `
     <div class="card" onclick="openDetailUI('${f.icao24}')">
       <div class="plane-badge">${imgHtml}</div>
@@ -616,9 +609,7 @@ function renderList(){
         <div class="card-call">${(f.callsign||'').replace(/[<>]/g,'')}</div>
         <div class="card-sub">${subText} ${ohText ? ' • '+ohText : ''}</div>
       </div>
-      <div class="card-stats">
-        <div class="get-btn-small">VIEW</div>
-      </div>
+      <svg class="card-chevron" viewBox="0 0 24 24"><path d="M9.29 15.88L13.17 12 9.29 8.12c-.39-.39-.39-1.02 0-1.41.39-.39 1.02-.39 1.41 0l4.59 4.59c.39.39.39 1.02 0 1.41L10.7 17.3c-.39.39-1.02.39-1.41 0-.38-.39-.39-1.03 0-1.42z"/></svg>
     </div>`
   }).join('');
 }
@@ -635,13 +626,9 @@ window.openDetailUI = async function(icao24) {
   $('hudWrap').classList.add('show');
   
   $('dCall').textContent = f.callsign; 
-  
-  $('dTrack').textContent = fmtHeading(f.track);
-  $('dVRate').textContent = fmtVRate(f.vertical_rate);
-  $('dSquawk').textContent = f.squawk;
-  $('dIcao').textContent = f.icao24.toUpperCase();
+  $('dTrack').textContent = fmtHeading(f.track); $('dVRate').textContent = fmtVRate(f.vertical_rate);
+  $('dSquawk').textContent = f.squawk; $('dIcao').textContent = f.icao24.toUpperCase();
   $('dDist').textContent = f.dist.toFixed(1) + ' km';
-  
   $('dModel').textContent = f.desc || (f.type !== 'Unknown' ? f.type : 'Loading...'); 
   $('dReg').textContent = f.reg;
   
@@ -677,8 +664,10 @@ window.openDetailUI = async function(icao24) {
   } catch(e){}
 }
 
+// ----------------- TAPAHTUMAT -----------------
+
 $('detailClose').addEventListener('click', () => {
-    state.selectedIcao = null; 
+    state.selectedIcao = null; state.pastPath.setLatLngs([]); state.futurePath.setLatLngs([]);
     $('sheet').classList.remove('mode-detail'); $('sheet').classList.remove('full'); $('sheet').classList.add('expanded');
     $('island').classList.remove('focus'); $('hudWrap').classList.remove('show'); 
     renderList(); updateMarkers();
@@ -689,6 +678,14 @@ $('trackBtn').addEventListener('click', () => {
    const f = state.flights.get(state.selectedIcao);
    if(f) state.map.setView([f.curLat, f.curLon], 10, {animate:true}); 
 });
+
+$('dHeroWrap').addEventListener('click', () => {
+    const img = $('dHero');
+    if (img.style.opacity !== '0' && img.src && !img.src.includes('data:image/gif')) {
+        $('overlayImg').src = img.src; $('imgOverlay').classList.add('open');
+    }
+});
+$('imgClose').addEventListener('click', () => $('imgOverlay').classList.remove('open'));
 
 $('sheetGrab').addEventListener('click', () => {
     const s = $('sheet');
