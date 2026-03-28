@@ -386,7 +386,7 @@ const $ = id => document.getElementById(id);
 const todayOptions = { weekday: 'long', month: 'long', day: 'numeric' };
 $('sheetDate').textContent = new Date().toLocaleDateString('en-US', todayOptions).toUpperCase();
 
-// HUOM! Tuo SAS täytyy olla varmasti mukana tässä!
+// Täydellinen dictionary (sisältää SAS ja paljon muita)
 const airlines = { 
     "FIN": {n:"Finnair", c:"#0B1560"}, "RYR": {n:"Ryanair", c:"#073590"}, 
     "NAX": {n:"Norwegian", c:"#D81939"}, "SAS": {n:"SAS", c:"#00355E"}, 
@@ -397,7 +397,8 @@ const airlines = {
     "QTR": {n:"Qatar Airways", c:"#5C0632"}, "EZY": {n:"EasyJet", c:"#FF6600"}, 
     "WZZ": {n:"Wizz Air", c:"#C60C85"}, "SWR": {n:"Swiss", c:"#E3000F"}, 
     "IBE": {n:"Iberia", c:"#DF0024"}, "BCS": {n:"DHL", c:"#FFCC00"},
-    "NVR": {n:"Novair", c:"#004B87"}
+    "NVR": {n:"Novair", c:"#004B87"}, "AAL": {n:"American", c:"#0078D2"},
+    "DAL": {n:"American", c:"#0078D2"}, "UAL": {n:"Delta", c:"#E00034"}
 };
 
 const aircraftSpecs = {
@@ -514,8 +515,12 @@ async function fetchFlights(){
     const now = Date.now();
     let arr = (json.ac||[]).map(a => {
       if(a.lat==null || a.lon==null) return null;
+      
+      // Korjattu Callsign logiikka! Älä koskaan tallenna tyhjää callsignia siten, että se rikkoo haun.
+      let cs = (a.flight || '').trim();
+      
       return {
-        icao24: a.hex, callsign: (a.flight||'').trim() || a.hex.toUpperCase(), 
+        icao24: a.hex, callsign: cs,
         type: a.t || 'Unknown', desc: a.desc || '', reg: a.r || '—',
         lon: a.lon, lat: a.lat, baro_alt: a.alt_baro === 'ground' ? 0 : (a.alt_baro || a.alt_geom || 0), 
         on_ground: a.alt_baro === 'ground', velocity: a.gs || 0, track: a.track || 0, 
@@ -530,6 +535,9 @@ async function fetchFlights(){
         if(old){ 
             nf.history = old.history || [];
             nf.full_trace_loaded = old.full_trace_loaded;
+            // Älä kadota hyvää callsignia jos se katoaa API:sta väliaikaisesti
+            if(!nf.callsign && old.callsign) nf.callsign = old.callsign;
+            
             if (old.curLat !== nf.lat || old.curLon !== nf.lon) nf.history.push([old.curLat, old.curLon]); 
             if(!nf.full_trace_loaded && nf.history.length > 300) nf.history.shift(); 
             Object.assign(old, nf); 
@@ -620,11 +628,12 @@ function renderList(){
     const imgHtml = img ? `<img src="${img}"/>` : `<svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>`;
     const oh = calculateOverhead(f);
     let ohText = oh && oh.status === 'approaching' ? `<span style="color:var(--apple-green); font-weight:700;">${oh.text}</span>` : '';
+    let cs = f.callsign || f.icao24.toUpperCase();
     return `
     <div class="card" onclick="openDetailUI('${f.icao24}')">
       <div class="plane-badge">${imgHtml}</div>
       <div class="card-main">
-        <div class="card-call">${(f.callsign||'').replace(/[<>]/g,'')}</div>
+        <div class="card-call">${cs.replace(/[<>]/g,'')}</div>
         <div class="card-sub">${f.type} ${f.reg!=='—'?'• '+f.reg:''} ${ohText ? ' • '+ohText : ''}</div>
       </div>
       <svg class="card-chevron" viewBox="0 0 24 24"><path d="M9.29 15.88L13.17 12 9.29 8.12c-.39-.39-.39-1.02 0-1.41.39-.39 1.02-.39 1.41 0l4.59 4.59c.39.39.39 1.02 0 1.41L10.7 17.3c-.39.39-1.02.39-1.41 0-.38-.39-.39-1.03 0-1.42z"/></svg>
@@ -653,11 +662,13 @@ window.openDetailUI = async function(icao24) {
   state.selectedIcao = icao24; const f = state.flights.get(icao24); if(!f) return;
 
   $('sheet').classList.add('mode-detail'); $('sheet').classList.add('full'); $('sheet').classList.remove('expanded');
-  $('island').classList.add('focus'); $('ifCall').textContent = f.callsign; $('hudWrap').classList.add('show');
+  
+  let dCall = f.callsign || f.icao24.toUpperCase();
+  $('island').classList.add('focus'); $('ifCall').textContent = dCall; $('hudWrap').classList.add('show');
   $('detailControls').style.display = 'flex';
   
-  // Nyt pakotetaan tiedot oikein alkuun:
-  $('bpCall').textContent = f.callsign.substring(0, 6) || f.icao24.toUpperCase();
+  // UI PÄIVITYKSET 
+  $('bpCall').textContent = dCall.substring(0, 6);
   $('bpSquawk').textContent = f.squawk;
   
   $('dTrack').textContent = fmtHeading(f.track); $('dVRate').textContent = fmtVRate(f.vertical_rate);
@@ -668,11 +679,18 @@ window.openDetailUI = async function(icao24) {
   const specs = aircraftSpecs[f.type];
   if(specs) { $('dPax').textContent = specs.pax; $('dMtow').textContent = specs.mtow; $('dFuel').textContent = specs.fuel; $('dLen').textContent = specs.len; }
   
-  // TÄYSI RESET joka ikinen kerta, niin vältetään FL-jumit!
+  // LENTOYHTIÖ - Pomminvarma tarkistus (nyt sallii myös 4-kirjaimiset yhtiökoodit tulevaisuutta varten)
   let al = null;
+  let possibleCodes = [];
   if(f.callsign && f.callsign.length >= 3) {
-      const code3 = f.callsign.substring(0,3).toUpperCase();
-      al = airlines[code3];
+      possibleCodes.push(f.callsign.substring(0,3).toUpperCase());
+  }
+  
+  // Yritetään löytää yhtiö
+  for (let c of possibleCodes) {
+      if (airlines[c]) {
+          al = airlines[c]; break;
+      }
   }
   
   if(al) {
