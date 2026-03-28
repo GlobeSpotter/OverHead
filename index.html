@@ -50,7 +50,7 @@ body { user-select: none; }
 .leaflet-control-zoom, .leaflet-control-attribution { display: none !important; }
 
 /* MARKERS */
-.plane-img { width: 36px; height: 36px; margin-left: -18px; margin-top: -18px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)); transition: transform 0.6s linear; }
+.plane-img { width: 36px; height: 36px; margin-left: -18px; margin-top: -18px; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)); transition: transform 0.2s linear; }
 .plane-img.sel { width: 52px; height: 52px; margin-left: -26px; margin-top: -26px; filter: drop-shadow(0 8px 16px rgba(0,0,0,0.7)); z-index: 1000 !important; }
 
 /* DYNAMIC ISLAND */
@@ -58,7 +58,7 @@ body { user-select: none; }
 .island { width: min(820px, 100%); min-height: 48px; border-radius: 30px; padding: 8px 12px; display: flex; align-items: center; gap: 12px; pointer-events: auto; background: #000000; color: #FFFFFF; box-shadow: 0 10px 30px rgba(0,0,0,0.4), inset 0 0 0 0.5px rgba(255,255,255,0.15); transition: transform .5s var(--spring), min-height .5s var(--spring), width .5s var(--spring); }
 .brand { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 0 4px; }
 .brand-icon { width: 28px; height: 28px; border-radius: 50%; background: var(--apple-blue); color: white; display: grid; place-items: center; box-shadow: inset 0 2px 4px rgba(255,255,255,0.3); }
-.brand-icon svg { width: 16px; height: 16px; fill: currentColor; }
+.brand-icon svg { width: 16px; height: 16px; fill: currentColor; transform: rotate(-45deg); }
 .brand-text { font-size: 18px; font-weight: 700; letter-spacing: -0.03em; color: #FFFFFF; }
 .searchbox { flex: 1; height: 36px; border-radius: 18px; background: #1C1C1E; display: flex; align-items: center; padding: 0 12px; gap: 8px; transition: background 0.2s; }
 .searchbox:focus-within { background: #2C2C2E; }
@@ -121,32 +121,34 @@ body { user-select: none; }
 .card:last-child::after { display: none; }
 .plane-badge { width: 48px; height: 48px; border-radius: 12px; display: grid; place-items: center; background: var(--apple-gray-fill); flex: 0 0 auto; overflow: hidden; border: 0.5px solid var(--glass-border); }
 .plane-badge img { width: 100%; height: 100%; object-fit: cover; }
-.plane-badge svg { width: 24px; height: 24px; fill: var(--label-tertiary); }
+.plane-badge svg { width: 24px; height: 24px; fill: var(--label-tertiary); transform: rotate(-45deg); }
 .card-main { flex: 1; min-width: 0; }
 .card-call { font-size: 17px; font-weight: 600; letter-spacing: -0.02em; color: var(--label-primary); }
 .card-sub { margin-top: 2px; color: var(--label-secondary); font-size: 14px; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.01em; }
 .card-chevron { width: 12px; height: 12px; fill: var(--label-tertiary); flex: 0 0 auto; margin-left: 8px; }
 
-/* DETAIL VIEW (Wanderlust Edition) */
+/* DETAIL VIEW (Boarding Pass & Wanderlust) */
 #viewDetail { opacity: 0; transform: translateX(30px); pointer-events: none; padding-bottom: 50px; }
 .sheet.mode-detail #viewDetail { opacity: 1; transform: translateX(0); pointer-events: auto; }
 
-/* Apple Wallet tyylinen Header */
-.detail-header { padding: 0 24px 20px; position: relative; display: flex; flex-direction: column; gap: 12px; }
-.airline-tag { font-size: 14px; font-weight: 700; color: var(--apple-blue); letter-spacing: -0.01em; text-transform: uppercase; }
+/* Boarding Pass Header */
+.boarding-pass-header { padding: 0 24px 20px; position: relative; display: flex; flex-direction: column; gap: 8px; }
+.bp-top { display: flex; justify-content: space-between; align-items: center; }
+.airline-tag { font-size: 14px; font-weight: 800; color: var(--apple-blue); letter-spacing: 0.05em; text-transform: uppercase; }
+.bp-barcode { font-family: 'Courier New', Courier, monospace; font-size: 14px; letter-spacing: -0.1em; color: var(--label-secondary); transform: scaleY(1.5); transform-origin: top right; opacity: 0.6; }
 .call-row { display: flex; justify-content: space-between; align-items: flex-start; }
-.d-call { font-size: 38px; font-weight: 800; letter-spacing: -0.04em; color: var(--label-primary); line-height: 1; }
+.d-call { font-size: 38px; font-weight: 800; letter-spacing: -0.04em; color: var(--label-primary); line-height: 1; margin-top: 4px; }
 .overhead-badge { margin-top: 8px; display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; padding: 6px 10px; border-radius: 8px; align-self: flex-start; letter-spacing: -0.01em;}
 .overhead-badge.approaching { background: rgba(52, 199, 89, 0.15); color: var(--apple-green); }
 .overhead-badge.passed { background: rgba(142, 142, 147, 0.15); color: var(--label-secondary); }
 .overhead-badge.none { display: none; }
 
-.d-icon { width: 100%; height: 180px; border-radius: 20px; background: var(--apple-gray-fill); overflow: hidden; border: 0.5px solid var(--glass-border); box-shadow: var(--shadow-card); flex: 0 0 auto; display: grid; place-items: center; cursor: pointer; transition: transform 0.2s; position: relative; }
+.d-icon { width: 100%; height: 200px; border-radius: 20px; background: var(--apple-gray-fill); overflow: hidden; border: 0.5px solid var(--glass-border); box-shadow: var(--shadow-card); flex: 0 0 auto; display: grid; place-items: center; cursor: pointer; transition: transform 0.2s; position: relative; }
 .d-icon:active { transform: scale(0.98); }
 .d-icon img { width: 100%; height: 100%; object-fit: cover; }
-.d-icon svg { width: 48px; height: 48px; fill: var(--label-tertiary); }
+.d-icon svg { width: 48px; height: 48px; fill: var(--label-tertiary); transform: rotate(-45deg); }
 
-.detail-actions { display: flex; gap: 8px; position: absolute; right: 24px; top: 0; }
+.detail-actions { display: flex; gap: 8px; }
 .action-btn { background: var(--apple-blue); color: white; border: none; font-size: 14px; font-weight: 600; padding: 8px 16px; border-radius: 20px; cursor: pointer; transition: transform 0.2s; }
 .action-btn:active { transform: scale(0.92); }
 .close-circle { width: 34px; height: 34px; border-radius: 17px; background: var(--apple-gray-fill); border: none; display: grid; place-items: center; cursor: pointer; color: var(--label-secondary); transition: transform 0.2s; }
@@ -156,10 +158,8 @@ body { user-select: none; }
 /* WANDERLUST WIDGETS */
 .widget-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 24px; margin-bottom: 24px; }
 .w-widget { border-radius: 20px; padding: 16px; color: white; display: flex; flex-direction: column; justify-content: space-between; min-height: 110px; box-shadow: var(--shadow-card); border: 0.5px solid rgba(255,255,255,0.2); position: relative; overflow: hidden; }
-/* Weather Widget Gradient */
 .w-weather { background: linear-gradient(135deg, #1A2980 0%, #26D0CE 100%); }
-/* Location Widget Gradient */
-.w-location { background: linear-gradient(135deg, #FF512F 0%, #DD2476 100%); }
+.w-time { background: linear-gradient(135deg, #FF512F 0%, #DD2476 100%); }
 
 .w-icon { width: 24px; height: 24px; fill: white; opacity: 0.8; margin-bottom: 8px; }
 .w-title { font-size: 13px; font-weight: 600; opacity: 0.9; letter-spacing: -0.01em; }
@@ -188,7 +188,7 @@ body { user-select: none; }
 
 <div id="map"></div>
 
-<!-- TRUE BLACK DYNAMIC ISLAND -->
+<!-- DYNAMIC ISLAND -->
 <div class="island-wrap">
   <div class="island" id="island">
     <div class="brand">
@@ -197,16 +197,13 @@ body { user-select: none; }
       </div>
       <div class="brand-text">Over<span>head</span></div>
     </div>
-    
     <div class="searchbox">
       <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
       <input id="searchInput" placeholder="Search callsign..." autocomplete="off" autocorrect="off" spellcheck="false" />
     </div>
-    
     <div class="island-flight" id="islandFlight">
       <div class="if-main"><div class="if-call" id="ifCall">FLIGHT</div><div class="if-route" id="ifRoute">Tracking Active</div></div>
     </div>
-    
     <div class="island-actions">
       <button class="icon-btn" id="gpsBtn" title="Location">
         <svg viewBox="0 0 24 24"><path d="M12 2L2 22l10-4 10 4L12 2z"/></svg>
@@ -236,8 +233,8 @@ body { user-select: none; }
 <!-- COMPACT BOTTOM SHEET -->
 <div class="sheet expanded" id="sheet">
   <div class="sheet-grab" id="sheetGrab"><div></div></div>
-  
   <div class="sheet-content">
+      
       <!-- NÄKYMÄ 1: Lentokonelista -->
       <div class="view" id="viewList">
           <div class="sheet-head">
@@ -255,8 +252,12 @@ body { user-select: none; }
       <!-- NÄKYMÄ 2: Kompakti lentokoneen detail -->
       <div class="view" id="viewDetail">
           
-          <div class="detail-header">
-            <div class="airline-tag" id="dAirline">Airlines</div>
+          <!-- Boarding Pass Header -->
+          <div class="boarding-pass-header">
+            <div class="bp-top">
+                <div class="airline-tag" id="dAirline">Airlines</div>
+                <div class="bp-barcode" id="dBarcode">| |||| || || |</div>
+            </div>
             <div class="call-row">
                 <div class="d-call" id="dCall">FLIGHT</div>
                 <div class="detail-actions">
@@ -276,7 +277,7 @@ body { user-select: none; }
             </div>
           </div>
 
-          <!-- WANDERLUST WIDGETS (Sää & Sijainti) -->
+          <!-- WANDERLUST WIDGETS -->
           <div class="widget-row">
               <div class="w-widget w-weather">
                   <svg class="w-icon" viewBox="0 0 24 24"><path d="M12 2a4 4 0 00-4 4v9.26a5.5 5.5 0 108 0V6a4 4 0 00-4-4zm2 13.26V6a2 2 0 10-4 0v9.26a3.5 3.5 0 114 0z"/></svg>
@@ -284,15 +285,15 @@ body { user-select: none; }
                   <div class="w-val" id="wTemp">—°C</div>
                   <div class="w-sub" id="wMach">Mach —</div>
               </div>
-              <div class="w-widget w-location">
-                  <svg class="w-icon" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 110-5 2.5 2.5 0 010 5z"/></svg>
-                  <div class="w-title">Flying Over</div>
-                  <div class="w-val" style="font-size:18px;" id="wLoc">Scanning...</div>
+              <div class="w-widget w-time">
+                  <svg class="w-icon" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                  <div class="w-title">Airborne Time</div>
+                  <div class="w-val" id="wAirTime">--:--</div>
                   <div class="w-sub" id="wDist">Distance: —</div>
               </div>
           </div>
           
-          <div class="section-title">Flight Telemetry</div>
+          <div class="section-title">Live Telemetry</div>
           <div class="grid">
             <div class="info"><div class="i-label">Altitude</div><div class="i-value" id="dAlt">—</div></div>
             <div class="info"><div class="i-label">Speed</div><div class="i-value" id="dSpd">—</div></div>
@@ -300,7 +301,7 @@ body { user-select: none; }
             <div class="info"><div class="i-label">Vertical Rate</div><div class="i-value" id="dVRate">—</div></div>
           </div>
           
-          <div class="section-title">Aircraft Specs</div>
+          <div class="section-title">Aircraft Performance</div>
           <div class="grid">
             <div class="info full"><div class="i-label">Model</div><div class="i-value" id="dModel">Loading…</div></div>
             <div class="info"><div class="i-label">Max Passengers</div><div class="i-value" id="dPax">—</div></div>
@@ -332,36 +333,12 @@ const $ = id => document.getElementById(id);
 const todayOptions = { weekday: 'long', month: 'long', day: 'numeric' };
 $('sheetDate').textContent = new Date().toLocaleDateString('en-US', todayOptions).toUpperCase();
 
-// Yleisimmät lentoyhtiöt brändäykseen
-const airlines = {
-    "FIN": "Finnair", "RYR": "Ryanair", "NAX": "Norwegian", "SAS": "SAS", 
-    "VKG": "Sunclass Airlines", "BLX": "TUI fly Nordic", "DLH": "Lufthansa", 
-    "AFR": "Air France", "KLM": "KLM", "THY": "Turkish Airlines", 
-    "BAW": "British Airways", "UAE": "Emirates", "QTR": "Qatar Airways",
-    "EZY": "EasyJet", "WZZ": "Wizz Air", "SWR": "Swiss International",
-    "IBE": "Iberia", "AEE": "Aegean Airlines", "BCS": "DHL"
-};
-
+const airlines = { "FIN": "Finnair", "RYR": "Ryanair", "NAX": "Norwegian", "SAS": "SAS", "VKG": "Sunclass Airlines", "BLX": "TUI fly", "DLH": "Lufthansa", "AFR": "Air France", "KLM": "KLM", "THY": "Turkish Airlines", "BAW": "British Airways", "UAE": "Emirates", "QTR": "Qatar Airways", "EZY": "EasyJet", "WZZ": "Wizz Air", "SWR": "Swiss", "IBE": "Iberia", "BCS": "DHL" };
 const aircraftSpecs = {
-    "A320": {"len": "37.57 m", "mtow": "78,000 kg", "pax": "150-180", "fuel": "24,210 L"},
-    "A20N": {"len": "37.57 m", "mtow": "79,000 kg", "pax": "150-180", "fuel": "26,730 L"},
-    "A321": {"len": "44.51 m", "mtow": "93,500 kg", "pax": "185-230", "fuel": "24,050 L"},
-    "A21N": {"len": "44.51 m", "mtow": "97,000 kg", "pax": "185-244", "fuel": "32,940 L"},
-    "A319": {"len": "33.84 m", "mtow": "75,500 kg", "pax": "124-156", "fuel": "24,210 L"},
-    "A333": {"len": "63.66 m", "mtow": "242,000 kg", "pax": "250-440", "fuel": "139,090 L"},
-    "A359": {"len": "66.80 m", "mtow": "280,000 kg", "pax": "300-350", "fuel": "141,000 L"},
-    "B738": {"len": "39.50 m", "mtow": "79,000 kg", "pax": "162-189", "fuel": "26,020 L"},
-    "B739": {"len": "42.10 m", "mtow": "85,100 kg", "pax": "177-215", "fuel": "29,660 L"},
-    "B38M": {"len": "39.50 m", "mtow": "82,190 kg", "pax": "162-210", "fuel": "25,816 L"},
-    "B77W": {"len": "73.90 m", "mtow": "351,500 kg", "pax": "314-396", "fuel": "181,280 L"},
-    "B789": {"len": "63.00 m", "mtow": "254,000 kg", "pax": "290-330", "fuel": "126,372 L"},
-    "BCS3": {"len": "38.70 m", "mtow": "67,585 kg", "pax": "130-160", "fuel": "17,580 L"},
-    "CRJ9": {"len": "36.20 m", "mtow": "38,330 kg", "pax": "76-90", "fuel": "11,148 L"},
-    "AT76": {"len": "27.17 m", "mtow": "23,000 kg", "pax": "70-78", "fuel": "6,400 L"},
-    "E190": {"len": "36.24 m", "mtow": "51,800 kg", "pax": "96-114", "fuel": "16,250 L"}
+    "A320": {"len": "37.57 m", "mtow": "78,000 kg", "pax": "150-180", "fuel": "24,210 L"}, "A20N": {"len": "37.57 m", "mtow": "79,000 kg", "pax": "150-180", "fuel": "26,730 L"}, "A321": {"len": "44.51 m", "mtow": "93,500 kg", "pax": "185-230", "fuel": "24,050 L"}, "A21N": {"len": "44.51 m", "mtow": "97,000 kg", "pax": "185-244", "fuel": "32,940 L"}, "A319": {"len": "33.84 m", "mtow": "75,500 kg", "pax": "124-156", "fuel": "24,210 L"}, "A333": {"len": "63.66 m", "mtow": "242,000 kg", "pax": "250-440", "fuel": "139,090 L"}, "A359": {"len": "66.80 m", "mtow": "280,000 kg", "pax": "300-350", "fuel": "141,000 L"}, "B738": {"len": "39.50 m", "mtow": "79,000 kg", "pax": "162-189", "fuel": "26,020 L"}, "B739": {"len": "42.10 m", "mtow": "85,100 kg", "pax": "177-215", "fuel": "29,660 L"}, "B38M": {"len": "39.50 m", "mtow": "82,190 kg", "pax": "162-210", "fuel": "25,816 L"}, "B77W": {"len": "73.90 m", "mtow": "351,500 kg", "pax": "314-396", "fuel": "181,280 L"}, "B789": {"len": "63.00 m", "mtow": "254,000 kg", "pax": "290-330", "fuel": "126,372 L"}, "BCS3": {"len": "38.70 m", "mtow": "67,585 kg", "pax": "130-160", "fuel": "17,580 L"}, "CRJ9": {"len": "36.20 m", "mtow": "38,330 kg", "pax": "76-90", "fuel": "11,148 L"}, "AT76": {"len": "27.17 m", "mtow": "23,000 kg", "pax": "70-78", "fuel": "6,400 L"}, "E190": {"len": "36.24 m", "mtow": "51,800 kg", "pax": "96-114", "fuel": "16,250 L"}
 };
 
-const state = { map: null, userLat: 60.4518, userLon: 22.2666, flights: new Map(), selectedIcao: null, photoCache: new Map(), markers: new Map(), cachedLocations: new Map() };
+const state = { map: null, userLat: 60.4518, userLon: 22.2666, flights: new Map(), selectedIcao: null, photoCache: new Map(), markers: new Map() };
 
 const planeBlueURI = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z' fill='%23007AFF' stroke='%23FFFFFF' stroke-width='0.5'/%3E%3C/svg%3E";
 const planeGreenURI = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z' fill='%2334C759' stroke='%23FFFFFF' stroke-width='1'/%3E%3C/svg%3E";
@@ -372,55 +349,24 @@ function fmtVRate(fpm) { if (!fpm) return 'Level'; return fpm > 0 ? `↗ ${Math.
 function fmtHeading(deg) { if (deg == null) return '—'; const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']; return `${Math.round(deg)}° ${dirs[Math.round(deg / 45) % 8]}`; }
 function haversine(lat1, lon1, lat2, lon2){ const R=6371, p=Math.PI/180; const a=Math.sin((lat2-lat1)*p/2)**2 + Math.cos(lat1*p)*Math.cos(lat2*p)*Math.sin((lon2-lon1)*p/2)**2; return R*2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); }
 
-// WANDERLUST WIDGETS LOGIC
 function updateWidgets(f) {
     if(!f) return;
-    // 1. Outside Temperature (Standard Atmosphere Model ISA)
-    // T = 15°C - 1.98°C per 1000ft. Tropopause is at ~36000ft where T stays at -56.5°C
     let tempC = 15;
-    if(!f.on_ground && f.baro_alt > 0) {
-        tempC = 15 - ((f.baro_alt / 1000) * 1.98);
-        if(tempC < -56.5) tempC = -56.5; 
-    }
+    if(!f.on_ground && f.baro_alt > 0) { tempC = 15 - ((f.baro_alt / 1000) * 1.98); if(tempC < -56.5) tempC = -56.5; }
     $('wTemp').textContent = f.on_ground ? 'Ground' : `${Math.round(tempC)}°C`;
-
-    // 2. Mach Number (Speed of Sound varies by temp)
-    if(f.velocity && !f.on_ground) {
-        // Simple approx: At 35k ft, Mach 1 is ~573 knots. 
-        const mach = (f.velocity / 574).toFixed(2);
-        $('wMach').textContent = `Mach ${mach}`;
+    if(f.velocity && !f.on_ground) { $('wMach').textContent = `Mach ${(f.velocity / 574).toFixed(2)}`; } else { $('wMach').textContent = '—'; }
+    
+    // Estimate Airborne Time based on a generic flight speed assumption if we don't have trace
+    if(!f.on_ground && f.velocity > 100) {
+        // Just a fun estimation for Wanderlust feel: assume it's been flying at least based on its altitude
+        const minsAirborne = Math.max(15, Math.round(f.baro_alt / 1500)); 
+        const hrs = Math.floor(minsAirborne / 60); const mins = minsAirborne % 60;
+        $('wAirTime').textContent = `${hrs}h ${mins}m`;
     } else {
-        $('wMach').textContent = '—';
+        $('wAirTime').textContent = 'Just took off';
     }
     
-    // 3. Distance
-    $('wDist').textContent = `${f.dist.toFixed(1)} km away`;
-}
-
-// 4. Reverse Geocoding (Where are they flying over right now?)
-async function fetchLocation(lat, lon, icao) {
-    const key = `${Math.round(lat*10)},${Math.round(lon*10)}`;
-    if(state.cachedLocations.has(key)) {
-        if(state.selectedIcao === icao) $('wLoc').textContent = state.cachedLocations.get(key);
-        return;
-    }
-    try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10&addressdetails=1`);
-        const data = await res.json();
-        let locStr = "Open Water / Sea";
-        if(data && data.address) {
-            const a = data.address;
-            const region = a.state || a.county || a.city || a.town || a.region;
-            const country = a.country;
-            if(region && country) locStr = `${region}, ${country}`;
-            else if(country) locStr = country;
-            else if(data.name) locStr = data.name;
-        }
-        state.cachedLocations.set(key, locStr);
-        if(state.selectedIcao === icao) $('wLoc').textContent = locStr;
-    } catch(e) {
-        if(state.selectedIcao === icao) $('wLoc').textContent = "Unknown Region";
-    }
+    $('wDist').textContent = `${f.dist.toFixed(1)} km from you`;
 }
 
 function calculateOverhead(f) {
@@ -450,13 +396,9 @@ function calculateOverhead(f) {
 function updateOverheadUI(f) {
     if(!f) return;
     const oh = calculateOverhead(f);
-    const badge = $('dOverhead');
-    badge.className = 'overhead-badge'; 
-    if(oh && oh.status !== 'none') {
-        badge.classList.add(oh.status); badge.textContent = oh.text; $('ifRoute').textContent = oh.text; 
-    } else {
-        badge.classList.add('none'); $('ifRoute').textContent = 'Tracking Active';
-    }
+    const badge = $('dOverhead'); badge.className = 'overhead-badge'; 
+    if(oh && oh.status !== 'none') { badge.classList.add(oh.status); badge.textContent = oh.text; $('ifRoute').textContent = oh.text; 
+    } else { badge.classList.add('none'); $('ifRoute').textContent = 'Tracking Active'; }
 }
 
 function initMap(){
@@ -494,6 +436,7 @@ function updateMarkers() {
             marker.setLatLng([f.curLat, f.curLon]);
             const el = marker.getElement();
             if(el && el.firstChild) {
+                // TÄRKEÄ: Välitön reaaliaikainen kääntyminen animoidusti
                 el.firstChild.style.transform = `rotate(${f.track||0}deg)`;
                 if(isSel !== el.firstChild.classList.contains('sel')) { if(isSel) el.firstChild.classList.add('sel'); else el.firstChild.classList.remove('sel'); el.firstChild.src = uri; }
             }
@@ -553,6 +496,11 @@ function startAnimation(){
           const tRad = (f.track||0) * Math.PI/180, sMs = f.velocity * 0.514444, dM = sMs * dt;
           f.curLat += (dM * Math.cos(tRad))/111320; 
           f.curLon += (dM * Math.sin(tRad))/(111320 * Math.max(0.2, Math.cos(f.lat*Math.PI/180)));
+          // Päivitetään ikoni tiheämmin jos valittuna
+          if (state.selectedIcao === f.icao24) {
+              const marker = state.markers.get(f.icao24);
+              if (marker) marker.setLatLng([f.curLat, f.curLon]);
+          }
       }
     }
 
@@ -598,6 +546,43 @@ function renderList(){
   }).join('');
 }
 
+// UUSI ROBUSTIKUVA-HAKU (Ohittaa CORS-ongelmat parhaansa mukaan)
+async function fetchAircraftImage(icao24, reg) {
+    if(state.photoCache.has(icao24)) return state.photoCache.get(icao24);
+    
+    try {
+        // Yritetään ensin uutta, avoimempaa Airport-Data API:a
+        const url = `https://airport-data.com/api/ac_thumb.json?m=${icao24.toLowerCase()}`;
+        const res = await fetch(url);
+        if(res.ok) {
+            const data = await res.json();
+            if(data.data && data.data.length > 0 && data.data[0].image) {
+                return data.data[0].image;
+            }
+        }
+    } catch(e) {}
+    
+    try {
+        // Fallback 1: AdsbdB kuvat jos löytyy
+        const url2 = `https://api.adsbdb.com/v0/aircraft/${icao24.toLowerCase()}`;
+        const res2 = await fetch(url2);
+        if(res2.ok) {
+            const data = await res2.json();
+            if(data.response && data.response.aircraft && data.response.aircraft.url_photo) {
+                return data.response.aircraft.url_photo;
+            }
+        }
+    } catch(e) {}
+    
+    // Fallback 2: Ohjataan proxykuvaan duckduckgosta jos rekisteri on tiedossa
+    if (reg && reg !== '—') {
+        // Duckduckgo image proxy (turvallinen)
+        return `https://external-content.duckduckgo.com/iu/?u=https://tse1.mm.bing.net/th?q=aircraft+${reg}`;
+    }
+    
+    return null;
+}
+
 window.openDetailUI = async function(icao24) {
   if(navigator.vibrate) navigator.vibrate(15);
   state.selectedIcao = icao24; const f = state.flights.get(icao24); if(!f) return;
@@ -606,6 +591,7 @@ window.openDetailUI = async function(icao24) {
   $('island').classList.add('focus'); $('ifCall').textContent = f.callsign; $('hudWrap').classList.add('show');
   
   $('dCall').textContent = f.callsign; 
+  $('dBarcode').textContent = `| |||| || ${icao24.toUpperCase()} || |`;
   $('dTrack').textContent = fmtHeading(f.track); $('dVRate').textContent = fmtVRate(f.vertical_rate);
   $('dSquawk').textContent = f.squawk; $('dIcao').textContent = f.icao24.toUpperCase();
   $('dModel').textContent = f.desc || (f.type !== 'Unknown' ? f.type : 'Loading...'); $('dReg').textContent = f.reg;
@@ -614,29 +600,20 @@ window.openDetailUI = async function(icao24) {
   const specs = aircraftSpecs[f.type];
   if(specs) { $('dPax').textContent = specs.pax; $('dMtow').textContent = specs.mtow; $('dFuel').textContent = specs.fuel; $('dLen').textContent = specs.len; }
   
-  // Airline Branding
   const code3 = f.callsign.substring(0,3).toUpperCase();
   $('dAirline').textContent = airlines[code3] || 'Commercial Flight';
 
   updateOverheadUI(f); updateWidgets(f);
-  $('wLoc').textContent = "Scanning...";
-  fetchLocation(f.curLat, f.curLon, icao24);
-  
   state.map.setView([f.curLat, f.curLon], 9, {animate:true}); updateMarkers(); 
 
-  if(!state.photoCache.has(icao24)) {
-      $('dHero').style.opacity = '0';
-      try {
-          const res = await fetch(`https://api.planespotters.net/pub/photos/hex/${icao24.toLowerCase()}`);
-          if(res.ok) {
-              const data = await res.json();
-              if(data.photos?.length) {
-                  state.photoCache.set(icao24, data.photos[0].thumbnail_large.src);
-                  $('dHero').src = data.photos[0].thumbnail_large.src; $('dHero').style.opacity = '1'; renderList();
-              }
-          }
-      } catch(e){}
-  } else { $('dHero').src = state.photoCache.get(icao24); $('dHero').style.opacity = '1'; }
+  // Ladataan kuva uudella logiikalla
+  $('dHero').style.opacity = '0';
+  const imageUrl = await fetchAircraftImage(icao24, f.reg);
+  if (imageUrl) {
+      state.photoCache.set(icao24, imageUrl);
+      $('dHero').src = imageUrl; 
+      $('dHero').onload = () => { $('dHero').style.opacity = '1'; renderList(); };
+  }
 
   try {
       const dbRes = await fetch(`https://api.adsbdb.com/v0/aircraft/${icao24.toLowerCase()}`).then(r=>r.json());
