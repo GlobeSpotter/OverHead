@@ -135,7 +135,6 @@ body { user-select: none; }
 .card-call { font-size: 17px; font-weight: 600; letter-spacing: -0.02em; color: var(--label-primary); }
 .card-sub { margin-top: 3px; color: var(--label-secondary); font-size: 14px; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.01em; }
 .card-stats { text-align: right; }
-/* "GET" button style for the list */
 .get-btn-small { background: var(--apple-gray-fill); color: var(--apple-blue); font-size: 14px; font-weight: 700; padding: 6px 16px; border-radius: 16px; display: inline-block; }
 
 /* APP STORE DETAIL VIEW */
@@ -211,7 +210,7 @@ body { user-select: none; }
 
 <!-- SIDE ACTION BUTTONS -->
 <div class="side-controls">
-  <button class="fab" id="turkuBtn">TKU</button>
+  <button class="fab" id="turkuBtn" style="font-weight: 700; font-size: 15px;">TKU</button>
   <button class="fab" id="sheetBtn">
     <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
   </button>
@@ -224,11 +223,11 @@ body { user-select: none; }
     <div class="sheet-date" id="sheetDate">TODAY</div>
     <div class="sheet-title-row">
       <div class="sheet-title">Live Radar</div>
-      <div class="sheet-count" id="sheetSub">Updating...</div>
+      <div class="sheet-count" id="sheetSub">Fetching data...</div>
     </div>
   </div>
   <div class="sheet-list" id="flightList">
-    <div class="empty">Loading local airspace...</div>
+    <div class="empty">Scanning local airspace...</div>
   </div>
 </div>
 
@@ -272,7 +271,7 @@ body { user-select: none; }
 <script>
 const $ = id => document.getElementById(id);
 
-// Set current date for "Today" header
+// Set current date for App Store "Today" header
 const todayOptions = { weekday: 'long', month: 'long', day: 'numeric' };
 $('sheetDate').textContent = new Date().toLocaleDateString('en-US', todayOptions).toUpperCase();
 
@@ -283,16 +282,15 @@ const state = {
   markers: new Map()
 };
 
+// HIGH QUALITY ICONS
 const planeBlueURI = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z' fill='%23007AFF' stroke='%23FFFFFF' stroke-width='0.5'/%3E%3C/svg%3E";
 const planeGreenURI = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z' fill='%2334C759' stroke='%23FFFFFF' stroke-width='1'/%3E%3C/svg%3E";
 
-// Formatting Utilities
-function fmtFt(m){ return m==null?'—':Math.round(m*3.28084).toLocaleString('en-US')+' FT'; }
-function fmtKt(ms){ return ms==null?'—':Math.round(ms*1.94384)+' KT'; }
-function fmtVRate(ms) {
-    if (!ms) return 'Level';
-    const fpm = Math.round(ms * 196.85); 
-    return fpm > 0 ? `↗ ${fpm} ft/m` : `↘ ${Math.abs(fpm)} ft/m`;
+function fmtFt(alt, isGround){ return isGround ? 'GROUND' : (alt==null?'—':Math.round(alt).toLocaleString('en-US')+' FT'); }
+function fmtKt(ms){ return ms==null?'—':Math.round(ms)+' KT'; } // ADSB.lol returns pure KNOTS
+function fmtVRate(fpm) {
+    if (!fpm) return 'Level';
+    return fpm > 0 ? `↗ ${Math.round(fpm)} ft/m` : `↘ ${Math.abs(Math.round(fpm))} ft/m`; // ADSB.lol returns FEET/MIN
 }
 function fmtHeading(deg) {
     if (deg == null) return '—';
@@ -346,29 +344,47 @@ function updateMarkers() {
     }
 }
 
-// ---------- 2. DATA FETCH ----------
+// ---------- 2. THE NEW ADSB.LOL ENGINE (NO MORE RATE LIMITS!) ----------
 async function fetchFlights(){
-  $('mapStatusText').textContent = 'Updating...';
+  $('mapStatusText').textContent = 'Connecting...';
   try{
-    let url = `https://opensky-network.org/api/states/all`;
-    if(state.map && state.map.getZoom() >= 5) {
-        const bounds = state.map.getBounds();
-        url += `?lamin=${Math.max(-90, bounds.getSouth())}&lomin=${Math.max(-180, bounds.getWest())}&lamax=${Math.min(90, bounds.getNorth())}&lomax=${Math.min(180, bounds.getEast())}`;
-    }
+    const center = state.map ? state.map.getCenter() : {lat: state.userLat, lng: state.userLon};
+    const zoom = state.map ? state.map.getZoom() : 6;
+    let radius = 250; 
+    if(zoom <= 5) radius = 500;
+    if(zoom <= 4) radius = 1000;
+    
+    // PURE MAGIC: Unlimited, 100% Free API without IP Bans. Returns exact speed and altitude metrics.
+    const url = `https://api.adsb.lol/v2/lat/${center.lat.toFixed(3)}/lon/${center.lng.toFixed(3)}/dist/${radius}`;
 
     const res = await fetch(url);
-    if(!res.ok) { if(res.status === 429) throw new Error('RateLimit'); throw new Error('API'); }
+    if(!res.ok) throw new Error('API');
     const json = await res.json();
-    if(!json.states) json.states = [];
+    if(!json.ac) json.ac = [];
     
     const now = Date.now();
-    let arr = json.states.map(s => {
-      if(s[6]==null || s[5]==null) return null;
+    let arr = json.ac.map(a => {
+      if(a.lat==null || a.lon==null) return null;
+      
+      const isGround = a.alt_baro === 'ground';
+      const altFeet = isGround ? 0 : (a.alt_baro || a.alt_geom || 0);
+      const speedKnots = a.gs || 0;
+      const vRateFpm = a.baro_rate || 0;
+
       return {
-        icao24: s[0], callsign: (s[1]||'').trim()||s[0].toUpperCase(), country: s[2]||'—',
-        lon: s[5], lat: s[6], baro_alt: s[7], on_ground: !!s[8], velocity: s[9], track: s[10]||0,
-        vertical_rate: s[11], geo_alt: s[13], squawk: s[14] || '—', sampleTime: now, curLat: s[6], curLon: s[5], 
-        dist: haversine(state.userLat, state.userLon, s[6], s[5])
+        icao24: a.hex, 
+        callsign: (a.flight||'').trim() || a.hex.toUpperCase(), 
+        type: a.t || 'Unknown Model',
+        reg: a.r || 'Unknown Reg',
+        lon: a.lon, lat: a.lat, 
+        baro_alt: altFeet, 
+        on_ground: isGround, 
+        velocity: speedKnots, 
+        track: a.track || 0,
+        vertical_rate: vRateFpm, 
+        squawk: a.squawk || '—', 
+        sampleTime: now, curLat: a.lat, curLon: a.lon, 
+        dist: haversine(state.userLat, state.userLon, a.lat, a.lon)
       };
     }).filter(Boolean);
 
@@ -382,19 +398,14 @@ async function fetchFlights(){
     
   }catch(e){ 
       $('dotStatus').classList.add('warn');
-      if(e.message === 'RateLimit') {
-          $('mapStatusText').textContent = 'API Cooling down';
-          $('sheetSub').textContent = 'Auto-retrying in 1 min';
-      } else {
-          $('mapStatusText').textContent = 'Network Error';
-      }
+      $('mapStatusText').textContent = 'Network Error';
   } finally{ 
       renderList(); updateMarkers();
-      setTimeout(fetchFlights, 15000); 
+      setTimeout(fetchFlights, 12000); // 12 seconds is standard for ADSB.lol
   } 
 }
 
-// ---------- 3. ANIMATION ----------
+// ---------- 3. SMOOTH ANIMATION ----------
 function startAnimation(){
   setInterval(() => { updateMarkers(); }, 1000);
 
@@ -406,7 +417,8 @@ function startAnimation(){
     for(const f of state.flights.values()){
       if(f.velocity && !f.on_ground) {
           const trackRad = (f.track||0) * Math.PI/180;
-          const distM = f.velocity * dt;
+          const speedMs = f.velocity * 0.514444; // Knots to m/s interpolation
+          const distM = speedMs * dt;
           f.curLat += (distM * Math.cos(trackRad))/111320; 
           f.curLon += (distM * Math.sin(trackRad))/(111320 * Math.max(0.2, Math.cos(f.lat*Math.PI/180)));
       }
@@ -416,11 +428,10 @@ function startAnimation(){
       const sf = state.flights.get(state.selectedIcao);
       if(sf) {
           sf.dist = haversine(state.userLat, state.userLon, sf.curLat, sf.curLon);
-          const alt = sf.baro_alt??sf.geo_alt;
-          $('dAlt').textContent=fmtFt(alt); 
+          $('dAlt').textContent=fmtFt(sf.baro_alt, sf.on_ground); 
           $('dSpd').textContent=fmtKt(sf.velocity);
           $('dDist').textContent = sf.dist.toFixed(1) + ' km';
-          $('hudAlt').textContent=fmtFt(alt); 
+          $('hudAlt').textContent=fmtFt(sf.baro_alt, sf.on_ground); 
           $('hudSpd').textContent=fmtKt(sf.velocity);
       }
     }
@@ -428,30 +439,28 @@ function startAnimation(){
   requestAnimationFrame(tick);
 }
 
-// ---------- 4. UI UPDATES ----------
+// ---------- 4. UI RENDER ----------
 function renderList(){
   const q = state.search?.trim().toLowerCase() || "";
   let arr = [...state.flights.values()].sort((a,b) => (a.dist??999) - (b.dist??999));
   if(q) arr = arr.filter(f => (f.callsign||'').toLowerCase().includes(q));
   
   if(!arr.length){ 
-      if($('mapStatusText').textContent.includes('Cool')) {
-          $('flightList').innerHTML = '<div class="empty" style="margin-top: 40px;"><div style="font-size:32px;margin-bottom:10px;">⏳</div>API Rate Limit Reached.<br>Please wait approx 1-2 minutes<br>for real-time data to resume.</div>';
-      } else {
-          $('flightList').innerHTML = '<div class="empty">Loading airspace...</div>'; 
-      }
+      $('flightList').innerHTML = '<div class="empty">Scanning local airspace...</div>'; 
       return; 
   }
 
   $('flightList').innerHTML = arr.slice(0,80).map(f => {
     const img = state.photoCache.get(f.icao24);
     const imgHtml = img ? `<img src="${img}"/>` : `<svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>`;
+    // New subtitle: shows Type and Registration instantly!
+    const subText = `${f.type} • ${f.reg}`.replace(/[<>]/g,'');
     return `
     <div class="card" onclick="openDetailUI('${f.icao24}')">
       <div class="plane-badge">${imgHtml}</div>
       <div class="card-main">
         <div class="card-call">${(f.callsign||'').replace(/[<>]/g,'')}</div>
-        <div class="card-sub">${(f.country||'').replace(/[<>]/g,'')}</div>
+        <div class="card-sub">${subText}</div>
       </div>
       <div class="card-stats">
         <div class="get-btn-small">${f.dist.toFixed(0)} KM</div>
@@ -465,27 +474,25 @@ window.openDetailUI = async function(icao24) {
   state.selectedIcao = icao24; const f = state.flights.get(icao24); if(!f) return;
 
   $('detail').classList.add('open'); 
-  // Let bottom sheet slide down slightly when modal opens
   $('sheet').style.transform = 'translateY(100%)'; 
   
   $('island').classList.add('focus'); $('ifCall').textContent = f.callsign;
   $('hudWrap').classList.add('show');
   
   $('dCall').textContent = f.callsign; 
-  $('dRoute').textContent = f.country;
+  $('dRoute').textContent = 'Loading Operator...';
   $('dTrack').textContent = fmtHeading(f.track);
   $('dVRate').textContent = fmtVRate(f.vertical_rate);
   $('dSquawk').textContent = f.squawk;
   $('dIcao').textContent = f.icao24.toUpperCase();
   $('dDist').textContent = f.dist.toFixed(1) + ' km';
   
-  $('dModel').textContent = 'Loading details...'; 
-  $('dOperator').textContent = 'Loading...';
-  $('dReg').textContent = '—';
+  // Instantly loaded from ADSB.lol!
+  $('dModel').textContent = f.type !== 'Unknown Model' ? f.type : 'Loading...'; 
+  $('dReg').textContent = f.reg !== 'Unknown Reg' ? f.reg : '—';
   
   state.map.setView([f.curLat, f.curLon], 9, {animate:true}); updateMarkers(); 
 
-  // Image load
   if(!state.photoCache.has(icao24)) {
       $('dHero').innerHTML = `<svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>`;
       try {
@@ -503,17 +510,17 @@ window.openDetailUI = async function(icao24) {
       $('dHero').innerHTML = `<img src="${state.photoCache.get(icao24)}"/>`;
   }
 
-  // Database Load
+  // Fallback to fetch registered owner (Operator)
   try {
       const dbRes = await fetch(`https://api.adsbdb.com/v0/aircraft/${icao24.toLowerCase()}`).then(r=>r.json());
       const m = dbRes?.response?.aircraft;
       if(m) {
-          $('dModel').textContent = `${m.manufacturer} ${m.type}`;
+          if (f.type === 'Unknown Model') $('dModel').textContent = `${m.manufacturer} ${m.type}`;
           $('dOperator').textContent = m.registered_owner || m.icao_type || '—';
-          $('dReg').textContent = m.registration || '—'; 
+          $('dRoute').textContent = m.registered_owner || m.icao_type || f.reg;
       } else {
-          $('dModel').textContent = 'Unknown Aircraft';
           $('dOperator').textContent = 'Data unavailable';
+          $('dRoute').textContent = f.reg;
       }
   } catch(e){}
 }
@@ -521,7 +528,7 @@ window.openDetailUI = async function(icao24) {
 $('detailClose').addEventListener('click', () => {
     state.selectedIcao = null; 
     $('detail').classList.remove('open'); 
-    $('sheet').style.transform = 'translateY(0)'; // Bring sheet back
+    $('sheet').style.transform = 'translateY(0)'; 
     $('island').classList.remove('focus');
     $('hudWrap').classList.remove('show'); 
     renderList(); updateMarkers();
@@ -547,7 +554,7 @@ window.onload = () => {
     initMap();
     setUserLocation(60.4518, 22.2666, 6);
     startAnimation();
-    setTimeout(fetchFlights, 800); 
+    setTimeout(fetchFlights, 600); 
 };
 </script>
 </body>
