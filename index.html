@@ -12,7 +12,7 @@
 <title>Overhead</title>
 
 <!-- LEAFLET -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+//unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <style>
@@ -161,8 +161,15 @@ body { user-select: none; background: #000;}
 .w-class { font-size: 13px; font-weight: 800; opacity: 0.9; letter-spacing: 0.08em; text-transform: uppercase; z-index: 2; position: relative; background: rgba(0,0,0,0.2); padding: 4px 10px; border-radius: 10px;}
 
 .w-progress-container { padding: 32px 28px 20px; display: flex; justify-content: space-between; align-items: center; }
-.w-city { display: flex; flex-direction: column; flex: 1; }
+
+/* KAUPUNKIKUVIEN TYOKAULU */
+.w-city { display: flex; flex-direction: column; flex: 1; position: relative; }
 .w-city.right { align-items: flex-end; text-align: right; }
+.city-avatar { width: 34px; height: 34px; border-radius: 17px; background: var(--bg-secondary); margin-bottom: 8px; border: 2px solid var(--bg-secondary); overflow: hidden; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.1); opacity: 0; transition: opacity 0.5s ease;}
+.city-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.city-avatar.show { opacity: 1; }
+.city-icon-placeholder { width: 16px; height: 16px; fill: var(--label-tertiary); opacity: 0.5; }
+
 .w-code { font-size: 38px; font-weight: 300; color: var(--label-primary); letter-spacing: -0.05em; line-height: 1; font-family: -apple-system, "SF Pro Display", sans-serif;}
 .w-city-name { font-size: 13px; font-weight: 600; color: var(--label-secondary); margin-top: 6px; letter-spacing: -0.01em;}
 
@@ -248,10 +255,10 @@ body { user-select: none; background: #000;}
   <div class="island" id="island">
     <div class="brand">
         <div class="brand-icon"><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div>
-        <!-- V53! -->
-        <div class="brand-text">Over<span>head</span> <span class="v-badge">v53</span></div>
+        <!-- V54: CITY IMAGES! -->
+        <div class="brand-text">Over<span>head</span> <span class="v-badge">v54</span></div>
     </div>
-    <div class="searchbox"><svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><input id="searchInput" placeholder="Search callsign..." autocomplete="off" autocorrect="off" spellcheck="false" /></div>
+    <div class="searchbox"><svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">ircle cx="11" cy="11" r="8"></circle>e x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><input id="searchInput" placeholder="Search callsign..." autocomplete="off" autocorrect="off" spellcheck="false" /></div>
     <div class="island-flight" id="islandFlight"><div class="if-main"><div class="if-call" id="ifCall">FLIGHT</div><div class="if-route" id="ifRoute">Tracking Active</div></div></div>
     <div class="island-actions"><button class="icon-btn" id="gpsBtn" title="Location"><svg viewBox="0 0 24 24"><path d="M12 2L2 22l10-4 10 4L12 2z"/></svg></button></div>
   </div>
@@ -306,11 +313,15 @@ body { user-select: none; background: #000;}
               
               <div class="w-progress-container">
                   <div class="w-city">
+                      <!-- LÄHTÖKAUPUNGIN KUVA -->
+                      <div class="city-avatar" id="depAvatarWrap">
+                          <svg class="city-icon-placeholder" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                          <img id="depAvatar" src="" style="display:none;" />
+                      </div>
                       <div class="w-code" id="bpDep">DEP</div>
                       <div class="w-city-name" id="bpDepName">Origin</div>
                   </div>
                   
-                  <!-- UUSI MATKALENTO SVG TIMELINE -->
                   <div class="w-timeline">
                       <svg class="path-svg" id="flightPathSvg" viewBox="0 0 200 50" preserveAspectRatio="none">
                           <path id="pathBg" class="path-bg" d="M 10 40 C 30 40, 40 10, 60 10 L 140 10 C 160 10, 170 40, 190 40"></path>
@@ -321,6 +332,11 @@ body { user-select: none; background: #000;}
                   </div>
 
                   <div class="w-city right">
+                      <!-- MÄÄRÄNPÄÄN KUVA -->
+                      <div class="city-avatar" id="arrAvatarWrap">
+                           <svg class="city-icon-placeholder" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
+                          <img id="arrAvatar" src="" style="display:none;" />
+                      </div>
                       <div class="w-code" id="bpArr">ARR</div>
                       <div class="w-city-name" id="bpArrName">Destination</div>
                   </div>
@@ -419,7 +435,6 @@ const $ = id => document.getElementById(id);
 const todayOptions = { weekday: 'long', month: 'long', day: 'numeric' };
 $('sheetDate').textContent = new Date().toLocaleDateString('en-US', todayOptions).toUpperCase();
 
-// Täydellinen dictionary
 const airlines = { 
     "FIN": {n:"Finnair", c:"#0B1560"}, "RYR": {n:"Ryanair", c:"#073590"}, 
     "NAX": {n:"Norwegian", c:"#D81939"}, "SAS": {n:"SAS", c:"#00355E"}, 
@@ -438,7 +453,7 @@ const aircraftSpecs = {
     "A320": {"len": "37.57 m", "mtow": "78,000 kg", "pax": "150-180", "fuel": "24,210 L"}, "A20N": {"len": "37.57 m", "mtow": "79,000 kg", "pax": "150-180", "fuel": "26,730 L"}, "A321": {"len": "44.51 m", "mtow": "93,500 kg", "pax": "185-230", "fuel": "24,050 L"}, "A21N": {"len": "44.51 m", "mtow": "97,000 kg", "pax": "185-244", "fuel": "32,940 L"}, "A319": {"len": "33.84 m", "mtow": "75,500 kg", "pax": "124-156", "fuel": "24,210 L"}, "A333": {"len": "63.66 m", "mtow": "242,000 kg", "pax": "250-440", "fuel": "139,090 L"}, "A359": {"len": "66.80 m", "mtow": "280,000 kg", "pax": "300-350", "fuel": "141,000 L"}, "B738": {"len": "39.50 m", "mtow": "79,000 kg", "pax": "162-189", "fuel": "26,020 L"}, "B739": {"len": "42.10 m", "mtow": "85,100 kg", "pax": "177-215", "fuel": "29,660 L"}, "B38M": {"len": "39.50 m", "mtow": "82,190 kg", "pax": "162-210", "fuel": "25,816 L"}, "B77W": {"len": "73.90 m", "mtow": "351,500 kg", "pax": "314-396", "fuel": "181,280 L"}, "B789": {"len": "63.00 m", "mtow": "254,000 kg", "pax": "290-330", "fuel": "126,372 L"}, "BCS3": {"len": "38.70 m", "mtow": "67,585 kg", "pax": "130-160", "fuel": "17,580 L"}, "CRJ9": {"len": "36.20 m", "mtow": "38,330 kg", "pax": "76-90", "fuel": "11,148 L"}, "AT76": {"len": "27.17 m", "mtow": "23,000 kg", "pax": "70-78", "fuel": "6,400 L"}, "E190": {"len": "36.24 m", "mtow": "51,800 kg", "pax": "96-114", "fuel": "16,250 L"}
 };
 
-const state = { map: null, userLat: 60.4518, userLon: 22.2666, flights: new Map(), selectedIcao: null, photoCache: new Map(), routeCache: new Map(), markers: new Map() };
+const state = { map: null, userLat: 60.4518, userLon: 22.2666, flights: new Map(), selectedIcao: null, photoCache: new Map(), routeCache: new Map(), cityImages: new Map(), markers: new Map() };
 
 const planeBlueURI = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z' fill='%23007AFF' stroke='%23FFFFFF' stroke-width='0.5'/%3E%3C/svg%3E";
 const planeGreenURI = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z' fill='%2334C759' stroke='%23FFFFFF' stroke-width='1'/%3E%3C/svg%3E";
@@ -466,15 +481,11 @@ function calculateOverhead(f) {
     return { status: 'none', text: 'Not Crossing' };
 }
 
-// UUSI: LENTOREITIN MATKALENTO-SVG PÄIVITYS
 function updateFlightPath(progressPct, altitudeFt) {
     let altRatio = Math.min((altitudeFt || 0) / 35000, 1.0);
     if (altRatio < 0) altRatio = 0;
     let peakY = 40 - (30 * altRatio); 
 
-    // UUSI REITTIPROFIILI: Nousu -> Suora matkalento -> Lasku
-    // M 10 40 (Lähtö maasta) -> C 30 40, 40 peakY, 60 peakY (Nousukäyrä matkakorkeuteen)
-    // L 140 peakY (Tasainen matkalento) -> C 160 peakY, 170 40, 190 40 (Laskukäyrä maahan)
     let pathD = `M 10 40 C 30 40, 40 ${peakY}, 60 ${peakY} L 140 ${peakY} C 160 ${peakY}, 170 40, 190 40`;
     $('pathBg').setAttribute('d', pathD);
     $('pathFill').setAttribute('d', pathD);
@@ -507,7 +518,6 @@ function updateFlightPath(progressPct, altitudeFt) {
     icon.style.transform = `rotate(${90 + angle}deg)`;
 }
 
-// UUSI: LASKETTU SÄÄ FYSIIKAN MUKAAN
 function updateFlightConditions(f) {
     if(!f) return;
     const hexNum = parseInt(f.icao24, 16) || 0;
@@ -518,21 +528,20 @@ function updateFlightConditions(f) {
         $('dTurbDot').className = 'turb-dot smooth';
         $('dTurbWave').className = 'turb-wave shake-smooth';
     } else {
-        // Ulkolämpötila laskee n. 1.98°C per 1000 ft (International Standard Atmosphere).
         let tempC = 15 - ((f.baro_alt / 1000) * 1.98); 
-        if(tempC < -56.5) tempC = -56.5; // Stratosfääri pysyy n. -56 asteessa
+        if(tempC < -56.5) tempC = -56.5; 
         $('dOAT').textContent = `${Math.round(tempC)}°C`;
         
         let baseWind = Math.floor(f.baro_alt / 400); 
-        let windSpeed = Math.min(160, baseWind + (hexNum % 30)); // Korkeammalla kovempi tuuli (Jet stream)
+        let windSpeed = Math.min(160, baseWind + (hexNum % 30)); 
         let windType = (hexNum % 3 === 0) ? 'Crosswind' : ((hexNum % 2 === 0) ? 'Tailwind' : 'Headwind');
         if (windSpeed < 5) windType = 'Light';
         $('dWind').textContent = `${windSpeed} kt ${windType}`;
         
         const timeNoise = Math.floor(Date.now() / 60000) % 10;
         let turbScore = (hexNum + timeNoise) % 10;
-        if (Math.abs(f.vertical_rate) > 1500) turbScore += 2; // Kova nousu/lasku = pomppuisempaa
-        if (f.baro_alt < 10000 && f.baro_alt > 1000) turbScore += 3; // Alapilvissä pomppuisempaa
+        if (Math.abs(f.vertical_rate) > 1500) turbScore += 2; 
+        if (f.baro_alt < 10000 && f.baro_alt > 1000) turbScore += 3; 
         
         if (turbScore < 6) {
             $('dTurbTxt').textContent = 'Smooth';
@@ -550,7 +559,6 @@ function updateFlightConditions(f) {
     }
 }
 
-// UUSI: HAE OIKEA LÄHTÖ JA MÄÄRÄNPÄÄ (API)
 async function fetchFlightRoute(callsign) {
     if(!callsign || callsign.length < 3) return null;
     let cleanCall = callsign.replace(/[<>]/g,'').trim();
@@ -574,6 +582,32 @@ async function fetchFlightRoute(callsign) {
         }
     } catch(e) {}
     return null;
+}
+
+// UUSI: CITY IMAGE FETCH
+function getCityImageUrl(cityName) {
+    if (!cityName || cityName === 'Unknown') return null;
+    if (state.cityImages.has(cityName)) return state.cityImages.get(cityName);
+    // Käytetään ilmaista Source Unsplash URL:ia, joka hakee keywordilla neliönmallisen pienen kuvan
+    const url = `https://source.unsplash.com/100x100/?${encodeURIComponent(cityName)},city`;
+    state.cityImages.set(cityName, url);
+    return url;
+}
+
+function updateCityAvatar(elId, wrapId, cityName) {
+    const imgEl = $(elId);
+    const wrapEl = $(wrapId);
+    if (!cityName || cityName === 'Unknown') {
+        wrapEl.classList.remove('show');
+        imgEl.style.display = 'none';
+        return;
+    }
+    const url = getCityImageUrl(cityName);
+    if (url) {
+        imgEl.onload = () => { imgEl.style.display = 'block'; wrapEl.classList.add('show'); };
+        imgEl.onerror = () => { wrapEl.classList.remove('show'); imgEl.style.display = 'none'; };
+        imgEl.src = url;
+    }
 }
 
 function initMap(){
@@ -838,11 +872,12 @@ window.openDetailUI = async function(icao24) {
   $('bpGate').textContent = gates[hexNum % gates.length];
   $('bpSeat').textContent = seats[(hexNum * 3) % seats.length];
   
-  // Nollaa reittikentät siksi aikaa kun haetaan
+  // Nollaa reittikentät ja avatarit siksi aikaa kun haetaan
   $('bpDep').textContent = '—'; $('bpDepName').textContent = 'Fetching...';
   $('bpArr').textContent = '—'; $('bpArrName').textContent = 'Fetching...';
+  updateCityAvatar('depAvatar', 'depAvatarWrap', null);
+  updateCityAvatar('arrAvatar', 'arrAvatarWrap', null);
 
-  // HAE OIKEA REITTIDATA (ADSBDB)
   if(f.callsign) {
       fetchFlightRoute(f.callsign).then(route => {
           if(route) {
@@ -850,6 +885,10 @@ window.openDetailUI = async function(icao24) {
               $('bpDepName').textContent = route.depName;
               $('bpArr').textContent = route.arr;
               $('bpArrName').textContent = route.arrName;
+              
+              // Päivitä kaupunkien avatar-kuvat
+              updateCityAvatar('depAvatar', 'depAvatarWrap', route.depName);
+              updateCityAvatar('arrAvatar', 'arrAvatarWrap', route.arrName);
           } else {
               $('bpDep').textContent = 'N/A'; $('bpDepName').textContent = 'Unknown Origin';
               $('bpArr').textContent = 'N/A'; $('bpArrName').textContent = 'Unknown Dest';
