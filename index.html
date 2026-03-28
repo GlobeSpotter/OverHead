@@ -28,6 +28,7 @@
   --apple-blue-press: #0062CC;
   --apple-green: #34C759;
   --apple-orange: #FF9F0A;
+  --apple-purple: #AF52DE;
   
   --apple-gray-fill: rgba(118, 118, 128, 0.08);
   --apple-gray-press: rgba(118, 118, 128, 0.16);
@@ -67,7 +68,6 @@
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
-/* APPLE TYPOGRAPHY */
 html, body { 
   margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; 
   background: var(--bg-primary); color: var(--label-primary); 
@@ -140,17 +140,15 @@ body { user-select: none; }
 .fab svg { width: 22px; height: 22px; fill: currentColor; }
 .fab:active { transform: scale(0.85); background: var(--apple-gray-press); }
 
-/* BOTTOM SHEET - CORE UI (Nyt molemmat näkymät toimivat täällä) */
+/* BOTTOM SHEET - CORE UI */
 .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 1800; border-radius: 38px 38px 0 0; background: var(--glass-sheet); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); border-top: 0.5px solid var(--glass-border); box-shadow: var(--shadow-sheet), var(--glass-highlight); overflow: hidden; transition: transform .5s var(--spring), height .5s var(--spring); height: 200px; padding-bottom: env(safe-area-inset-bottom); display: flex; flex-direction: column; }
 
-/* 3 Tilaa: Normaali (200px), Puolikas (450px), Koko näyttö (90vh) */
 .sheet.expanded { height: min(50vh, 450px); }
 .sheet.full { height: min(90vh, 850px); }
 
 .sheet-grab { display: flex; justify-content: center; align-items: center; padding: 12px 0; cursor: pointer; flex-shrink: 0; }
 .sheet-grab div { width: 40px; height: 5px; border-radius: 3px; background: rgba(118,118,128,0.3); }
 
-/* Kontainerit eri näkymille Sheetin sisällä */
 .sheet-content { position: relative; flex: 1; width: 100%; overflow: hidden; }
 .view { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transition: opacity 0.4s ease, transform 0.4s var(--spring); overflow-y: auto; }
 .view::-webkit-scrollbar { display: none; }
@@ -188,7 +186,12 @@ body { user-select: none; }
 .d-icon svg { width: 36px; height: 36px; fill: var(--label-tertiary); }
 .d-titles { flex: 1; display: flex; flex-direction: column; }
 .d-call { font-size: 28px; font-weight: 800; letter-spacing: -0.04em; color: var(--label-primary); line-height: 1.1; }
-.d-route { margin-top: 2px; font-size: 15px; font-weight: 500; color: var(--label-secondary); }
+
+/* OVERHEAD STATUS IN HEADER */
+.overhead-badge { margin-top: 4px; display: inline-flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 700; padding: 4px 8px; border-radius: 8px; align-self: flex-start; }
+.overhead-badge.approaching { background: rgba(52, 199, 89, 0.15); color: var(--apple-green); }
+.overhead-badge.passed { background: rgba(142, 142, 147, 0.15); color: var(--label-secondary); }
+.overhead-badge.none { display: none; }
 
 .detail-actions { display: flex; gap: 10px; margin-top: 10px; }
 .action-btn { background: var(--apple-blue); color: white; border: none; font-size: 14px; font-weight: 700; padding: 8px 20px; border-radius: 16px; cursor: pointer; transition: transform 0.2s; }
@@ -217,7 +220,6 @@ body { user-select: none; }
 <!-- DYNAMIC ISLAND TOP BAR -->
 <div class="island-wrap">
   <div class="island" id="island">
-    
     <div class="brand">
       <div class="brand-icon">
         <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
@@ -260,7 +262,7 @@ body { user-select: none; }
   </button>
 </div>
 
-<!-- COMPACT BOTTOM SHEET (Kaikki data tässä) -->
+<!-- COMPACT BOTTOM SHEET -->
 <div class="sheet expanded" id="sheet">
   <div class="sheet-grab" id="sheetGrab"><div></div></div>
   
@@ -289,7 +291,10 @@ body { user-select: none; }
             </div>
             <div class="d-titles">
               <div class="d-call" id="dCall">FLIGHT</div>
-              <div class="d-route" id="dRoute">Loading...</div>
+              
+              <!-- UUSI OVERHEAD STATUS BADGE -->
+              <div class="overhead-badge none" id="dOverhead">Not Crossing</div>
+              
               <div class="detail-actions">
                   <button class="action-btn" id="trackBtn">Track</button>
                   <button class="action-close" id="detailClose">Close</button>
@@ -373,29 +378,82 @@ const state = {
   markers: new Map()
 };
 
-// ICONS
 const planeBlueURI = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z' fill='%230A84FF' stroke='%23FFFFFF' stroke-width='0.5'/%3E%3C/svg%3E";
 const planeGreenURI = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z' fill='%2334C759' stroke='%23FFFFFF' stroke-width='1'/%3E%3C/svg%3E";
 
 function fmtFt(alt, isGround){ return isGround ? 'GROUND' : (alt==null?'—':Math.round(alt).toLocaleString('en-US')+' FT'); }
 function fmtKt(ms){ return ms==null?'—':Math.round(ms)+' KT'; } 
-function fmtVRate(fpm) {
-    if (!fpm) return 'Level';
-    return fpm > 0 ? `↗ ${Math.round(fpm)} ft/m` : `↘ ${Math.abs(Math.round(fpm))} ft/m`; 
-}
-function fmtHeading(deg) {
-    if (deg == null) return '—';
-    const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'];
-    return `${Math.round(deg)}° ${dirs[Math.round(deg / 45) % 8]}`;
-}
+function fmtVRate(fpm) { if (!fpm) return 'Level'; return fpm > 0 ? `↗ ${Math.round(fpm)} ft/m` : `↘ ${Math.abs(Math.round(fpm))} ft/m`; }
+function fmtHeading(deg) { if (deg == null) return '—'; const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']; return `${Math.round(deg)}° ${dirs[Math.round(deg / 45) % 8]}`; }
 function haversine(lat1, lon1, lat2, lon2){ const R=6371, p=Math.PI/180; const a=Math.sin((lat2-lat1)*p/2)**2 + Math.cos(lat1*p)*Math.cos(lat2*p)*Math.sin((lon2-lon1)*p/2)**2; return R*2*Math.atan2(Math.sqrt(a), Math.sqrt(1-a)); }
+
+// UUSI: OVERHEAD ENGINE
+// Laskee lentokoneen lentosuunnan (track) ja käyttäjän sijainnin välisen suhteen.
+function calculateOverhead(f) {
+    if(!f || !f.velocity || f.on_ground) return null;
+    
+    // 1. Calculate bearing from User to Plane
+    const lat1 = state.userLat * Math.PI/180;
+    const lon1 = state.userLon * Math.PI/180;
+    const lat2 = f.curLat * Math.PI/180;
+    const lon2 = f.curLon * Math.PI/180;
+    
+    const y = Math.sin(lon2-lon1) * Math.cos(lat2);
+    const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(lon2-lon1);
+    const bearingToPlane = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+    
+    // 2. Bearing from Plane to User
+    const bearingToUser = (bearingToPlane + 180) % 360;
+    
+    // 3. Difference between Plane's current Track and the Bearing to User
+    let angleDiff = Math.abs((f.track || 0) - bearingToUser);
+    if(angleDiff > 180) angleDiff = 360 - angleDiff;
+    
+    // Tässä määritetään kulkeeko yli: Jos koneen suunta on < 30 asteen sisällä käyttäjästä
+    const isCrossing = angleDiff < 30; 
+    
+    // Jos etäisyys on pieni (< 5km), se on käytännössä suoraan päällä nyt
+    if (f.dist < 5) return { status: 'overhead', text: 'Directly Overhead' };
+
+    if (isCrossing) {
+        // Kuinka kauan menee saapua tähän pisteeseen nopeudella X
+        const speedKmh = f.velocity * 1.852; 
+        const hours = f.dist / speedKmh;
+        const mins = Math.round(hours * 60);
+        return { status: 'approaching', text: `Overhead in ${mins} min` };
+    } else {
+        // Jos kulma on suuri (> 120), se on jo mennyt ohi
+        if(angleDiff > 120 && f.dist < 50) { // Mennyt ohi ja vielä alle 50km päässä
+            const speedKmh = f.velocity * 1.852;
+            const hours = f.dist / speedKmh;
+            const mins = Math.round(hours * 60);
+            return { status: 'passed', text: `Passed ${mins} min ago` };
+        }
+    }
+    return { status: 'none', text: 'Not Crossing' };
+}
+
+function updateOverheadUI(f) {
+    if(!f) return;
+    const oh = calculateOverhead(f);
+    const badge = $('dOverhead');
+    
+    badge.className = 'overhead-badge'; // reset
+    if(oh && oh.status !== 'none') {
+        badge.classList.add(oh.status);
+        badge.textContent = oh.text;
+        $('ifRoute').textContent = oh.text; // Päivitä myös yläpalkkiin
+    } else {
+        badge.classList.add('none');
+        $('ifRoute').textContent = 'Tracking Active';
+    }
+}
 
 // ---------- 1. MAP ----------
 function initMap(){
   state.map = L.map('map', { zoomControl:false, attributionControl:false, minZoom: 3, maxBounds: [[-90, -180], [90, 180]], maxBoundsViscosity: 1.0 }).setView([state.userLat, state.userLon], 6);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19}).addTo(state.map);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{maxZoom:19, opacity:0.85}).addTo(state.map);
-  
   state.userMarker = L.circleMarker([state.userLat, state.userLon], {radius:8, color:'#fff', weight:3, fillColor:'#0A84FF', fillOpacity:1}).addTo(state.map);
 }
 
@@ -436,7 +494,7 @@ function updateMarkers() {
     }
 }
 
-// ---------- 2. ENGINE (Airplanes.live) ----------
+// ---------- 2. ENGINE ----------
 async function fetchFlights(){
   $('mapStatusText').textContent = 'Updating...';
   try{
@@ -462,17 +520,10 @@ async function fetchFlights(){
       return {
         icao24: a.hex, 
         callsign: (a.flight||'').trim() || a.hex.toUpperCase(), 
-        type: a.t || 'Unknown',
-        desc: a.desc || '', 
-        reg: a.r || '—',
-        lon: a.lon, lat: a.lat, 
-        baro_alt: altFeet, 
-        on_ground: isGround, 
-        velocity: a.gs || 0, 
-        track: a.track || 0,
-        vertical_rate: a.baro_rate || 0, 
-        squawk: a.squawk || '—', 
-        sampleTime: now, curLat: a.lat, curLon: a.lon, 
+        type: a.t || 'Unknown', desc: a.desc || '', reg: a.r || '—',
+        lon: a.lon, lat: a.lat, baro_alt: altFeet, on_ground: isGround, 
+        velocity: a.gs || 0, track: a.track || 0, vertical_rate: a.baro_rate || 0, 
+        squawk: a.squawk || '—', sampleTime: now, curLat: a.lat, curLon: a.lon, 
         dist: haversine(state.userLat, state.userLon, a.lat, a.lon)
       };
     }).filter(Boolean);
@@ -494,7 +545,7 @@ async function fetchFlights(){
   } 
 }
 
-// ---------- 3. SMOOTH 60FPS INTERPOLATION ----------
+// ---------- 3. SMOOTH 60FPS ----------
 function startAnimation(){
   setInterval(() => { updateMarkers(); }, 1000);
 
@@ -522,6 +573,9 @@ function startAnimation(){
           $('dDist').textContent = sf.dist.toFixed(1) + ' km';
           $('hudAlt').textContent=fmtFt(sf.baro_alt, sf.on_ground); 
           $('hudSpd').textContent=fmtKt(sf.velocity);
+          
+          // Päivitetään Overhead-status livenä (esim. minuutit juoksevat alaspäin)
+          updateOverheadUI(sf);
       }
     }
   };
@@ -548,12 +602,19 @@ function renderList(){
     const imgHtml = img ? `<img src="${img}"/>` : `<svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>`;
     const subText = f.reg !== '—' ? `${f.type} • ${f.reg}` : f.type;
     
+    // Lista näyttää nopeasti "Tuleeko yli" tiedon
+    let ohText = '';
+    const oh = calculateOverhead(f);
+    if(oh && oh.status === 'approaching') {
+        ohText = `<span style="color:var(--apple-green); font-size:12px; font-weight:700;">${oh.text}</span>`;
+    }
+    
     return `
     <div class="card" onclick="openDetailUI('${f.icao24}')">
       <div class="plane-badge">${imgHtml}</div>
       <div class="card-main">
         <div class="card-call">${(f.callsign||'').replace(/[<>]/g,'')}</div>
-        <div class="card-sub">${subText}</div>
+        <div class="card-sub">${subText} ${ohText ? ' • '+ohText : ''}</div>
       </div>
       <div class="card-stats">
         <div class="get-btn-small">VIEW</div>
@@ -566,10 +627,7 @@ window.openDetailUI = async function(icao24) {
   if(navigator.vibrate) navigator.vibrate(15);
   state.selectedIcao = icao24; const f = state.flights.get(icao24); if(!f) return;
 
-  // BOTTOM SHEET TILA MUUTTUU: LISTASTA DETAILIKSI
   $('sheet').classList.add('mode-detail');
-  
-  // Laitetaan Sheet automaattisesti kokonaan ylös detail-tilassa
   $('sheet').classList.add('full');
   $('sheet').classList.remove('expanded');
   
@@ -577,7 +635,6 @@ window.openDetailUI = async function(icao24) {
   $('hudWrap').classList.add('show');
   
   $('dCall').textContent = f.callsign; 
-  $('dRoute').textContent = f.reg !== '—' ? f.reg : 'Loading...';
   
   $('dTrack').textContent = fmtHeading(f.track);
   $('dVRate').textContent = fmtVRate(f.vertical_rate);
@@ -588,24 +645,13 @@ window.openDetailUI = async function(icao24) {
   $('dModel').textContent = f.desc || (f.type !== 'Unknown' ? f.type : 'Loading...'); 
   $('dReg').textContent = f.reg;
   
-  // Nollaa vanhat luvut
-  $('dPax').textContent = '—';
-  $('dMtow').textContent = '—';
-  $('dFuel').textContent = '—';
-  $('dLen').textContent = '—';
-
-  // Ladataan lentokoneen tarkat speksit sisäänrakennetusta tietokannasta, jos löytyy
+  $('dPax').textContent = '—'; $('dMtow').textContent = '—'; $('dFuel').textContent = '—'; $('dLen').textContent = '—';
   const specs = aircraftSpecs[f.type];
-  if(specs) {
-      $('dPax').textContent = specs.pax;
-      $('dMtow').textContent = specs.mtow;
-      $('dFuel').textContent = specs.fuel;
-      $('dLen').textContent = specs.len;
-  }
+  if(specs) { $('dPax').textContent = specs.pax; $('dMtow').textContent = specs.mtow; $('dFuel').textContent = specs.fuel; $('dLen').textContent = specs.len; }
   
+  updateOverheadUI(f);
   state.map.setView([f.curLat, f.curLon], 9, {animate:true}); updateMarkers(); 
 
-  // Hae Hero-kuva Planespottersista
   if(!state.photoCache.has(icao24)) {
       $('dHero').style.opacity = '0';
       try {
@@ -615,40 +661,26 @@ window.openDetailUI = async function(icao24) {
               if(data.photos?.length) {
                   state.photoCache.set(icao24, data.photos[0].thumbnail_large.src);
                   $('dHero').src = data.photos[0].thumbnail_large.src;
-                  $('dHero').style.opacity = '1';
-                  renderList();
+                  $('dHero').style.opacity = '1'; renderList();
               }
           }
       } catch(e){}
-  } else { 
-      $('dHero').src = state.photoCache.get(icao24);
-      $('dHero').style.opacity = '1';
-  }
+  } else { $('dHero').src = state.photoCache.get(icao24); $('dHero').style.opacity = '1'; }
 
-  // Hae omistaja ADSBDB:stä
   try {
       const dbRes = await fetch(`https://api.adsbdb.com/v0/aircraft/${icao24.toLowerCase()}`).then(r=>r.json());
       const m = dbRes?.response?.aircraft;
       if(m) {
           if (!f.desc && f.type === 'Unknown') $('dModel').textContent = `${m.manufacturer} ${m.type}`;
           $('dOperator').textContent = m.registered_owner || m.icao_type || '—';
-          $('dRoute').textContent = m.registered_owner || f.reg;
-      } else {
-          $('dOperator').textContent = 'Information Unavailable';
-      }
+      } else { $('dOperator').textContent = 'Information Unavailable'; }
   } catch(e){}
 }
 
 $('detailClose').addEventListener('click', () => {
     state.selectedIcao = null; 
-    
-    // PALAUTA BOTTOM SHEET LISTA-TILAAN
-    $('sheet').classList.remove('mode-detail');
-    $('sheet').classList.remove('full');
-    $('sheet').classList.add('expanded');
-    
-    $('island').classList.remove('focus');
-    $('hudWrap').classList.remove('show'); 
+    $('sheet').classList.remove('mode-detail'); $('sheet').classList.remove('full'); $('sheet').classList.add('expanded');
+    $('island').classList.remove('focus'); $('hudWrap').classList.remove('show'); 
     renderList(); updateMarkers();
 });
 
@@ -658,34 +690,19 @@ $('trackBtn').addEventListener('click', () => {
    if(f) state.map.setView([f.curLat, f.curLon], 10, {animate:true}); 
 });
 
-// Sheet Grab Control (Cyclaa tilojen välillä: minimized -> expanded -> full)
 $('sheetGrab').addEventListener('click', () => {
     const s = $('sheet');
-    if(s.classList.contains('full')) {
-        s.classList.remove('full');
-        s.classList.add('expanded');
-    } else if(s.classList.contains('expanded')) {
-        s.classList.remove('expanded');
-    } else {
-        s.classList.add('expanded');
-    }
+    if(s.classList.contains('full')) { s.classList.remove('full'); s.classList.add('expanded'); } 
+    else if(s.classList.contains('expanded')) { s.classList.remove('expanded'); } 
+    else { s.classList.add('expanded'); }
 });
 
-$('sheetBtn').addEventListener('click', () => {
-    $('sheet').classList.remove('mode-detail');
-    $('sheet').classList.remove('full');
-    $('sheet').classList.add('expanded');
-});
+$('sheetBtn').addEventListener('click', () => { $('sheet').classList.remove('mode-detail'); $('sheet').classList.remove('full'); $('sheet').classList.add('expanded'); });
 $('searchInput').addEventListener('input', e => { state.search=e.target.value; renderList(); });
 $('gpsBtn').addEventListener('click', () => { if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p=>setUserLocation(p.coords.latitude, p.coords.longitude, 8)); });
 $('turkuBtn').addEventListener('click', () => { setUserLocation(60.4518, 22.2666, 8); });
 
-window.onload = () => {
-    initMap();
-    setUserLocation(60.4518, 22.2666, 6);
-    startAnimation();
-    setTimeout(fetchFlights, 600); 
-};
+window.onload = () => { initMap(); setUserLocation(60.4518, 22.2666, 6); startAnimation(); setTimeout(fetchFlights, 600); };
 </script>
 </body>
 </html>
