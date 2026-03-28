@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 
-<!-- PAKOTA VÄLIMUISTIN TYHJENNYS (VÄLTTÄÄ FL-JUMIN) -->
+<!-- PAKOTA VÄLIMUISTIN TYHJENNYS -->
 <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
 <meta http-equiv="Pragma" content="no-cache" />
 <meta http-equiv="Expires" content="0" />
@@ -71,7 +71,7 @@ body { user-select: none; background: #000;}
 .plane-wrapper.sel { width: 52px; height: 52px; margin-left: -26px; margin-top: -26px; z-index: 1000 !important;}
 .plane-img { width: 100%; height: 100%; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)); transition: transform 0.3s linear; transform-origin: center center; }
 
-/* DYNAMIC ISLAND (LIQUID GLASS) */
+/* DYNAMIC ISLAND */
 .island-wrap { position: fixed; left: 0; right: 0; top: max(14px, env(safe-area-inset-top)); z-index: 2500; display: flex; justify-content: center; pointer-events: none; padding: 0 14px; }
 .island { width: min(820px, 100%); min-height: 52px; border-radius: 26px; padding: 8px 12px; display: flex; align-items: center; gap: 12px; pointer-events: auto; background: var(--glass-sheet); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); border: 1px solid var(--glass-border); box-shadow: var(--shadow-card), var(--glass-highlight); transition: transform .5s var(--spring), min-height .5s var(--spring), width .5s var(--spring); }
 .brand { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 0 4px; }
@@ -94,7 +94,7 @@ body { user-select: none; background: #000;}
 .icon-btn svg { width: 18px; height: 18px; fill: currentColor; }
 .icon-btn:active { transform: scale(0.85); background: var(--apple-gray-press); }
 
-/* HUD (LIQUID GLASS) */
+/* HUD */
 .hud-wrap { position: fixed; left: 0; right: 0; top: calc(max(14px, env(safe-area-inset-top)) + 78px); z-index: 1750; display: flex; justify-content: center; pointer-events: none; opacity: 0; transform: translateY(-10px) scale(0.95); transition: opacity 0.4s ease, transform 0.5s var(--spring); }
 .hud-wrap.show { opacity: 1; transform: translateY(0) scale(1); }
 .hud { border-radius: 24px; padding: 14px 36px; display: flex; align-items: center; gap: 36px; background: var(--glass-sheet); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); border: 1px solid var(--glass-border); box-shadow: var(--shadow-card), var(--glass-highlight); font-variant-numeric: tabular-nums; }
@@ -253,8 +253,8 @@ body { user-select: none; background: #000;}
   <div class="island" id="island">
     <div class="brand">
         <div class="brand-icon"><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div>
-        <!-- V50 TAGI! JOS TÄTÄ EI NÄY, SINULLA ON VÄLIMUISTIONGELMA! -->
-        <div class="brand-text">Over<span>head</span> <span class="v-badge">v50</span></div>
+        <!-- V51! -->
+        <div class="brand-text">Over<span>head</span> <span class="v-badge">v51</span></div>
     </div>
     <div class="searchbox"><svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><input id="searchInput" placeholder="Search callsign..." autocomplete="off" autocorrect="off" spellcheck="false" /></div>
     <div class="island-flight" id="islandFlight"><div class="if-main"><div class="if-call" id="ifCall">FLIGHT</div><div class="if-route" id="ifRoute">Tracking Active</div></div></div>
@@ -420,7 +420,7 @@ const $ = id => document.getElementById(id);
 const todayOptions = { weekday: 'long', month: 'long', day: 'numeric' };
 $('sheetDate').textContent = new Date().toLocaleDateString('en-US', todayOptions).toUpperCase();
 
-// Täydellinen dictionary, täällä ON SAS.
+// Täydellinen dictionary
 const airlines = { 
     "FIN": {n:"Finnair", c:"#0B1560"}, "RYR": {n:"Ryanair", c:"#073590"}, 
     "NAX": {n:"Norwegian", c:"#D81939"}, "SAS": {n:"SAS", c:"#00355E"}, 
@@ -465,6 +465,47 @@ function calculateOverhead(f) {
     if (isCrossing) { return { status: 'approaching', text: `Overhead in ${Math.round((f.dist / (f.velocity * 1.852)) * 60)} min` };
     } else if(angleDiff > 120 && f.dist < 50) { return { status: 'passed', text: `Passed ${Math.round((f.dist / (f.velocity * 1.852)) * 60)} min ago` }; }
     return { status: 'none', text: 'Not Crossing' };
+}
+
+// UUSI TURVALLINEN PÄIVITYSFUNKTIO MATKAKUUMEELE
+function updateFlightConditions(f) {
+    if(!f) return;
+    const hexNum = parseInt(f.icao24, 16) || 0;
+    if (f.on_ground) {
+        $('dOAT').textContent = 'Ground';
+        $('dWind').textContent = 'Calm';
+        $('dTurbTxt').textContent = 'Parked';
+        $('dTurbDot').className = 'turb-dot smooth';
+        $('dTurbWave').className = 'turb-wave shake-smooth';
+    } else {
+        let tempC = 15 - ((f.baro_alt / 1000) * 1.98); 
+        if(tempC < -56.5) tempC = -56.5;
+        $('dOAT').textContent = `${Math.round(tempC)}°C`;
+        
+        let baseWind = Math.floor(f.baro_alt / 400); 
+        let windSpeed = Math.min(130, baseWind + (hexNum % 25));
+        let windType = (hexNum % 3 === 0) ? 'Crosswind' : ((hexNum % 2 === 0) ? 'Tailwind' : 'Headwind');
+        if (windSpeed < 5) windType = 'Light Wind';
+        $('dWind').textContent = `${windSpeed} kt ${windType}`;
+        
+        const timeNoise = Math.floor(Date.now() / 60000) % 10;
+        let turbScore = (hexNum + timeNoise) % 10;
+        if (Math.abs(f.vertical_rate) > 2000) turbScore += 3;
+        
+        if (turbScore < 6) {
+            $('dTurbTxt').textContent = 'Smooth';
+            $('dTurbDot').className = 'turb-dot smooth';
+            $('dTurbWave').className = 'turb-wave shake-smooth';
+        } else if (turbScore < 9) {
+            $('dTurbTxt').textContent = 'Light Chop';
+            $('dTurbDot').className = 'turb-dot light';
+            $('dTurbWave').className = 'turb-wave shake-light';
+        } else {
+            $('dTurbTxt').textContent = 'Moderate';
+            $('dTurbDot').className = 'turb-dot moderate';
+            $('dTurbWave').className = 'turb-wave shake-mod';
+        }
+    }
 }
 
 function initMap(){
@@ -534,7 +575,7 @@ async function fetchFlights(){
     const now = Date.now();
     let arr = (json.ac||[]).map(a => {
       if(a.lat==null || a.lon==null) return null;
-      let cs = (a.flight || '').trim(); // Turvallinen callsign poiminta
+      let cs = (a.flight || '').trim(); // Turvallinen poiminta
       return {
         icao24: a.hex, callsign: cs,
         type: a.t || 'Unknown', desc: a.desc || '', reg: a.r || '—',
@@ -613,6 +654,9 @@ function startAnimation(){
           if(oh && oh.status !== 'none') { badge.classList.add(oh.status); badge.textContent = oh.text; $('ifRoute').textContent = oh.text; 
           } else { badge.classList.add('none'); $('ifRoute').textContent = 'Tracking Active'; }
 
+          // Päivitetään matkakuumeen tiedot animoinnin mukana (jos kiipeää/laskee)
+          updateFlightConditions(sf);
+
           if(sf.history && sf.history.length > 0) {
               const currentPath = [...sf.history];
               currentPath[currentPath.length - 1] = [sf.curLat, sf.curLon];
@@ -683,7 +727,7 @@ window.openDetailUI = async function(icao24) {
   
   // UI PÄIVITYKSET 
   $('bpCall').textContent = dCall.substring(0, 6);
-  $('bpSquawk').textContent = f.squawk;
+  // POISTETTU bpSquawk JOKA KAATOI KOODIN
   
   $('dTrack').textContent = fmtHeading(f.track); $('dVRate').textContent = fmtVRate(f.vertical_rate);
   $('dIcao').textContent = f.icao24.toUpperCase();
@@ -693,7 +737,7 @@ window.openDetailUI = async function(icao24) {
   const specs = aircraftSpecs[f.type];
   if(specs) { $('dPax').textContent = specs.pax; $('dMtow').textContent = specs.mtow; $('dFuel').textContent = specs.fuel; $('dLen').textContent = specs.len; }
   
-  // LENTOYHTIÖ - Pomminvarma tarkistus (katsoo 3 ensimäistä kirjainta)
+  // LENTOYHTIÖ
   let al = null;
   if(f.callsign && f.callsign.length >= 3) {
       let code3 = f.callsign.substring(0,3).toUpperCase();
@@ -739,46 +783,8 @@ window.openDetailUI = async function(icao24) {
       $('bpProgressIcon').style.left = `${progressPct}%`;
   }, 100);
 
-  // UUSI: MATKAKUUME EXPERIENCE (SÄÄ & TURBULENSSI)
-  if (f.on_ground) {
-      $('dOAT').textContent = 'Ground';
-      $('dWind').textContent = 'Calm';
-      $('dTurbTxt').textContent = 'Parked';
-      $('dTurbDot').className = 'turb-dot smooth';
-      $('dTurbWave').className = 'turb-wave shake-smooth';
-  } else {
-      // Lämpötila laskee n. 2°C per 1000ft, alkaa 15°C:stä. Minimi -56.5°C
-      let tempC = 15 - ((f.baro_alt / 1000) * 1.98); 
-      if(tempC < -56.5) tempC = -56.5;
-      $('dOAT').textContent = `${Math.round(tempC)}°C`;
-      
-      // Tuuli nousee korkeuden myötä. HexNumista hieman variaatiota.
-      let baseWind = Math.floor(f.baro_alt / 400); 
-      let windSpeed = Math.min(130, baseWind + (hexNum % 25));
-      let windType = (hexNum % 3 === 0) ? 'Crosswind' : ((hexNum % 2 === 0) ? 'Tailwind' : 'Headwind');
-      if (windSpeed < 5) windType = 'Light Wind';
-      $('dWind').textContent = `${windSpeed} kt ${windType}`;
-      
-      // Turbulenssi-logiikka: Riippuu koneen ID:stä ja kuluvan minuutin ajasta (vaihtelee hieman ajan myötä!)
-      const timeNoise = Math.floor(Date.now() / 60000) % 10;
-      let turbScore = (hexNum + timeNoise) % 10;
-      // Jos korkea nousu/laskunopeus -> altis turbulenssille
-      if (Math.abs(f.vertical_rate) > 2000) turbScore += 3;
-      
-      if (turbScore < 6) {
-          $('dTurbTxt').textContent = 'Smooth';
-          $('dTurbDot').className = 'turb-dot smooth';
-          $('dTurbWave').className = 'turb-wave shake-smooth';
-      } else if (turbScore < 9) {
-          $('dTurbTxt').textContent = 'Light Chop';
-          $('dTurbDot').className = 'turb-dot light';
-          $('dTurbWave').className = 'turb-wave shake-light';
-      } else {
-          $('dTurbTxt').textContent = 'Moderate';
-          $('dTurbDot').className = 'turb-dot moderate';
-          $('dTurbWave').className = 'turb-wave shake-mod';
-      }
-  }
+  // Kutsutaan Matkakuume-päivitys
+  updateFlightConditions(f);
 
   state.map.setView([f.curLat, f.curLon], 9, {animate:true}); updateMarkers(); 
   
