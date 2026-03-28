@@ -12,7 +12,7 @@
 <title>Overhead</title>
 
 <!-- LEAFLET -->
-//unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <style>
@@ -59,8 +59,11 @@
 html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
 body { user-select: none; background: #000;}
 
-#map { position: absolute; inset: 0; background: #000; z-index: 1; }
+/* MAP CSS FIXES FOR SATELLITE TEARING */
+#map { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #000; z-index: 1; }
+.leaflet-container { background: #000 !important; }
 .leaflet-control-zoom, .leaflet-control-attribution { display: none !important; }
+.leaflet-tile-container img { -webkit-backface-visibility: hidden; backface-visibility: hidden; }
 
 /* KÄÄNTYVÄT KONEET */
 .plane-wrapper { width: 36px; height: 36px; margin-left: -18px; margin-top: -18px; display: block; position: absolute; }
@@ -161,8 +164,6 @@ body { user-select: none; background: #000;}
 .w-class { font-size: 13px; font-weight: 800; opacity: 0.9; letter-spacing: 0.08em; text-transform: uppercase; z-index: 2; position: relative; background: rgba(0,0,0,0.2); padding: 4px 10px; border-radius: 10px;}
 
 .w-progress-container { padding: 32px 28px 20px; display: flex; justify-content: space-between; align-items: center; }
-
-/* KAUPUNKIKUVIEN TYOKAULU */
 .w-city { display: flex; flex-direction: column; flex: 1; position: relative; }
 .w-city.right { align-items: flex-end; text-align: right; }
 .city-avatar { width: 34px; height: 34px; border-radius: 17px; background: var(--bg-secondary); margin-bottom: 8px; border: 2px solid var(--bg-secondary); overflow: hidden; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 8px rgba(0,0,0,0.1); opacity: 0; transition: opacity 0.5s ease;}
@@ -255,10 +256,10 @@ body { user-select: none; background: #000;}
   <div class="island" id="island">
     <div class="brand">
         <div class="brand-icon"><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div>
-        <!-- V54: CITY IMAGES! -->
-        <div class="brand-text">Over<span>head</span> <span class="v-badge">v54</span></div>
+        <!-- V56: SATELLITE FIX! -->
+        <div class="brand-text">Over<span>head</span> <span class="v-badge">v56</span></div>
     </div>
-    <div class="searchbox"><svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">ircle cx="11" cy="11" r="8"></circle>e x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><input id="searchInput" placeholder="Search callsign..." autocomplete="off" autocorrect="off" spellcheck="false" /></div>
+    <div class="searchbox"><svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><input id="searchInput" placeholder="Search callsign..." autocomplete="off" autocorrect="off" spellcheck="false" /></div>
     <div class="island-flight" id="islandFlight"><div class="if-main"><div class="if-call" id="ifCall">FLIGHT</div><div class="if-route" id="ifRoute">Tracking Active</div></div></div>
     <div class="island-actions"><button class="icon-btn" id="gpsBtn" title="Location"><svg viewBox="0 0 24 24"><path d="M12 2L2 22l10-4 10 4L12 2z"/></svg></button></div>
   </div>
@@ -313,7 +314,6 @@ body { user-select: none; background: #000;}
               
               <div class="w-progress-container">
                   <div class="w-city">
-                      <!-- LÄHTÖKAUPUNGIN KUVA -->
                       <div class="city-avatar" id="depAvatarWrap">
                           <svg class="city-icon-placeholder" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
                           <img id="depAvatar" src="" style="display:none;" />
@@ -327,12 +327,10 @@ body { user-select: none; background: #000;}
                           <path id="pathBg" class="path-bg" d="M 10 40 C 30 40, 40 10, 60 10 L 140 10 C 160 10, 170 40, 190 40"></path>
                           <path id="pathFill" class="path-fill" d="M 10 40 C 30 40, 40 10, 60 10 L 140 10 C 160 10, 170 40, 190 40" stroke-dasharray="250" stroke-dashoffset="250"></path>
                       </svg>
-                      <!-- Kone ikoni -->
                       <svg class="w-timeline-icon" id="bpProgressIcon" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
                   </div>
 
                   <div class="w-city right">
-                      <!-- MÄÄRÄNPÄÄN KUVA -->
                       <div class="city-avatar" id="arrAvatarWrap">
                            <svg class="city-icon-placeholder" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>
                           <img id="arrAvatar" src="" style="display:none;" />
@@ -584,11 +582,9 @@ async function fetchFlightRoute(callsign) {
     return null;
 }
 
-// UUSI: CITY IMAGE FETCH
 function getCityImageUrl(cityName) {
     if (!cityName || cityName === 'Unknown') return null;
     if (state.cityImages.has(cityName)) return state.cityImages.get(cityName);
-    // Käytetään ilmaista Source Unsplash URL:ia, joka hakee keywordilla neliönmallisen pienen kuvan
     const url = `https://source.unsplash.com/100x100/?${encodeURIComponent(cityName)},city`;
     state.cityImages.set(cityName, url);
     return url;
@@ -611,12 +607,25 @@ function updateCityAvatar(elId, wrapId, cityName) {
 }
 
 function initMap(){
-  state.map = L.map('map', { zoomControl:false, attributionControl:false, minZoom: 3, maxBounds: [[-90, -180], [90, 180]], maxBoundsViscosity: 1.0 }).setView([state.userLat, state.userLon], 6);
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19}).addTo(state.map);
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{maxZoom:19, opacity:0.85}).addTo(state.map);
+  state.map = L.map('map', { 
+      zoomControl: false, 
+      attributionControl: false, 
+      minZoom: 3, 
+      maxBounds: [[-90, -180], [90, 180]], 
+      maxBoundsViscosity: 1.0,
+      updateWhenIdle: false, // PAKOTTAA PÄIVITYKSEN LIIKKEEN AIKANA (Estää repeilyn iOS:llä)
+      updateWhenZooming: false
+  }).setView([state.userLat, state.userLon], 6);
+
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {maxZoom: 19}).addTo(state.map);
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {maxZoom: 19, opacity: 0.85}).addTo(state.map);
+  
   state.userMarker = L.circleMarker([state.userLat, state.userLon], {radius:8, color:'#fff', weight:3, fillColor:'#007AFF', fillOpacity:1}).addTo(state.map);
   state.pastPath = L.polyline([], {color: '#007AFF', weight: 4, opacity: 0.9, lineCap: 'round', lineJoin: 'round'}).addTo(state.map);
   state.futurePath = L.polyline([], {color: '#007AFF', weight: 3, opacity: 0.6, dashArray: '6, 8'}).addTo(state.map);
+  
+  // LAUKAISTAAN PÄIVITYS ETTÄ MUSTAT LAATIKOT HÄVIÄÄ
+  setTimeout(() => { state.map.invalidateSize(); }, 500);
 }
 
 function setUserLocation(lat, lon, zoom=6){
@@ -872,7 +881,6 @@ window.openDetailUI = async function(icao24) {
   $('bpGate').textContent = gates[hexNum % gates.length];
   $('bpSeat').textContent = seats[(hexNum * 3) % seats.length];
   
-  // Nollaa reittikentät ja avatarit siksi aikaa kun haetaan
   $('bpDep').textContent = '—'; $('bpDepName').textContent = 'Fetching...';
   $('bpArr').textContent = '—'; $('bpArrName').textContent = 'Fetching...';
   updateCityAvatar('depAvatar', 'depAvatarWrap', null);
@@ -886,7 +894,6 @@ window.openDetailUI = async function(icao24) {
               $('bpArr').textContent = route.arr;
               $('bpArrName').textContent = route.arrName;
               
-              // Päivitä kaupunkien avatar-kuvat
               updateCityAvatar('depAvatar', 'depAvatarWrap', route.depName);
               updateCityAvatar('arrAvatar', 'arrAvatarWrap', route.arrName);
           } else {
@@ -936,6 +943,7 @@ $('detailClose').addEventListener('click', () => {
     $('island').classList.remove('focus'); $('hudWrap').classList.remove('show'); 
     $('detailControls').style.display = 'none';
     renderList(); updateMarkers();
+    setTimeout(() => { state.map.invalidateSize(); }, 500); // Pakotetaan koon päivitys takaisin palatessa
 });
 
 $('trackBtn').addEventListener('click', () => { if(navigator.vibrate) navigator.vibrate(25); const f = state.flights.get(state.selectedIcao); if(f) state.map.setView([f.curLat, f.curLon], 8, {animate:true}); });
@@ -946,6 +954,11 @@ $('sheetBtn').addEventListener('click', () => { $('sheet').classList.remove('mod
 $('searchInput').addEventListener('input', e => { state.search=e.target.value; renderList(); });
 $('gpsBtn').addEventListener('click', () => { if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p=>setUserLocation(p.coords.latitude, p.coords.longitude, 8)); });
 $('turkuBtn').addEventListener('click', () => { setUserLocation(60.4518, 22.2666, 8); });
+
+// Pakota kartan päivitys kun ruudun koko muuttuu
+window.addEventListener('resize', () => { if(state.map) { state.map.invalidateSize(); }});
+// Pakotetaan kartta renderöitymään myös silloin jos puhelin kääntyy vaakatasoon ja takaisin
+window.addEventListener('orientationchange', () => { setTimeout(() => { if(state.map) state.map.invalidateSize(); }, 200); });
 
 window.onload = () => { initMap(); setUserLocation(60.4518, 22.2666, 6); startAnimation(); fetchFlights(); };
 </script>
