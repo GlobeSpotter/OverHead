@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <meta name="theme-color" content="#F2F2F7" media="(prefers-color-scheme: light)">
-<title>Radar</title>
+<title>Overhead</title>
 
 <!-- LEAFLET -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -24,7 +24,7 @@
   --label-secondary: #8E8E93;
   --label-tertiary: #C7C7CC;
   
-  --apple-blue: #007AFF;
+  --apple-blue: #0A84FF;
   --apple-blue-press: #0062CC;
   --apple-green: #34C759;
   --apple-orange: #FF9F0A;
@@ -51,9 +51,6 @@
     --label-primary: #FFFFFF;
     --label-secondary: #EBEBF599;
     --label-tertiary: #EBEBF54D;
-    
-    --apple-blue: #0A84FF;
-    --apple-blue-press: #0061D1;
     
     --apple-gray-fill: rgba(118, 118, 128, 0.24);
     --apple-gray-press: rgba(118, 118, 128, 0.36);
@@ -97,6 +94,13 @@ body { user-select: none; }
   transition: transform .5s var(--spring), min-height .5s var(--spring), width .5s var(--spring);
 }
 
+/* BRANDING */
+.brand { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 0 4px; }
+.brand-icon { width: 28px; height: 28px; border-radius: 10px; background: linear-gradient(135deg, var(--apple-blue), #47A1FF); color: white; display: grid; place-items: center; box-shadow: 0 4px 10px rgba(10,132,255,0.4), inset 0 2px 4px rgba(255,255,255,0.3); position: relative; overflow: hidden; }
+.brand-icon svg { width: 18px; height: 18px; transform: rotate(-45deg); fill: currentColor; }
+.brand-text { font-size: 20px; font-weight: 800; letter-spacing: -0.04em; color: var(--label-primary); }
+.brand-text span { color: var(--apple-blue); font-weight: 800; }
+
 /* APP STORE SEARCH BAR */
 .searchbox { flex: 1; height: 36px; border-radius: 10px; background: var(--apple-gray-fill); display: flex; align-items: center; padding: 0 10px; gap: 6px; transition: background 0.2s; }
 .searchbox:focus-within { background: var(--apple-gray-press); }
@@ -138,7 +142,7 @@ body { user-select: none; }
 
 .side-controls { position: fixed; right: 14px; top: calc(max(14px, env(safe-area-inset-top)) + 78px); z-index: 2100; display: flex; flex-direction: column; gap: 10px; transition: transform 0.5s var(--spring); }
 .island.focus ~ .side-controls { transform: translateY(60px); }
-.fab { width: 44px; height: 44px; border: none; border-radius: 22px; color: var(--label-primary); cursor: pointer; background: var(--glass-island); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); font-weight: 600; font-size: 13px; transition: transform 0.2s, background 0.2s; box-shadow: var(--shadow-card); border: 0.5px solid var(--glass-border); display: grid; place-items: center;}
+.fab { width: 44px; height: 44px; border: none; border-radius: 22px; color: var(--label-primary); cursor: pointer; background: var(--glass-island); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); font-weight: 700; font-size: 14px; transition: transform 0.2s, background 0.2s; box-shadow: var(--shadow-card); border: 0.5px solid var(--glass-border); display: grid; place-items: center;}
 .fab svg { width: 20px; height: 20px; fill: currentColor; }
 .fab:active { transform: scale(0.85); background: var(--apple-gray-press); }
 
@@ -212,8 +216,13 @@ body { user-select: none; }
 <!-- DYNAMIC ISLAND TOP BAR -->
 <div class="island-wrap">
   <div class="island" id="island">
+    
+    <!-- UUSI BRÄNDILOGO -->
     <div class="brand">
-      <div class="brand-text">Radar<span>.</span></div>
+      <div class="brand-icon">
+        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
+      </div>
+      <div class="brand-text">Over<span>head</span></div>
     </div>
     
     <div class="searchbox">
@@ -247,7 +256,7 @@ body { user-select: none; }
 
 <!-- SIDE ACTION BUTTONS -->
 <div class="side-controls">
-  <button class="fab" id="turkuBtn" style="font-weight: 700; font-size: 15px;">TKU</button>
+  <button class="fab" id="turkuBtn">TKU</button>
   <button class="fab" id="sheetBtn">
     <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
   </button>
@@ -320,7 +329,7 @@ const state = {
 };
 
 // ICONS (Dynamic color based on selection)
-const planeBlueURI = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z' fill='%23007AFF' stroke='%23FFFFFF' stroke-width='0.5'/%3E%3C/svg%3E";
+const planeBlueURI = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z' fill='%230A84FF' stroke='%23FFFFFF' stroke-width='0.5'/%3E%3C/svg%3E";
 const planeGreenURI = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z' fill='%2334C759' stroke='%23FFFFFF' stroke-width='1'/%3E%3C/svg%3E";
 
 function fmtFt(alt, isGround){ return isGround ? 'GROUND' : (alt==null?'—':Math.round(alt).toLocaleString('en-US')+' FT'); }
@@ -342,7 +351,7 @@ function initMap(){
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19}).addTo(state.map);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{maxZoom:19, opacity:0.85}).addTo(state.map);
   
-  state.userMarker = L.circleMarker([state.userLat, state.userLon], {radius:8, color:'#fff', weight:3, fillColor:'#007AFF', fillOpacity:1}).addTo(state.map);
+  state.userMarker = L.circleMarker([state.userLat, state.userLon], {radius:8, color:'#fff', weight:3, fillColor:'#0A84FF', fillOpacity:1}).addTo(state.map);
 }
 
 function setUserLocation(lat, lon, zoom=6){
@@ -382,7 +391,7 @@ function updateMarkers() {
     }
 }
 
-// ---------- 2. ENGINE (Airplanes.live - No CORS issues!) ----------
+// ---------- 2. ENGINE (Airplanes.live - OIKEA MUOTO `/point/lat/lon/dist`) ----------
 async function fetchFlights(){
   $('mapStatusText').textContent = 'Updating...';
   try{
@@ -392,8 +401,8 @@ async function fetchFlights(){
     if(zoom <= 5) radius = 500;
     if(zoom <= 4) radius = 1000;
     
-    // UUSI CORS-YHTEENSOPIVA RAJAPINTA, ammattilaisten käyttämä. Ei rajoituksia.
-    const url = `https://api.airplanes.live/v2/lat/${center.lat.toFixed(3)}/lon/${center.lng.toFixed(3)}/dist/${radius}`;
+    // TÄMÄ ON SE RATKAISEVA KORJAUS: Oikea endpoint-formaatti jota API vaatii
+    const url = `https://api.airplanes.live/v2/point/${center.lat.toFixed(3)}/${center.lng.toFixed(3)}/${radius}`;
 
     const res = await fetch(url);
     if(!res.ok) throw new Error('API');
