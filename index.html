@@ -349,7 +349,7 @@ body { user-select: none; }
           
           <div class="section-title">Performance</div>
           <div class="grid">
-            <div class="info full"><div class="i-label">Model</div><div class="i-value" id="dModel">Loading…</div></div>
+            <div class="info full"><div class="i-label">Model</div><div class="i-value" id="dModel">Unknown</div></div>
             <div class="info"><div class="i-label">Max Passengers</div><div class="i-value" id="dPax">—</div></div>
             <div class="info"><div class="i-label">Max Weight</div><div class="i-value" id="dMtow">—</div></div>
             <div class="info"><div class="i-label">Fuel Capacity</div><div class="i-value" id="dFuel">—</div></div>
@@ -358,7 +358,7 @@ body { user-select: none; }
 
           <div class="section-title">Identity</div>
           <div class="grid">
-            <div class="info full"><div class="i-label">Registered Owner</div><div class="i-value" id="dOperator">—</div></div>
+            <div class="info full"><div class="i-label">Registered Owner</div><div class="i-value" id="dOperator">Commercial / Private</div></div>
             <div class="info"><div class="i-label">Registration</div><div class="i-value" id="dReg">—</div></div>
             <div class="info"><div class="i-label">ICAO 24-bit</div><div class="i-value" id="dIcao">—</div></div>
           </div>
@@ -645,24 +645,20 @@ window.openDetailUI = async function(icao24) {
   $('island').classList.add('focus'); $('ifCall').textContent = f.callsign; $('hudWrap').classList.add('show');
   $('detailControls').style.display = 'flex';
   
-  // Nollaa vanhat tiedot varmuuden vuoksi heti uuden koneen avautuessa!
-  $('dAirline').textContent = 'Loading...';
-  $('bpLogo').textContent = '';
-  $('bpHeaderBg').style.background = 'var(--apple-blue)';
-  $('dOperator').textContent = 'Loading...';
-  
+  // Aseta tiedot heti suoraan olemassa olevasta tiedosta (EI "Loading..." välivaiheita!)
   $('bpCall').textContent = f.callsign.substring(0, 6) || f.icao24.toUpperCase();
   $('bpSquawk').textContent = f.squawk;
   
   $('dTrack').textContent = fmtHeading(f.track); $('dVRate').textContent = fmtVRate(f.vertical_rate);
   $('dIcao').textContent = f.icao24.toUpperCase();
-  $('dModel').textContent = f.desc || (f.type !== 'Unknown' ? f.type : 'Loading...'); $('dReg').textContent = f.reg;
+  $('dModel').textContent = f.desc || (f.type !== 'Unknown' ? f.type : 'Unknown Aircraft'); 
+  $('dReg').textContent = f.reg;
   
   $('dPax').textContent = '—'; $('dMtow').textContent = '—'; $('dFuel').textContent = '—'; $('dLen').textContent = '—';
   const specs = aircraftSpecs[f.type];
   if(specs) { $('dPax').textContent = specs.pax; $('dMtow').textContent = specs.mtow; $('dFuel').textContent = specs.fuel; $('dLen').textContent = specs.len; }
   
-  // HAE LENTOYHTIÖ PERUS-LYHENTEESTÄ HETI (Jos löytyy listasta)
+  // HAE LENTOYHTIÖ HETI 
   const code3 = f.callsign.substring(0,3).toUpperCase();
   const al = airlines[code3];
   
@@ -672,12 +668,13 @@ window.openDetailUI = async function(icao24) {
       if(al.c === '#FFCC00' || al.c === '#73CBE6' || al.c === '#FF7A00') { $('bpLogo').style.color = '#000'; } 
       else { $('bpLogo').style.color = al.c !== "var(--apple-blue)" ? al.c : "var(--apple-blue)"; }
       $('bpLogo').textContent = al.n.substring(0,2).toUpperCase();
+      $('dOperator').textContent = al.n; // Oletetaan heti että yhtiö omistaa
   } else {
-      // Oletustila niille, joita ei löydy omasta listasta vielä
       $('dAirline').textContent = 'Commercial Flight';
       $('bpHeaderBg').style.background = 'var(--apple-blue)';
       $('bpLogo').style.color = 'var(--apple-blue)';
       $('bpLogo').textContent = 'FL';
+      $('dOperator').textContent = 'Commercial / Private';
   }
 
   const hexNum = parseInt(icao24, 16) || 0;
@@ -716,24 +713,21 @@ window.openDetailUI = async function(icao24) {
       $('dHero').onload = () => { $('dHero').style.opacity = '1'; renderList(); };
   }
 
-  // TARKISTA API:STA YKSITYISKONET / PUUTTUVAT LENTOYHTIÖT
-  try {
-      const dbRes = await fetch(`https://api.adsbdb.com/v0/aircraft/${icao24.toLowerCase()}`);
-      if(dbRes.ok) {
-          const data = await dbRes.json();
-          const m = data?.response?.aircraft;
-          if(m) {
-              if (!f.desc && f.type === 'Unknown') $('dModel').textContent = `${m.manufacturer} ${m.type}`;
-              $('dOperator').textContent = m.registered_owner || m.icao_type || '—';
-              
-              // Jos lentoyhtiötä ei löytynyt meidän sanakirjasta, mutta API antaa omistajan:
-              if(m.registered_owner && !al) {
-                  $('dAirline').textContent = m.registered_owner.substring(0, 15);
-                  $('bpLogo').textContent = m.registered_owner.substring(0,2).toUpperCase();
-              }
-          } else { $('dOperator').textContent = 'Private / Unavailable'; }
-      } else { $('dOperator').textContent = 'Private / Unavailable'; }
-  } catch(e){ $('dOperator').textContent = 'Database Unreachable'; }
+  // Ladataan taustalla lisätietoja vain jos API toimii, mutta ei pidetä UI:ta odottamassa
+  fetch(`https://api.adsbdb.com/v0/aircraft/${icao24.toLowerCase()}`)
+    .then(res => res.json())
+    .then(data => {
+        const m = data?.response?.aircraft;
+        if(m) {
+            if (!f.desc && f.type === 'Unknown') $('dModel').textContent = `${m.manufacturer} ${m.type}`;
+            $('dOperator').textContent = m.registered_owner || m.icao_type || $('dOperator').textContent;
+            
+            if(m.registered_owner && !al) {
+                $('dAirline').textContent = m.registered_owner.substring(0, 15);
+                $('bpLogo').textContent = m.registered_owner.substring(0,2).toUpperCase();
+            }
+        }
+    }).catch(e => { /* Ignoroidaan virheet hitaassa API:ssa */ });
 }
 
 $('detailClose').addEventListener('click', () => {
