@@ -53,12 +53,12 @@ body { user-select: none; }
 #map { position: absolute; inset: 0; background: #000; z-index: 1; }
 .leaflet-control-zoom, .leaflet-control-attribution { display: none !important; }
 
-/* MARKERS - FIX FOR LEAFLET ROTATION */
+/* LUKITTU: KÄÄNTYVÄT KONEET (WRAPPER-RATKAISU) */
 .plane-wrapper { width: 36px; height: 36px; margin-left: -18px; margin-top: -18px; display: block; position: absolute; }
 .plane-wrapper.sel { width: 52px; height: 52px; margin-left: -26px; margin-top: -26px; z-index: 1000 !important;}
 .plane-img { width: 100%; height: 100%; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)); transition: transform 0.3s linear; transform-origin: center center; }
 
-/* DYNAMIC ISLAND */
+/* LUKITTU: DYNAMIC ISLAND & HUD */
 .island-wrap { position: fixed; left: 0; right: 0; top: max(14px, env(safe-area-inset-top)); z-index: 2500; display: flex; justify-content: center; pointer-events: none; padding: 0 14px; }
 .island { width: min(820px, 100%); min-height: 48px; border-radius: 30px; padding: 8px 12px; display: flex; align-items: center; gap: 12px; pointer-events: auto; background: #000000; color: #FFFFFF; box-shadow: 0 10px 30px rgba(0,0,0,0.4), inset 0 0 0 0.5px rgba(255,255,255,0.15); transition: transform .5s var(--spring), min-height .5s var(--spring), width .5s var(--spring); }
 .brand { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 0 4px; }
@@ -80,7 +80,6 @@ body { user-select: none; }
 .icon-btn svg { width: 16px; height: 16px; fill: currentColor; }
 .icon-btn:active { transform: scale(0.85); background: #2C2C2E; }
 
-/* LIVE HUD DASHBOARD */
 .hud-wrap { position: fixed; left: 0; right: 0; top: calc(max(14px, env(safe-area-inset-top)) + 74px); z-index: 1750; display: flex; justify-content: center; pointer-events: none; opacity: 0; transform: translateY(-10px) scale(0.95); transition: opacity 0.4s ease, transform 0.5s var(--spring); }
 .hud-wrap.show { opacity: 1; transform: translateY(0) scale(1); }
 .hud { border-radius: 24px; padding: 12px 32px; display: flex; align-items: center; gap: 32px; background: var(--glass-sheet); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); border: 0.5px solid var(--glass-border); box-shadow: var(--shadow-card), var(--glass-highlight); font-variant-numeric: tabular-nums; }
@@ -132,35 +131,46 @@ body { user-select: none; }
 .card-sub { margin-top: 2px; color: var(--label-secondary); font-size: 14px; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; letter-spacing: -0.01em; }
 .card-chevron { width: 12px; height: 12px; fill: var(--label-tertiary); flex: 0 0 auto; margin-left: 8px; }
 
-/* APPLE WALLET BOARDING PASS */
+/* ULTIMATE APPLE WALLET BOARDING PASS */
 #viewDetail { opacity: 0; transform: translateX(30px); pointer-events: none; padding-bottom: 50px; }
 .sheet.mode-detail #viewDetail { opacity: 1; transform: translateX(0); pointer-events: auto; }
 
-.wallet-card { background: var(--wallet-bg); margin: 0 16px 24px; border-radius: 20px; box-shadow: 0 8px 30px rgba(0,0,0,0.12); position: relative; overflow: hidden; border: 0.5px solid var(--glass-border);}
+.wallet-card { background: var(--wallet-bg); margin: 0 16px 24px; border-radius: 24px; box-shadow: 0 12px 40px rgba(0,0,0,0.15); position: relative; overflow: hidden; border: 0.5px solid var(--glass-border);}
 
-/* Wallet Notches (the cutouts on the sides) */
-.wallet-card::before, .wallet-card::after { content:''; position:absolute; top: 70px; width: 24px; height: 24px; background: var(--bg-primary); border-radius: 50%; z-index: 2; box-shadow: inset 0.5px 0.5px 2px rgba(0,0,0,0.05); }
-.wallet-card::before { left: -12px; border-right: 0.5px solid var(--glass-border); }
-.wallet-card::after { right: -12px; border-left: 0.5px solid var(--glass-border); }
-.wallet-divider { position: absolute; top: 82px; left: 16px; right: 16px; border-top: 2px dashed var(--label-tertiary); opacity: 0.5; z-index: 1; }
+/* Wallet Shimmer Animation */
+.wallet-shine { position: absolute; top: 0; left: -150%; width: 100%; height: 100%; background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%); transform: skewX(-20deg); animation: shine 4s infinite; z-index: 10; pointer-events: none; }
+@keyframes shine { 0% { left: -150%; } 20% { left: 150%; } 100% { left: 150%; } }
 
-.w-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: flex-start; background: rgba(118, 118, 128, 0.05); }
-.w-logo-area { display: flex; align-items: center; gap: 8px; }
-.w-logo { width: 32px; height: 32px; border-radius: 8px; background: var(--apple-blue); color: white; display: grid; place-items: center; font-weight: 800; font-size: 14px; }
-.w-airline { font-size: 15px; font-weight: 600; color: var(--label-primary); }
-.w-class { font-size: 13px; font-weight: 700; color: var(--apple-blue); letter-spacing: 0.05em; text-transform: uppercase;}
+/* Wallet Notches */
+.wallet-card::before, .wallet-card::after { content:''; position:absolute; top: 76px; width: 28px; height: 28px; background: var(--bg-primary); border-radius: 50%; z-index: 12; box-shadow: inset 0.5px 0.5px 2px rgba(0,0,0,0.08); }
+.wallet-card::before { left: -14px; border-right: 0.5px solid var(--glass-border); }
+.wallet-card::after { right: -14px; border-left: 0.5px solid var(--glass-border); }
+.wallet-divider { position: absolute; top: 90px; left: 20px; right: 20px; border-top: 2px dashed var(--label-tertiary); opacity: 0.6; z-index: 1; }
 
-.w-flight-info { padding: 32px 20px 20px; display: flex; justify-content: space-between; align-items: center; }
+/* Dynaaminen Brändi-Otsikko */
+.w-header { padding: 20px 24px 32px; display: flex; justify-content: space-between; align-items: flex-start; color: white; transition: background 0.4s ease; }
+.w-logo-area { display: flex; align-items: center; gap: 10px; z-index: 2; position: relative;}
+.w-logo { width: 36px; height: 36px; border-radius: 10px; background: #FFF; display: grid; place-items: center; font-weight: 900; font-size: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+.w-airline { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
+.w-class { font-size: 12px; font-weight: 800; opacity: 0.9; letter-spacing: 0.08em; text-transform: uppercase; z-index: 2; position: relative;}
+
+.w-flight-info { padding: 32px 24px 20px; display: flex; justify-content: space-between; align-items: center; }
 .w-city { display: flex; flex-direction: column; }
-.w-code { font-size: 38px; font-weight: 300; color: var(--label-primary); letter-spacing: -0.05em; line-height: 1; font-family: "SF Pro Display", sans-serif;}
-.w-city-name { font-size: 13px; font-weight: 500; color: var(--label-secondary); margin-top: 4px; }
-.w-plane-icon { width: 32px; height: 32px; fill: var(--label-tertiary); transform: rotate(90deg); margin: 0 10px; }
+.w-code { font-size: 42px; font-weight: 300; color: var(--label-primary); letter-spacing: -0.05em; line-height: 1; font-family: -apple-system, "SF Pro Display", sans-serif;}
+.w-city-name { font-size: 13px; font-weight: 600; color: var(--label-secondary); margin-top: 6px; letter-spacing: -0.01em;}
+.w-plane-icon { width: 36px; height: 36px; fill: var(--label-tertiary); transform: rotate(90deg); margin: 0 10px; }
 
-.w-bottom { padding: 0 20px 20px; display: flex; justify-content: space-between; align-items: flex-end; }
+/* UUSI: Portti & Paikka -rivi */
+.w-extra-row { padding: 0 24px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 0.5px solid var(--glass-border); margin-bottom: 20px; }
+.w-extra-item { display: flex; flex-direction: column; gap: 2px; }
+.w-extra-item.center { align-items: center; }
+.w-extra-item.right { align-items: flex-end; }
+
+.w-bottom { padding: 0 24px 24px; display: flex; justify-content: space-between; align-items: flex-end; }
 .w-info-block { display: flex; flex-direction: column; gap: 2px; }
-.w-label { font-size: 11px; font-weight: 600; color: var(--label-secondary); text-transform: uppercase; letter-spacing: 0.05em;}
-.w-val { font-size: 17px; font-weight: 600; color: var(--label-primary); }
-.w-barcode { height: 40px; width: 120px; background: repeating-linear-gradient(90deg, var(--label-primary), var(--label-primary) 2px, transparent 2px, transparent 4px, var(--label-primary) 4px, var(--label-primary) 5px, transparent 5px, transparent 8px, var(--label-primary) 8px, var(--label-primary) 12px, transparent 12px, transparent 14px); opacity: 0.8;}
+.w-label { font-size: 11px; font-weight: 700; color: var(--label-secondary); text-transform: uppercase; letter-spacing: 0.06em;}
+.w-val { font-size: 18px; font-weight: 600; color: var(--label-primary); letter-spacing: -0.02em;}
+.w-barcode { height: 44px; width: 140px; background: repeating-linear-gradient(90deg, var(--label-primary), var(--label-primary) 3px, transparent 3px, transparent 5px, var(--label-primary) 5px, var(--label-primary) 6px, transparent 6px, transparent 9px, var(--label-primary) 9px, var(--label-primary) 14px, transparent 14px, transparent 16px); opacity: 0.8;}
 
 .overhead-badge { margin: 0 16px 16px; display: flex; justify-content: center; align-items: center; gap: 6px; font-size: 14px; font-weight: 600; padding: 10px; border-radius: 12px; letter-spacing: -0.01em;}
 .overhead-badge.approaching { background: rgba(52, 199, 89, 0.15); color: var(--apple-green); }
@@ -186,7 +196,7 @@ body { user-select: none; }
 .w-widget { border-radius: 20px; padding: 16px; color: white; display: flex; flex-direction: column; justify-content: space-between; min-height: 110px; box-shadow: var(--shadow-card); border: 0.5px solid rgba(255,255,255,0.2); position: relative; overflow: hidden; }
 .w-weather { background: linear-gradient(135deg, #1A2980 0%, #26D0CE 100%); }
 .w-time { background: linear-gradient(135deg, #FF512F 0%, #DD2476 100%); }
-.w-icon { width: 24px; height: 24px; fill: white; opacity: 0.8; margin-bottom: 8px; }
+.w-icon-w { width: 24px; height: 24px; fill: white; opacity: 0.8; margin-bottom: 8px; }
 .w-title { font-size: 13px; font-weight: 600; opacity: 0.9; letter-spacing: -0.01em; }
 .w-val-w { font-size: 24px; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; margin-top: 4px; }
 .w-sub { font-size: 12px; font-weight: 500; opacity: 0.8; margin-top: auto; padding-top: 8px; }
@@ -236,7 +246,7 @@ body { user-select: none; }
 <div class="sheet expanded" id="sheet">
   <div class="sheet-grab" id="sheetGrab"><div></div></div>
   <div class="detail-actions" id="detailControls" style="display:none;">
-      <button class="action-btn" id="trackBtn">Track</button>
+      <button class="action-btn" id="trackBtn">Track Route</button>
       <button class="close-circle" id="detailClose"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
   </div>
 
@@ -251,16 +261,19 @@ body { user-select: none; }
       
       <div class="view" id="viewDetail" style="padding-top: 10px;">
           
-          <!-- APPLE WALLET BOARDING PASS -->
+          <!-- ULTIMATE APPLE WALLET BOARDING PASS -->
           <div class="wallet-card">
-              <div class="wallet-divider"></div>
-              <div class="w-header">
+              <div class="wallet-shine"></div>
+              
+              <div class="w-header" id="bpHeaderBg" style="background: var(--apple-blue);">
                   <div class="w-logo-area">
-                      <div class="w-logo" id="bpLogo">FL</div>
+                      <div class="w-logo" id="bpLogo" style="color: var(--apple-blue);">FL</div>
                       <div class="w-airline" id="dAirline">Airlines</div>
                   </div>
                   <div class="w-class">Boarding Pass</div>
               </div>
+              <div class="wallet-divider"></div>
+              
               <div class="w-flight-info">
                   <div class="w-city">
                       <div class="w-code" id="bpCall">FLGT</div>
@@ -272,6 +285,23 @@ body { user-select: none; }
                       <div class="w-city-name">Registration</div>
                   </div>
               </div>
+              
+              <!-- UUSI MATKAKUUME RIVI -->
+              <div class="w-extra-row">
+                  <div class="w-extra-item">
+                      <div class="w-label">Gate</div>
+                      <div class="w-val" id="bpGate">--</div>
+                  </div>
+                  <div class="w-extra-item center">
+                      <div class="w-label">Seat</div>
+                      <div class="w-val" id="bpSeat">--</div>
+                  </div>
+                  <div class="w-extra-item right">
+                      <div class="w-label">Class</div>
+                      <div class="w-val">Explorer</div>
+                  </div>
+              </div>
+
               <div class="w-bottom">
                   <div class="w-info-block">
                       <div class="w-label">Squawk</div>
@@ -289,13 +319,13 @@ body { user-select: none; }
 
           <div class="widget-row">
               <div class="w-widget w-weather">
-                  <svg class="w-icon" viewBox="0 0 24 24"><path d="M12 2a4 4 0 00-4 4v9.26a5.5 5.5 0 108 0V6a4 4 0 00-4-4zm2 13.26V6a2 2 0 10-4 0v9.26a3.5 3.5 0 114 0z"/></svg>
+                  <svg class="w-icon-w" viewBox="0 0 24 24"><path d="M12 2a4 4 0 00-4 4v9.26a5.5 5.5 0 108 0V6a4 4 0 00-4-4zm2 13.26V6a2 2 0 10-4 0v9.26a3.5 3.5 0 114 0z"/></svg>
                   <div class="w-title">Window Seat</div>
                   <div class="w-val-w" id="wTemp">—°C</div>
                   <div class="w-sub" id="wMach">Mach —</div>
               </div>
               <div class="w-widget w-time">
-                  <svg class="w-icon" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
+                  <svg class="w-icon-w" viewBox="0 0 24 24"><path d="M11.99 2C6.47 2 2 6.48 2 12s4.47 10 9.99 10C17.52 22 22 17.52 22 12S17.52 2 11.99 2zM12 20c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67z"/></svg>
                   <div class="w-title">Airborne Time</div>
                   <div class="w-val-w" id="wAirTime">--:--</div>
                   <div class="w-sub" id="wDist">Distance: —</div>
@@ -340,7 +370,19 @@ const $ = id => document.getElementById(id);
 const todayOptions = { weekday: 'long', month: 'long', day: 'numeric' };
 $('sheetDate').textContent = new Date().toLocaleDateString('en-US', todayOptions).toUpperCase();
 
-const airlines = { "FIN": "Finnair", "RYR": "Ryanair", "NAX": "Norwegian", "SAS": "SAS", "VKG": "Sunclass Airlines", "BLX": "TUI fly", "DLH": "Lufthansa", "AFR": "Air France", "KLM": "KLM", "THY": "Turkish Airlines", "BAW": "British Airways", "UAE": "Emirates", "QTR": "Qatar Airways", "EZY": "EasyJet", "WZZ": "Wizz Air", "SWR": "Swiss", "IBE": "Iberia", "BCS": "DHL" };
+// LUKITTU: LENTOYHTIÖIDEN OIKEAT BRÄNDIVÄRIT
+const airlines = { 
+    "FIN": {n:"Finnair", c:"#0B1560"}, "RYR": {n:"Ryanair", c:"#073590"}, 
+    "NAX": {n:"Norwegian", c:"#D81939"}, "SAS": {n:"SAS", c:"#00355E"}, 
+    "VKG": {n:"Sunclass", c:"#FF7A00"}, "BLX": {n:"TUI fly", c:"#73CBE6"}, 
+    "DLH": {n:"Lufthansa", c:"#05164D"}, "AFR": {n:"Air France", c:"#002157"}, 
+    "KLM": {n:"KLM", c:"#00A1E4"}, "THY": {n:"Turkish", c:"#E81932"}, 
+    "BAW": {n:"British Airways", c:"#012A5E"}, "UAE": {n:"Emirates", c:"#D71920"}, 
+    "QTR": {n:"Qatar Airways", c:"#5C0632"}, "EZY": {n:"EasyJet", c:"#FF6600"}, 
+    "WZZ": {n:"Wizz Air", c:"#C60C85"}, "SWR": {n:"Swiss", c:"#E3000F"}, 
+    "IBE": {n:"Iberia", c:"#DF0024"}, "BCS": {n:"DHL", c:"#FFCC00"} 
+};
+
 const aircraftSpecs = {
     "A320": {"len": "37.57 m", "mtow": "78,000 kg", "pax": "150-180", "fuel": "24,210 L"}, "A20N": {"len": "37.57 m", "mtow": "79,000 kg", "pax": "150-180", "fuel": "26,730 L"}, "A321": {"len": "44.51 m", "mtow": "93,500 kg", "pax": "185-230", "fuel": "24,050 L"}, "A21N": {"len": "44.51 m", "mtow": "97,000 kg", "pax": "185-244", "fuel": "32,940 L"}, "A319": {"len": "33.84 m", "mtow": "75,500 kg", "pax": "124-156", "fuel": "24,210 L"}, "A333": {"len": "63.66 m", "mtow": "242,000 kg", "pax": "250-440", "fuel": "139,090 L"}, "A359": {"len": "66.80 m", "mtow": "280,000 kg", "pax": "300-350", "fuel": "141,000 L"}, "B738": {"len": "39.50 m", "mtow": "79,000 kg", "pax": "162-189", "fuel": "26,020 L"}, "B739": {"len": "42.10 m", "mtow": "85,100 kg", "pax": "177-215", "fuel": "29,660 L"}, "B38M": {"len": "39.50 m", "mtow": "82,190 kg", "pax": "162-210", "fuel": "25,816 L"}, "B77W": {"len": "73.90 m", "mtow": "351,500 kg", "pax": "314-396", "fuel": "181,280 L"}, "B789": {"len": "63.00 m", "mtow": "254,000 kg", "pax": "290-330", "fuel": "126,372 L"}, "BCS3": {"len": "38.70 m", "mtow": "67,585 kg", "pax": "130-160", "fuel": "17,580 L"}, "CRJ9": {"len": "36.20 m", "mtow": "38,330 kg", "pax": "76-90", "fuel": "11,148 L"}, "AT76": {"len": "27.17 m", "mtow": "23,000 kg", "pax": "70-78", "fuel": "6,400 L"}, "E190": {"len": "36.24 m", "mtow": "51,800 kg", "pax": "96-114", "fuel": "16,250 L"}
 };
@@ -416,7 +458,6 @@ function updateMarkers() {
         const isSel = f.icao24 === state.selectedIcao;
         const uri = isSel ? planeGreenURI : planeBlueURI;
         
-        // TÄRKEÄ KORJAUS: Luodaan wrapper-div, joka eristää ikonin rotaation Leafletin sisäisestä sijaintitransformatiosta
         if(!marker) {
             const icon = L.divIcon({ 
                 className: '', 
@@ -585,10 +626,27 @@ window.openDetailUI = async function(icao24) {
   const specs = aircraftSpecs[f.type];
   if(specs) { $('dPax').textContent = specs.pax; $('dMtow').textContent = specs.mtow; $('dFuel').textContent = specs.fuel; $('dLen').textContent = specs.len; }
   
+  // DYNAAMINEN LENTOYHTIÖ-BRÄNDÄYS & PORTTI
   const code3 = f.callsign.substring(0,3).toUpperCase();
-  const airlineName = airlines[code3] || 'Commercial Flight';
-  $('dAirline').textContent = airlineName;
-  $('bpLogo').textContent = airlineName.substring(0,2).toUpperCase();
+  const al = airlines[code3] || {n: "Commercial Flight", c: "var(--apple-blue)"};
+  
+  $('dAirline').textContent = al.n;
+  $('bpHeaderBg').style.background = al.c;
+  
+  // Logo tekstin väri: tummille väreille valkoinen, tietyille vaaleille (TUI, DHL) musta
+  if(al.c === '#FFCC00' || al.c === '#73CBE6' || al.c === '#FF7A00') {
+      $('bpLogo').style.color = '#000';
+  } else {
+      $('bpLogo').style.color = al.c !== "var(--apple-blue)" ? al.c : "var(--apple-blue)";
+  }
+  $('bpLogo').textContent = al.n.substring(0,2).toUpperCase();
+
+  // Pseudo-satunnainen, mutta lennolle aina pysyvä Gate & Seat ICAO-koodin perusteella
+  const hexNum = parseInt(icao24, 16) || 0;
+  const gates = ['A12', 'B22', 'C4', 'D10', 'E1', 'F14', 'G3', 'H8'];
+  const seats = ['1A', '4F', '12B', '15C', '22A', '34J', '7C', '2F'];
+  $('bpGate').textContent = gates[hexNum % gates.length];
+  $('bpSeat').textContent = seats[(hexNum * 3) % seats.length];
 
   updateWidgets(f);
   state.map.setView([f.curLat, f.curLon], 9, {animate:true}); updateMarkers(); 
@@ -601,7 +659,6 @@ window.openDetailUI = async function(icao24) {
       $('dHero').onload = () => { $('dHero').style.opacity = '1'; renderList(); };
   }
 
-  // API FALLBACK TIEDOILLE
   try {
       const dbRes = await fetch(`https://api.adsbdb.com/v0/aircraft/${icao24.toLowerCase()}`);
       if(dbRes.ok) {
@@ -610,7 +667,10 @@ window.openDetailUI = async function(icao24) {
           if(m) {
               if (!f.desc && f.type === 'Unknown') $('dModel').textContent = `${m.manufacturer} ${m.type}`;
               $('dOperator').textContent = m.registered_owner || m.icao_type || '—';
-              if(m.registered_owner && !airlines[code3]) $('dAirline').textContent = m.registered_owner;
+              if(m.registered_owner && !airlines[code3]) {
+                  $('dAirline').textContent = m.registered_owner.substring(0, 15);
+                  $('bpLogo').textContent = m.registered_owner.substring(0,2).toUpperCase();
+              }
           } else {
               $('dOperator').textContent = 'Private / Unavailable';
           }
