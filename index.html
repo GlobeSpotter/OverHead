@@ -53,12 +53,12 @@ body { user-select: none; }
 #map { position: absolute; inset: 0; background: #000; z-index: 1; }
 .leaflet-control-zoom, .leaflet-control-attribution { display: none !important; }
 
-/* LUKITTU: KÄÄNTYVÄT KONEET (WRAPPER-RATKAISU) */
+/* KÄÄNTYVÄT KONEET (WRAPPER-RATKAISU) */
 .plane-wrapper { width: 36px; height: 36px; margin-left: -18px; margin-top: -18px; display: block; position: absolute; }
 .plane-wrapper.sel { width: 52px; height: 52px; margin-left: -26px; margin-top: -26px; z-index: 1000 !important;}
 .plane-img { width: 100%; height: 100%; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)); transition: transform 0.3s linear; transform-origin: center center; }
 
-/* LUKITTU: DYNAMIC ISLAND & HUD */
+/* DYNAMIC ISLAND & HUD */
 .island-wrap { position: fixed; left: 0; right: 0; top: max(14px, env(safe-area-inset-top)); z-index: 2500; display: flex; justify-content: center; pointer-events: none; padding: 0 14px; }
 .island { width: min(820px, 100%); min-height: 48px; border-radius: 30px; padding: 8px 12px; display: flex; align-items: center; gap: 12px; pointer-events: auto; background: #000000; color: #FFFFFF; box-shadow: 0 10px 30px rgba(0,0,0,0.4), inset 0 0 0 0.5px rgba(255,255,255,0.15); transition: transform .5s var(--spring), min-height .5s var(--spring), width .5s var(--spring); }
 .brand { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 0 4px; }
@@ -137,17 +137,14 @@ body { user-select: none; }
 
 .wallet-card { background: var(--wallet-bg); margin: 0 16px 24px; border-radius: 24px; box-shadow: 0 12px 40px rgba(0,0,0,0.15); position: relative; overflow: hidden; border: 0.5px solid var(--glass-border);}
 
-/* Wallet Shimmer Animation */
 .wallet-shine { position: absolute; top: 0; left: -150%; width: 100%; height: 100%; background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.3) 50%, rgba(255,255,255,0) 100%); transform: skewX(-20deg); animation: shine 4s infinite; z-index: 10; pointer-events: none; }
 @keyframes shine { 0% { left: -150%; } 20% { left: 150%; } 100% { left: 150%; } }
 
-/* Wallet Notches */
 .wallet-card::before, .wallet-card::after { content:''; position:absolute; top: 76px; width: 28px; height: 28px; background: var(--bg-primary); border-radius: 50%; z-index: 12; box-shadow: inset 0.5px 0.5px 2px rgba(0,0,0,0.08); }
 .wallet-card::before { left: -14px; border-right: 0.5px solid var(--glass-border); }
 .wallet-card::after { right: -14px; border-left: 0.5px solid var(--glass-border); }
 .wallet-divider { position: absolute; top: 90px; left: 20px; right: 20px; border-top: 2px dashed var(--label-tertiary); opacity: 0.6; z-index: 1; }
 
-/* Dynaaminen Brändi-Otsikko */
 .w-header { padding: 20px 24px 32px; display: flex; justify-content: space-between; align-items: flex-start; color: white; transition: background 0.4s ease; }
 .w-logo-area { display: flex; align-items: center; gap: 10px; z-index: 2; position: relative;}
 .w-logo { width: 36px; height: 36px; border-radius: 10px; background: #FFF; display: grid; place-items: center; font-weight: 900; font-size: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
@@ -160,7 +157,6 @@ body { user-select: none; }
 .w-city-name { font-size: 13px; font-weight: 600; color: var(--label-secondary); margin-top: 6px; letter-spacing: -0.01em;}
 .w-plane-icon { width: 36px; height: 36px; fill: var(--label-tertiary); transform: rotate(90deg); margin: 0 10px; }
 
-/* UUSI: Portti & Paikka -rivi */
 .w-extra-row { padding: 0 24px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 0.5px solid var(--glass-border); margin-bottom: 20px; }
 .w-extra-item { display: flex; flex-direction: column; gap: 2px; }
 .w-extra-item.center { align-items: center; }
@@ -236,7 +232,7 @@ body { user-select: none; }
   <div class="hud"><div class="hud-block"><div class="hud-label">Altitude</div><div class="hud-value" id="hudAlt">--- FT</div></div><div class="hud-divider"></div><div class="hud-block"><div class="hud-label">Speed</div><div class="hud-value" id="hudSpd">--- KT</div></div></div>
 </div>
 
-<div class="map-status" id="mapStatus"><span class="live-dot" id="dotStatus"></span><span id="mapStatusText">Connecting...</span></div>
+<div class="map-status" id="mapStatus"><span class="live-dot" id="dotStatus"></span><span id="mapStatusText">Updating...</span></div>
 
 <div class="side-controls">
   <button class="fab" id="turkuBtn" style="font-size: 12px;">TKU</button>
@@ -256,12 +252,18 @@ body { user-select: none; }
             <div class="sheet-date" id="sheetDate">TODAY</div>
             <div class="sheet-title-row"><div class="sheet-title">Live Radar</div><div class="sheet-count" id="sheetSub">Fetching...</div></div>
           </div>
-          <div class="sheet-list" id="flightList"><div class="empty">Scanning airspace...</div></div>
+          <div class="sheet-list" id="flightList">
+              <!-- FAST LOAD SKELETON -->
+              <div style="padding: 20px; opacity: 0.5;">
+                 <div style="height: 48px; width: 100%; background: var(--apple-gray-fill); border-radius: 12px; margin-bottom: 16px; animation: pulse 1.5s infinite;"></div>
+                 <div style="height: 48px; width: 100%; background: var(--apple-gray-fill); border-radius: 12px; margin-bottom: 16px; animation: pulse 1.5s infinite 0.2s;"></div>
+                 <div style="height: 48px; width: 100%; background: var(--apple-gray-fill); border-radius: 12px; margin-bottom: 16px; animation: pulse 1.5s infinite 0.4s;"></div>
+              </div>
+          </div>
       </div>
       
       <div class="view" id="viewDetail" style="padding-top: 10px;">
           
-          <!-- ULTIMATE APPLE WALLET BOARDING PASS -->
           <div class="wallet-card">
               <div class="wallet-shine"></div>
               
@@ -286,7 +288,6 @@ body { user-select: none; }
                   </div>
               </div>
               
-              <!-- UUSI MATKAKUUME RIVI -->
               <div class="w-extra-row">
                   <div class="w-extra-item">
                       <div class="w-label">Gate</div>
@@ -370,7 +371,6 @@ const $ = id => document.getElementById(id);
 const todayOptions = { weekday: 'long', month: 'long', day: 'numeric' };
 $('sheetDate').textContent = new Date().toLocaleDateString('en-US', todayOptions).toUpperCase();
 
-// LUKITTU: LENTOYHTIÖIDEN OIKEAT BRÄNDIVÄRIT
 const airlines = { 
     "FIN": {n:"Finnair", c:"#0B1560"}, "RYR": {n:"Ryanair", c:"#073590"}, 
     "NAX": {n:"Norwegian", c:"#D81939"}, "SAS": {n:"SAS", c:"#00355E"}, 
@@ -435,6 +435,7 @@ function initMap(){
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19}).addTo(state.map);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{maxZoom:19, opacity:0.85}).addTo(state.map);
   state.userMarker = L.circleMarker([state.userLat, state.userLon], {radius:8, color:'#fff', weight:3, fillColor:'#007AFF', fillOpacity:1}).addTo(state.map);
+  // HISTORIALLINEN REITTI: Oletuspaksuus ja Applen sininen väri
   state.pastPath = L.polyline([], {color: '#007AFF', weight: 4, opacity: 0.9}).addTo(state.map);
   state.futurePath = L.polyline([], {color: '#007AFF', weight: 3, opacity: 0.6, dashArray: '6, 8'}).addTo(state.map);
 }
@@ -487,7 +488,6 @@ function updateMarkers() {
 }
 
 async function fetchFlights(){
-  $('mapStatusText').textContent = 'Updating...';
   try{
     const center = state.map ? state.map.getCenter() : {lat: state.userLat, lng: state.userLon};
     const zoom = state.map ? state.map.getZoom() : 6;
@@ -504,7 +504,7 @@ async function fetchFlights(){
         lon: a.lon, lat: a.lat, baro_alt: a.alt_baro === 'ground' ? 0 : (a.alt_baro || a.alt_geom || 0), 
         on_ground: a.alt_baro === 'ground', velocity: a.gs || 0, track: a.track || 0, 
         vertical_rate: a.baro_rate || 0, squawk: a.squawk || '—', sampleTime: now, curLat: a.lat, curLon: a.lon, 
-        dist: haversine(state.userLat, state.userLon, a.lat, a.lon)
+        dist: haversine(state.userLat, state.userLon, a.lat, a.lon), full_trace_loaded: false
       };
     }).filter(Boolean);
 
@@ -513,8 +513,10 @@ async function fetchFlights(){
         seen.add(nf.icao24); const old = state.flights.get(nf.icao24); 
         if(old){ 
             nf.history = old.history || [];
+            // Säilytetään tieto, jos reitti on jo kerran API:sta noudettu
+            nf.full_trace_loaded = old.full_trace_loaded;
             if (old.curLat !== nf.lat || old.curLon !== nf.lon) nf.history.push([old.curLat, old.curLon]); 
-            if(nf.history.length > 300) nf.history.shift(); 
+            if(!nf.full_trace_loaded && nf.history.length > 300) nf.history.shift(); 
             Object.assign(old, nf); 
         } else { nf.history = [[nf.lat, nf.lon]]; state.flights.set(nf.icao24, nf); } 
     }
@@ -523,6 +525,26 @@ async function fetchFlights(){
     $('mapStatusText').textContent = `${state.flights.size} Live`; $('sheetSub').textContent = `${state.flights.size} Aircraft in Range`; $('dotStatus').classList.remove('warn');
   }catch(e){ $('dotStatus').classList.add('warn'); $('mapStatusText').textContent = 'Network Error'; } 
   finally{ renderList(); updateMarkers(); setTimeout(fetchFlights, 10000); } 
+}
+
+// UUSI: HAE HISTORIALLINEN REITTI API:sta
+async function fetchFullTrace(icao24) {
+    const f = state.flights.get(icao24);
+    if(!f || f.full_trace_loaded) return;
+    try {
+        const res = await fetch(`https://api.airplanes.live/v2/trace/${icao24}`);
+        if(res.ok) {
+            const data = await res.json();
+            if(data && data.trace && data.trace.length > 0) {
+                // Trace-muoto: [timestamp, lat, lon, alt, ...]
+                const apiHistory = data.trace.map(pt => [pt[1], pt[2]]);
+                // Yhdistetään haettu historia ja mahdollinen lokaali nykyhetki
+                f.history = [...apiHistory, [f.curLat, f.curLon]];
+                f.full_trace_loaded = true;
+                if(state.selectedIcao === icao24) { state.pastPath.setLatLngs(f.history); }
+            }
+        }
+    } catch(e) { console.error("Trace failed"); }
 }
 
 function startAnimation(){
@@ -554,7 +576,10 @@ function startAnimation(){
           } else { badge.classList.add('none'); $('ifRoute').textContent = 'Tracking Active'; }
           updateWidgets(sf);
 
-          state.pastPath.setLatLngs([...(sf.history || []), [sf.curLat, sf.curLon]]);
+          // Jos historiaa ei vielä haettu tai se päivittyy lokaalisti, lisätään animoitu piste letkan päähän
+          if(!sf.full_trace_loaded) { state.pastPath.setLatLngs([...(sf.history || []), [sf.curLat, sf.curLon]]); }
+          else { state.pastPath.setLatLngs([...(sf.history || []), [sf.curLat, sf.curLon]]); }
+          
           const d = 100, R = 6371, l1 = sf.curLat * Math.PI/180, n1 = sf.curLon * Math.PI/180, tr = (sf.track || 0) * Math.PI/180;
           const l2 = Math.asin( Math.sin(l1)*Math.cos(d/R) + Math.cos(l1)*Math.sin(d/R)*Math.cos(tr) );
           const n2 = n1 + Math.atan2(Math.sin(tr)*Math.sin(d/R)*Math.cos(l1), Math.cos(d/R)-Math.sin(l1)*Math.sin(l2));
@@ -569,7 +594,9 @@ function renderList(){
   const q = state.search?.trim().toLowerCase() || "";
   let arr = [...state.flights.values()].sort((a,b) => (a.dist??999) - (b.dist??999));
   if(q) arr = arr.filter(f => (f.callsign||'').toLowerCase().includes(q));
-  if(!arr.length){ $('flightList').innerHTML = `<div class="empty">${$('mapStatusText').textContent === 'Network Error'?'Connection failed.':'Scanning airspace...'}</div>`; return; }
+  if(!arr.length && state.flights.size === 0){ return; } // Annetaan Skeletonin näkyä hetki jos tyhjä
+
+  if(!arr.length && state.flights.size > 0){ $('flightList').innerHTML = `<div class="empty">No flights matching search.</div>`; return; }
 
   $('flightList').innerHTML = arr.slice(0,80).map(f => {
     const img = state.photoCache.get(f.icao24);
@@ -626,22 +653,16 @@ window.openDetailUI = async function(icao24) {
   const specs = aircraftSpecs[f.type];
   if(specs) { $('dPax').textContent = specs.pax; $('dMtow').textContent = specs.mtow; $('dFuel').textContent = specs.fuel; $('dLen').textContent = specs.len; }
   
-  // DYNAAMINEN LENTOYHTIÖ-BRÄNDÄYS & PORTTI
   const code3 = f.callsign.substring(0,3).toUpperCase();
   const al = airlines[code3] || {n: "Commercial Flight", c: "var(--apple-blue)"};
   
   $('dAirline').textContent = al.n;
   $('bpHeaderBg').style.background = al.c;
   
-  // Logo tekstin väri: tummille väreille valkoinen, tietyille vaaleille (TUI, DHL) musta
-  if(al.c === '#FFCC00' || al.c === '#73CBE6' || al.c === '#FF7A00') {
-      $('bpLogo').style.color = '#000';
-  } else {
-      $('bpLogo').style.color = al.c !== "var(--apple-blue)" ? al.c : "var(--apple-blue)";
-  }
+  if(al.c === '#FFCC00' || al.c === '#73CBE6' || al.c === '#FF7A00') { $('bpLogo').style.color = '#000'; } 
+  else { $('bpLogo').style.color = al.c !== "var(--apple-blue)" ? al.c : "var(--apple-blue)"; }
   $('bpLogo').textContent = al.n.substring(0,2).toUpperCase();
 
-  // Pseudo-satunnainen, mutta lennolle aina pysyvä Gate & Seat ICAO-koodin perusteella
   const hexNum = parseInt(icao24, 16) || 0;
   const gates = ['A12', 'B22', 'C4', 'D10', 'E1', 'F14', 'G3', 'H8'];
   const seats = ['1A', '4F', '12B', '15C', '22A', '34J', '7C', '2F'];
@@ -650,6 +671,9 @@ window.openDetailUI = async function(icao24) {
 
   updateWidgets(f);
   state.map.setView([f.curLat, f.curLon], 9, {animate:true}); updateMarkers(); 
+  
+  // HAE KOKO LENTOREITTI TAUSTALLA HETI
+  fetchFullTrace(icao24);
 
   $('dHero').style.opacity = '0';
   const imageUrl = await fetchAircraftImage(icao24, f.reg);
@@ -671,13 +695,9 @@ window.openDetailUI = async function(icao24) {
                   $('dAirline').textContent = m.registered_owner.substring(0, 15);
                   $('bpLogo').textContent = m.registered_owner.substring(0,2).toUpperCase();
               }
-          } else {
-              $('dOperator').textContent = 'Private / Unavailable';
-          }
+          } else { $('dOperator').textContent = 'Private / Unavailable'; }
       } else { $('dOperator').textContent = 'Private / Unavailable'; }
-  } catch(e){
-      $('dOperator').textContent = 'Database Unreachable';
-  }
+  } catch(e){ $('dOperator').textContent = 'Database Unreachable'; }
 }
 
 $('detailClose').addEventListener('click', () => {
@@ -696,7 +716,9 @@ $('sheetBtn').addEventListener('click', () => { $('sheet').classList.remove('mod
 $('searchInput').addEventListener('input', e => { state.search=e.target.value; renderList(); });
 $('gpsBtn').addEventListener('click', () => { if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p=>setUserLocation(p.coords.latitude, p.coords.longitude, 8)); });
 $('turkuBtn').addEventListener('click', () => { setUserLocation(60.4518, 22.2666, 8); });
-window.onload = () => { initMap(); setUserLocation(60.4518, 22.2666, 6); startAnimation(); setTimeout(fetchFlights, 600); };
+
+// KÄYNNISTETÄÄN VÄLITTÖMÄSTI (NO DELAY)
+window.onload = () => { initMap(); setUserLocation(60.4518, 22.2666, 6); startAnimation(); fetchFlights(); };
 </script>
 </body>
 </html>
