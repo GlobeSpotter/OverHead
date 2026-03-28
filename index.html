@@ -163,7 +163,7 @@ body { user-select: none; background: #000;}
 .w-class { font-size: 13px; font-weight: 800; opacity: 0.9; letter-spacing: 0.08em; text-transform: uppercase; z-index: 2; position: relative; background: rgba(0,0,0,0.2); padding: 4px 10px; border-radius: 10px;}
 
 .w-progress-container { padding: 32px 28px 20px; display: flex; justify-content: space-between; align-items: stretch; }
-.w-city { display: flex; flex-direction: column; width: 60px; position: relative; }
+.w-city { display: flex; flex-direction: column; width: 66px; position: relative; }
 .w-city.right { align-items: flex-end; text-align: right; }
 
 .city-avatar { width: 48px; height: 48px; border-radius: 24px; background: var(--bg-secondary); margin-bottom: 6px; border: 2px solid var(--bg-secondary); overflow: hidden; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); opacity: 0; transition: opacity 0.5s ease;}
@@ -174,9 +174,11 @@ body { user-select: none; background: #000;}
 .w-city-name { font-size: 12px; font-weight: 700; color: var(--label-secondary); margin-bottom: 2px; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px;}
 .w-code { font-size: 34px; font-weight: 300; color: var(--label-primary); letter-spacing: -0.05em; line-height: 1; font-family: -apple-system, "SF Pro Display", sans-serif;}
 
-.w-time { font-size: 14px; font-weight: 800; margin-top: 6px; font-variant-numeric: tabular-nums; letter-spacing: -0.01em;}
-.w-time.flown { color: var(--apple-blue); }
-.w-time.remain { color: var(--label-tertiary); }
+/* UUSI AIKA-UI */
+.w-time-lbl { font-size: 9px; font-weight: 800; color: var(--label-tertiary); letter-spacing: 0.06em; margin-top: 8px; text-transform: uppercase; }
+.w-time { font-size: 16px; font-weight: 800; margin-top: 2px; font-variant-numeric: tabular-nums; letter-spacing: -0.01em;}
+.w-time.flown { color: var(--label-primary); }
+.w-time.remain { color: var(--apple-blue); }
 
 /* SVG MATKALENTO TIMELINE */
 .w-timeline { flex: 1; margin: 0 16px; position: relative; height: 60px; display: flex; align-items: center; justify-content: center; margin-top: 30px;}
@@ -212,18 +214,23 @@ body { user-select: none; background: #000;}
 .d-icon img { width: 100%; height: 100%; object-fit: cover; }
 .d-icon svg { width: 56px; height: 56px; fill: var(--label-tertiary); transform: rotate(-45deg); opacity: 0.5;}
 
-/* MATKAKUUME EXPERIENCE PANEELI */
+/* MATKAKUUME EXPERIENCE PANEELI (V59) */
 .cond-card { background: var(--bg-secondary); border: 1px solid var(--glass-border); border-radius: 24px; padding: 20px; margin: 0 16px 24px; box-shadow: var(--shadow-card); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); display: flex; flex-direction: column; gap: 16px; }
-.pax-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 16px; border-bottom: 1px solid var(--glass-border); margin-bottom: 4px; }
+.pax-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; margin-bottom: 4px; }
 .pax-phase-info { display: flex; flex-direction: column; gap: 2px;}
 .pax-phase { font-size: 22px; font-weight: 800; color: var(--label-primary); letter-spacing: -0.02em; }
-.seatbelt-sign { font-size: 11px; font-weight: 800; padding: 6px 12px; border-radius: 14px; text-transform: uppercase; letter-spacing: 0.08em; transition: all 0.3s; display: flex; align-items: center; gap: 8px;}
+.seatbelt-sign { font-size: 11px; font-weight: 800; padding: 6px 12px; border-radius: 14px; text-transform: uppercase; letter-spacing: 0.08em; transition: all 0.3s; display: flex; align-items: center; gap: 8px; flex-shrink:0;}
 .seatbelt-sign::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor;}
 .seatbelt-sign.on { background: rgba(255, 59, 48, 0.15); color: var(--apple-red); border: 1px solid rgba(255, 59, 48, 0.3); }
 .seatbelt-sign.off { background: var(--apple-gray-fill); color: var(--label-tertiary); border: 1px solid transparent; }
 .seatbelt-sign.off::before { opacity: 0.3; box-shadow: none;}
 
-.cond-main { display: flex; align-items: center; justify-content: space-between; padding-bottom: 16px; border-bottom: 1px solid var(--glass-border); }
+/* UUSI: LIVE CAPTAIN'S PA SYSTEM */
+.pa-box { margin-bottom: 4px; padding: 12px 14px; background: rgba(0,0,0,0.04); border-radius: 14px; font-size: 13px; font-style: italic; color: var(--label-secondary); display: flex; gap: 10px; align-items: flex-start; line-height: 1.4; border: 1px solid rgba(255,255,255,0.2); box-shadow: inset 0 2px 6px rgba(0,0,0,0.02);}
+@media (prefers-color-scheme: dark) { .pa-box { background: rgba(255,255,255,0.06); } }
+.pa-box svg { width: 16px; height: 16px; fill: var(--label-tertiary); flex-shrink: 0; margin-top: 2px; }
+
+.cond-main { display: flex; align-items: center; justify-content: space-between; padding-bottom: 16px; border-bottom: 1px solid var(--glass-border); padding-top: 10px; border-top: 1px solid var(--glass-border);}
 .cond-info { display: flex; flex-direction: column; gap: 4px; }
 .cond-lbl { font-size: 12px; font-weight: 700; color: var(--label-secondary); letter-spacing: 0.05em; text-transform: uppercase; }
 .cond-val { font-size: 20px; font-weight: 700; color: var(--label-primary); letter-spacing: -0.02em; display: flex; align-items: center; gap: 8px;}
@@ -241,7 +248,8 @@ body { user-select: none; background: #000;}
 @keyframes slideWave { from { stroke-dashoffset: 0; } to { stroke-dashoffset: -24; } }
 @keyframes shake { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(3px); } }
 
-.cond-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+/* LAAJENNETTU 4-GRID (OAT, Winds, Mach, Cabin Alt) */
+.cond-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 12px; margin-top: 4px;}
 .c-item { display: flex; flex-direction: column; gap: 4px; }
 .c-val { font-size: 18px; font-weight: 700; color: var(--label-primary); }
 
@@ -269,8 +277,8 @@ body { user-select: none; background: #000;}
   <div class="island" id="island">
     <div class="brand">
         <div class="brand-icon"><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div>
-        <!-- V58: TRUE PHYSICS & REAL MATH! -->
-        <div class="brand-text">Over<span>head</span> <span class="v-badge">v58</span></div>
+        <!-- V59: TRAVEL FEVER EDITION! -->
+        <div class="brand-text">Over<span>head</span> <span class="v-badge">v59</span></div>
     </div>
     <div class="searchbox"><svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><input id="searchInput" placeholder="Search callsign..." autocomplete="off" autocorrect="off" spellcheck="false" /></div>
     <div class="island-flight" id="islandFlight"><div class="if-main"><div class="if-call" id="ifCall">FLIGHT</div><div class="if-route" id="ifRoute">Tracking Active</div></div></div>
@@ -333,7 +341,8 @@ body { user-select: none; background: #000;}
                       </div>
                       <div class="w-city-name" id="bpDepName">Origin</div>
                       <div class="w-code" id="bpDep">DEP</div>
-                      <div class="w-time flown" id="bpTimeFlown">--</div>
+                      <div class="w-time-lbl">DEPARTED</div>
+                      <div class="w-time flown" id="bpTimeFlown">--:--</div>
                   </div>
                   
                   <div class="w-timeline">
@@ -351,7 +360,8 @@ body { user-select: none; background: #000;}
                       </div>
                       <div class="w-city-name" id="bpArrName">Destination</div>
                       <div class="w-code" id="bpArr">ARR</div>
-                      <div class="w-time remain" id="bpTimeRemain">--</div>
+                      <div class="w-time-lbl right">EST. ARRIVAL</div>
+                      <div class="w-time remain" id="bpTimeRemain">--:--</div>
                   </div>
               </div>
               
@@ -391,6 +401,12 @@ body { user-select: none; background: #000;}
                   <div class="seatbelt-sign off" id="paxSeatbelt">Seatbelts OFF</div>
               </div>
 
+              <!-- LIVE PA SYSTEM ANNOUNCEMENTS -->
+              <div class="pa-box" id="paBox">
+                  <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+                  <span id="paText">"Sit back, relax, and enjoy the flight."</span>
+              </div>
+
               <div class="cond-main">
                   <div class="cond-info">
                       <div class="cond-lbl">Turbulence</div>
@@ -402,6 +418,8 @@ body { user-select: none; background: #000;}
                       </svg>
                   </div>
               </div>
+              
+              <!-- 4-GRID (OAT, Winds, Mach, Cabin Alt) -->
               <div class="cond-row">
                   <div class="c-item">
                       <div class="cond-lbl">Outside Air</div>
@@ -411,6 +429,14 @@ body { user-select: none; background: #000;}
                       <div class="cond-lbl">Winds Aloft</div>
                       <div class="c-val" id="dWind">— kt</div>
                   </div>
+                  <div class="c-item">
+                      <div class="cond-lbl">Mach Number</div>
+                      <div class="c-val" id="dMach">—</div>
+                  </div>
+                  <div class="c-item">
+                      <div class="cond-lbl">Cabin Altitude</div>
+                      <div class="c-val" id="dCab">— ft</div>
+                  </div>
               </div>
           </div>
           
@@ -418,12 +444,15 @@ body { user-select: none; background: #000;}
               <img id="dHero" src="data:image/gif;base64,R0lGODlhAQABAAD/ACwAAAAAAQABAAACADs=" style="opacity:0" />
           </div>
           
+          <!-- LAAJENNETTU TELEMETRIA (Sisältää G-Force & Distance) -->
           <div class="section-title">Telemetry</div>
           <div class="grid">
             <div class="info"><div class="i-label">Altitude</div><div class="i-value" id="dAlt">—</div></div>
             <div class="info"><div class="i-label">Speed</div><div class="i-value" id="dSpd">—</div></div>
             <div class="info"><div class="i-label">Heading</div><div class="i-value" id="dTrack">—</div></div>
             <div class="info"><div class="i-label">Vertical Rate</div><div class="i-value" id="dVRate">—</div></div>
+            <div class="info"><div class="i-label">G-Force</div><div class="i-value" id="dGForce">—</div></div>
+            <div class="info"><div class="i-label">Dist. to Dest</div><div class="i-value" id="dRemainNM">—</div></div>
           </div>
           
           <div class="section-title">Performance</div>
@@ -484,7 +513,6 @@ function fmtKt(ms){ return ms==null?'—':Math.round(ms)+' KT'; }
 function fmtVRate(fpm) { if (!fpm) return 'Level'; return fpm > 0 ? `↗ ${Math.round(fpm)} ft/m` : `↘ ${Math.abs(Math.round(fpm))} ft/m`; }
 function fmtHeading(deg) { if (deg == null) return '—'; const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']; return `${Math.round(deg)}° ${dirs[Math.round(deg / 45) % 8]}`; }
 
-// TRUE MATH: Etäisyys merimaileina (Nautical Miles) oikeilla koordinaateilla!
 function haversine(lat1, lon1, lat2, lon2){ 
     if (lat1==null||lon1==null||lat2==null||lon2==null) return 0;
     const R=3440.065; const p=Math.PI/180; 
@@ -504,7 +532,7 @@ function calculateOverhead(f) {
     if(angleDiff > 180) angleDiff = 360 - angleDiff;
     const isCrossing = angleDiff < 30; 
     if (f.dist < 3) return { status: 'overhead', text: 'Directly Overhead' };
-    if (isCrossing) { return { status: 'approaching', text: `Overhead in ${Math.round((f.dist / f.velocity) * 60)} min` }; // dist on nyt NM, f.velocity on KNOTS
+    if (isCrossing) { return { status: 'approaching', text: `Overhead in ${Math.round((f.dist / f.velocity) * 60)} min` };
     } else if(angleDiff > 120 && f.dist < 30) { return { status: 'passed', text: `Passed ${Math.round((f.dist / f.velocity) * 60)} min ago` }; }
     return { status: 'none', text: 'Not Crossing' };
 }
@@ -548,16 +576,17 @@ function updateFlightPath(progressPct, altitudeFt) {
 
 function updatePassengerExperience(f) {
     if(!f) return;
-    
-    // TODELLINEN LÄMPÖTILA (ISA Ilmakehä - Lapse Rate)
-    let tempC = f.oat != null ? f.oat : (15 - ((f.baro_alt / 1000) * 1.98));
+    let alt = f.baro_alt || 0; let vr = f.vertical_rate || 0; let spd = f.velocity || 0;
+
+    // TODELLINEN LÄMPÖTILA 
+    let tempC = f.oat != null ? f.oat : (15 - ((alt / 1000) * 1.98));
     if(tempC < -56.5) tempC = -56.5; 
     $('dOAT').textContent = f.on_ground ? 'Ground' : `${Math.round(tempC)}°C`;
     
-    // TODELLINEN TUULEN SUUNTA & NOPEUS
+    // TODELLINEN TUULI
     let windSpd = 0; let windType = "Calm";
     if (!f.on_ground) {
-        windSpd = f.ws != null ? f.ws : Math.round((f.baro_alt / 500) + (Math.sin(f.curLat * Math.PI/180) * 20));
+        windSpd = f.ws != null ? f.ws : Math.round((alt / 500) + (Math.sin(f.curLat * Math.PI/180) * 20));
         if (windSpd < 0) windSpd = Math.abs(windSpd);
         let windDir = f.wd != null ? f.wd : Math.round((Math.cos(f.curLon * Math.PI/180) * 180 + 360) % 360);
         let relWind = Math.abs((f.track || 0) - windDir);
@@ -569,45 +598,71 @@ function updatePassengerExperience(f) {
         if (windSpd < 5) { windType = "Light"; windSpd = Math.max(0, windSpd); }
     }
     $('dWind').textContent = f.on_ground ? 'Calm' : `${windSpd} kt ${windType}`;
-    
-    // ÄLYKÄS LENNON VAIHE (Phase) JA TURVAVYÖVALO (Seatbelts)
-    let phase = "Cruising"; let sbOn = false;
-    let alt = f.baro_alt || 0; let vr = f.vertical_rate || 0; let spd = f.velocity || 0;
-    
-    if (f.on_ground || alt < 100) {
-        if (spd > 30) { phase = "Takeoff / Roll"; sbOn = true; }
-        else if (spd > 2) { phase = "Taxiing"; sbOn = true; }
-        else { phase = "Parked / Gate"; sbOn = false; }
-    } else if (alt < 10000) {
-        sbOn = true; 
-        if (vr > 300) phase = "Initial Climb";
-        else if (vr < -300) phase = "Approach";
-        else phase = "Low Altitude";
-    } else {
-        if (vr > 500) phase = "Climbing";
-        else if (vr < -500) phase = "Descending";
-        else phase = "Cruising";
+
+    // MACH-LUKU JA KABIININ PAINE
+    let machStr = "—"; let cabAlt = 0;
+    if (!f.on_ground && spd > 100) {
+        let speedOfSound = 38.945 * Math.sqrt(tempC + 273.15);
+        machStr = "M " + (spd / speedOfSound).toFixed(2);
     }
-    
-    // FYSIKAALINEN TURBULENSSIN LASKENTA
+    if (alt <= 8000) cabAlt = alt;
+    else cabAlt = 6000 + ((alt - 8000) / 32000) * 2000;
+    cabAlt = Math.max(0, Math.round(cabAlt / 50) * 50);
+
+    $('dMach').textContent = machStr;
+    $('dCab').textContent = f.on_ground ? "Doors Open" : `${cabAlt.toLocaleString('en-US')} ft`;
+
+    // FYSIKAALINEN TURBULENSSI
     const timePhase = Math.floor(Date.now() / 120000); 
     let turbSeed = (Math.floor(f.curLat) * 73856093 ^ Math.floor(f.curLon) * 19349663 ^ timePhase);
     let turbScore = Math.abs(turbSeed % 100);
     if (Math.abs(vr) > 2500) turbScore += 40; 
     
+    // G-VOIMAT
+    let gForce = 1.0;
+    if (!f.on_ground) {
+        gForce += (turbScore - 50) * 0.005;
+        if (vr > 1000) gForce += 0.08;
+        if (vr < -1000) gForce -= 0.05;
+    }
+    $('dGForce').textContent = f.on_ground ? "1.00 G" : gForce.toFixed(2) + " G";
+
     if (f.on_ground) {
         $('dTurbTxt').textContent = 'Parked'; $('dTurbDot').className = 'turb-dot smooth'; $('dTurbWave').className = 'turb-wave shake-smooth';
     } else if (turbScore < 75) {
         $('dTurbTxt').textContent = 'Smooth'; $('dTurbDot').className = 'turb-dot smooth'; $('dTurbWave').className = 'turb-wave shake-smooth';
     } else if (turbScore < 90) {
         $('dTurbTxt').textContent = 'Light Chop'; $('dTurbDot').className = 'turb-dot light'; $('dTurbWave').className = 'turb-wave shake-light';
-        sbOn = true;
     } else {
         $('dTurbTxt').textContent = 'Moderate'; $('dTurbDot').className = 'turb-dot moderate'; $('dTurbWave').className = 'turb-wave shake-mod';
-        sbOn = true;
+    }
+
+    // ÄLYKÄS LENNON VAIHE (Phase), TURVAVYÖVALO JA PA-KUULUTUKSET
+    let phase = "Cruising"; let sbOn = false; let pa = "";
+    
+    if (f.on_ground || alt < 100) {
+        if (spd > 30) { phase = "Takeoff / Roll"; sbOn = true; pa = '"V1... Rotate. Positive rate, gear up."'; }
+        else if (spd > 2) { phase = "Taxiing"; sbOn = true; pa = '"Cabin crew, seats for departure."'; }
+        else { phase = "Parked / Gate"; sbOn = false; pa = '"Doors are open. Welcome aboard!"'; }
+    } else if (alt < 10000) {
+        sbOn = true; 
+        if (vr > 300) { phase = "Initial Climb"; pa = '"Ladies and gentlemen, we are climbing through 10,000 feet. You may now use approved electronic devices."'; }
+        else if (vr < -300) { phase = "Approach"; pa = '"Flight attendants, please prepare the cabin for landing."'; }
+        else { phase = "Low Altitude"; pa = '"We are flying at low altitude, please remain seated."'; }
+    } else {
+        if (vr > 500) { phase = "Climbing"; pa = `"Air traffic control has cleared us to flight level ${Math.round(alt/1000)}0."`; sbOn = false; }
+        else if (vr < -500) { phase = "Descending"; pa = '"We have begun our initial descent. The weather at our destination is looking good."'; sbOn = true; }
+        else { 
+            phase = "Cruising"; 
+            if (turbScore >= 90) { pa = '"Captain speaking: We hit some rough air, please return to your seats and fasten your seatbelts."'; sbOn = true; }
+            else if (turbScore >= 75) { pa = '"Flight attendants, please take your seats."'; sbOn = true; }
+            else { pa = `"We are currently cruising at ${Math.round(alt/1000)*1000} feet. Sit back, relax, and enjoy the flight."`; sbOn = false; }
+        }
     }
     
     $('paxPhase').textContent = phase;
+    $('paText').textContent = pa;
+    
     const sb = $('paxSeatbelt');
     if (sbOn) { sb.className = 'seatbelt-sign on'; sb.textContent = 'Seatbelts ON'; } 
     else { sb.className = 'seatbelt-sign off'; sb.textContent = 'Seatbelts OFF'; }
@@ -624,7 +679,6 @@ async function fetchFlightRoute(callsign) {
             const data = await res.json();
             if(data && data.response && data.response.flightroute) {
                 const route = data.response.flightroute;
-                // Tallennetaan myös tarkat koordinaatit uutta matematiikkaa varten!
                 const result = {
                     dep: route.origin?.iata_code || 'N/A',
                     depName: route.origin?.municipality || 'Unknown',
@@ -802,7 +856,7 @@ async function fetchFullTrace(icao24) {
 
 function startAnimation(){
   setInterval(() => { updateMarkers(); }, 1000);
-  const fmtTime = m => (Math.floor(m/60)>0 ? `${Math.floor(m/60)}h ` : '') + `${Math.floor(m%60)}m`;
+  const fmtTime = d => d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
 
   const tick = (t) => {
     requestAnimationFrame(tick);
@@ -830,9 +884,9 @@ function startAnimation(){
           if(oh && oh.status !== 'none') { badge.classList.add(oh.status); badge.textContent = oh.text; $('ifRoute').textContent = oh.text; 
           } else { badge.classList.add('none'); $('ifRoute').textContent = 'Tracking Active'; }
 
-          // TARKKA MATEMATIIKKA MATKAN EDISTYMISEEN JA AIKOIHIN
+          // TARKKA LÄHTÖ- JA SAAPUMISAIKA SEKÄ ETÄISYYDET
           let targetProgress = 0; let flownMins = 0; let remainMins = 0;
-          let currentGS = Math.max(sf.velocity || 0, 50); // Estää nollanollalla jaon
+          let currentGS = Math.max(sf.velocity || 0, 50);
 
           if (sf.route && sf.route.depLat && sf.route.arrLat) {
               const flownDist = haversine(sf.route.depLat, sf.route.depLon, sf.curLat, sf.curLon);
@@ -846,8 +900,9 @@ function startAnimation(){
               
               if(sf.on_ground && remainDist < 50) { targetProgress = 100; remainMins = 0; }
               if(sf.on_ground && flownDist < 50) { targetProgress = 0; flownMins = 0; }
+              
+              $('dRemainNM').textContent = `${Math.round(remainDist).toLocaleString('en-US')} NM`;
           } else {
-              // Fallback logiikka jos reittiä ei ole saatavilla
               if (sf.on_ground) { targetProgress = 2; }
               else {
                   let traceDist = 0;
@@ -857,12 +912,17 @@ function startAnimation(){
                   flownMins = (traceDist / Math.max(sf.velocity || 250, 250)) * 60;
                   targetProgress = Math.min(95, 10 + traceDist/20);
               }
+              $('dRemainNM').textContent = `— NM`;
           }
 
           sf.visProgress = sf.visProgress !== undefined ? sf.visProgress + (targetProgress - sf.visProgress) * 0.05 : targetProgress;
           
-          $('bpTimeFlown').textContent = fmtTime(flownMins);
-          $('bpTimeRemain').textContent = sf.route ? "-" + fmtTime(remainMins) : "Live";
+          const now = new Date();
+          const depTime = new Date(now.getTime() - flownMins * 60000);
+          const arrTime = new Date(now.getTime() + remainMins * 60000);
+
+          $('bpTimeFlown').textContent = flownMins > 0 ? fmtTime(depTime) : "--:--";
+          $('bpTimeRemain').textContent = sf.route && targetProgress < 100 ? fmtTime(arrTime) : (targetProgress >= 100 ? "ARRIVED" : "LIVE");
 
           updateFlightPath(sf.visProgress, sf.baro_alt);
           updatePassengerExperience(sf);
@@ -935,7 +995,6 @@ window.openDetailUI = async function(icao24) {
   $('island').classList.add('focus'); $('ifCall').textContent = dCall; $('hudWrap').classList.add('show');
   $('detailControls').style.display = 'flex';
   
-  // UI PÄIVITYKSET 
   $('bpCall').textContent = dCall.substring(0, 6);
   $('dTrack').textContent = fmtHeading(f.track); $('dVRate').textContent = fmtVRate(f.vertical_rate);
   $('dIcao').textContent = f.icao24.toUpperCase();
@@ -966,7 +1025,6 @@ window.openDetailUI = async function(icao24) {
       $('dOperator').textContent = '—';
   }
 
-  // Luotettava Hash-algoritmi portin ja paikan laskentaan callsignin perusteella
   const hash = dCall.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a }, 0);
   const gates = ['A12', 'B22', 'C4', 'D10', 'E1', 'F14', 'G3', 'H8', 'A5', 'B7', 'E12'];
   const seats = ['1A', '4F', '12B', '15C', '22A', '34J', '7C', '2F', '10A', '18D', '11C'];
@@ -977,12 +1035,13 @@ window.openDetailUI = async function(icao24) {
   $('bpArr').textContent = '—'; $('bpArrName').textContent = 'Fetching...';
   updateCityAvatar('depAvatar', 'depAvatarWrap', null);
   updateCityAvatar('arrAvatar', 'arrAvatarWrap', null);
-  $('bpTimeFlown').textContent = "--"; $('bpTimeRemain').textContent = "--";
+  $('bpTimeFlown').textContent = "--:--"; $('bpTimeRemain').textContent = "--:--";
+  $('dRemainNM').textContent = "— NM";
 
   if(f.callsign) {
       fetchFlightRoute(f.callsign).then(route => {
           if(route) {
-              f.route = route; // Tallennetaan reitti matemaattisia operaatioita varten
+              f.route = route; 
               $('bpDep').textContent = route.dep;
               $('bpDepName').textContent = route.depName;
               $('bpArr').textContent = route.arr;
