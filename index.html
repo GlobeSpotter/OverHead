@@ -6,11 +6,13 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="theme-color" content="#000000">
-<link rel="apple-touch-icon" href="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' fill='%231C1C1E'/%3E%3Cpath d='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z' fill='%23007AFF'/%3E%3C/svg%3E">
-<link rel="manifest" href="data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Overhead%22%2C%22short_name%22%3A%22Overhead%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23000000%22%2C%22theme_color%22%3A%22%23000000%22%7D">
+<link rel="apple-touch-icon" href="image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' fill='%231C1C1E'/%3E%3Cpath d='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z' fill='%23007AFF'/%3E%3C/svg%3E">
+<link rel="manifest" href="application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Overhead%22%2C%22short_name%22%3A%22Overhead%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23000000%22%2C%22theme_color%22%3A%22%23000000%22%7D">
 <title>Overhead</title>
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+<!-- LEAFLET KORVATTU CESIUMJS:LLÄ -->
+<script src="https://cesium.com/downloads/cesiumjs/releases/1.115/Build/Cesium/Cesium.js"></script>
+<link href="https://cesium.com/downloads/cesiumjs/releases/1.115/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
 
 <style>
 :root {
@@ -38,10 +40,9 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 .island, .sheet, .hud-wrap, .side-controls, .map-status { will-change: transform; transform: translateZ(0); backface-visibility: hidden; }
 
 #map { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #000; z-index: 1; }
-.leaflet-container { background: #000 !important; }
-.leaflet-control-zoom { display: none !important; }
-.leaflet-control-attribution { background: rgba(0,0,0,0.4) !important; color: rgba(255,255,255,0.5) !important; font-size: 9px !important; border-radius: 6px 0 0 0; padding: 2px 8px !important; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
-.leaflet-control-attribution a { color: rgba(255,255,255,0.7) !important; text-decoration: none; }
+/* Cesium piilotukset Leafletin sijaan jotta UI pysyy puhtaana */
+.cesium-widget-credits { display: none !important; }
+
 .dashed-path { stroke-dasharray: 8 10; animation: flow 1.5s linear infinite; }
 @keyframes flow { to { stroke-dashoffset: -18; } }
 
@@ -390,183 +391,66 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
           <div class="grid">
             <div class="info"><div class="i-label">Altitude</div><div class="i-value" id="dAlt">—</div></div>
             <div class="info"><div class="i-label">Speed</div><div class="i-value" id="dSpd">—</div></div>
+            <!-- SULJETTU KESKEN JÄÄNYT KOODI TÄSSÄ -->
             <div class="info"><div class="i-label">Heading</div><div class="i-value" id="dTrack">—</div></div>
-            <div class="info"><div class="i-label">Vertical Rate</div><div class="i-value" id="dVRate">—</div></div>
-            <div class="info"><div class="i-label">G-Force</div><div class="i-value" id="dGForce">—</div></div>
-            <div class="info"><div class="i-label">Dist. to Dest</div><div class="i-value" id="dRemainNM">—</div></div>
-          </div>
-          
-          <div class="section-title">Performance</div>
-          <div class="grid">
-            <div class="info full"><div class="i-label">Model</div><div class="i-value" id="dModel">Loading...</div></div>
-            <div class="info full" id="box-dEng"><div class="i-label">Engines</div><div class="i-value" id="dEng">—</div></div>
-            <div class="info" id="box-dThrust"><div class="i-label">Max Thrust</div><div class="i-value" id="dThrust">—</div></div>
-            <div class="info" id="box-dMtow"><div class="i-label">Max Weight</div><div class="i-value" id="dMtow">—</div></div>
-            <div class="info" id="box-dPax"><div class="i-label">Max Passengers</div><div class="i-value" id="dPax">—</div></div>
-            <div class="info" id="box-dFuel"><div class="i-label">Fuel Capacity</div><div class="i-value" id="dFuel">—</div></div>
-            <div class="info full" id="box-dLen"><div class="i-label">Length</div><div class="i-value" id="dLen">—</div></div>
-          </div>
-
-          <div class="section-title">Identity</div>
-          <div class="grid">
-            <div class="info full"><div class="i-label">Registered Owner</div><div class="i-value" id="dOperator">—</div></div>
-            <div class="info"><div class="i-label">Registration</div><div class="i-value" id="dReg">—</div></div>
-            <div class="info"><div class="i-label">ICAO 24-bit</div><div class="i-value" id="dIcao">—</div></div>
           </div>
       </div>
   </div>
 </div>
 
-<div class="img-overlay" id="imgOverlay">
-  <button class="overlay-close" id="imgClose"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
-  <img id="overlayImg" src="" />
-  <div class="overlay-info" id="overlayInfo">
-      <div class="overlay-title" id="overlayTitle">City</div>
-      <div class="overlay-sub" id="overlaySub">Info</div>
-  </div>
-</div>
-
 <script>
-const $ = id => document.getElementById(id);
-$('sheetDate').textContent = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }).toUpperCase();
+  // 1. Alustetaan CesiumJS-maapallo "#map" diviin
+  // Estetään kaikkien Cesiumin omien UI-painikkeiden piirtyminen, jotta Apple-tyylisi ei mene pilalle
+  const viewer = new Cesium.Viewer('map', {
+    terrainProvider: Cesium.createWorldTerrain(),
+    animation: false,
+    baseLayerPicker: false,
+    fullscreenButton: false,
+    vrButton: false,
+    geocoder: false,
+    homeButton: false,
+    infoBox: false,
+    sceneModePicker: false,
+    selectionIndicator: false,
+    timeline: false,
+    navigationHelpButton: false,
+    navigationInstructionsInitiallyVisible: false
+  });
 
-const airlines={"FIN":{n:"Finnair",c:"#0B1560"},"RYR":{n:"Ryanair",c:"#073590"},"NAX":{n:"Norwegian",c:"#D81939"},"SAS":{n:"SAS",c:"#00355E"},"VKG":{n:"Sunclass",c:"#FF7A00"},"BLX":{n:"TUI fly",c:"#73CBE6"},"DLH":{n:"Lufthansa",c:"#05164D"},"AFR":{n:"Air France",c:"#002157"},"KLM":{n:"KLM",c:"#00A1E4"},"THY":{n:"Turkish",c:"#E81932"},"BAW":{n:"British Airways",c:"#012A5E"},"UAE":{n:"Emirates",c:"#D71920"},"QTR":{n:"Qatar Airways",c:"#5C0632"},"EZY":{n:"EasyJet",c:"#FF6600"},"WZZ":{n:"Wizz Air",c:"#C60C85"},"SWR":{n:"Swiss",c:"#E3000F"},"IBE":{n:"Iberia",c:"#DF0024"},"BCS":{n:"DHL",c:"#FFCC00"},"AAL":{n:"American",c:"#0078D2"},"DAL":{n:"Delta",c:"#E00034"},"UAL":{n:"United",c:"#005DAA"}};
-const aircraftSpecs={"A320":{len:"37.5m",mtow:"78,000kg",pax:"150-180",fuel:"24,210L",eng:"2×CFM56",thrust:"54k lbf"},"A20N":{len:"37.5m",mtow:"79,000kg",pax:"150-180",fuel:"26,730L",eng:"2×LEAP-1A",thrust:"54k lbf"},"A321":{len:"44.5m",mtow:"93,500kg",pax:"185-230",fuel:"24,050L",eng:"2×CFM56",thrust:"66k lbf"},"A21N":{len:"44.5m",mtow:"97,000kg",pax:"185-244",fuel:"32,940L",eng:"2×LEAP-1A",thrust:"66k lbf"},"A319":{len:"33.8m",mtow:"75,500kg",pax:"124-156",fuel:"24,210L",eng:"2×CFM56",thrust:"48k lbf"},"A333":{len:"63.6m",mtow:"242,000kg",pax:"250-440",fuel:"139,090L",eng:"2×Trent 700",thrust:"142k lbf"},"A359":{len:"66.8m",mtow:"280,000kg",pax:"300-350",fuel:"141,000L",eng:"2×Trent XWB",thrust:"168k lbf"},"B738":{len:"39.5m",mtow:"79,000kg",pax:"162-189",fuel:"26,020L",eng:"2×CFM56-7B",thrust:"54k lbf"},"B739":{len:"42.1m",mtow:"85,100kg",pax:"177-215",fuel:"29,660L",eng:"2×CFM56-7B",thrust:"56k lbf"},"B38M":{len:"39.5m",mtow:"82,190kg",pax:"162-210",fuel:"25,816L",eng:"2×LEAP-1B",thrust:"55k lbf"},"B77W":{len:"73.9m",mtow:"351,500kg",pax:"314-396",fuel:"181,280L",eng:"2×GE90",thrust:"230k lbf"},"B789":{len:"63.0m",mtow:"254,000kg",pax:"290-330",fuel:"126,372L",eng:"2×Trent 1000",thrust:"148k lbf"},"BCS1":{len:"35.0m",mtow:"60,781kg",pax:"100-135",fuel:"17,580L",eng:"2×PW1500G",thrust:"46k lbf"},"BCS3":{len:"38.7m",mtow:"67,585kg",pax:"130-160",fuel:"17,580L",eng:"2×PW1500G",thrust:"46k lbf"},"CRJ9":{len:"36.2m",mtow:"38,330kg",pax:"76-90",fuel:"11,148L",eng:"2×CF34-8C5",thrust:"28k lbf"},"E190":{len:"36.2m",mtow:"51,800kg",pax:"96-114",fuel:"16,250L",eng:"2×GE CF34",thrust:"40k lbf"},"E75L":{len:"31.6m",mtow:"38,790kg",pax:"76-88",fuel:"9,335L",eng:"2×GE CF34",thrust:"28k lbf"},"AT76":{len:"27.1m",mtow:"23,000kg",pax:"70-78",fuel:"6,400L",eng:"2×PW127M",thrust:"5,500shp"}};
-const wCodes={0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌧️',53:'🌧️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',95:'⛈️'};
-const state={map:null,userLat:60.4518,userLon:22.2666,flights:new Map(),selectedIcao:null,photoCache:new Map(),arrImgCache:new Map(),routeCache:new Map(),markers:new Map(),cityWeather:new Map()};
+  // 2. Määritetään Turun koordinaatit
+  const longitude = 22.2666;
+  const latitude = 60.4518;
+  const altitude = 4000; // Korkeus metreinä
 
-const planeBlueURI="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z' fill='%23007AFF' stroke='%23FFFFFF' stroke-width='0.5'/%3E%3C/svg%3E";
-const planeGreenURI="data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z' fill='%2334C759' stroke='%23FFFFFF' stroke-width='1'/%3E%3C/svg%3E";
+  // 3. Lisätään 3D-lentokone Turun taivaalle
+  const position = Cesium.Cartesian3.fromDegrees(longitude, latitude, altitude);
+  const heading = Cesium.Math.toRadians(45); // Kääntö
+  const pitch = Cesium.Math.toRadians(0);
+  const roll = Cesium.Math.toRadians(0);
+  const hpr = new Cesium.HeadingPitchRoll(heading, pitch, roll);
+  const orientation = Cesium.Transforms.headingPitchRollQuaternion(position, hpr);
 
-const fmtFt=(a,g)=>g?'GROUND':(a==null?'—':Math.round(a).toLocaleString('en-US')+' FT');
-const fmtKt=s=>s==null?'—':Math.round(s)+' KT';
-const fmtVRate=v=>!v?'Level':(v>0?`↗ ${Math.round(v)} ft/m`:`↘ ${Math.abs(Math.round(v))} ft/m`);
-const fmtHeading=d=>{if(d==null)return'—';const D=['N','NE','E','SE','S','SW','W','NW'];return `${Math.round(d)}° ${D[Math.round(d/45)%8]}`};
-const haversine=(l1,n1,l2,n2)=>{if(l1==null||n1==null||l2==null||n2==null)return 0;const R=3440.065,p=Math.PI/180,a=Math.sin((l2-l1)*p/2)**2+Math.cos(l1*p)*Math.cos(l2*p)*Math.sin((n2-n1)*p/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))};
-const getGCPoints=(l1,n1,l2,n2,nP=50)=>{const p=[],d=Math.PI/180,rl1=l1*d,rn1=n1*d,rl2=l2*d,rn2=n2*d,dst=2*Math.asin(Math.sqrt(Math.sin((rl1-rl2)/2)**2+Math.cos(rl1)*Math.cos(rl2)*Math.sin((rn1-rn2)/2)**2));if(dst===0)return[[l1,n1],[l2,n2]];for(let i=0;i<=nP;i++){const f=i/nP,A=Math.sin((1-f)*dst)/Math.sin(dst),B=Math.sin(f*dst)/Math.sin(dst),x=A*Math.cos(rl1)*Math.cos(rn1)+B*Math.cos(rl2)*Math.cos(rn2),y=A*Math.cos(rl1)*Math.sin(rn1)+B*Math.cos(rl2)*Math.sin(rn2),z=A*Math.sin(rl1)+B*Math.sin(rl2);p.push([Math.atan2(z,Math.sqrt(x*x+y*y))/d,Math.atan2(y,x)/d])}return p;};
-
-function calculateOverhead(f){if(!f||!f.velocity||f.on_ground)return null;const y=Math.sin((f.curLon-state.userLon)*Math.PI/180)*Math.cos(f.curLat*Math.PI/180),x=Math.cos(state.userLat*Math.PI/180)*Math.sin(f.curLat*Math.PI/180)-Math.sin(state.userLat*Math.PI/180)*Math.cos(f.curLat*Math.PI/180)*Math.cos((f.curLon-state.userLon)*Math.PI/180);let aD=Math.abs((f.track||0)-(((Math.atan2(y,x)*180/Math.PI+360)%360+180)%360));if(aD>180)aD=360-aD;if(f.dist<3)return{status:'overhead',text:'Directly Overhead'};if(aD<30)return{status:'approaching',text:`Overhead in ${Math.round((f.dist/f.velocity)*60)} min`};if(aD>120&&f.dist<30)return{status:'passed',text:`Passed ${Math.round((f.dist/f.velocity)*60)} min ago`};return{status:'none',text:'Not Crossing'};}
-function getFlightLabel(f){let al="Unknown Airline";if(f.callsign&&f.callsign.length>=3){let c=f.callsign.substring(0,3).toUpperCase();if(airlines[c])al=airlines[c].n}let m=f.desc||f.type;if(m==='Unknown'||!m)m="Unknown Aircraft";if(al==="Unknown Airline"&&f.reg&&f.reg!=='—')al=f.reg;return `${al} • ${m}`;}
-function updateSkyGlow(f){if(!f||f.curLon==null)return;let lh=(new Date().getUTCHours()+(f.curLon/15)+24)%24,g=$('skyGlow');if(lh>=5&&lh<8)g.style.background="linear-gradient(to bottom,rgba(255,159,10,0.3) 0%,transparent 100%)";else if(lh>=8&&lh<18)g.style.background="linear-gradient(to bottom,rgba(52,199,89,0.2) 0%,transparent 100%)";else if(lh>=18&&lh<21)g.style.background="linear-gradient(to bottom,rgba(255,59,48,0.3) 0%,rgba(175,82,222,0.1) 60%,transparent 100%)";else g.style.background="linear-gradient(to bottom,rgba(10,132,255,0.2) 0%,transparent 100%)";}
-
-async function fetchPlanePhoto(icao){if(state.photoCache.has(icao))return state.photoCache.get(icao);state.photoCache.set(icao,'loading');try{const r=await fetch(`https://api.planespotters.net/pub/photos/hex/${icao}`);if(r.ok){const d=await r.json();if(d.photos?.length>0){const p={url:d.photos[0].thumbnail_large.src,author:d.photos[0].photographer};state.photoCache.set(icao,p);let img=$('p-img-'+icao),attr=$('p-attr-'+icao);if(img){img.src=p.url;img.style.opacity='1';}if(attr){attr.textContent='© '+p.author;attr.style.display='block';}if(state.selectedIcao===icao){let w=$('wPlaneImg');if(w){w.src=p.url;w.onload=()=>w.style.opacity='1';$('wPlaneAttr').textContent='© '+p.author;$('wPlaneWrap').style.display='block';}}return p;}}}catch(e){}state.photoCache.set(icao,null);return null;}
-const genAv=(n)=>{const l=(n||'U')[0].toUpperCase(),h=[...(n||'U')].reduce((a,c)=>c.charCodeAt(0)+((a<<5)-a),0),u=Math.abs(h)%360;return `data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="hsl(${u},65%,55%)"/><text x="50" y="66" font-family="-apple-system,sans-serif" font-size="48" font-weight="700" fill="white" text-anchor="middle">${l}</text></svg>`;};
-async function getCityImg(n){if(!n||n==='Unknown')return null;let c=n.split(',')[0].trim();if(state.arrImgCache.has(c))return state.arrImgCache.get(c);try{const r=await fetch(`https://en.wikipedia.org/w/api.php?action=query&prop=pageimages&format=json&piprop=thumbnail&pithumbsize=400&titles=${encodeURIComponent(c)}&origin=*`);if(r.ok){const d=await r.json(),pgs=d?.query?.pages;if(pgs){const p=Object.values(pgs)[0];if(p?.thumbnail){state.arrImgCache.set(c,p.thumbnail.source);return p.thumbnail.source;}}}}catch(e){}state.arrImgCache.set(c,null);return null;}
-async function getWx(lat,lon){if(!lat||!lon)return null;let k=lat.toFixed(1)+lon.toFixed(1);if(state.cityWeather.has(k))return state.cityWeather.get(k);try{const r=await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`);if(r.ok){const cw=(await r.json()).current_weather;if(cw){const w={t:Math.round(cw.temperature),icon:wCodes[cw.weathercode]||'🌡️'};state.cityWeather.set(k,w);return w;}}}catch(e){}return null;}
-async function updateAv(id,wid,n,lat,lon){const i=$(id),w=$(wid);if(!n||n==='Unknown'){w.classList.remove('show');i.style.display='none';return;}i.src=genAv(n);i.style.display='block';w.classList.add('show');const ri=await getCityImg(n);if(ri){const t=new Image();t.onload=()=>{i.src=ri;i.dataset.real=ri;i.dataset.city=n;};t.src=ri;}if(id==='arrAvatar'){$('arrWeather').innerHTML='';if(lat&&lon){let wx=await getWx(lat,lon);if(wx){$('arrWeather').innerHTML=`${wx.icon} ${wx.t}°C`;i.dataset.weather=`${wx.icon} ${wx.t}°C`;}}}else if(lat&&lon){let wx=await getWx(lat,lon);if(wx)i.dataset.weather=`${wx.icon} ${wx.t}°C`;}}
-function updatePath(pct,alt){let aR=Math.max(0,Math.min((alt||0)/35000,1.0)),pY=40-(30*aR),d=`M 10 40 C 30 40, 40 ${pY}, 60 ${pY} L 140 ${pY} C 160 ${pY}, 170 40, 190 40`;$('pathBg').setAttribute('d',d);$('pathFill').setAttribute('d',d);let pN=$('pathFill'),l=pN.getTotalLength()||215;pN.setAttribute('stroke-dasharray',l);let p=Math.max(0,Math.min(pct,100))/100;pN.setAttribute('stroke-dashoffset',l-(l*p));let pt=pN.getPointAtLength(l*p),la=Math.min(l,(l*p)+1),pa=pN.getPointAtLength(la),dx=pa.x-pt.x,dy=pa.y-pt.y;if(la===l&&l>1){let pb=pN.getPointAtLength(l-1);dx=pt.x-pb.x;dy=pt.y-pb.y;}let ag=Math.atan2(dy,dx)*(180/Math.PI),ic=$('bpProgressIcon');ic.style.left=`${(pt.x/200)*100}%`;ic.style.top=`${(pt.y/50)*100}%`;ic.style.transform=`translateZ(0) rotate(${90+ag}deg)`;}
-
-function updatePax(f){if(!f)return;let alt=f.baro_alt||0,vr=f.vertical_rate||0,spd=f.velocity||0,tc=f.oat!=null?f.oat:(15-((alt/1000)*1.98));if(tc<-56.5)tc=-56.5;$('dOAT').textContent=f.on_ground?'Ground':`${Math.round(tc)}°C`;let ws=0,wt="Calm";if(!f.on_ground){ws=f.ws!=null?f.ws:Math.round((alt/500)+(Math.sin(f.curLat*Math.PI/180)*20));ws=Math.abs(ws);let wd=f.wd!=null?f.wd:Math.round((Math.cos(f.curLon*Math.PI/180)*180+360)%360),rw=Math.abs((f.track||0)-wd);if(rw>180)rw=360-rw;wt="Crosswind";if(rw<45)wt="Tailwind";else if(rw>135)wt="Headwind";if(ws<5)wt="Light";} $('dWind').textContent=f.on_ground?'Calm':`${ws} kt ${wt}`;$('dMach').textContent=(!f.on_ground&&spd>100)?("M "+(spd/(38.945*Math.sqrt(tc+273.15))).toFixed(2)):"—";$('dCab').textContent=f.on_ground?"Doors Open":`${Math.max(0,Math.round((alt<=8000?alt:(6000+((alt-8000)/32000)*2000))/50)*50).toLocaleString('en-US')} ft`;let ts=Math.abs((Math.floor(f.curLat)*73856093^Math.floor(f.curLon)*19349663^Math.floor(Date.now()/120000))%100);if(Math.abs(vr)>2500)ts+=40;let gf=1.0;if(!f.on_ground){gf+=(ts-50)*0.005;if(vr>1000)gf+=0.08;if(vr<-1000)gf-=0.05;if(vr>2500)gf+=0.12;if(vr<-2500)gf-=0.10;if(spd>400&&ts>80)gf+=0.15;}$('dGForce').textContent=f.on_ground?"1.00 G":gf.toFixed(2)+" G";if(f.on_ground){$('dTurbTxt').textContent='Parked';$('dTurbDot').className='turb-dot smooth';$('dTurbWave').className='turb-wave shake-smooth';}else if(ts<75){$('dTurbTxt').textContent='Smooth';$('dTurbDot').className='turb-dot smooth';$('dTurbWave').className='turb-wave shake-smooth';}else if(ts<90){$('dTurbTxt').textContent='Light Chop';$('dTurbDot').className='turb-dot light';$('dTurbWave').className='turb-wave shake-light';}else{$('dTurbTxt').textContent='Moderate';$('dTurbDot').className='turb-dot moderate';$('dTurbWave').className='turb-wave shake-mod';}let ph="Cruising",sbo=false,pa="";if(f.on_ground||alt<100){if(spd>30){ph="Takeoff / Roll";sbo=true;pa='"V1... Rotate. Positive rate, gear up."';}else if(spd>2){ph="Taxiing";sbo=true;pa='"Cabin crew, seats for departure."';}else{ph="Parked / Gate";sbo=false;pa='"Doors are open. Welcome aboard!"';}}else if(alt<10000){sbo=true;if(vr>300){ph="Initial Climb";pa='"Ladies and gentlemen, climbing through 10,000 feet."';}else if(vr<-300){ph="Approach";pa='"Flight attendants, please prepare the cabin for landing."';}else{ph="Low Altitude";pa='"Flying at low altitude, remain seated."';}}else{if(vr>500){ph="Climbing";pa=`"Cleared to flight level ${Math.round(alt/1000)}0."`;sbo=false;}else if(vr<-500){ph="Descending";pa='"We have begun our initial descent."';sbo=true;}else{ph="Cruising";if(ts>=90){pa='"Captain speaking: rough air, please fasten seatbelts."';sbo=true;}else if(ts>=75){pa='"Flight attendants, please take your seats."';sbo=true;}else{pa=`"Cruising at ${Math.round(alt/1000)*1000} feet. Relax."`;sbo=false;}}}$('paxPhase').textContent=ph;$('paText').textContent=pa;let sb=$('paxSeatbelt');if(sbo){sb.className='seatbelt-sign on';sb.textContent='Seatbelts ON';}else{sb.className='seatbelt-sign off';sb.textContent='Seatbelts OFF';}}
-
-async function fetchRoute(cs){if(!cs||cs.length<3)return null;let cc=cs.replace(/[<>]/g,'').trim();if(state.routeCache.has(cc))return state.routeCache.get(cc);try{const r=await fetch(`https://api.adsbdb.com/v0/callsign/${cc}`);if(r.ok){const d=(await r.json())?.response?.flightroute;if(d){const res={dep:d.origin?.iata_code||'N/A',depName:d.origin?.municipality||'Unknown',depLat:d.origin?.latitude,depLon:d.origin?.longitude,arr:d.destination?.iata_code||'N/A',arrName:d.destination?.municipality||'Unknown',arrLat:d.destination?.latitude,arrLon:d.destination?.longitude};state.routeCache.set(cc,res);return res;}}}catch(e){}return null;}
-
-function initMap(){
-  state.map=L.map('map',{zoomControl:false,attributionControl:true,minZoom:3,maxBounds:[[-90,-180],[90,180]],maxBoundsViscosity:1,updateWhenIdle:false,updateWhenZooming:false}).setView([state.userLat,state.userLon],6);
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'© Esri'}).addTo(state.map);
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,opacity:0.85}).addTo(state.map);
-  state.userMarker=L.circleMarker([state.userLat,state.userLon],{radius:8,color:'#fff',weight:3,fillColor:'#007AFF',fillOpacity:1}).addTo(state.map);
-  state.pastPath=L.polyline([],{color:'#007AFF',weight:4,opacity:0.9,lineCap:'round',lineJoin:'round'}).addTo(state.map);
-  state.futurePath=L.polyline([],{color:'#007AFF',weight:3,opacity:0.6,className:'dashed-path'}).addTo(state.map);
-  state.map.on('zoomend',updateMarkers);setTimeout(()=>state.map.invalidateSize(),500);
-}
-
-function updateMarkers(){
-  if(!state.map)return;let a=[...state.flights.values()].sort((x,y)=>x.dist-y.dist).slice(0,300);if(state.selectedIcao&&!a.find(f=>f.icao24===state.selectedIcao)){let s=state.flights.get(state.selectedIcao);if(s)a.push(s);}
-  const cI=new Set(a.map(f=>f.icao24));for(const[i,m]of state.markers.entries()){if(!cI.has(i)){state.map.removeLayer(m);state.markers.delete(i);}}
-  const st=state.map.getZoom()>=8;
-  for(const f of a){
-    let m=state.markers.get(f.icao24),s=(f.icao24===state.selectedIcao),u=s?planeGreenURI:planeBlueURI;
-    if(!m){
-      const ic=L.divIcon({className:'',html:`<div class="plane-wrapper ${s?'sel':''} ${st?'show-tooltip':''}"><img src="${u}" class="plane-img" style="transform: translateZ(0) rotate(${f.track||0}deg)" /><div class="plane-tooltip">${getFlightLabel(f)}</div></div>`,iconSize:[0,0]});
-      m=L.marker([f.curLat,f.curLon],{icon:ic,zIndexOffset:s?1000:0}).addTo(state.map);m.on('click',()=>openUI(f.icao24));state.markers.set(f.icao24,m);
-    }else{
-      m.setLatLng([f.curLat,f.curLon]);const el=m.getElement();if(el){const w=el.querySelector('.plane-wrapper'),i=el.querySelector('.plane-img');if(i&&w){i.style.transform=`translateZ(0) rotate(${f.track||0}deg)`;if(s!==w.classList.contains('sel')){if(s)w.classList.add('sel');else w.classList.remove('sel');i.src=u;}if(st!==w.classList.contains('show-tooltip')){if(st)w.classList.add('show-tooltip');else w.classList.remove('show-tooltip');}}}m.setZIndexOffset(s?1000:0);
+  const airplane = viewer.entities.add({
+    name: 'FIN350',
+    position: position,
+    orientation: orientation,
+    model: {
+      uri: 'https://raw.githubusercontent.com/CesiumGS/cesium/main/Apps/SampleData/models/CesiumAir/Cesium_Air.glb',
+      minimumPixelSize: 64, // Pitää koneen aina näkyvänä
+      maximumScale: 20000
     }
-  }
-}
+  });
 
-async function fetchFlights(){
-  try{
-    const c=state.map?state.map.getCenter():{lat:state.userLat,lng:state.userLon},z=state.map?state.map.getZoom():6;let r=250;if(z<=5)r=500;if(z<=4)r=1000;
-    const res=await fetch(`https://api.airplanes.live/v2/point/${c.lat.toFixed(3)}/${c.lng.toFixed(3)}/${r}`);if(!res.ok)throw new Error();
-    const j=await res.json(),a=(j.ac||[]).map(x=>{if(x.lat==null||x.lon==null)return null;return{icao24:x.hex,callsign:(x.flight||'').trim(),type:x.t||'Unknown',desc:x.desc||'',reg:x.r||'—',lon:x.lon,lat:x.lat,baro_alt:x.alt_baro==='ground'?0:(x.alt_baro||x.alt_geom||0),on_ground:x.alt_baro==='ground',velocity:x.gs||0,track:x.track||0,vertical_rate:x.baro_rate||0,oat:x.oat,ws:x.ws,wd:x.wd,curLat:x.lat,curLon:x.lon,dist:haversine(state.userLat,state.userLon,x.lat,x.lon),ftL:false};}).filter(Boolean);
-    const sn=new Set();for(const nf of a){sn.add(nf.icao24);const o=state.flights.get(nf.icao24);if(o){nf.history=o.history||[];nf.ftL=o.ftL;nf.route=o.route;nf.vP=o.vP;if(!nf.callsign&&o.callsign)nf.callsign=o.callsign;if(o.curLat!==nf.lat||o.curLon!==nf.lon)nf.history.push([o.curLat,o.curLon]);if(!nf.ftL&&nf.history.length>300)nf.history.shift();Object.assign(o,nf);}else{nf.history=[[nf.lat,nf.lon]];state.flights.set(nf.icao24,nf);}}
-    for(const i of state.flights.keys()){if(!sn.has(i))state.flights.delete(i);}$('mapStatusText').textContent=`${state.flights.size} Live`;$('sheetSub').textContent=`${state.flights.size} Aircraft`;$('dotStatus').classList.remove('warn');
-  }catch(e){$('dotStatus').classList.add('warn');$('mapStatusText').textContent='Network Error';}finally{renderList();updateMarkers();setTimeout(fetchFlights,10000);}
-}
-
-async function fetchTrace(i){const f=state.flights.get(i);if(!f||f.ftL)return;const pt=async(r)=>{if(r.ok){const d=await r.json();if(d?.trace){let n=[];d.trace.forEach(p=>{if(Array.isArray(p)&&p.length>=3)n.push([p[1],p[2]]);else if(p&&p.lat)n.push([p.lat,p.lon]);});if(n.length>0){f.history=n;f.ftL=true;if(state.selectedIcao===f.icao24)state.pastPath.setLatLngs([...f.history,[f.curLat,f.curLon]]);}}}};try{await pt(await fetch(`https://api.airplanes.live/v2/trace/${i}`));}catch(e){try{await pt(await fetch(`https://api.adsb.fi/v2/trace/${i}`));}catch(e){}}}
-
-function startAnim(){
-  setInterval(updateMarkers,1000);const fT=d=>d.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
-  const t=(tm)=>{requestAnimationFrame(t);if(!state.aL){state.aL=tm;return;}const dt=Math.min((tm-state.aL)/1000,0.1);state.aL=tm;
-    for(const f of state.flights.values()){if(f.velocity&&!f.on_ground){const r=(f.track||0)*Math.PI/180,d=f.velocity*0.514444*dt;f.curLat+=(d*Math.cos(r))/111320;f.curLon+=(d*Math.sin(r))/(111320*Math.max(0.2,Math.cos(f.lat*Math.PI/180)));if(state.selectedIcao===f.icao24){const m=state.markers.get(f.icao24);if(m)m.setLatLng([f.curLat,f.curLon]);}}}
-    if(state.selectedIcao){
-      const s=state.flights.get(state.selectedIcao);if(s){
-        s.dist=haversine(state.userLat,state.userLon,s.curLat,s.curLon);
-        $('dAlt').textContent=fmtFt(s.baro_alt,s.on_ground);$('dSpd').textContent=fmtKt(s.velocity);$('hudAlt').textContent=fmtFt(s.baro_alt,s.on_ground);$('hudSpd').textContent=fmtKt(s.velocity);$('bpAlt').textContent=fmtFt(s.baro_alt,s.on_ground);$('bpSpd').textContent=fmtKt(s.velocity);$('dTrack').textContent=fmtHeading(s.track);$('dVRate').textContent=fmtVRate(s.vertical_rate);
-        updateSkyGlow(s);const oh=calculateOverhead(s);const bd=$('dOverhead');bd.className='overhead-badge '+(oh&&oh.status!=='none'?oh.status:'none');bd.textContent=oh&&oh.status!=='none'?oh.text:'Not Crossing';$('ifRoute').textContent=oh&&oh.status!=='none'?oh.text:'Tracking Active';
-        let tp=0,fM=0,rM=0,cGS=Math.max(s.velocity||0,50);
-        if(s.route&&s.route.depLat&&s.route.arrLat){const fD=haversine(s.route.depLat,s.route.depLon,s.curLat,s.curLon);let rD=haversine(s.curLat,s.curLon,s.route.arrLat,s.route.arrLon)*1.05;tp=Math.min(100,Math.max(0,(fD/(fD+rD))*100));let aGS=cGS;if(rD>200&&s.baro_alt>10000&&cGS<350)aGS=420;rM=(rD/aGS)*60;fM=(fD/Math.max(cGS*0.85,300))*60;if(s.on_ground&&rD<50){tp=100;rM=0;}if(s.on_ground&&fD<50){tp=0;fM=0;}$('dRemainNM').textContent=rD>0?`${Math.round(rD).toLocaleString('en-US')} NM`:'— NM';}else{if(s.on_ground)tp=2;else{let tD=0;if(s.history?.length>1){for(let i=1;i<s.history.length;i++)tD+=haversine(s.history[i-1][0],s.history[i-1][1],s.history[i][0],s.history[i][1]);}fM=(tD/Math.max(s.velocity||250,250))*60;tp=Math.min(95,10+tD/20);}$('dRemainNM').textContent='— NM';}
-        s.vP=s.vP!==undefined?s.vP+(tp-s.vP)*0.05:tp;
-        const nw=new Date(),hsh=(s.callsign||s.icao24).split('').reduce((a,b)=>a+b.charCodeAt(0),0),dD=Math.max(0,(hsh%45)-5),aD=Math.max(0,(hsh%35)-10);
-        if(tp===0||(s.on_ground&&fM===0)){$('lblDep').textContent="EST. DEPARTURE";$('bpTimeFlown').innerHTML=fT(nw)+(dD>0?`<span class="delay-tag">+${dD}m</span>`:'');$('bpTimeFlown').className=dD>0?'w-time delayed-dep':'w-time flown';}else{$('lblDep').textContent="DEPARTED";$('bpTimeFlown').textContent=fM>0?fT(new Date(nw.getTime()-fM*60000)):"--:--";$('bpTimeFlown').className='w-time flown';}
-        if(s.route&&tp<100){const aT=new Date(nw.getTime()+rM*60000+(aD*60000));$('bpTimeRemain').innerHTML=fT(aT)+(aD>0?`<span class="delay-tag">+${aD}m</span>`:'');$('bpTimeRemain').className=aD>0?'w-time delayed-arr':'w-time remain';}else{$('bpTimeRemain').textContent=tp>=100?"ARRIVED":"LIVE";$('bpTimeRemain').className='w-time remain';}
-        updatePath(s.vP,s.baro_alt);updatePax(s);
-        const b=$('arrTerminalGateBadge'),tt=$('arrBadgeTxt'),ld=$('liveArrDot');
-        if(s.route){b.classList.add('show');let aG=$('bpArrGate').textContent;if(tp>=100){tt.textContent="Arrived at Gate "+aG;ld.style.display='none';}else if(rM<15&&s.baro_alt<5000&&!s.on_ground){tt.textContent="Approaching Airport";ld.style.display='inline-block';ld.style.background='var(--apple-green)';ld.style.boxShadow='0 0 8px var(--apple-green)';}else if(rM<15&&s.on_ground){tt.textContent="Taxiing to Gate "+aG;ld.style.display='inline-block';ld.style.background='var(--apple-green)';ld.style.boxShadow='0 0 8px var(--apple-green)';}else{tt.textContent="Expected Gate "+aG;ld.style.display='none';}}else b.classList.remove('show');
-        let cp=[];if(s.history&&s.history.length>0){for(let i=0;i<s.history.length;i++)cp.push(s.history[i]);cp.push([s.curLat,s.curLon]);}else cp.push([s.curLat,s.curLon]);state.pastPath.setLatLngs(cp);
-        if(s.route&&s.route.arrLat!=null&&s.route.arrLon!=null)state.futurePath.setLatLngs(getGCPoints(s.curLat,s.curLon,parseFloat(s.route.arrLat),parseFloat(s.route.arrLon)));else{const d=100,R=6371,l1=s.curLat*Math.PI/180,n1=s.curLon*Math.PI/180,tr=(s.track||0)*Math.PI/180;const l2=Math.asin(Math.sin(l1)*Math.cos(d/R)+Math.cos(l1)*Math.sin(d/R)*Math.cos(tr)),n2=n1+Math.atan2(Math.sin(tr)*Math.sin(d/R)*Math.cos(l1),Math.cos(d/R)-Math.sin(l1)*Math.sin(l2));state.futurePath.setLatLngs(getGCPoints(s.curLat,s.curLon,l2*180/Math.PI,n2*180/Math.PI));}
-      }
+  // 4. Lennätetään kamera katsomaan Turkua ja konetta
+  viewer.camera.flyTo({
+    destination: Cesium.Cartesian3.fromDegrees(longitude, latitude - 0.2, altitude + 2000),
+    orientation: {
+      heading: Cesium.Math.toRadians(0),
+      pitch: Cesium.Math.toRadians(-20),
+      roll: 0.0
     }
-  };requestAnimationFrame(t);
-}
-
-function renderList(){
-  const q=state.search?.trim().toLowerCase()||"";let a=[...state.flights.values()].sort((x,y)=>(x.dist||999)-(y.dist||999));if(q)a=a.filter(f=>((f.callsign||'')+f.icao24).toLowerCase().includes(q));
-  if(!a.length){$('flightList').innerHTML=`<div class="empty">No flights found.</div>`;return;}
-  $('flightList').innerHTML=a.slice(0,80).map(f=>{
-    let cs=f.callsign||f.icao24.toUpperCase(),pd=state.photoCache.get(f.icao24);if(!pd)fetchPlanePhoto(f.icao24);
-    let st=pd&&pd!=='loading'?'opacity:1;':'opacity:0;',rs=pd&&pd!=='loading'?pd.url:'',at=pd&&pd!=='loading'?'© '+pd.author:'',as=pd&&pd!=='loading'?'display:block;':'display:none;';
-    return `<div class="card" onclick="openUI('${f.icao24}')"><div class="plane-badge"><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg><img id="p-img-${f.icao24}" src="${rs}" style="${st}" /><div id="p-attr-${f.icao24}" class="photo-attr" style="${as}">${at}</div></div><div class="card-main"><div class="card-call">${cs.replace(/[<>]/g,'')}</div><div class="card-sub">${f.type} ${f.reg!=='—'?'• '+f.reg:''}</div></div><svg class="card-chevron" viewBox="0 0 24 24"><path d="M9.29 15.88L13.17 12 9.29 8.12c-.39-.39-.39-1.02 0-1.41.39-.39 1.02-.39 1.41 0l4.59 4.59c.39.39.39 1.02 0 1.41L10.7 17.3c-.39.39-1.02.39-1.41 0-.38-.39-.39-1.03 0-1.42z"/></svg></div>`
-  }).join('');
-}
-
-window.openUI=async function(i){
-  if(navigator.vibrate)navigator.vibrate(15);state.selectedIcao=i;const f=state.flights.get(i);if(!f)return;
-  $('sheet').className='sheet mode-detail full';let c=f.callsign||f.icao24.toUpperCase();
-  $('island').classList.add('focus');$('ifCall').textContent=c;$('hudWrap').classList.add('show');$('detailControls').style.display='flex';
-  $('bpCall').textContent=c.substring(0,6);$('dTrack').textContent=fmtHeading(f.track);$('dVRate').textContent=fmtVRate(f.vertical_rate);$('dIcao').textContent=f.icao24.toUpperCase();$('dModel').textContent=f.desc||(f.type!=='Unknown'?f.type:'Loading...');$('dReg').textContent=f.reg;
-  const s=aircraftSpecs[f.type];['dPax','dMtow','dFuel','dLen','dEng','dThrust'].forEach(k=>{const v=s?(s[k.substring(1).toLowerCase()]||s[k.substring(1)]):null;if(v){$(k).textContent=v;$('box-'+k).style.display='block';}else $('box-'+k).style.display='none';});
-  let al=null;if(f.callsign&&f.callsign.length>=3){let c3=f.callsign.substring(0,3).toUpperCase();if(airlines[c3])al=airlines[c3];}
-  if(al){$('dAirline').textContent=al.n;$('bpHeaderBg').style.background=al.c;if(['#FFCC00','#73CBE6','#FF7A00'].includes(al.c)){$('bpLogo').style.color='#000';}else{$('bpLogo').style.color=al.c;}$('bpLogo').textContent=al.n.substring(0,2).toUpperCase();$('dOperator').textContent=al.n;}else{$('dAirline').textContent='Commercial Flight';$('bpHeaderBg').style.background='var(--apple-blue)';$('bpLogo').style.color='var(--apple-blue)';$('bpLogo').textContent='FL';$('dOperator').textContent='—';}
-  const hs=c.split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0),gts=['A12','B22','C4','D10','E1','F14','G3','H8','A5','B7','E12','14','26','8A','9B','F2','D5'];
-  $('bpArrGate').textContent=gts[Math.abs(hs*7)%gts.length];$('bpAlt').textContent='—';$('bpSpd').textContent='—';$('bpDep').textContent='—';$('bpDepName').textContent='Fetching...';$('bpArr').textContent='—';$('bpArrName').textContent='Fetching...';
-  updateAv('depAvatar','depAvatarWrap',null);updateAv('arrAvatar','arrAvatarWrap',null);$('arrTerminalImg').style.opacity='0';$('arrImgGrad').style.opacity='0';$('arrTerminalGateBadge').classList.remove('show');$('bpTimeFlown').textContent="--:--";$('bpTimeRemain').textContent="--:--";$('dRemainNM').textContent="— NM";$('wPlaneImg').style.opacity='0';$('wPlaneWrap').style.display='none';
-  let pd=state.photoCache.get(i);if(pd&&pd!=='loading'){$('wPlaneImg').src=pd.url;$('wPlaneImg').onload=()=>$('wPlaneImg').style.opacity='1';$('wPlaneAttr').textContent='© '+pd.author;$('wPlaneWrap').style.display='block';}
-  state.pastPath.setLatLngs([]);state.futurePath.setLatLngs([]);
-  if(f.callsign){fetchRoute(f.callsign).then(async r=>{if(r){f.route=r;$('bpDep').textContent=r.dep;$('bpDepName').textContent=r.depName;$('bpArr').textContent=r.arr;$('bpArrName').textContent=r.arrName;updateAv('depAvatar','depAvatarWrap',r.depName,r.depLat,r.depLon);updateAv('arrAvatar','arrAvatarWrap',r.arrName,r.arrLat,r.arrLon);const ti=await getCityImg(r.arrName);if(ti){$('arrTerminalImg').src=ti;$('arrTerminalImg').onload=()=>{if(state.selectedIcao===i){$('arrTerminalImg').style.opacity='1';$('arrImgGrad').style.opacity='1';}};} }else{$('bpDep').textContent='N/A';$('bpDepName').textContent='Unknown';$('bpArr').textContent='N/A';$('bpArrName').textContent='Unknown';}});}else{$('bpDep').textContent='N/A';$('bpDepName').textContent='Unknown';$('bpArr').textContent='N/A';$('bpArrName').textContent='Unknown';}
-  updatePath(0,f.baro_alt);setTimeout(()=>{updatePath(f.vP||0,f.baro_alt);updatePax(f);},50);
-  state.map.setView([f.curLat,f.curLon],9,{animate:true});updateMarkers();fetchTrace(i);
-  try{const dr=await fetch(`https://api.adsbdb.com/v0/aircraft/${i.toLowerCase()}`);if(dr.ok){const d=await dr.json(),m=d?.response?.aircraft;if(m){if(!f.desc&&f.type==='Unknown'){$('dModel').textContent=m.type;f.desc=m.type;}if(f.reg==='—'&&m.registration){$('dReg').textContent=m.registration;f.reg=m.registration;}if($('dOperator').textContent==='—'&&m.registered_owner){$('dOperator').textContent=m.registered_owner;}}}}catch(e){}
-}
-
-const cls=()=>{const s=$('sheet');s.className='sheet expanded';$('island').classList.remove('focus');$('hudWrap').classList.remove('show');$('detailControls').style.display='none';state.selectedIcao=null;state.pastPath.setLatLngs([]);state.futurePath.setLatLngs([]);updateMarkers();};
-$('sheetGrab').addEventListener('click',()=>{const s=$('sheet');if(s.classList.contains('full'))cls();else if(s.classList.contains('expanded'))s.classList.remove('expanded');else s.classList.add('expanded');});
-$('detailClose').addEventListener('click',cls);
-$('turkuBtn').addEventListener('click',()=>{if(navigator.geolocation)navigator.geolocation.getCurrentPosition(p=>{state.userLat=p.coords.latitude;state.userLon=p.coords.longitude;state.map.setView([state.userLat,state.userLon],8,{animate:true});state.userMarker.setLatLng([state.userLat,state.userLon]);},()=>state.map.setView([60.45,22.26],8));});
-$('gpsBtn').addEventListener('click',()=>{if(state.selectedIcao){const f=state.flights.get(state.selectedIcao);if(f)state.map.setView([f.curLat,f.curLon],9,{animate:true});}});
-$('trackBtn').addEventListener('click',()=>{if(state.selectedIcao){const f=state.flights.get(state.selectedIcao);if(f&&f.route&&f.route.arrLat){state.map.fitBounds(L.featureGroup([L.marker([f.curLat,f.curLon]),L.marker([f.route.arrLat,f.route.arrLon])]).getBounds(),{padding:[50,50]});}}});
-$('searchInput').addEventListener('input',e=>{state.search=e.target.value;renderList();const s=$('sheet');if(state.search&&!s.classList.contains('expanded')&&!s.classList.contains('full'))s.classList.add('expanded');});
-
-const oI=(s,t,sb)=>{if(!s)return;$('overlayImg').src=s;$('overlayTitle').textContent=t||'';$('overlaySub').innerHTML=sb||'';$('imgOverlay').classList.add('open');};
-$('imgClose').addEventListener('click',()=>$('imgOverlay').classList.remove('open'));
-$('arrTerminalWrap').addEventListener('click',()=>oI($('arrTerminalImg').src,$('bpArrName').textContent,"Airport Overview"));
-$('wPlaneWrap').addEventListener('click',()=>oI($('wPlaneImg').src,$('dModel').textContent,$('wPlaneAttr').textContent));
-$('depAvatarWrap').addEventListener('click',()=>{const i=$('depAvatar');oI(i.dataset.real||i.src,i.dataset.city,i.dataset.weather);});
-$('arrAvatarWrap').addEventListener('click',()=>{const i=$('arrAvatar');oI(i.dataset.real||i.src,i.dataset.city,i.dataset.weather);});
-
-initMap();fetchFlights();startAnim();
+  });
 </script>
+
 </body>
 </html>
