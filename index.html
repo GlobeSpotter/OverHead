@@ -16,22 +16,22 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <style>
-/* AIRPORT LIQUID GLASS THEME */
+/* AIRPORT LIQUID GLASS THEME - APPLE HIG REFINED */
 :root {
   --bg-primary: rgba(242, 242, 247, 0.65); 
-  --bg-secondary: rgba(255, 255, 255, 0.7); 
+  --bg-secondary: rgba(255, 255, 255, 0.75); 
   --bg-tertiary: rgba(255, 255, 255, 0.5);
   --label-primary: #1C1C1E; 
   --label-secondary: #3A3A3C; 
   --label-tertiary: #8E8E93;
   --apple-blue: #007AFF; --apple-green: #34C759; --apple-orange: #FF9F0A; --apple-red: #FF3B30;
   --apple-gray-fill: rgba(0, 0, 0, 0.05); --apple-gray-press: rgba(0, 0, 0, 0.1);
-  --glass-sheet: rgba(255, 255, 255, 0.65); 
-  --glass-border: rgba(255, 255, 255, 0.5);
-  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 -1px 0 rgba(255, 255, 255, 0.3);
+  --glass-sheet: rgba(255, 255, 255, 0.75); 
+  --glass-border: rgba(0, 0, 0, 0.08); /* Pehmeämpi Apple-raja */
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 -1px 0 rgba(0, 0, 0, 0.02);
   --blur-heavy: saturate(180%) blur(40px);
   --spring: cubic-bezier(0.32, 0.72, 0, 1);
-  --shadow-card: 0 8px 32px rgba(31, 38, 135, 0.1); 
+  --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.06); 
   --shadow-sheet: 0 -10px 40px rgba(0, 0, 0, 0.08);
   --wallet-bg: #FFFFFF;
 }
@@ -39,19 +39,19 @@
 @media (prefers-color-scheme: dark) {
   :root {
     --bg-primary: rgba(28, 28, 30, 0.55); 
-    --bg-secondary: rgba(44, 44, 46, 0.6); 
+    --bg-secondary: rgba(44, 44, 46, 0.65); 
     --bg-tertiary: rgba(58, 58, 60, 0.5);
     --label-primary: #FFFFFF; 
     --label-secondary: #EBEBF599; 
     --label-tertiary: #EBEBF54D;
     --apple-blue: #0A84FF;
     --apple-gray-fill: rgba(255, 255, 255, 0.08); --apple-gray-press: rgba(255, 255, 255, 0.12);
-    --glass-sheet: rgba(28, 28, 30, 0.55); 
-    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-sheet: rgba(28, 28, 30, 0.65); 
+    --glass-border: rgba(255, 255, 255, 0.12);
     --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.15), inset 0 -1px 0 rgba(0, 0, 0, 0.2);
     --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.3); 
     --shadow-sheet: 0 -10px 40px rgba(0, 0, 0, 0.4);
-    --wallet-bg: rgba(44, 44, 46, 0.95);
+    --wallet-bg: #1C1C1E;
   }
 }
 
@@ -77,7 +77,7 @@ body { user-select: none; background: #000;}
 .brand-icon svg { width: 18px; height: 18px; fill: currentColor; transform: rotate(-45deg); }
 .brand-text { font-size: 18px; font-weight: 800; letter-spacing: -0.03em; color: var(--label-primary); display: flex; align-items: baseline; gap: 4px;}
 .v-badge { font-size: 10px; font-weight: 800; color: var(--apple-blue); background: var(--apple-gray-fill); padding: 2px 6px; border-radius: 8px; letter-spacing: 0;}
-.searchbox { flex: 1; height: 38px; border-radius: 19px; background: var(--apple-gray-fill); border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; padding: 0 14px; gap: 8px; transition: background 0.2s; }
+.searchbox { flex: 1; height: 38px; border-radius: 19px; background: var(--apple-gray-fill); border: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; padding: 0 14px; gap: 8px; transition: background 0.2s; }
 .searchbox:focus-within { background: var(--bg-secondary); box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); }
 .search-icon { width: 16px; height: 16px; color: var(--label-secondary); }
 .searchbox input { width: 100%; border: none; outline: none; background: transparent; color: var(--label-primary); font-size: 16px; font-weight: 500; letter-spacing: -0.02em; }
@@ -88,7 +88,7 @@ body { user-select: none; background: #000;}
 .if-main { display: flex; flex-direction: column; }
 .if-call { font-size: 17px; font-weight: 800; letter-spacing: -0.02em; color: var(--label-primary); line-height: 1.2; }
 .if-route { font-size: 12px; font-weight: 600; color: var(--apple-blue); }
-.icon-btn { width: 38px; height: 38px; border: none; border-radius: 19px; background: var(--bg-secondary); color: var(--apple-blue); cursor: pointer; display: grid; place-items: center; transition: transform 0.2s, background 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid rgba(255,255,255,0.3);}
+.icon-btn { width: 38px; height: 38px; border: none; border-radius: 19px; background: var(--bg-secondary); color: var(--apple-blue); cursor: pointer; display: grid; place-items: center; transition: transform 0.2s, background 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid var(--glass-border);}
 .icon-btn svg { width: 18px; height: 18px; fill: currentColor; }
 .icon-btn:active { transform: scale(0.85); background: var(--apple-gray-press); }
 
@@ -118,7 +118,7 @@ body { user-select: none; background: #000;}
 .sheet.expanded { height: min(50vh, 450px); }
 .sheet.full { height: calc(100vh - 80px); max-height: 900px; }
 .sheet-grab { display: flex; justify-content: center; align-items: center; padding: 12px 0 16px; cursor: pointer; flex-shrink: 0; z-index: 10; position: relative;}
-.sheet-grab div { width: 40px; height: 6px; border-radius: 3px; background: var(--label-tertiary); opacity: 0.6; }
+.sheet-grab div { width: 40px; height: 5px; border-radius: 3px; background: var(--label-tertiary); opacity: 0.5; }
 .sheet-content { position: relative; flex: 1; width: 100%; overflow: hidden; }
 .view { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transition: opacity 0.4s ease, transform 0.4s var(--spring); overflow-y: auto; }
 .view::-webkit-scrollbar { display: none; }
@@ -134,9 +134,9 @@ body { user-select: none; background: #000;}
 .sheet-list { padding: 0 0 40px; }
 .card { display: flex; align-items: center; gap: 16px; padding: 12px 24px; position: relative; cursor: pointer; transition: background 0.2s; }
 .card:active { background: var(--apple-gray-press); }
-.card::after { content: ''; position: absolute; bottom: 0; left: 92px; right: 0; height: 1px; background: linear-gradient(90deg, var(--glass-border), transparent); }
+.card::after { content: ''; position: absolute; bottom: 0; left: 92px; right: 0; height: 0.5px; background: linear-gradient(90deg, var(--glass-border), transparent); }
 .card:last-child::after { display: none; }
-.plane-badge { width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; background: var(--bg-secondary); flex: 0 0 auto; overflow: hidden; border: 1px solid var(--glass-border); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+.plane-badge { width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; background: var(--bg-secondary); flex: 0 0 auto; overflow: hidden; border: 0.5px solid var(--glass-border); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
 .plane-badge img { width: 100%; height: 100%; object-fit: cover; }
 .plane-badge svg { width: 26px; height: 26px; fill: var(--label-tertiary); transform: rotate(-45deg); }
 .card-main { flex: 1; min-width: 0; }
@@ -148,30 +148,30 @@ body { user-select: none; background: #000;}
 #viewDetail { opacity: 0; transform: translateX(30px); pointer-events: none; padding-bottom: 50px; }
 .sheet.mode-detail #viewDetail { opacity: 1; transform: translateX(0); pointer-events: auto; }
 
-.wallet-card { background: var(--wallet-bg); margin: 0 16px 24px; border-radius: 28px; box-shadow: 0 16px 40px rgba(0,0,0,0.12); position: relative; overflow: hidden; border: 1px solid var(--glass-border);}
+.wallet-card { background: var(--wallet-bg); margin: 0 16px 24px; border-radius: 28px; box-shadow: 0 16px 40px rgba(0,0,0,0.08); position: relative; overflow: hidden; border: 0.5px solid var(--glass-border);}
 .wallet-shine { position: absolute; top: 0; left: -150%; width: 100%; height: 100%; background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%); transform: skewX(-20deg); animation: shine 4s infinite; z-index: 10; pointer-events: none; }
 @keyframes shine { 0% { left: -150%; } 20% { left: 150%; } 100% { left: 150%; } }
-.wallet-card::before, .wallet-card::after { content:''; position:absolute; top: 92px; width: 32px; height: 32px; background: var(--bg-primary); border-radius: 50%; z-index: 12; box-shadow: inset 1px 1px 4px rgba(0,0,0,0.1); }
-.wallet-card::before { left: -16px; border-right: 1px solid var(--glass-border); }
-.wallet-card::after { right: -16px; border-left: 1px solid var(--glass-border); }
-.wallet-divider { position: absolute; top: 108px; left: 24px; right: 24px; border-top: 2px dashed var(--label-tertiary); opacity: 0.5; z-index: 1; }
+.wallet-card::before, .wallet-card::after { content:''; position:absolute; top: 92px; width: 32px; height: 32px; background: var(--bg-primary); border-radius: 50%; z-index: 12; box-shadow: inset 1px 1px 4px rgba(0,0,0,0.05); }
+.wallet-card::before { left: -16px; border-right: 0.5px solid var(--glass-border); }
+.wallet-card::after { right: -16px; border-left: 0.5px solid var(--glass-border); }
+.wallet-divider { position: absolute; top: 108px; left: 24px; right: 24px; border-top: 1.5px dashed var(--label-tertiary); opacity: 0.3; z-index: 1; }
 
 .w-header { padding: 24px 28px 46px; display: flex; justify-content: space-between; align-items: flex-start; color: white; transition: background 0.4s ease; }
 .w-logo-area { display: flex; align-items: center; gap: 12px; z-index: 2; position: relative;}
 .w-logo { width: 40px; height: 40px; border-radius: 12px; background: #FFF; display: grid; place-items: center; font-weight: 900; font-size: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
 .w-airline { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
-.w-class { font-size: 13px; font-weight: 800; opacity: 0.9; letter-spacing: 0.08em; text-transform: uppercase; z-index: 2; position: relative; background: rgba(0,0,0,0.2); padding: 4px 10px; border-radius: 10px;}
+.w-class { font-size: 12px; font-weight: 800; opacity: 0.9; letter-spacing: 0.08em; text-transform: uppercase; z-index: 2; position: relative; background: rgba(0,0,0,0.2); padding: 4px 10px; border-radius: 10px;}
 
 .w-progress-container { padding: 32px 28px 20px; display: flex; justify-content: space-between; align-items: stretch; }
 .w-city { display: flex; flex-direction: column; width: 66px; position: relative; }
 .w-city.right { align-items: flex-end; text-align: right; }
 
-.city-avatar { width: 48px; height: 48px; border-radius: 24px; background: var(--bg-secondary); margin-bottom: 6px; border: 2px solid var(--bg-secondary); overflow: hidden; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.1); opacity: 0; transition: opacity 0.5s ease;}
+.city-avatar { width: 48px; height: 48px; border-radius: 24px; background: var(--bg-secondary); margin-bottom: 6px; border: 2px solid var(--bg-secondary); overflow: hidden; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08); opacity: 0; transition: opacity 0.5s ease;}
 .city-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .city-avatar.show { opacity: 1; }
 .city-icon-placeholder { width: 20px; height: 20px; fill: var(--label-tertiary); opacity: 0.5; }
 
-.w-city-name { font-size: 12px; font-weight: 700; color: var(--label-secondary); margin-bottom: 2px; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px;}
+.w-city-name { font-size: 12px; font-weight: 600; color: var(--label-secondary); margin-bottom: 2px; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px;}
 .w-code { font-size: 34px; font-weight: 300; color: var(--label-primary); letter-spacing: -0.05em; line-height: 1; font-family: -apple-system, "SF Pro Display", sans-serif;}
 
 .w-time-lbl { font-size: 9px; font-weight: 800; color: var(--label-tertiary); letter-spacing: 0.06em; margin-top: 8px; text-transform: uppercase; }
@@ -185,55 +185,56 @@ body { user-select: none; background: #000;}
 .path-fill { fill: none; stroke: var(--apple-blue); stroke-width: 3.5; stroke-linecap: round; transition: stroke-dashoffset 0.8s ease-out; }
 .w-timeline-icon { position: absolute; width: 28px; height: 28px; fill: var(--apple-blue); filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2)); transition: left 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), top 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.5s ease-out; margin-left: -14px; margin-top: -14px; z-index: 10; }
 
-.w-extra-row { padding: 0 28px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--apple-gray-fill); margin-bottom: 24px; }
+.w-extra-row { padding: 0 28px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 0.5px solid var(--glass-border); margin-bottom: 24px; }
 .w-extra-item { display: flex; flex-direction: column; gap: 4px; }
 .w-extra-item.center { align-items: center; }
 .w-extra-item.right { align-items: flex-end; }
 .w-bottom { padding: 0 28px 28px; display: flex; justify-content: space-between; align-items: flex-end; }
 .w-info-block { display: flex; flex-direction: column; gap: 4px; }
-.w-label { font-size: 11px; font-weight: 800; color: var(--label-secondary); text-transform: uppercase; letter-spacing: 0.08em;}
+.w-label { font-size: 10px; font-weight: 700; color: var(--label-secondary); text-transform: uppercase; letter-spacing: 0.08em;}
 .w-val { font-size: 20px; font-weight: 700; color: var(--label-primary); letter-spacing: -0.02em;}
 .w-barcode { height: 48px; width: 150px; background: repeating-linear-gradient(90deg, var(--label-primary), var(--label-primary) 3px, transparent 3px, transparent 5px, var(--label-primary) 5px, var(--label-primary) 6px, transparent 6px, transparent 9px, var(--label-primary) 9px, var(--label-primary) 14px, transparent 14px, transparent 16px); opacity: 0.85;}
 
-.overhead-badge { margin: 0 16px 20px; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 15px; font-weight: 700; padding: 12px; border-radius: 14px; letter-spacing: -0.01em;}
-.overhead-badge.approaching { background: rgba(52, 199, 89, 0.15); color: var(--apple-green); border: 1px solid rgba(52, 199, 89, 0.3); }
-.overhead-badge.passed { background: rgba(142, 142, 147, 0.15); color: var(--label-secondary); border: 1px solid rgba(142, 142, 147, 0.3); }
+.overhead-badge { margin: 0 16px 20px; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 15px; font-weight: 600; padding: 12px; border-radius: 14px; letter-spacing: -0.01em;}
+.overhead-badge.approaching { background: rgba(52, 199, 89, 0.15); color: var(--apple-green); border: 0.5px solid rgba(52, 199, 89, 0.3); }
+.overhead-badge.passed { background: rgba(142, 142, 147, 0.15); color: var(--label-secondary); border: 0.5px solid rgba(142, 142, 147, 0.3); }
 .overhead-badge.none { display: none; }
 
 .detail-actions { position: absolute; top: 16px; right: 16px; display: flex; gap: 10px; z-index: 100; }
-.action-btn { background: var(--bg-secondary); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); color: var(--apple-blue); border: 1px solid var(--glass-border); font-size: 14px; font-weight: 700; padding: 10px 18px; border-radius: 22px; cursor: pointer; box-shadow: var(--shadow-card); transition: transform 0.2s;}
+.action-btn { background: var(--bg-secondary); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); color: var(--apple-blue); border: 0.5px solid var(--glass-border); font-size: 14px; font-weight: 600; padding: 10px 18px; border-radius: 22px; cursor: pointer; box-shadow: var(--shadow-card); transition: transform 0.2s;}
 .action-btn:active { transform: scale(0.92); }
-.close-circle { width: 40px; height: 40px; border-radius: 20px; background: var(--bg-secondary); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); border: 1px solid var(--glass-border); display: grid; place-items: center; cursor: pointer; color: var(--label-secondary); box-shadow: var(--shadow-card); transition: transform 0.2s;}
+.close-circle { width: 40px; height: 40px; border-radius: 20px; background: var(--bg-secondary); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); border: 0.5px solid var(--glass-border); display: grid; place-items: center; cursor: pointer; color: var(--label-secondary); box-shadow: var(--shadow-card); transition: transform 0.2s;}
 .close-circle:active { transform: scale(0.9); }
 .close-circle svg { width: 16px; height: 16px; fill: currentColor; }
 
 /* TERMINAALI KUVA & SAAPUMISPORTTI */
-.section-title { font-size: 15px; font-weight: 800; margin: 0 20px 10px; letter-spacing: 0.05em; color: var(--label-secondary); text-transform: uppercase; }
-.d-icon { margin: 0 16px 24px; height: 220px; border-radius: 24px; background: var(--bg-secondary); overflow: hidden; border: 1px solid var(--glass-border); box-shadow: var(--shadow-card); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s; position: relative; }
+.section-title { font-size: 13px; font-weight: 600; margin: 0 20px 8px; letter-spacing: 0.05em; color: var(--label-secondary); text-transform: uppercase; }
+.d-icon { margin: 0 16px 24px; height: 220px; border-radius: 24px; background: var(--bg-secondary); overflow: hidden; border: 0.5px solid var(--glass-border); box-shadow: var(--shadow-card); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s; position: relative; }
 .d-icon:active { transform: scale(0.98); }
-.d-icon img { width: 100%; height: 100%; object-fit: cover; transition: opacity 0.5s ease; }
+.d-icon img { width: 100%; height: 100%; object-fit: cover; transition: opacity 0.5s ease; z-index: 1; }
 .d-icon svg.placeholder { width: 56px; height: 56px; fill: var(--label-tertiary); transform: rotate(-45deg); opacity: 0.5; position: absolute;}
-.arr-gate-badge { position: absolute; bottom: 16px; left: 16px; background: rgba(0,0,0,0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); color: #FFF; padding: 8px 14px; border-radius: 14px; font-weight: 700; font-size: 13px; border: 1px solid rgba(255,255,255,0.2); display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); opacity: 0; transition: opacity 0.3s;}
+.arr-img-gradient { position: absolute; bottom: 0; left: 0; right: 0; height: 50%; background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%); z-index: 2; pointer-events: none; opacity: 0; transition: opacity 0.5s ease; }
+.arr-gate-badge { position: absolute; bottom: 16px; left: 16px; background: rgba(0,0,0,0.55); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); color: #FFF; padding: 8px 14px; border-radius: 14px; font-weight: 600; font-size: 13px; border: 0.5px solid rgba(255,255,255,0.2); display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); opacity: 0; transition: opacity 0.3s; z-index: 3;}
 .arr-gate-badge.show { opacity: 1; }
 .arr-gate-badge .live-dot { width: 8px; height: 8px; background: var(--apple-orange); box-shadow: 0 0 8px var(--apple-orange); animation: pulse 2s infinite; }
 
-.cond-card { background: var(--bg-secondary); border: 1px solid var(--glass-border); border-radius: 24px; padding: 20px; margin: 0 16px 24px; box-shadow: var(--shadow-card); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); display: flex; flex-direction: column; gap: 16px; }
+.cond-card { background: var(--bg-secondary); border: 0.5px solid var(--glass-border); border-radius: 24px; padding: 20px; margin: 0 16px 24px; box-shadow: var(--shadow-card); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); display: flex; flex-direction: column; gap: 16px; }
 .pax-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; margin-bottom: 4px; }
 .pax-phase-info { display: flex; flex-direction: column; gap: 2px;}
-.pax-phase { font-size: 22px; font-weight: 800; color: var(--label-primary); letter-spacing: -0.02em; }
-.seatbelt-sign { font-size: 11px; font-weight: 800; padding: 6px 12px; border-radius: 14px; text-transform: uppercase; letter-spacing: 0.08em; transition: all 0.3s; display: flex; align-items: center; gap: 8px; flex-shrink:0;}
+.pax-phase { font-size: 22px; font-weight: 700; color: var(--label-primary); letter-spacing: -0.02em; }
+.seatbelt-sign { font-size: 11px; font-weight: 700; padding: 6px 12px; border-radius: 14px; text-transform: uppercase; letter-spacing: 0.08em; transition: all 0.3s; display: flex; align-items: center; gap: 8px; flex-shrink:0;}
 .seatbelt-sign::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor;}
-.seatbelt-sign.on { background: rgba(255, 59, 48, 0.15); color: var(--apple-red); border: 1px solid rgba(255, 59, 48, 0.3); }
-.seatbelt-sign.off { background: var(--apple-gray-fill); color: var(--label-tertiary); border: 1px solid transparent; }
+.seatbelt-sign.on { background: rgba(255, 59, 48, 0.15); color: var(--apple-red); border: 0.5px solid rgba(255, 59, 48, 0.3); }
+.seatbelt-sign.off { background: var(--apple-gray-fill); color: var(--label-tertiary); border: 0.5px solid transparent; }
 .seatbelt-sign.off::before { opacity: 0.3; box-shadow: none;}
 
-.pa-box { margin-bottom: 4px; padding: 12px 14px; background: rgba(0,0,0,0.04); border-radius: 14px; font-size: 13px; font-style: italic; color: var(--label-secondary); display: flex; gap: 10px; align-items: flex-start; line-height: 1.4; border: 1px solid rgba(255,255,255,0.2); box-shadow: inset 0 2px 6px rgba(0,0,0,0.02);}
-@media (prefers-color-scheme: dark) { .pa-box { background: rgba(255,255,255,0.06); } }
+.pa-box { margin-bottom: 4px; padding: 12px 14px; background: rgba(0,0,0,0.03); border-radius: 14px; font-size: 13px; font-style: italic; color: var(--label-secondary); display: flex; gap: 10px; align-items: flex-start; line-height: 1.4; border: 0.5px solid var(--glass-border); box-shadow: inset 0 2px 6px rgba(0,0,0,0.01);}
+@media (prefers-color-scheme: dark) { .pa-box { background: rgba(255,255,255,0.05); } }
 .pa-box svg { width: 16px; height: 16px; fill: var(--label-tertiary); flex-shrink: 0; margin-top: 2px; }
 
-.cond-main { display: flex; align-items: center; justify-content: space-between; padding-bottom: 16px; border-bottom: 1px solid var(--glass-border); padding-top: 10px; border-top: 1px solid var(--glass-border);}
+.cond-main { display: flex; align-items: center; justify-content: space-between; padding-bottom: 16px; border-bottom: 0.5px solid var(--glass-border); padding-top: 10px; border-top: 0.5px solid var(--glass-border);}
 .cond-info { display: flex; flex-direction: column; gap: 4px; }
-.cond-lbl { font-size: 12px; font-weight: 700; color: var(--label-secondary); letter-spacing: 0.05em; text-transform: uppercase; }
+.cond-lbl { font-size: 11px; font-weight: 600; color: var(--label-secondary); letter-spacing: 0.05em; text-transform: uppercase; }
 .cond-val { font-size: 20px; font-weight: 700; color: var(--label-primary); letter-spacing: -0.02em; display: flex; align-items: center; gap: 8px;}
 .turb-dot { width: 12px; height: 12px; border-radius: 50%; display: inline-block; }
 .turb-dot.smooth { background: var(--apple-green); box-shadow: 0 0 12px var(--apple-green); }
@@ -247,20 +248,20 @@ body { user-select: none; background: #000;}
 .shake-mod svg { animation: slideWave 0.5s linear infinite, shake 0.15s ease-in-out infinite; stroke: var(--apple-red); }
 
 .cond-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 12px; margin-top: 4px;}
-.c-item { display: flex; flex-direction: column; gap: 4px; }
-.c-val { font-size: 18px; font-weight: 700; color: var(--label-primary); }
+.c-item { display: flex; flex-direction: column; gap: 2px; }
+.c-val { font-size: 17px; font-weight: 600; color: var(--label-primary); }
 
-.grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1px; margin: 0 16px 28px; background: var(--glass-border); border-radius: 20px; overflow: hidden; border: 1px solid var(--glass-border); box-shadow: 0 4px 16px rgba(0,0,0,0.03);}
-.info { padding: 16px 20px; background: var(--bg-secondary); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy);}
+.grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 0.5px; margin: 0 16px 28px; background: var(--glass-border); border-radius: 20px; overflow: hidden; border: 0.5px solid var(--glass-border); box-shadow: var(--shadow-card);}
+.info { padding: 14px 18px; background: var(--bg-secondary); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy);}
 .info.full { grid-column: 1 / -1; }
-.i-label { font-size: 12px; font-weight: 600; color: var(--label-secondary); margin-bottom: 4px; letter-spacing: -0.01em; }
-.i-value { font-size: 17px; font-weight: 700; color: var(--label-primary); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
-.empty { padding: 40px 20px; text-align: center; color: var(--label-secondary); font-weight: 600; font-size: 16px; }
+.i-label { font-size: 11px; font-weight: 500; color: var(--label-secondary); margin-bottom: 4px; letter-spacing: 0.01em; }
+.i-value { font-size: 17px; font-weight: 600; color: var(--label-primary); letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+.empty { padding: 40px 20px; text-align: center; color: var(--label-secondary); font-weight: 500; font-size: 16px; }
 
 .img-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 4000; background: rgba(0,0,0,0.85); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
 .img-overlay.open { opacity: 1; pointer-events: auto; }
 .img-overlay img { max-width: 90%; max-height: 80%; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.5); object-fit: contain; }
-.overlay-close { position: absolute; top: calc(20px + env(safe-area-inset-top)); right: 20px; width: 40px; height: 40px; border-radius: 20px; background: rgba(255,255,255,0.2); color: #FFF; border: none; display: grid; place-items: center; cursor: pointer; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transition: transform 0.2s; border: 1px solid rgba(255,255,255,0.3);}
+.overlay-close { position: absolute; top: calc(20px + env(safe-area-inset-top)); right: 20px; width: 40px; height: 40px; border-radius: 20px; background: rgba(255,255,255,0.2); color: #FFF; border: none; display: grid; place-items: center; cursor: pointer; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); transition: transform 0.2s; border: 0.5px solid rgba(255,255,255,0.3);}
 .overlay-close:active { transform: scale(0.85); }
 .overlay-close svg { width: 16px; height: 16px; fill: currentColor; }
 </style>
@@ -273,8 +274,8 @@ body { user-select: none; background: #000;}
   <div class="island" id="island">
     <div class="brand">
         <div class="brand-icon"><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div>
-        <!-- V60: ABSOLUTE ACCURACY EDITION -->
-        <div class="brand-text">Over<span>head</span> <span class="v-badge">v60</span></div>
+        <!-- V61: APPLE HIG MINT POLISH EDITION -->
+        <div class="brand-text">Over<span>head</span> <span class="v-badge">v61</span></div>
     </div>
     <div class="searchbox"><svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><input id="searchInput" placeholder="Search callsign..." autocomplete="off" autocorrect="off" spellcheck="false" /></div>
     <div class="island-flight" id="islandFlight"><div class="if-main"><div class="if-call" id="ifCall">FLIGHT</div><div class="if-route" id="ifRoute">Tracking Active</div></div></div>
@@ -426,6 +427,7 @@ body { user-select: none; background: #000;}
           <div class="d-icon" id="arrTerminalWrap" style="height: 180px; margin-bottom: 24px;" title="View Image">
               <svg class="placeholder" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
               <img id="arrTerminalImg" src="" style="opacity:0" />
+              <div class="arr-img-gradient" id="arrImgGrad"></div>
               <div class="arr-gate-badge" id="arrTerminalGateBadge"><span class="live-dot" style="display:none;" id="liveArrDot"></span><span id="arrBadgeTxt">Loading...</span></div>
           </div>
           
@@ -442,10 +444,12 @@ body { user-select: none; background: #000;}
           <div class="section-title">Performance</div>
           <div class="grid">
             <div class="info full"><div class="i-label">Model</div><div class="i-value" id="dModel">Loading...</div></div>
-            <div class="info"><div class="i-label">Max Passengers</div><div class="i-value" id="dPax">—</div></div>
+            <div class="info full"><div class="i-label">Engines</div><div class="i-value" id="dEng">—</div></div>
+            <div class="info"><div class="i-label">Max Thrust</div><div class="i-value" id="dThrust">—</div></div>
             <div class="info"><div class="i-label">Max Weight</div><div class="i-value" id="dMtow">—</div></div>
+            <div class="info"><div class="i-label">Max Passengers</div><div class="i-value" id="dPax">—</div></div>
             <div class="info"><div class="i-label">Fuel Capacity</div><div class="i-value" id="dFuel">—</div></div>
-            <div class="info"><div class="i-label">Length</div><div class="i-value" id="dLen">—</div></div>
+            <div class="info full"><div class="i-label">Length</div><div class="i-value" id="dLen">—</div></div>
           </div>
 
           <div class="section-title">Identity</div>
@@ -483,8 +487,24 @@ const airlines = {
     "DAL": {n:"Delta", c:"#E00034"}, "UAL": {n:"United", c:"#005DAA"}
 };
 
+// V61: MOOTTORIT JA TYÖNTÖVOIMA LISÄTTY!
 const aircraftSpecs = {
-    "A320": {"len": "37.57 m", "mtow": "78,000 kg", "pax": "150-180", "fuel": "24,210 L"}, "A20N": {"len": "37.57 m", "mtow": "79,000 kg", "pax": "150-180", "fuel": "26,730 L"}, "A321": {"len": "44.51 m", "mtow": "93,500 kg", "pax": "185-230", "fuel": "24,050 L"}, "A21N": {"len": "44.51 m", "mtow": "97,000 kg", "pax": "185-244", "fuel": "32,940 L"}, "A319": {"len": "33.84 m", "mtow": "75,500 kg", "pax": "124-156", "fuel": "24,210 L"}, "A333": {"len": "63.66 m", "mtow": "242,000 kg", "pax": "250-440", "fuel": "139,090 L"}, "A359": {"len": "66.80 m", "mtow": "280,000 kg", "pax": "300-350", "fuel": "141,000 L"}, "B738": {"len": "39.50 m", "mtow": "79,000 kg", "pax": "162-189", "fuel": "26,020 L"}, "B739": {"len": "42.10 m", "mtow": "85,100 kg", "pax": "177-215", "fuel": "29,660 L"}, "B38M": {"len": "39.50 m", "mtow": "82,190 kg", "pax": "162-210", "fuel": "25,816 L"}, "B77W": {"len": "73.90 m", "mtow": "351,500 kg", "pax": "314-396", "fuel": "181,280 L"}, "B789": {"len": "63.00 m", "mtow": "254,000 kg", "pax": "290-330", "fuel": "126,372 L"}, "BCS3": {"len": "38.70 m", "mtow": "67,585 kg", "pax": "130-160", "fuel": "17,580 L"}, "CRJ9": {"len": "36.20 m", "mtow": "38,330 kg", "pax": "76-90", "fuel": "11,148 L"}, "AT76": {"len": "27.17 m", "mtow": "23,000 kg", "pax": "70-78", "fuel": "6,400 L"}, "E190": {"len": "36.24 m", "mtow": "51,800 kg", "pax": "96-114", "fuel": "16,250 L"}
+    "A320": { len: "37.57 m", mtow: "78,000 kg", pax: "150-180", fuel: "24,210 L", eng: "2 × CFM56 / V2500", thrust: "54,000 lbf" },
+    "A20N": { len: "37.57 m", mtow: "79,000 kg", pax: "150-180", fuel: "26,730 L", eng: "2 × LEAP-1A / PW1100G", thrust: "54,200 lbf" },
+    "A321": { len: "44.51 m", mtow: "93,500 kg", pax: "185-230", fuel: "24,050 L", eng: "2 × CFM56 / V2500", thrust: "66,000 lbf" },
+    "A21N": { len: "44.51 m", mtow: "97,000 kg", pax: "185-244", fuel: "32,940 L", eng: "2 × LEAP-1A / PW1100G", thrust: "66,200 lbf" },
+    "A319": { len: "33.84 m", mtow: "75,500 kg", pax: "124-156", fuel: "24,210 L", eng: "2 × CFM56 / V2500", thrust: "48,000 lbf" },
+    "A333": { len: "63.66 m", mtow: "242,000 kg", pax: "250-440", fuel: "139,090 L", eng: "2 × Trent 700 / CF6", thrust: "142,200 lbf" },
+    "A359": { len: "66.80 m", mtow: "280,000 kg", pax: "300-350", fuel: "141,000 L", eng: "2 × Trent XWB-84", thrust: "168,400 lbf" },
+    "B738": { len: "39.50 m", mtow: "79,000 kg", pax: "162-189", fuel: "26,020 L", eng: "2 × CFM56-7B", thrust: "54,600 lbf" },
+    "B739": { len: "42.10 m", mtow: "85,100 kg", pax: "177-215", fuel: "29,660 L", eng: "2 × CFM56-7B", thrust: "56,800 lbf" },
+    "B38M": { len: "39.50 m", mtow: "82,190 kg", pax: "162-210", fuel: "25,816 L", eng: "2 × LEAP-1B", thrust: "55,760 lbf" },
+    "B77W": { len: "73.90 m", mtow: "351,500 kg", pax: "314-396", fuel: "181,280 L", eng: "2 × GE90-115B", thrust: "230,600 lbf" },
+    "B789": { len: "63.00 m", mtow: "254,000 kg", pax: "290-330", fuel: "126,372 L", eng: "2 × Trent 1000 / GEnx", thrust: "148,000 lbf" },
+    "BCS3": { len: "38.70 m", mtow: "67,585 kg", pax: "130-160", fuel: "17,580 L", eng: "2 × PW1500G", thrust: "46,600 lbf" },
+    "CRJ9": { len: "36.20 m", mtow: "38,330 kg", pax: "76-90", fuel: "11,148 L", eng: "2 × CF34-8C5", thrust: "28,500 lbf" },
+    "AT76": { len: "27.17 m", mtow: "23,000 kg", pax: "70-78", fuel: "6,400 L", eng: "2 × PW127M (Turboprop)", thrust: "5,500 shp" },
+    "E190": { len: "36.24 m", mtow: "51,800 kg", pax: "96-114", fuel: "16,250 L", eng: "2 × CF34-10E", thrust: "40,000 lbf" }
 };
 
 const state = { map: null, userLat: 60.4518, userLon: 22.2666, flights: new Map(), selectedIcao: null, photoCache: new Map(), arrImgCache: new Map(), routeCache: new Map(), cityImages: new Map(), markers: new Map() };
@@ -865,7 +885,6 @@ function startAnimation(){
           if(oh && oh.status !== 'none') { badge.classList.add(oh.status); badge.textContent = oh.text; $('ifRoute').textContent = oh.text; 
           } else { badge.classList.add('none'); $('ifRoute').textContent = 'Tracking Active'; }
 
-          // V60: TARKKA STAR-KORJATTU ETA MATEMATIIKKA
           let targetProgress = 0; let flownMins = 0; let remainMins = 0;
           let currentGS = Math.max(sf.velocity || 0, 50);
 
@@ -873,13 +892,11 @@ function startAnimation(){
               const flownDist = haversine(sf.route.depLat, sf.route.depLon, sf.curLat, sf.curLon);
               let remainDist = haversine(sf.curLat, sf.curLon, sf.route.arrLat, sf.route.arrLon);
               
-              // STAR-reitin overhead (+5%)
               remainDist *= 1.05; 
               const totalDist = flownDist + remainDist; 
               
               targetProgress = Math.min(100, Math.max(0, (flownDist / totalDist) * 100));
               
-              // Jos ollaan matkalennossa hitaalla kiipeämisellä, käytetään oletettua matkanopeutta jotta ETA ei vääristy
               let assumedGS = currentGS;
               if (remainDist > 200 && sf.baro_alt > 10000 && currentGS < 350) assumedGS = 420; 
               
@@ -916,7 +933,6 @@ function startAnimation(){
           updateFlightPath(sf.visProgress, sf.baro_alt);
           updatePassengerExperience(sf);
           
-          // TERMINAL GATE BADGE LOGIC
           const b = $('arrTerminalGateBadge');
           const t = $('arrBadgeTxt');
           const ld = $('liveArrDot');
@@ -924,10 +940,11 @@ function startAnimation(){
               b.classList.add('show');
               if (targetProgress >= 100) { 
                   t.textContent = "Arrived at Gate"; ld.style.display = 'none'; 
-              } else if (remainMins < 15 && sf.baro_alt < 5000) { 
+              } else if (remainMins < 15 && sf.baro_alt < 5000 && !sf.on_ground) { 
+                  t.textContent = `Approaching Airport`; ld.style.display = 'inline-block'; ld.style.background = 'var(--apple-green)'; ld.style.boxShadow = '0 0 8px var(--apple-green)';
+              } else if (remainMins < 15 && sf.on_ground) { 
                   t.textContent = `Taxiing to Terminal`; ld.style.display = 'inline-block'; ld.style.background = 'var(--apple-green)'; ld.style.boxShadow = '0 0 8px var(--apple-green)';
               } else { 
-                  // 100% TURVALLISUUS-SÄÄNTÖ: Oikean Apple Walletin tapaan näytämme TBA, kunnes portti on täysin vahvistettu lähestymisessä.
                   t.textContent = `Gate TBA / Check Screens`; ld.style.display = 'none';
               }
           } else { b.classList.remove('show'); }
@@ -960,7 +977,7 @@ function renderList(){
     const img = state.photoCache.get(f.icao24);
     const imgHtml = img ? `<img src="${img}"/>` : `<svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>`;
     const oh = calculateOverhead(f);
-    let ohText = oh && oh.status === 'approaching' ? `<span style="color:var(--apple-green); font-weight:700;">${oh.text}</span>` : '';
+    let ohText = oh && oh.status === 'approaching' ? `<span style="color:var(--apple-green); font-weight:600;">${oh.text}</span>` : '';
     let cs = f.callsign || f.icao24.toUpperCase();
     return `
     <div class="card" onclick="openDetailUI('${f.icao24}')">
@@ -1006,8 +1023,15 @@ window.openDetailUI = async function(icao24) {
   $('dModel').textContent = f.desc || (f.type !== 'Unknown' ? f.type : 'Loading...'); $('dReg').textContent = f.reg;
   
   $('dPax').textContent = '—'; $('dMtow').textContent = '—'; $('dFuel').textContent = '—'; $('dLen').textContent = '—';
+  $('dEng').textContent = '—'; $('dThrust').textContent = '—';
+  
   const specs = aircraftSpecs[f.type];
-  if(specs) { $('dPax').textContent = specs.pax; $('dMtow').textContent = specs.mtow; $('dFuel').textContent = specs.fuel; $('dLen').textContent = specs.len; }
+  if(specs) { 
+      $('dPax').textContent = specs.pax; $('dMtow').textContent = specs.mtow; 
+      $('dFuel').textContent = specs.fuel; $('dLen').textContent = specs.len;
+      if (specs.eng) $('dEng').textContent = specs.eng;
+      if (specs.thrust) $('dThrust').textContent = specs.thrust;
+  }
   
   let al = null;
   if(f.callsign && f.callsign.length >= 3) {
@@ -1034,7 +1058,6 @@ window.openDetailUI = async function(icao24) {
   const gates = ['A12', 'B22', 'C4', 'D10', 'E1', 'F14', 'G3', 'H8', 'A5', 'B7', 'E12'];
   const seats = ['1A', '4F', '12B', '15C', '22A', '34J', '7C', '2F', '10A', '18D', '11C'];
   
-  // V60: Departure gate arvotaan luotettavasti, Arrival Gate pidetään turvallisesti tilassa "TBA"
   $('bpDepGate').textContent = gates[Math.abs(hash) % gates.length];
   $('bpSeat').textContent = seats[Math.abs(hash * 3) % seats.length];
   $('bpArrGate').textContent = "TBA";
@@ -1044,6 +1067,7 @@ window.openDetailUI = async function(icao24) {
   updateCityAvatar('depAvatar', 'depAvatarWrap', null);
   updateCityAvatar('arrAvatar', 'arrAvatarWrap', null);
   $('arrTerminalImg').style.opacity = '0';
+  $('arrImgGrad').style.opacity = '0';
   $('arrTerminalGateBadge').classList.remove('show');
   
   $('bpTimeFlown').textContent = "--:--"; $('bpTimeRemain').textContent = "--:--";
@@ -1061,11 +1085,13 @@ window.openDetailUI = async function(icao24) {
               updateCityAvatar('depAvatar', 'depAvatarWrap', route.depName);
               updateCityAvatar('arrAvatar', 'arrAvatarWrap', route.arrName);
               
-              // Hae Terminaalin valokuva
               const tImgUrl = await fetchArrivalTerminalImage(route.arrName);
               if (tImgUrl) {
                   $('arrTerminalImg').src = tImgUrl;
-                  $('arrTerminalImg').onload = () => { $('arrTerminalImg').style.opacity = '1'; };
+                  $('arrTerminalImg').onload = () => { 
+                      $('arrTerminalImg').style.opacity = '1'; 
+                      $('arrImgGrad').style.opacity = '1';
+                  };
               }
           } else {
               $('bpDep').textContent = 'N/A'; $('bpDepName').textContent = 'Unknown';
@@ -1122,22 +1148,9 @@ $('detailClose').addEventListener('click', () => {
 
 $('trackBtn').addEventListener('click', () => { if(navigator.vibrate) navigator.vibrate(25); const f = state.flights.get(state.selectedIcao); if(f) state.map.setView([f.curLat, f.curLon], 8, {animate:true}); });
 
-// Image Viewers
 const openOverlay = (imgEl) => { if (imgEl.style.opacity !== '0' && imgEl.src && !imgEl.src.includes('data:image/gif')) { $('overlayImg').src = imgEl.src; $('imgOverlay').classList.add('open'); } };
 $('dHeroWrap').addEventListener('click', () => openOverlay($('dHero')));
 $('arrTerminalWrap').addEventListener('click', () => openOverlay($('arrTerminalImg')));
 
 $('imgClose').addEventListener('click', () => $('imgOverlay').classList.remove('open'));
-$('sheetGrab').addEventListener('click', () => { const s = $('sheet'); if(s.classList.contains('full')) { s.classList.remove('full'); s.classList.add('expanded'); } else if(s.classList.contains('expanded')) { s.classList.remove('expanded'); } else { s.classList.add('expanded'); } });
-$('sheetBtn').addEventListener('click', () => { $('sheet').classList.remove('mode-detail'); $('sheet').classList.remove('full'); $('sheet').classList.add('expanded'); $('detailControls').style.display = 'none';});
-$('searchInput').addEventListener('input', e => { state.search=e.target.value; renderList(); });
-$('gpsBtn').addEventListener('click', () => { if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p=>setUserLocation(p.coords.latitude, p.coords.longitude, 8)); });
-$('turkuBtn').addEventListener('click', () => { setUserLocation(60.4518, 22.2666, 8); });
-
-window.addEventListener('resize', () => { if(state.map) { state.map.invalidateSize(); }});
-window.addEventListener('orientationchange', () => { setTimeout(() => { if(state.map) state.map.invalidateSize(); }, 200); });
-
-window.onload = () => { initMap(); setUserLocation(60.4518, 22.2666, 6); startAnimation(); fetchFlights(); };
-</script>
-</body>
-</html>
+$('sheetGrab').addEventListener('click', () => { const s = $('sheet'); if(s.classList.contains('full')) { s.classList.remove('full'); s.classList.add('expanded'); } else if(s.classList.contains('expanded')) { s.classList.remove('
