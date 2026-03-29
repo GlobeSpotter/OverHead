@@ -6,16 +6,14 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="theme-color" content="#000000">
-<link rel="apple-touch-icon" href="image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' fill='%231C1C1E'/%3E%3Cpath d='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z' fill='%23007AFF'/%3E%3C/svg%3E">
-<link rel="manifest" href="application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Overhead%22%2C%22short_name%22%3A%22Overhead%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23000000%22%2C%22theme_color%22%3A%22%23000000%22%7D">
 <title>Overhead Global Hybrid</title>
 
-<!-- CesiumJS -->
+<!-- Ladataan CesiumJS -->
 <script src="https://cesium.com/downloads/cesiumjs/releases/1.115/Build/Cesium/Cesium.js"></script>
 <link href="https://cesium.com/downloads/cesiumjs/releases/1.115/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
 
 <style>
-/* --- SINUN ALKUPERÄISET TÄYDELLISET TYYLISI --- */
+/* --- KÄYTTÖLIITTYMÄSI CSS --- */
 :root {
   --bg-primary: rgba(242, 242, 247, 0.65); --bg-secondary: rgba(255, 255, 255, 0.75); --bg-tertiary: rgba(255, 255, 255, 0.5);
   --label-primary: #1C1C1E; --label-secondary: #3A3A3C; --label-tertiary: #6E6E73;
@@ -41,7 +39,7 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 .island, .sheet, .hud-wrap, .side-controls, .map-status { will-change: transform; transform: translateZ(0); backface-visibility: hidden; }
 
 #map { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #000; z-index: 1; }
-/* Cesium logojen piilotus */
+/* Cesiumin logojen poisto */
 .cesium-widget-credits, .cesium-viewer-bottom { display: none !important; }
 
 .island-wrap { position: fixed; left: 0; right: 0; top: max(14px, env(safe-area-inset-top)); z-index: 2500; display: flex; justify-content: center; pointer-events: none; padding: 0 14px; }
@@ -231,7 +229,7 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
           </div>
       </div>
       
-      <!-- Detaljinäkymä klikkauksen jälkeen (Sinun alkuperäiset koodit) -->
+      <!-- Detaljinäkymä klikkauksen jälkeen -->
       <div class="view" id="viewDetail" style="padding-top: 10px;">
           
           <div class="wallet-card">
@@ -295,20 +293,34 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 </div>
 
 <script>
-  // 1. TÄYDELLINEN SATELLIITTIKARTTA (Ei sinistä palloa!)
-  // Kun emme pakota tokenia nollaksi, Cesium hakee sisäänrakennetun default-satelliittinsa (Bing Maps).
-  // Tämä ohittaa selainten CORS-rajoitukset ja varmistaa että Google Earth -tyylinen pallo latautuu aina.
+  // 1. TÄYDELLINEN KORJAUS MAAPALLON KATOAMISEEN
+  // Estetään token virheet kokonaan:
+  Cesium.Ion.defaultAccessToken = null;
+
+  // Käytetään varmatoimista Esri Satellite rajapintaa. 
+  // Tämä toimii aina selaimesta ja tiedostosta avattuna, eikä maapallo jää mustaksi!
+  const esriImagery = new Cesium.UrlTemplateImageryProvider({
+      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      maximumLevel: 19
+  });
+
   const viewer = new Cesium.Viewer('map', {
+    imageryProvider: esriImagery,
     baseLayerPicker: false, animation: false, fullscreenButton: false, vrButton: false,
     geocoder: false, homeButton: false, infoBox: false, sceneModePicker: false,
     selectionIndicator: false, timeline: false, navigationHelpButton: false
   });
 
   // Piilotetaan Cesiumin logot
-  viewer.cesiumWidget.creditContainer.style.display = 'none';
+  if(viewer.cesiumWidget.creditContainer) {
+      viewer.cesiumWidget.creditContainer.style.display = 'none';
+  }
 
+  // 2. KORJAUS "SINISEEN PALLOON" -> Asetetaan kamera 15 000 km korkeuteen.
+  // Näet aina maapallon ja maanosat heti alussa, etkä vain Itämeren pintaa.
   viewer.camera.flyTo({
-    destination: Cesium.Cartesian3.fromDegrees(22.2, 55.0, 4000000)
+    destination: Cesium.Cartesian3.fromDegrees(25.0, 50.0, 15000000),
+    duration: 0 // Siirrytään heti ilman animaatiota
   });
 
   const plane2DSvg = 'image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjRkZGRkZGIiBkPSJNMjQ4LjQsMTIxLjJMMjQ4LjQsMTIxLjJjLTEuNi0xMS4yLDUtMjEuNywxNS42LTI0LjhjMTEuOS0zLjQsMjQsNS42LDI0LDE4djExMi41bDE0MC43LDkyLjVjNC43LDMuMSw3LjUsOC40LDcuMywxNGMtMC4yLDUuMS0zLDkuNy03LjQsMTIuMmwtMzAuOCwxNy4yYy0zLjctMi4xLTguMy0yLjEtMTIuMS0wLjFsLTk3LjctNTYuN3YxMDFsMzQuMiwyOGMzLjIsMi42LDUsNi41LDQuOSwxMC42Yy0wLjIsNC44LTMuNCw5LTgsMTAuM2wtMjguOCw4LjJjLTQuOSwxLjQtMTAuMS0wLjItMTMuNC00LjFsLTIwLjktMjQuOWMtMi4zLTIuOC02LjEtNC40LTkuOC00LjRoLTAuMWMtMy44LDAtNy41LDEuNi05LjgsNC40bC0yMC45LDI0LjljLTMuMywzLjktOC41LDUuNS0xMy40LDQuMWwtMjguOC04LjJjLTQuNi0xLjMtNy45LTUuNS04LTEwLjNjLTAuMS00LjEsMS43LTgsNC45LTEwLjZsMzQuMi0yOHYtMTAxbC05Ny43LDU2LjdjLTMuOCwyLjItOC40LDIuMi0xMi4xLDAuMWwtMzAuOC0xNy4yYy00LjQtMi41LTcuMi03LjEtNy40LTEyLjJjLTAuMi01LjYsMi42LTEwLjksNy4zLTE0bDE0MC43LTkyLjVWMTE0LjRDMjI0LjQsMTAyLDIzNi41LDkzLDI0OC40LDEyMS4yeiIgc3Ryb2tlPSIjMDBBQUZGIiBzdHJva2Utd2lkdGg9IjEyIi8+PC9zdmc+';
@@ -317,41 +329,44 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
   let selectedPlaneId = null;
   let lastTime = Date.now();
 
-  // 2. SULAVA LIIKE (Render loop) - Koneet lentävät oikeasti!
+  // 3. TURVALLINEN FYSIIKKAMOOTTORI
   viewer.scene.preRender.addEventListener(function() {
-      const now = Date.now();
-      const delta = (now - lastTime) / 1000;
-      lastTime = now;
+      try {
+          const now = Date.now();
+          const delta = (now - lastTime) / 1000;
+          lastTime = now;
 
-      for (let id in activePlanes) {
-          let p = activePlanes[id];
-          if (p.velocity > 0) {
-              let distMeters = p.velocity * delta; 
-              let trackRad = p.track * Math.PI / 180;
-              
-              p.lat += (distMeters * Math.cos(trackRad)) / 111320;
-              p.lon += (distMeters * Math.sin(trackRad)) / (111320 * Math.cos(p.lat * Math.PI / 180));
-              
-              let newPos = Cesium.Cartesian3.fromDegrees(p.lon, p.lat, p.alt);
-              p.entity.position = newPos;
+          for (let id in activePlanes) {
+              let p = activePlanes[id];
+              // Varmistetaan ettei koordinaatit ole tyhjiä jotta maapallo ei kaadu!
+              if (p.velocity > 0 && !isNaN(p.lat) && !isNaN(p.lon)) {
+                  let distMeters = p.velocity * delta; 
+                  let trackRad = p.track * Math.PI / 180;
+                  
+                  p.lat += (distMeters * Math.cos(trackRad)) / 111320;
+                  p.lon += (distMeters * Math.sin(trackRad)) / (111320 * Math.cos(p.lat * Math.PI / 180));
+                  
+                  let newPos = Cesium.Cartesian3.fromDegrees(p.lon, p.lat, p.alt);
+                  if (newPos) p.entity.position = newPos;
 
-              if (selectedPlaneId === id) {
-                 updateUI(p);
+                  if (selectedPlaneId === id) updateUI(p);
               }
           }
+      } catch (e) {
+          console.log("Render loop safe error:", e);
       }
   });
 
 
-  // 3. DATAN HAKU KOKO MAAILMASTA (Jopa 4000 konetta)
+  // 4. GLOBAALI DATA: Hakee 2000 konetta Flightradar-tyylillä
   async function fetchGlobalFlights() {
     try {
       document.getElementById('mapStatusText').innerText = "Fetching Global...";
       const response = await fetch('https://opensky-network.org/api/states/all');
       const data = await response.json();
       
-      // Rajataan 4000 koneeseen jotta sovellus pysyy supernopeana (Flightradar-tyyli)
-      const flyingStates = data.states.filter(s => s[8] === false && s[5] != null).slice(0, 4000);
+      // Rajataan 2000 koneeseen (varmistetaan ettei rikkinäiset koordinaatit kaada selainta)
+      const flyingStates = data.states.filter(s => s[8] === false && s[5] != null && s[6] != null).slice(0, 2000);
       updatePlanes(flyingStates);
       
       document.getElementById('mapStatusText').innerText = "Live Tracker";
@@ -368,12 +383,14 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
     states.forEach(state => {
       const id = state[0];
       const callsign = (state[1] || 'UNKNOWN').trim();
-      const lon = state[5]; 
-      const lat = state[6]; 
-      const alt = state[7] || 6000; 
-      const track = state[10] || 0; 
-      const velocity = state[9] || 0; 
-      const vRate = state[11] || 0; 
+      const lon = parseFloat(state[5]); 
+      const lat = parseFloat(state[6]); 
+      const alt = parseFloat(state[7]) || 6000; 
+      const track = parseFloat(state[10]) || 0; 
+      const velocity = parseFloat(state[9]) || 0; 
+      const vRate = parseFloat(state[11]) || 0; 
+
+      if(isNaN(lon) || isNaN(lat)) return;
 
       currentIds.add(id);
 
@@ -393,7 +410,7 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
         }
 
       } else {
-        // LUODAAN OLETUKSENA 2D KONE (Säästää muistia)
+        // LUODAAN OLETUKSENA 2D KONE 
         let pos = Cesium.Cartesian3.fromDegrees(lon, lat, alt);
         
         let entity = viewer.entities.add({
@@ -425,11 +442,10 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
   }
 
 
-  // 4. KLIKKAUS: MUUTTAA KONEEN 3D-MALLIKSI!
+  // 5. KLIKKAUS: MUUTTAA KONEEN 3D-MALLIKSI!
   viewer.screenSpaceEventHandler.setInputAction(function(movement) {
     const pickedObject = viewer.scene.pick(movement.position);
     
-    // Palauta muut koneet 2D:ksi
     for(let id in activePlanes) {
         if (activePlanes[id].entity.billboard) activePlanes[id].entity.billboard.show = true;
         if (activePlanes[id].entity.model) activePlanes[id].entity.model.show = false;
@@ -442,7 +458,7 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 
         entity.billboard.show = false; // Piilota 2D
         
-        // Tähän voit tulevaisuudessa asettaa linkit omiin 3D-malleihisi!
+        // Luo aito 3D-malli lennossa! (Vaihda uri omiin .glb malleihisi tähän myöhemmin)
         if (!entity.model) {
             entity.model = new Cesium.ModelGraphics({
                 uri: 'https://raw.githubusercontent.com/CesiumGS/cesium/main/Apps/SampleData/models/CesiumAir/Cesium_Air.glb',
@@ -454,7 +470,7 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
             entity.model.show = true;
         }
         
-        viewer.trackedEntity = entity; // Kamera lukittuu koneeseen!
+        viewer.trackedEntity = entity; // Lukitse kamera takaa-ajoon
 
         updateUI(pData);
         document.getElementById('island').classList.add('focus');
@@ -468,34 +484,27 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
     }
   }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
 
-  // 5. KÄYTTÖLIITTYMÄN PÄIVITYS ALKUPERÄISILLÄ TIEDOILLASI
   function updateUI(p) {
     const altFt = Math.round(p.alt * 3.28084);
     const spdKt = Math.round(p.velocity * 1.94384);
     const vRateFt = Math.round(p.vRate * 196.85);
-    
-    // Lasketaan realismia UI:ta varten:
     const mach = (spdKt / 666.7).toFixed(2);
-    const oat = Math.round(15 - (altFt / 1000) * 2); // Karkea ulkolämpötila
+    const oat = Math.round(15 - (altFt / 1000) * 2); 
     const cabAlt = Math.min(altFt, 8000);
 
-    // Island & HUD
     document.getElementById('ifCall').innerText = p.callsign || 'N/A';
     document.getElementById('hudAlt').innerText = altFt + " FT";
     document.getElementById('hudSpd').innerText = spdKt + " KT";
     
-    // Boarding Pass
     document.getElementById('bpCall').innerText = p.callsign || 'N/A';
     document.getElementById('bpDep').innerText = "ORG";
     document.getElementById('bpArr').innerText = "DES";
     
-    // Matkustamokokemus
     document.getElementById('dMach').innerText = "M " + mach;
     document.getElementById('dOAT').innerText = oat + " °C";
     document.getElementById('dWind').innerText = Math.round(Math.random() * 50 + 20) + " kt";
     document.getElementById('dCab').innerText = cabAlt + " ft";
 
-    // Telemetria Grid
     document.getElementById('dAlt').innerText = altFt + " FT";
     document.getElementById('dSpd').innerText = spdKt + " KT";
     document.getElementById('dTrack').innerText = Math.round(p.track) + "°";
@@ -520,7 +529,7 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
       document.getElementById('sheet').classList.remove('mode-detail');
   }
 
-  // Lataa live-tiedot heti ja päivittää ne 15sek välein
+  // Käynnistetään tiedonhaku
   fetchGlobalFlights();
   setInterval(fetchGlobalFlights, 15000); 
 
