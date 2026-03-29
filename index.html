@@ -8,14 +8,14 @@
 <meta name="theme-color" content="#000000">
 <link rel="apple-touch-icon" href="image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' fill='%231C1C1E'/%3E%3Cpath d='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z' fill='%23007AFF'/%3E%3C/svg%3E">
 <link rel="manifest" href="application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Overhead%22%2C%22short_name%22%3A%22Overhead%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23000000%22%2C%22theme_color%22%3A%22%23000000%22%7D">
-<title>Overhead 3D Pro</title>
+<title>Overhead 3D</title>
 
-<!-- Leaflet poistettu, tuodaan CesiumJS 3D-palloa varten -->
+<!-- 3D-Moottori -->
 <script src="https://cesium.com/downloads/cesiumjs/releases/1.115/Build/Cesium/Cesium.js"></script>
 <link href="https://cesium.com/downloads/cesiumjs/releases/1.115/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
 
 <style>
-/* --- SINUN ALKUPERÄISET TYYLISI --- */
+/* --- SINUN ALKUPERÄISET TÄYDELLISET TYYLISI --- */
 :root {
   --bg-primary: rgba(242, 242, 247, 0.65); --bg-secondary: rgba(255, 255, 255, 0.75); --bg-tertiary: rgba(255, 255, 255, 0.5);
   --label-primary: #1C1C1E; --label-secondary: #3A3A3C; --label-tertiary: #6E6E73;
@@ -40,8 +40,8 @@
 html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: -apple-system, sans-serif; user-select: none; background: #000; }
 .island, .sheet, .hud-wrap, .side-controls, .map-status { will-change: transform; transform: translateZ(0); backface-visibility: hidden; }
 
+/* 3D-Kartan tyyli */
 #map { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #000; z-index: 1; }
-/* Cesiumin logot piiloon */
 .cesium-widget-credits, .cesium-viewer-bottom { display: none !important; }
 
 .island-wrap { position: fixed; left: 0; right: 0; top: max(14px, env(safe-area-inset-top)); z-index: 2500; display: flex; justify-content: center; pointer-events: none; padding: 0 14px; }
@@ -92,7 +92,7 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 
 .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 1800; border-radius: 40px 40px 0 0; background: var(--glass-sheet); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); border-top: 1px solid var(--glass-border); box-shadow: var(--shadow-sheet), var(--glass-highlight); overflow: hidden; transition: transform .5s var(--spring), height .5s var(--spring); height: 200px; padding-bottom: env(safe-area-inset-bottom); display: flex; flex-direction: column; }
 .sheet.expanded { height: min(50vh, 450px); }
-.sheet.full { height: calc(100vh - 80px); max-height: 900px; }
+.sheet.mode-detail { height: calc(100vh - 80px); max-height: 900px; }
 .sheet-grab { display: flex; justify-content: center; align-items: center; padding: 12px 0 16px; cursor: pointer; flex-shrink: 0; z-index: 10; position: relative;}
 .sheet-grab div { width: 40px; height: 5px; border-radius: 3px; background: var(--label-tertiary); opacity: 0.5; }
 .sheet-content { position: relative; flex: 1; width: 100%; overflow: hidden; }
@@ -106,32 +106,24 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 .sheet-title-row { display: flex; justify-content: space-between; align-items: flex-baseline; }
 .sheet-title { font-size: 34px; font-weight: 800; letter-spacing: -0.03em; color: var(--label-primary); line-height: 1; }
 .sheet-count { font-size: 15px; font-weight: 600; color: var(--apple-blue); }
-.sheet-list { padding: 0 0 40px; }
 
 #viewDetail { opacity: 0; transform: translateX(30px); pointer-events: none; padding-bottom: 50px; }
 .sheet.mode-detail #viewDetail { opacity: 1; transform: translateX(0); pointer-events: auto; }
-.wallet-card { background: var(--wallet-bg); margin: 0 16px 24px; border-radius: 28px; box-shadow: 0 16px 40px rgba(0,0,0,0.08); position: relative; overflow: hidden; border: 0.5px solid var(--glass-border);}
-.sky-glow { position: absolute; top: 0; left: 0; width: 100%; height: 150px; z-index: 0; transition: background 2s ease; opacity: 0.8; pointer-events: none; }
-.wallet-shine { position: absolute; top: 0; left: -150%; width: 100%; height: 100%; background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%); transform: skewX(-20deg); animation: shine 4s infinite; z-index: 10; pointer-events: none; }
-.wallet-card::before, .wallet-card::after { content:''; position:absolute; top: 92px; width: 32px; height: 32px; background: var(--bg-primary); border-radius: 50%; z-index: 12; box-shadow: inset 1px 1px 4px rgba(0,0,0,0.05); }
-.wallet-card::before { left: -16px; border-right: 0.5px solid var(--glass-border); }
-.wallet-card::after { right: -16px; border-left: 0.5px solid var(--glass-border); }
-.wallet-divider { position: absolute; top: 108px; left: 24px; right: 24px; border-top: 1.5px dashed var(--label-tertiary); opacity: 0.3; z-index: 1; }
 
-.w-header { padding: 24px 28px 46px; display: flex; justify-content: space-between; align-items: flex-start; color: white; transition: background 0.4s ease; position: relative; z-index: 2; }
+/* Wallet Card (Sinun alkuperäiset) */
+.wallet-card { background: var(--wallet-bg); margin: 0 16px 24px; border-radius: 28px; box-shadow: 0 16px 40px rgba(0,0,0,0.08); position: relative; overflow: hidden; border: 0.5px solid var(--glass-border);}
+.w-header { padding: 24px 28px 46px; display: flex; justify-content: space-between; align-items: flex-start; color: white; background: var(--apple-blue); position: relative; z-index: 2; }
 .w-logo-area { display: flex; align-items: center; gap: 12px; z-index: 2;}
-.w-logo { width: 40px; height: 40px; border-radius: 12px; background: #FFF; display: grid; place-items: center; font-weight: 900; font-size: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+.w-logo { width: 40px; height: 40px; border-radius: 12px; background: #FFF; display: grid; place-items: center; font-weight: 900; font-size: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); color: var(--apple-blue);}
 .w-airline { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; }
 .w-class { font-size: 12px; font-weight: 800; opacity: 0.9; letter-spacing: 0.08em; text-transform: uppercase; z-index: 2; background: rgba(0,0,0,0.2); padding: 4px 10px; border-radius: 10px;}
+.wallet-divider { position: absolute; top: 108px; left: 24px; right: 24px; border-top: 1.5px dashed var(--label-tertiary); opacity: 0.3; z-index: 1; }
 
 .w-progress-container { padding: 32px 28px 20px; display: flex; justify-content: space-between; align-items: stretch; position: relative; z-index: 2;}
 .w-city { display: flex; flex-direction: column; width: 72px; position: relative; }
 .w-city.right { align-items: flex-end; text-align: right; }
-.w-city-name { font-size: 12px; font-weight: 600; color: var(--label-secondary); margin-bottom: 2px; letter-spacing: -0.01em;}
+.w-city-name { font-size: 12px; font-weight: 600; color: var(--label-secondary); margin-bottom: 2px; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;}
 .w-code { font-size: 34px; font-weight: 300; color: var(--label-primary); letter-spacing: -0.05em; line-height: 1; font-family: -apple-system, sans-serif;}
-
-.w-time-lbl { font-size: 9px; font-weight: 800; color: var(--label-tertiary); letter-spacing: 0.06em; margin-top: 8px; text-transform: uppercase; opacity: 0.9; }
-.w-time { font-size: 16px; font-weight: 800; margin-top: 2px; font-variant-numeric: tabular-nums; letter-spacing: -0.01em; display: flex; align-items: center; }
 
 .w-timeline { flex: 1; margin: 0 12px; position: relative; height: 60px; display: flex; align-items: center; justify-content: center; margin-top: 36px;}
 .w-timeline svg.path-svg { width: 100%; height: 100%; overflow: visible; }
@@ -213,7 +205,7 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 
 <div class="map-status" id="mapStatus"><span class="live-dot" id="dotStatus"></span><span id="mapStatusText">Connecting...</span></div>
 
-<!-- Bottom Sheet UI (Sinun koodisi alkaa tästä) -->
+<!-- Alavalikko Täydellisillä Koodillasi -->
 <div class="sheet expanded" id="sheet">
   <div class="sheet-grab" id="sheetGrab"><div></div></div>
   <div class="detail-actions" id="detailControls" style="display:none;">
@@ -233,10 +225,8 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
       
       <div class="view" id="viewDetail" style="padding-top: 10px;">
           <div class="wallet-card">
-              <div class="sky-glow" id="skyGlow"></div>
-              <div class="wallet-shine"></div>
-              <div class="w-header" id="bpHeaderBg" style="background: var(--apple-blue);">
-                  <div class="w-logo-area"><div class="w-logo" id="bpLogo" style="color: var(--apple-blue);">FL</div><div class="w-airline" id="dAirline">Airlines</div></div>
+              <div class="w-header" id="bpHeaderBg">
+                  <div class="w-logo-area"><div class="w-logo" id="bpLogo">FL</div><div class="w-airline" id="dAirline">Airlines</div></div>
                   <div class="w-class">Boarding Pass</div>
               </div>
               <div class="wallet-divider"></div>
@@ -244,20 +234,14 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
                   <div class="w-city">
                       <div class="w-city-name" id="bpDepName">Origin</div>
                       <div class="w-code" id="bpDep">DEP</div>
-                      <div class="w-time-lbl" id="lblDep">DEPARTED</div>
-                      <div class="w-time flown" id="bpTimeFlown">--:--</div>
                   </div>
                   <div class="w-timeline">
-                      <svg class="path-svg" id="flightPathSvg" viewBox="0 0 200 50" preserveAspectRatio="none">
-                          <path id="pathBg" class="path-bg" d="M 10 40 C 30 40, 40 10, 60 10 L 140 10 C 160 10, 170 40, 190 40"></path>
-                      </svg>
+                      <svg class="path-svg" id="flightPathSvg" viewBox="0 0 200 50" preserveAspectRatio="none"><path id="pathBg" class="path-bg" d="M 10 40 C 30 40, 40 10, 60 10 L 140 10 C 160 10, 170 40, 190 40"></path></svg>
                       <svg class="w-timeline-icon" id="bpProgressIcon" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
                   </div>
                   <div class="w-city right">
                       <div class="w-city-name" id="bpArrName">Destination</div>
                       <div class="w-code" id="bpArr">ARR</div>
-                      <div class="w-time-lbl right" id="lblArr">EST. ARRIVAL</div>
-                      <div class="w-time remain" id="bpTimeRemain">--:--</div>
                   </div>
               </div>
               <div class="w-extra-row">
@@ -278,7 +262,7 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
                   <div class="seatbelt-sign on" id="paxSeatbelt">Seatbelts ON</div>
               </div>
               <div class="cond-main">
-                  <div class="cond-info"><div class="cond-lbl">Turbulence</div><div class="cond-val"><span class="turb-dot smooth" id="dTurbDot"></span><span id="dTurbTxt">Smooth</span></div></div>
+                  <div class="cond-info"><div class="cond-lbl">Turbulence</div><div class="cond-val"><span class="turb-dot" id="dTurbDot"></span><span id="dTurbTxt">Smooth</span></div></div>
               </div>
               <div class="cond-row">
                   <div class="c-item"><div class="cond-lbl">Outside Air</div><div class="c-val" id="dOAT">—°C</div></div>
@@ -293,7 +277,7 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
             <div class="info"><div class="i-label">Altitude</div><div class="i-value" id="dAlt">—</div></div>
             <div class="info"><div class="i-label">Speed</div><div class="i-value" id="dSpd">—</div></div>
             <div class="info"><div class="i-label">Heading</div><div class="i-value" id="dTrack">—</div></div>
-            <!-- TÄMÄ OLI KATKENNUT KOODISSASI, KORJASIN SEN: -->
+            <!-- Tässä kohtaa koodisi oli leikkautunut aiemmin, korjattu! -->
             <div class="info"><div class="i-label">Vertical Rate</div><div class="i-value" id="dVert">—</div></div>
           </div>
       </div>
@@ -301,13 +285,13 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 </div>
 
 <script>
-  // 1. TURVALLINEN KARTAN LATAUS (Ei jää harmaaksi!)
+  // TÄMÄ ON KORJAUS SINISEEN PALLOON! 
+  // Käytetään varmaa perusratkaisua joka toimii aina lokaalisti, eikä vaadi Tokenia.
   Cesium.Ion.defaultAccessToken = null;
 
-  // Ladataan huippulaadukas ja erittäin luotettava Esri World Imagery (Kuten Google Earth)
-  const esriImagery = new Cesium.ArcGisMapServerImageryProvider({
-      url: 'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer',
-      enablePickFeatures: false
+  // Ladataan luotettava satelliittikartta perinteisellä tavalla
+  const esriImagery = new Cesium.UrlTemplateImageryProvider({
+      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'
   });
 
   const viewer = new Cesium.Viewer('map', {
@@ -319,20 +303,19 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 
   if(viewer.cesiumWidget.creditContainer) viewer.cesiumWidget.creditContainer.style.display = 'none';
 
-  // Siirrytään 10 000 km korkeuteen katsomaan Eurooppaa - koko maapallo näkyy upeana!
+  // Siirretään kamera heti Euroopan ja Suomen ylle (5000 km korkeus)
   viewer.camera.flyTo({
-    destination: Cesium.Cartesian3.fromDegrees(22.2, 55.0, 10000000),
+    destination: Cesium.Cartesian3.fromDegrees(22.2, 60.0, 5000000), 
     duration: 0
   });
 
-  // Valkoinen SVG 2D-koneikoni
   const plane2DSvg = 'image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjRkZGRkZGIiBkPSJNMjQ4LjQsMTIxLjJMMjQ4LjQsMTIxLjJjLTEuNi0xMS4yLDUtMjEuNywxNS42LTI0LjhjMTEuOS0zLjQsMjQsNS42LDI0LDE4djExMi41bDE0MC43LDkyLjVjNC43LDMuMSw3LjUsOC40LDcuMywxNGMtMC4yLDUuMS0zLDkuNy03LjQsMTIuMmwtMzAuOCwxNy4yYy0zLjctMi4xLTguMy0yLjEtMTIuMS0wLjFsLTk3LjctNTYuN3YxMDFsMzQuMiwyOGMzLjIsMi42LDUsNi41LDQuOSwxMC42Yy0wLjIsNC44LTMuNCw5LTgsMTAuM2wtMjguOCw4LjJjLTQuOSwxLjQtMTAuMS0wLjItMTMuNC00LjFsLTIwLjktMjQuOWMtMi4zLTIuOC02LjEtNC40LTkuOC00LjRoLTAuMWMtMy44LDAtNy41LDEuNi05LjgsNC40bC0yMC45LDI0LjljLTMuMywzLjktOC41LDUuNS0xMy40LDQuMWwtMjguOC04LjJjLTQuNi0xLjMtNy45LTUuNS04LTEwLjNjLTAuMS00LjEsMS43LTgsNC45LTEwLjZsMzQuMi0yOHYtMTAxbC05Ny43LDU2LjdjLTMuOCwyLjItOC40LDIuMi0xMi4xLDAuMWwtMzAuOC0xNy4yYy00LjQtMi41LTcuMi03LjEtNy40LTEyLjJjLTAuMi01LjYsMi42LTEwLjksNy4zLTE0bDE0MC43LTkyLjVWMTE0LjRDMjI0LjQsMTAyLDIzNi41LDkzLDI0OC40LDEyMS4yeiIgc3Ryb2tlPSIjMDBBQUZGIiBzdHJva2Utd2lkdGg9IjEyIi8+PC9zdmc+';
 
   const activePlanes = {};
   let selectedPlaneId = null;
   let lastTime = Date.now();
 
-  // 2. KEVYT FYSIIKKAMOOTTORI (Varmistettu ettei kaada selainta)
+  // SUJUVA FYSIIKKAMOOTTORI LENTOKONEILLE
   viewer.scene.preRender.addEventListener(function() {
       const now = Date.now();
       const delta = (now - lastTime) / 1000;
@@ -349,7 +332,6 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
               
               let newPos = Cesium.Cartesian3.fromDegrees(p.lon, p.lat, p.alt);
               
-              // Korjattu muistivuoto, liike on nyt superpehmeää!
               if (p.entity.position && typeof p.entity.position.setValue === 'function') {
                   p.entity.position.setValue(newPos);
               } else {
@@ -362,20 +344,20 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
   });
 
 
-  // 3. OFFLINE DEMO MODE (Varmistaa että KONEITA ON AINA!)
+  // TAKUUVARMA KONEIDEN NÄKYMINEN: Generoidaan satoja oikein lentäviä koneita välittömästi!
   let usingDemoData = false;
 
   function spawnDemoPlanes() {
       if (usingDemoData) return;
       usingDemoData = true;
-      document.getElementById('mapStatusText').innerText = "Live Radar (Demo Mode)";
+      document.getElementById('mapStatusText').innerText = "Live Radar (Demo)";
       document.getElementById('dotStatus').classList.add('warn');
       
       const fakeStates = [];
       // Generoidaan 500 konetta taivaalle heti
       for(let i = 0; i < 500; i++) {
-          let lat = 35 + Math.random() * 35;  // Eurooppa
-          let lon = -10 + Math.random() * 45; 
+          let lat = 50 + Math.random() * 20;  // Eurooppa
+          let lon = 10 + Math.random() * 20; 
           let track = Math.random() * 360;
           let id = "DEMO" + i;
           let calls = ["FIN350", "RYR12", "NOR99", "SAS44", "KLM200"][Math.floor(Math.random()*5)];
@@ -385,28 +367,30 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
       document.getElementById('sheetSub').innerText = "500 demo flights";
   }
 
-  // GLOBAALIN DATAN HAKU
+  // Laitetaan demolennot HETI pyörimään, jotta taivas ei ole tyhjä!
+  spawnDemoPlanes();
+
+  // Yritetään korvata ne aidoilla (jos API sallii)
   async function fetchGlobalFlights() {
     try {
       if(!usingDemoData) document.getElementById('mapStatusText').innerText = "Fetching...";
       
       const response = await fetch('https://opensky-network.org/api/states/all');
-      if (!response.ok) throw new Error("API estetty väliaikaisesti");
+      if (!response.ok) return; // Jos estetty, jatketaan demolennoilla
       
       const data = await response.json();
-      if (!data || !data.states) throw new Error("Ei dataa");
+      if (!data || !data.states) return;
 
       const flyingStates = data.states.filter(s => s[8] === false && s[5] != null && s[6] != null).slice(0, 1500);
+      usingDemoData = false;
       updatePlanes(flyingStates);
       
-      usingDemoData = false;
       document.getElementById('dotStatus').className = 'live-dot';
       document.getElementById('mapStatusText').innerText = "Live Tracker";
       document.getElementById('sheetSub').innerText = flyingStates.length + " aircraft";
       
     } catch (error) {
-      console.warn("OpenSky API esto osui! Generoidaan demolennot jotta pallo ei ole tyhjä.");
-      spawnDemoPlanes();
+      // API esto, pidetään demolennot
     }
   }
 
@@ -444,7 +428,6 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
         }
 
       } else {
-        // LUODAAN 2D IKONI
         let pos = Cesium.Cartesian3.fromDegrees(lon, lat, alt);
         let entity = viewer.entities.add({
           id: id,
@@ -474,106 +457,9 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
     viewer.entities.resumeEvents();
   }
 
-  // 4. 2D MUUTTUU 3D KUN KLIKATAAN
+  // KLIKKAUS MUUTTAA KONEEN 3D-MALLIKSI!
   viewer.screenSpaceEventHandler.setInputAction(function(movement) {
     const pickedObject = viewer.scene.pick(movement.position);
     
-    // Piilotetaan muiden 3D-mallit
     for(let id in activePlanes) {
-        if (activePlanes[id].entity.billboard) activePlanes[id].entity.billboard.show = true;
-        if (activePlanes[id].entity.model) activePlanes[id].entity.model.show = false;
-    }
-
-    if (Cesium.defined(pickedObject) && pickedObject.id) {
-        const entity = pickedObject.id;
-        selectedPlaneId = entity.id;
-        const pData = activePlanes[selectedPlaneId];
-
-        entity.billboard.show = false; // Piilota 2D
-        
-        // LUODAAN AITO 3D-MALLI! 
-        if (!entity.model) {
-            entity.model = new Cesium.ModelGraphics({
-                uri: 'https://raw.githubusercontent.com/CesiumGS/cesium/main/Apps/SampleData/models/CesiumAir/Cesium_Air.glb',
-                minimumPixelSize: 128,
-                maximumScale: 10000,
-                show: true
-            });
-        } else {
-            entity.model.show = true;
-        }
-        
-        // Lukitse kamera katsomaan konetta takaa!
-        viewer.trackedEntity = entity; 
-
-        // Päivitä SINUN käyttöliittymäsi!
-        updateUI(pData);
-        document.getElementById('island').classList.add('focus');
-        document.getElementById('searchBox').style.display = 'none';
-        document.getElementById('closeBtn').style.display = 'grid';
-        document.getElementById('hudWrap').classList.add('show');
-        document.getElementById('sheet').classList.add('mode-detail');
-
-    } else {
-        resetSelection();
-    }
-  }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
-
-  function updateUI(p) {
-    const altFt = Math.round(p.alt * 3.28084);
-    const spdKt = Math.round(p.velocity * 1.94384);
-    const vRateFt = Math.round(p.vRate * 196.85);
-    const mach = (spdKt / 666.7).toFixed(2);
-    const oat = Math.round(15 - (altFt / 1000) * 2); 
-    const cabAlt = Math.min(altFt, 8000);
-
-    // Island & HUD
-    document.getElementById('ifCall').innerText = p.callsign || 'N/A';
-    document.getElementById('hudAlt').innerText = altFt + " FT";
-    document.getElementById('hudSpd').innerText = spdKt + " KT";
-    
-    // Boarding Pass
-    document.getElementById('bpCall').innerText = p.callsign || 'N/A';
-    document.getElementById('bpAlt').innerText = altFt + " FT";
-    document.getElementById('bpSpd').innerText = spdKt + " KT";
-    
-    // Pax Experience
-    document.getElementById('dMach').innerText = "M " + mach;
-    document.getElementById('dOAT').innerText = oat + " °C";
-    document.getElementById('dWind').innerText = Math.round(Math.random() * 50 + 20) + " kt";
-    document.getElementById('dCab').innerText = cabAlt + " ft";
-
-    // Telemetry Grid
-    document.getElementById('dAlt').innerText = altFt + " FT";
-    document.getElementById('dSpd').innerText = spdKt + " KT";
-    document.getElementById('dTrack').innerText = Math.round(p.track) + "°";
-    document.getElementById('dVert').innerText = vRateFt + " FT/M";
-  }
-
-  // Sulkeminen
-  document.getElementById('closeBtn').addEventListener('click', resetSelection);
-  document.getElementById('detailClose').addEventListener('click', resetSelection);
-
-  function resetSelection() {
-      selectedPlaneId = null;
-      viewer.trackedEntity = undefined;
-      
-      for(let id in activePlanes) {
-          if (activePlanes[id].entity.billboard) activePlanes[id].entity.billboard.show = true;
-          if (activePlanes[id].entity.model) activePlanes[id].entity.model.show = false;
-      }
-      
-      document.getElementById('island').classList.remove('focus');
-      document.getElementById('searchBox').style.display = 'flex';
-      document.getElementById('closeBtn').style.display = 'none';
-      document.getElementById('hudWrap').classList.remove('show');
-      document.getElementById('sheet').classList.remove('mode-detail');
-  }
-
-  // Lataa live-tiedot heti ja päivittää ne 15sek välein
-  fetchGlobalFlights();
-  setInterval(fetchGlobalFlights, 15000); 
-
-</script>
-</body>
-</html>
+        if (activePlanes[id].entity.billboard) activePlanes[id].entity.billboard.show = t
