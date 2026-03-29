@@ -266,7 +266,7 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
     <div class="brand">
         <div class="brand-icon"><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div>
         <div class="brand-text">Over<span class="b-head">head</span></div>
-        <span class="v-badge">v76</span>
+        <span class="v-badge">v77</span>
     </div>
     <div class="searchbox"><svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><input id="searchInput" placeholder="Search callsign..." autocomplete="off" autocorrect="off" spellcheck="false" /></div>
     <div class="island-flight" id="islandFlight"><div class="if-main"><div class="if-call" id="ifCall">FLIGHT</div><div class="if-route" id="ifRoute">Tracking Active</div></div></div>
@@ -402,7 +402,7 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 
           <div class="legal-footer">
             Overhead Radar &middot; AdSense Safe Version<br/>
-            Map tiles by <a href="https://carto.com/" target="_blank" style="color:inherit">CARTO</a>, under CC BY 3.0. Data by OpenStreetMap.<br/>
+            Map tiles by <a href="https://www.esri.com/" target="_blank" style="color:inherit">Esri</a>, under standard web attribution terms.<br/>
             Photos via <a href="https://www.planespotters.net" target="_blank" style="color:inherit">Planespotters.net</a> API (credited to authors).<br/>
             Flight data from open ADS-B networks.
           </div>
@@ -445,8 +445,9 @@ const airlines={"FIN":{n:"Finnair",c:"#0B1560"},"RYR":{n:"Ryanair",c:"#073590"},
 const wCodes={0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌧️',53:'🌧️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',95:'⛈️'};
 const state={map:null,userLat:60.4518,userLon:22.2666,flights:new Map(),selectedIcao:null,photoCache:new Map(),arrImgCache:new Map(),routeCache:new Map(),markers:new Map(),cityWeather:new Map()};
 
-const planeBlueURI="image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z' fill='%23007AFF' stroke='%23FFFFFF' stroke-width='0.5'/%3E%3C/svg%3E";
-const planeGreenURI="image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z' fill='%2334C759' stroke='%23FFFFFF' stroke-width='1'/%3E%3C/svg%3E";
+// Turvallinen Base64 enkoodaus korjaa kuvakkeiden katoamisen
+const planeBlueURI="image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTIxIDE2di0ybC04LTVWMy41YzAtLjgzLS42Ny0xLjUtMS41LTEuNVMxMCAyLjY3IDEwIDMuNVY5bC04IDV2Mmw4LTIuNVYxOWwtMiAxLjVWMjJsMy41LTEgMy41IDF2LTEuNUwxMyAxOXYtNS41bDggMi41eiIgZmlsbD0iIzAwN0FGRiIgc3Ryb2tlPSIjRkZGRkZGIiBzdHJva2Utd2lkdGg9IjEiLz48L3N2Zz4=";
+const planeGreenURI="image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTIxIDE2di0ybC04LTVWMy41YzAtLjgzLS42Ny0xLjUtMS41LTEuNVMxMCAyLjY3IDEwIDMuNVY5bC04IDV2Mmw4LTIuNVYxOWwtMiAxLjVWMjJsMy41LTEgMy41IDF2LTEuNUwxMyAxOXYtNS41bDggMi41eiIgZmlsbD0iIzM0Qzc1OSIgc3Ryb2tlPSIjRkZGRkZGIiBzdHJva2Utd2lkdGg9IjEuNSIvPjwvc3ZnPg==";
 
 const haversine=(l1,n1,l2,n2)=>{if(l1==null||n1==null||l2==null||n2==null)return 0;const R=3440.065,p=Math.PI/180,a=Math.sin((l2-l1)*p/2)**2+Math.cos(l1*p)*Math.cos(l2*p)*Math.sin((n2-n1)*p/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))};
 const getGCPoints=(l1,n1,l2,n2,nP=50)=>{const p=[],d=Math.PI/180,rl1=l1*d,rn1=n1*d,rl2=l2*d,rn2=n2*d,dst=2*Math.asin(Math.sqrt(Math.sin((rl1-rl2)/2)**2+Math.cos(rl1)*Math.cos(rl2)*Math.sin((rn1-rn2)/2)**2));if(dst===0)return[[l1,n1],[l2,n2]];for(let i=0;i<=nP;i++){const f=i/nP,A=Math.sin((1-f)*dst)/Math.sin(dst),B=Math.sin(f*dst)/Math.sin(dst),x=A*Math.cos(rl1)*Math.cos(rn1)+B*Math.cos(rl2)*Math.cos(rn2),y=A*Math.cos(rl1)*Math.sin(rn1)+B*Math.cos(rl2)*Math.sin(rn2),z=A*Math.sin(rl1)+B*Math.sin(rl2);p.push([Math.atan2(z,Math.sqrt(x*x+y*y))/d,Math.atan2(y,x)/d])}return p;};
@@ -468,8 +469,11 @@ async function fetchRoute(cs){if(!cs||cs.length<3)return null;let cc=cs.replace(
 
 function initMap(){
   state.map=L.map('map',{zoomControl:false,attributionControl:true,minZoom:3,maxBounds:[[-90,-180],[90,180]],maxBoundsViscosity:1,updateWhenIdle:false,updateWhenZooming:false}).setView([state.userLat,state.userLon],6);
-  // CARTO Dark Matter (AdSense-turvallinen, OSM data)
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>'}).addTo(state.map);
+  // Esrin upea satelliittikartta (tämä ON sallittu kaupallisessa käytössä kunhan tekijänoikeudet näkyvät oikein)
+  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{
+      maxZoom:19,
+      attribution:'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+  }).addTo(state.map);
   state.userMarker=L.circleMarker([state.userLat,state.userLon],{radius:8,color:'#fff',weight:3,fillColor:'#007AFF',fillOpacity:1}).addTo(state.map);
   state.pastPath=L.polyline([],{color:'#007AFF',weight:4,opacity:0.9,lineCap:'round',lineJoin:'round'}).addTo(state.map);
   state.futurePath=L.polyline([],{color:'#007AFF',weight:3,opacity:0.6,className:'dashed-path'}).addTo(state.map);
@@ -516,7 +520,6 @@ function startAnim(){
         $('dTrack').textContent=fmtHeading(s.track);$('dVRate').textContent=fmtVRate(s.vertical_rate);$('dSquawk').textContent=s.squawk;
         updateSkyGlow(s);const oh=calculateOverhead(s);const bd=$('dOverhead');bd.className='overhead-badge '+(oh&&oh.status!=='none'?oh.status:'none');bd.textContent=oh&&oh.status!=='none'?oh.text:'Not Crossing';$('ifRoute').textContent=oh&&oh.status!=='none'?oh.text:'Tracking Active';
         
-        // Fiksu ETA logiikka perustuen fysiikkaan
         let tp=0, cGS=Math.max(s.velocity||0, 50);
         if(s.route&&s.route.depLat&&s.route.arrLat){
           const fD=haversine(s.route.depLat,s.route.depLon,s.curLat,s.curLon);
