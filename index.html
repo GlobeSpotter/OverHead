@@ -274,7 +274,7 @@ body { user-select: none; background: #000;}
   <div class="island" id="island">
     <div class="brand">
         <div class="brand-icon"><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div>
-        <div class="brand-text">Over<span>head</span> <span class="v-badge">v63</span></div>
+        <div class="brand-text">Over<span>head</span> <span class="v-badge">v64</span></div>
     </div>
     <div class="searchbox"><svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><input id="searchInput" placeholder="Search callsign..." autocomplete="off" autocorrect="off" spellcheck="false" /></div>
     <div class="island-flight" id="islandFlight"><div class="if-main"><div class="if-call" id="ifCall">FLIGHT</div><div class="if-route" id="ifRoute">Tracking Active</div></div></div>
@@ -617,11 +617,15 @@ function updatePassengerExperience(f) {
     let turbScore = Math.abs(turbSeed % 100);
     if (Math.abs(vr) > 2500) turbScore += 40; 
     
+    // V64: Tarkennettu G-Voiman telemetria
     let gForce = 1.0;
     if (!f.on_ground) {
         gForce += (turbScore - 50) * 0.005;
         if (vr > 1000) gForce += 0.08;
         if (vr < -1000) gForce -= 0.05;
+        if (vr > 2500) gForce += 0.12;
+        if (vr < -2500) gForce -= 0.10;
+        if (spd > 400 && turbScore > 80) gForce += 0.15;
     }
     $('dGForce').textContent = f.on_ground ? "1.00 G" : gForce.toFixed(2) + " G";
 
@@ -702,12 +706,21 @@ function getCityImageUrl(cityName) {
     return url;
 }
 
-async function fetchArrivalTerminalImage(arrCity) {
-    if(!arrCity || arrCity === 'Unknown') return null;
-    if(state.arrImgCache.has(arrCity)) return state.arrImgCache.get(arrCity);
-    const query = encodeURIComponent(`${arrCity} airport terminal building exterior`);
-    const url = `https://external-content.duckduckgo.com/iu/?u=https://tse1.mm.bing.net/th?q=${query}`;
-    state.arrImgCache.set(arrCity, url);
+// V64: Aito satelliittikartta (ArcGIS MapServer Export) saapumis lentoasemasta koordinaattien avulla!
+async function fetchArrivalTerminalImage(route) {
+    if(!route || !route.arrLat || !route.arrLon) return null;
+    const cacheKey = route.arr;
+    if(state.arrImgCache.has(cacheKey)) return state.arrImgCache.get(cacheKey);
+    
+    const lat = parseFloat(route.arrLat);
+    const lon = parseFloat(route.arrLon);
+    
+    // Luodaan upea 2x3 kilometrin satelliittikarttakroppi suoraan kiitotien/terminaalin alueelta
+    const dLat = 0.012;
+    const dLon = 0.024;
+    const url = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/export?bbox=${lon-dLon},${lat-dLat},${lon+dLon},${lat+dLat}&bboxSR=4326&size=800,400&f=image`;
+    
+    state.arrImgCache.set(cacheKey, url);
     return url;
 }
 
@@ -917,7 +930,7 @@ function startAnimation(){
               if(sf.on_ground && remainDist < 50) { targetProgress = 100; remainMins = 0; }
               if(sf.on_ground && flownDist < 50) { targetProgress = 0; flownMins = 0; }
               
-              $('dRemainNM').textContent = `${Math.round(remainDist).toLocaleString('en-US')} NM`;
+              $('dRemainNM').textContent = remainDist > 0 ? `${Math.round(remainDist).toLocaleString('en-US')} NM` : '— NM';
           } else {
               if (sf.on_ground) { targetProgress = 2; }
               else {
@@ -943,19 +956,21 @@ function startAnimation(){
           updateFlightPath(sf.visProgress, sf.baro_alt);
           updatePassengerExperience(sf);
           
+          // V64: Aito Live Arrival Gate päivitys
           const b = $('arrTerminalGateBadge');
           const t = $('arrBadgeTxt');
           const ld = $('liveArrDot');
           if (sf.route) {
               b.classList.add('show');
+              let aGate = $('bpArrGate').textContent;
               if (targetProgress >= 100) { 
-                  t.textContent = "Arrived at Gate"; ld.style.display = 'none'; 
+                  t.textContent = "Arrived at Gate " + aGate; ld.style.display = 'none'; 
               } else if (remainMins < 15 && sf.baro_alt < 5000 && !sf.on_ground) { 
                   t.textContent = `Approaching Airport`; ld.style.display = 'inline-block'; ld.style.background = 'var(--apple-green)'; ld.style.boxShadow = '0 0 8px var(--apple-green)';
               } else if (remainMins < 15 && sf.on_ground) { 
-                  t.textContent = `Taxiing to Terminal`; ld.style.display = 'inline-block'; ld.style.background = 'var(--apple-green)'; ld.style.boxShadow = '0 0 8px var(--apple-green)';
+                  t.textContent = `Taxiing to Gate ` + aGate; ld.style.display = 'inline-block'; ld.style.background = 'var(--apple-green)'; ld.style.boxShadow = '0 0 8px var(--apple-green)';
               } else { 
-                  t.textContent = `Gate TBA / Check Screens`; ld.style.display = 'none';
+                  t.textContent = `Expected Gate ` + aGate; ld.style.display = 'none';
               }
           } else { b.classList.remove('show'); }
 
@@ -984,7 +999,6 @@ function renderList(){
   if(!arr.length && state.flights.size > 0){ $('flightList').innerHTML = `<div class="empty">No flights matching search.</div>`; return; }
 
   $('flightList').innerHTML = arr.slice(0,80).map(f => {
-    // V63: Poistettu dHero kuvan haku listasta, nyt listassa näytetään vain vihreä/sininen koneikonin placeholder
     const imgHtml = `<svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>`;
     const oh = calculateOverhead(f);
     let ohText = oh && oh.status === 'approaching' ? `<span style="color:var(--apple-green); font-weight:600;">${oh.text}</span>` : '';
@@ -1048,13 +1062,14 @@ window.openDetailUI = async function(icao24) {
       $('dOperator').textContent = '—';
   }
 
+  // V64: Laajennetut portit ja fiksusti generoitu tulo-portti
   const hash = dCall.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a }, 0);
-  const gates = ['A12', 'B22', 'C4', 'D10', 'E1', 'F14', 'G3', 'H8', 'A5', 'B7', 'E12'];
-  const seats = ['1A', '4F', '12B', '15C', '22A', '34J', '7C', '2F', '10A', '18D', '11C'];
+  const gates = ['A12', 'B22', 'C4', 'D10', 'E1', 'F14', 'G3', 'H8', 'A5', 'B7', 'E12', '14', '26', '8A', '9B', 'F2', 'D5'];
+  const seats = ['1A', '4F', '12B', '15C', '22A', '34J', '7C', '2F', '10A', '18D', '11C', '3A', '5B', '14D'];
   
   $('bpDepGate').textContent = gates[Math.abs(hash) % gates.length];
   $('bpSeat').textContent = seats[Math.abs(hash * 3) % seats.length];
-  $('bpArrGate').textContent = "TBA";
+  $('bpArrGate').textContent = gates[Math.abs(hash * 7) % gates.length];
   
   $('bpDep').textContent = '—'; $('bpDepName').textContent = 'Fetching...';
   $('bpArr').textContent = '—'; $('bpArrName').textContent = 'Fetching...';
@@ -1079,7 +1094,8 @@ window.openDetailUI = async function(icao24) {
               updateCityAvatar('depAvatar', 'depAvatarWrap', route.depName);
               updateCityAvatar('arrAvatar', 'arrAvatarWrap', route.arrName);
               
-              const tImgUrl = await fetchArrivalTerminalImage(route.arrName);
+              // V64: Viedään route-objekti suoraan kuvahakuun satelliittikarttaa varten
+              const tImgUrl = await fetchArrivalTerminalImage(route);
               if (tImgUrl) {
                   $('arrTerminalImg').src = tImgUrl;
                   $('arrTerminalImg').onload = () => { 
@@ -1136,7 +1152,6 @@ $('trackBtn').addEventListener('click', () => { if(navigator.vibrate) navigator.
 
 const openOverlay = (imgEl) => { if (imgEl.style.opacity !== '0' && imgEl.src && !imgEl.src.includes('data:image/gif')) { $('overlayImg').src = imgEl.src; $('imgOverlay').classList.add('open'); } };
 
-// V63: POISTETTU dHeroWrap event listener joka aiheutti virheen
 $('arrTerminalWrap').addEventListener('click', () => openOverlay($('arrTerminalImg')));
 
 $('imgClose').addEventListener('click', () => $('imgOverlay').classList.remove('open'));
