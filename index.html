@@ -391,20 +391,26 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
           <div class="grid">
             <div class="info"><div class="i-label">Altitude</div><div class="i-value" id="dAlt">—</div></div>
             <div class="info"><div class="i-label">Speed</div><div class="i-value" id="dSpd">—</div></div>
-            <!-- SULJETTU KESKEN JÄÄNYT KOODI TÄSSÄ -->
             <div class="info"><div class="i-label">Heading</div><div class="i-value" id="dTrack">—</div></div>
+            <div class="info"><div class="i-label">Vertical Rate</div><div class="i-value" id="dVert">—</div></div>
           </div>
       </div>
   </div>
 </div>
 
 <script>
-  // 1. Alustetaan CesiumJS-maapallo "#map" diviin
-  // Estetään kaikkien Cesiumin omien UI-painikkeiden piirtyminen, jotta Apple-tyylisi ei mene pilalle
+  // 1. Estetään Cesiumin vakio token-vaatimukset, jotta kartta ei jää mustaksi
+  Cesium.Ion.defaultAccessToken = null;
+
+  // 2. Alustetaan CesiumJS-maapallo "#map" diviin
   const viewer = new Cesium.Viewer('map', {
-    terrainProvider: Cesium.createWorldTerrain(),
-    animation: false,
+    // Käytetään avointa OpenStreetMap-dataa maksullisten Cesium-satelliittien sijaan
+    imageryProvider: new Cesium.UrlTemplateImageryProvider({
+      url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+    }),
     baseLayerPicker: false,
+    // Piilotetaan Cesiumin omat UI-elementit
+    animation: false,
     fullscreenButton: false,
     vrButton: false,
     geocoder: false,
@@ -417,12 +423,15 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
     navigationInstructionsInitiallyVisible: false
   });
 
-  // 2. Määritetään Turun koordinaatit
+  // Piilotetaan alakulman pakollinen logo kokonaan
+  viewer.cesiumWidget.creditContainer.style.display = 'none';
+
+  // 3. Määritetään Turun koordinaatit
   const longitude = 22.2666;
   const latitude = 60.4518;
   const altitude = 4000; // Korkeus metreinä
 
-  // 3. Lisätään 3D-lentokone Turun taivaalle
+  // 4. Lisätään 3D-lentokone Turun taivaalle
   const position = Cesium.Cartesian3.fromDegrees(longitude, latitude, altitude);
   const heading = Cesium.Math.toRadians(45); // Kääntö
   const pitch = Cesium.Math.toRadians(0);
@@ -441,7 +450,7 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
     }
   });
 
-  // 4. Lennätetään kamera katsomaan Turkua ja konetta
+  // 5. Lennätetään kamera katsomaan Turkua ja konetta
   viewer.camera.flyTo({
     destination: Cesium.Cartesian3.fromDegrees(longitude, latitude - 0.2, altitude + 2000),
     orientation: {
