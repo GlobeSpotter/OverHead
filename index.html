@@ -10,7 +10,7 @@
 <link rel="manifest" href="application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Overhead%22%2C%22short_name%22%3A%22Overhead%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23000000%22%2C%22theme_color%22%3A%22%23000000%22%7D">
 <title>Overhead</title>
 
-<!-- LEAFLET KORVATTU CESIUMJS:LLÄ -->
+<!-- Ladataan CesiumJS Leafletin tilalle -->
 <script src="https://cesium.com/downloads/cesiumjs/releases/1.115/Build/Cesium/Cesium.js"></script>
 <link href="https://cesium.com/downloads/cesiumjs/releases/1.115/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
 
@@ -40,8 +40,9 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 .island, .sheet, .hud-wrap, .side-controls, .map-status { will-change: transform; transform: translateZ(0); backface-visibility: hidden; }
 
 #map { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #000; z-index: 1; }
-/* Cesium piilotukset Leafletin sijaan jotta UI pysyy puhtaana */
-.cesium-widget-credits { display: none !important; }
+
+/* Piilotetaan Cesiumin omat logot ja painikkeet, jotta UI pysyy puhtaana */
+.cesium-widget-credits, .cesium-viewer-bottom { display: none !important; }
 
 .dashed-path { stroke-dasharray: 8 10; animation: flow 1.5s linear infinite; }
 @keyframes flow { to { stroke-dashoffset: -18; } }
@@ -399,17 +400,17 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 </div>
 
 <script>
-  // 1. Estetään Cesiumin vakio token-vaatimukset, jotta kartta ei jää mustaksi
+  // 1. Estetään Cesiumin vakio token-vaatimukset
   Cesium.Ion.defaultAccessToken = null;
 
   // 2. Alustetaan CesiumJS-maapallo "#map" diviin
   const viewer = new Cesium.Viewer('map', {
-    // Käytetään avointa OpenStreetMap-dataa maksullisten Cesium-satelliittien sijaan
+    // KÄYTETÄÄN CARTODB DARK MATTER -KARTTAA (Täysin ilmainen, tumma teema)
     imageryProvider: new Cesium.UrlTemplateImageryProvider({
-      url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+      url: 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}.png',
+      credit: 'Map tiles by CartoDB, under CC BY 3.0. Data by OpenStreetMap, under ODbL.'
     }),
     baseLayerPicker: false,
-    // Piilotetaan Cesiumin omat UI-elementit
     animation: false,
     fullscreenButton: false,
     vrButton: false,
@@ -423,39 +424,41 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
     navigationInstructionsInitiallyVisible: false
   });
 
-  // Piilotetaan alakulman pakollinen logo kokonaan
-  viewer.cesiumWidget.creditContainer.style.display = 'none';
+  // Poistetaan alhaalta turhat Cesium logot kokonaan
+  if(viewer.cesiumWidget.creditContainer) {
+    viewer.cesiumWidget.creditContainer.style.display = 'none';
+  }
 
   // 3. Määritetään Turun koordinaatit
   const longitude = 22.2666;
   const latitude = 60.4518;
-  const altitude = 4000; // Korkeus metreinä
+  const altitude = 4000;
 
   // 4. Lisätään 3D-lentokone Turun taivaalle
   const position = Cesium.Cartesian3.fromDegrees(longitude, latitude, altitude);
-  const heading = Cesium.Math.toRadians(45); // Kääntö
+  const heading = Cesium.Math.toRadians(45);
   const pitch = Cesium.Math.toRadians(0);
   const roll = Cesium.Math.toRadians(0);
   const hpr = new Cesium.HeadingPitchRoll(heading, pitch, roll);
   const orientation = Cesium.Transforms.headingPitchRollQuaternion(position, hpr);
 
-  const airplane = viewer.entities.add({
+  viewer.entities.add({
     name: 'FIN350',
     position: position,
     orientation: orientation,
     model: {
       uri: 'https://raw.githubusercontent.com/CesiumGS/cesium/main/Apps/SampleData/models/CesiumAir/Cesium_Air.glb',
-      minimumPixelSize: 64, // Pitää koneen aina näkyvänä
+      minimumPixelSize: 64,
       maximumScale: 20000
     }
   });
 
-  // 5. Lennätetään kamera katsomaan Turkua ja konetta
+  // 5. Kameran siirto
   viewer.camera.flyTo({
-    destination: Cesium.Cartesian3.fromDegrees(longitude, latitude - 0.2, altitude + 2000),
+    destination: Cesium.Cartesian3.fromDegrees(longitude, latitude - 0.2, altitude + 3000),
     orientation: {
       heading: Cesium.Math.toRadians(0),
-      pitch: Cesium.Math.toRadians(-20),
+      pitch: Cesium.Math.toRadians(-25),
       roll: 0.0
     }
   });
