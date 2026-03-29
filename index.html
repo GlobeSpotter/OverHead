@@ -62,8 +62,6 @@ body { user-select: none; background: #000;}
 #map { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #000; z-index: 1; }
 .leaflet-container { background: #000 !important; }
 .leaflet-control-zoom { display: none !important; }
-
-/* V66: Tyykätty tekijänoikeusmerkintä Esrille (Pakollinen julkisessa levityksessä) */
 .leaflet-control-attribution { background: rgba(0,0,0,0.4) !important; color: rgba(255,255,255,0.5) !important; font-size: 9px !important; border-radius: 6px 0 0 0; padding: 2px 8px !important; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
 .leaflet-control-attribution a { color: rgba(255,255,255,0.7) !important; text-decoration: none; }
 
@@ -145,8 +143,6 @@ body { user-select: none; background: #000;}
 .plane-badge { width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; background: var(--bg-secondary); flex: 0 0 auto; overflow: hidden; border: 0.5px solid var(--glass-border); box-shadow: 0 4px 10px rgba(0,0,0,0.05); position: relative;}
 .plane-badge img { width: 100%; height: 100%; object-fit: cover; position: absolute; top:0; left:0; transition: opacity 0.4s ease;}
 .plane-badge svg { width: 26px; height: 26px; fill: var(--label-tertiary); transform: rotate(-45deg); }
-
-/* V66: Tekijänoikeusteksti (Pakollinen Planespotters.net ehtojen mukaan) */
 .photo-attr { position: absolute; bottom: 2px; right: 3px; background: rgba(0,0,0,0.65); color: #fff; font-size: 7px; padding: 1px 4px; border-radius: 4px; z-index: 10; max-width: 90%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; pointer-events: none; }
 
 .card-main { flex: 1; min-width: 0; }
@@ -173,14 +169,16 @@ body { user-select: none; background: #000;}
 .w-class { font-size: 12px; font-weight: 800; opacity: 0.9; letter-spacing: 0.08em; text-transform: uppercase; z-index: 2; position: relative; background: rgba(0,0,0,0.2); padding: 4px 10px; border-radius: 10px;}
 
 .w-progress-container { padding: 32px 28px 20px; display: flex; justify-content: space-between; align-items: stretch; }
-.w-city { display: flex; flex-direction: column; width: 66px; position: relative; }
+.w-city { display: flex; flex-direction: column; width: 72px; position: relative; }
 .w-city.right { align-items: flex-end; text-align: right; }
 
-.city-avatar { width: 48px; height: 48px; border-radius: 24px; background: var(--bg-secondary); margin-bottom: 6px; border: 2px solid var(--bg-secondary); overflow: hidden; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.08); opacity: 0; transition: opacity 0.5s ease;}
+/* V67: Isot ja upeat pyöristetyt kuvakkeet kaupungeille (Wikipedia) */
+.city-avatar { width: 60px; height: 60px; border-radius: 18px; background: var(--bg-secondary); margin-bottom: 8px; border: 0.5px solid var(--glass-border); overflow: hidden; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 12px rgba(0,0,0,0.06); opacity: 0; transition: opacity 0.5s ease, transform 0.2s; cursor: pointer; }
+.city-avatar:active { transform: scale(0.92); }
 .city-avatar img { width: 100%; height: 100%; object-fit: cover; }
 .city-avatar.show { opacity: 1; }
 
-.w-city-name { font-size: 12px; font-weight: 600; color: var(--label-secondary); margin-bottom: 2px; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 80px;}
+.w-city-name { font-size: 12px; font-weight: 600; color: var(--label-secondary); margin-bottom: 2px; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 86px;}
 .w-code { font-size: 34px; font-weight: 300; color: var(--label-primary); letter-spacing: -0.05em; line-height: 1; font-family: -apple-system, "SF Pro Display", sans-serif;}
 
 .w-time-lbl { font-size: 9px; font-weight: 800; color: var(--label-tertiary); letter-spacing: 0.06em; margin-top: 8px; text-transform: uppercase; }
@@ -188,11 +186,19 @@ body { user-select: none; background: #000;}
 .w-time.flown { color: var(--label-primary); }
 .w-time.remain { color: var(--apple-blue); }
 
-.w-timeline { flex: 1; margin: 0 16px; position: relative; height: 60px; display: flex; align-items: center; justify-content: center; margin-top: 30px;}
+.w-timeline { flex: 1; margin: 0 12px; position: relative; height: 60px; display: flex; align-items: center; justify-content: center; margin-top: 36px;}
 .w-timeline svg.path-svg { width: 100%; height: 100%; overflow: visible; }
 .path-bg { fill: none; stroke: var(--apple-gray-fill); stroke-width: 3.5; stroke-linecap: round; }
 .path-fill { fill: none; stroke: var(--apple-blue); stroke-width: 3.5; stroke-linecap: round; transition: stroke-dashoffset 0.8s ease-out; }
 .w-timeline-icon { position: absolute; width: 28px; height: 28px; fill: var(--apple-blue); filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2)); transition: left 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), top 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.5s ease-out; margin-left: -14px; margin-top: -14px; z-index: 10; }
+
+/* V67: Lentokonekuva Boarding Passin sisälle */
+.w-plane-img-wrap { margin: 0 28px 24px; height: 140px; border-radius: 16px; background: var(--bg-primary); overflow: hidden; position: relative; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.06); border: 0.5px solid var(--glass-border); transition: transform 0.2s; }
+.w-plane-img-wrap:active { transform: scale(0.98); }
+.w-plane-img-wrap img { width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.5s ease; }
+.w-plane-attr { position: absolute; bottom: 6px; left: 8px; background: rgba(0,0,0,0.55); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); color: #fff; font-size: 8px; padding: 3px 6px; border-radius: 6px; pointer-events: none; font-weight: 500; border: 0.5px solid rgba(255,255,255,0.2);}
+.w-plane-img-wrap::after { content: '🔍'; position: absolute; top: 10px; right: 10px; background: rgba(0,0,0,0.4); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); color: #fff; font-size: 12px; padding: 6px; border-radius: 50%; pointer-events: none; opacity: 0; transition: opacity 0.3s; }
+.w-plane-img-wrap:hover::after { opacity: 1; }
 
 .w-extra-row { padding: 0 28px 24px; display: flex; justify-content: space-between; align-items: center; border-bottom: 0.5px solid var(--glass-border); margin-bottom: 24px; }
 .w-extra-item { display: flex; flex-direction: column; gap: 4px; }
@@ -221,13 +227,10 @@ body { user-select: none; background: #000;}
 .d-icon { margin: 0 16px 24px; height: 220px; border-radius: 24px; background: var(--bg-secondary); overflow: hidden; border: 0.5px solid var(--glass-border); box-shadow: var(--shadow-card); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s; position: relative; }
 .d-icon:active { transform: scale(0.98); }
 .d-icon img { width: 100%; height: 100%; object-fit: cover; transition: opacity 0.5s ease; z-index: 1; }
-.d-icon svg.placeholder { width: 56px; height: 56px; fill: var(--label-tertiary); transform: rotate(-45deg); opacity: 0.5; position: absolute;}
 .arr-img-gradient { position: absolute; bottom: 0; left: 0; right: 0; height: 50%; background: linear-gradient(to top, rgba(0,0,0,0.7) 0%, transparent 100%); z-index: 2; pointer-events: none; opacity: 0; transition: opacity 0.5s ease; }
 .arr-gate-badge { position: absolute; bottom: 16px; left: 16px; background: rgba(0,0,0,0.55); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); color: #FFF; padding: 8px 14px; border-radius: 14px; font-weight: 600; font-size: 13px; border: 0.5px solid rgba(255,255,255,0.2); display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); opacity: 0; transition: opacity 0.3s; z-index: 3;}
 .arr-gate-badge.show { opacity: 1; }
 .arr-gate-badge .live-dot { width: 8px; height: 8px; background: var(--apple-orange); box-shadow: 0 0 8px var(--apple-orange); animation: pulse 2s infinite; }
-
-/* V66: Satelliittikuvan vesileima (Pakollinen lisenssi) */
 .esri-attr { position: absolute; bottom: 6px; right: 8px; font-size: 9px; font-weight: 600; color: rgba(255,255,255,0.6); z-index: 5; text-shadow: 0 1px 2px rgba(0,0,0,0.8); pointer-events: none;}
 
 .cond-card { background: var(--bg-secondary); border: 0.5px solid var(--glass-border); border-radius: 24px; padding: 20px; margin: 0 16px 24px; box-shadow: var(--shadow-card); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); display: flex; flex-direction: column; gap: 16px; }
@@ -286,7 +289,7 @@ body { user-select: none; background: #000;}
   <div class="island" id="island">
     <div class="brand">
         <div class="brand-icon"><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div>
-        <div class="brand-text">Over<span>head</span> <span class="v-badge">v66</span></div>
+        <div class="brand-text">Over<span>head</span> <span class="v-badge">v67</span></div>
     </div>
     <div class="searchbox"><svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><input id="searchInput" placeholder="Search callsign..." autocomplete="off" autocorrect="off" spellcheck="false" /></div>
     <div class="island-flight" id="islandFlight"><div class="if-main"><div class="if-call" id="ifCall">FLIGHT</div><div class="if-route" id="ifRoute">Tracking Active</div></div></div>
@@ -342,7 +345,7 @@ body { user-select: none; background: #000;}
               
               <div class="w-progress-container">
                   <div class="w-city">
-                      <div class="city-avatar" id="depAvatarWrap">
+                      <div class="city-avatar" id="depAvatarWrap" title="View City">
                           <img id="depAvatar" src="" style="display:none;" />
                       </div>
                       <div class="w-city-name" id="bpDepName">Origin</div>
@@ -360,7 +363,7 @@ body { user-select: none; background: #000;}
                   </div>
 
                   <div class="w-city right">
-                      <div class="city-avatar" id="arrAvatarWrap">
+                      <div class="city-avatar" id="arrAvatarWrap" title="View City">
                           <img id="arrAvatar" src="" style="display:none;" />
                       </div>
                       <div class="w-city-name" id="bpArrName">Destination</div>
@@ -368,6 +371,12 @@ body { user-select: none; background: #000;}
                       <div class="w-time-lbl right">EST. ARRIVAL</div>
                       <div class="w-time remain" id="bpTimeRemain">--:--</div>
                   </div>
+              </div>
+
+              <!-- V67 Plane Image within Boarding Pass -->
+              <div class="w-plane-img-wrap" id="wPlaneWrap" style="display: none;">
+                  <img id="wPlaneImg" src="" />
+                  <div id="wPlaneAttr" class="w-plane-attr"></div>
               </div>
               
               <div class="w-extra-row">
@@ -548,7 +557,6 @@ function getFlightLabel(f) {
     return `${alName} • ${acModel}`;
 }
 
-// V66: Kuvien nouto taustalla ja lisensointi oikein Planespotters APIsta
 async function fetchPlanePhoto(icao24) {
     if (state.photoCache.has(icao24)) return state.photoCache.get(icao24);
     state.photoCache.set(icao24, 'loading');
@@ -560,10 +568,23 @@ async function fetchPlanePhoto(icao24) {
                 const p = data.photos[0];
                 const photoData = { url: p.thumbnail_large.src, author: p.photographer };
                 state.photoCache.set(icao24, photoData);
+                
+                // Listaus
                 const imgEl = document.getElementById('p-img-' + icao24);
                 if(imgEl) { imgEl.src = photoData.url; imgEl.style.opacity = '1'; }
                 const attrEl = document.getElementById('p-attr-' + icao24);
                 if(attrEl) { attrEl.textContent = '© ' + photoData.author; attrEl.style.display = 'block'; }
+                
+                // Boarding pass päivitys jos kyseessä valittu kone
+                if(state.selectedIcao === icao24) {
+                    const wImg = $('wPlaneImg');
+                    if(wImg) {
+                        wImg.src = photoData.url;
+                        wImg.onload = () => { wImg.style.opacity = '1'; };
+                        $('wPlaneAttr').textContent = '© ' + photoData.author;
+                        $('wPlaneWrap').style.display = 'block';
+                    }
+                }
                 return photoData;
             }
         }
@@ -571,7 +592,7 @@ async function fetchPlanePhoto(icao24) {
     state.photoCache.set(icao24, null); return null;
 }
 
-// V66: Uusi lisensointivapaa dynaaminen kaupunki-ikoni SVG muodossa
+// V67: Dynaaminen varakuva jos oikeaa ei löydy
 function generateCityAvatar(cityName) {
     const letter = (cityName || 'U').charAt(0).toUpperCase();
     const hash = [...(cityName||'U')].reduce((acc, char) => char.charCodeAt(0) + ((acc << 5) - acc), 0);
@@ -579,11 +600,47 @@ function generateCityAvatar(cityName) {
     return `data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="hsl(${hue}, 65%, 55%)"/><text x="50" y="66" font-family="-apple-system, sans-serif" font-size="48" font-weight="700" fill="white" text-anchor="middle">${letter}</text></svg>`;
 }
 
-function updateCityAvatar(elId, wrapId, cityName) {
+// V67: Wikipedia API haku kaupunkikuville
+const cityImgCache = new Map();
+async function getCityImage(cityName) {
+    if(!cityName || cityName === 'Unknown') return null;
+    let cleanName = cityName.split(',')[0].trim();
+    if(cityImgCache.has(cleanName)) return cityImgCache.get(cleanName);
+    const url = `https://en.wikipedia.org/w/api.php?action=query&prop=pageimages&format=json&piprop=thumbnail&pithumbsize=400&titles=${encodeURIComponent(cleanName)}&origin=*`;
+    try {
+        const res = await fetch(url);
+        if(res.ok) {
+            const data = await res.json();
+            const pages = data?.query?.pages;
+            if(pages) {
+                const page = Object.values(pages)[0];
+                if(page && page.thumbnail) {
+                    cityImgCache.set(cleanName, page.thumbnail.source);
+                    return page.thumbnail.source;
+                }
+            }
+        }
+    } catch(e) {}
+    cityImgCache.set(cleanName, null);
+    return null;
+}
+
+async function updateCityAvatar(elId, wrapId, cityName) {
     const imgEl = $(elId), wrapEl = $(wrapId);
     if (!cityName || cityName === 'Unknown') { wrapEl.classList.remove('show'); imgEl.style.display = 'none'; return; }
-    imgEl.onload = () => { imgEl.style.display = 'block'; wrapEl.classList.add('show'); };
+    
+    // Näytä dynaaminen kirjain HETI
     imgEl.src = generateCityAvatar(cityName);
+    imgEl.style.display = 'block'; 
+    wrapEl.classList.add('show');
+
+    // Lataa oikea kuva taustalla
+    const realImg = await getCityImage(cityName);
+    if(realImg) {
+        const tempImg = new Image();
+        tempImg.onload = () => { imgEl.src = realImg; };
+        tempImg.src = realImg;
+    }
 }
 
 function updateFlightPath(progressPct, altitudeFt) {
@@ -704,7 +761,6 @@ function setUserLocation(lat, lon, zoom) {
 }
 
 function initMap(){
-  // V66: Map attribution on palautettu ja muokattu siistiksi, tämä täyttää Esri / OpenStreetMap vaatimukset!
   state.map = L.map('map', { zoomControl: false, attributionControl: true, minZoom: 3, maxBounds: [[-90, -180], [90, 180]], maxBoundsViscosity: 1.0, updateWhenIdle: false, updateWhenZooming: false }).setView([state.userLat, state.userLon], 6);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {maxZoom: 19, attribution: '© Esri'}).addTo(state.map);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {maxZoom: 19, opacity: 0.85}).addTo(state.map);
@@ -926,6 +982,17 @@ window.openDetailUI = async function(icao24) {
   $('arrTerminalImg').style.opacity = '0'; $('arrImgGrad').style.opacity = '0'; $('arrTerminalGateBadge').classList.remove('show');
   $('bpTimeFlown').textContent = "--:--"; $('bpTimeRemain').textContent = "--:--"; $('dRemainNM').textContent = "— NM";
 
+  // Nollataan ja asetetaan lentokoneen kuva, jos sellainen on välimuistissa
+  $('wPlaneImg').style.opacity = '0';
+  $('wPlaneWrap').style.display = 'none';
+  let pData = state.photoCache.get(icao24);
+  if (pData && pData !== 'loading') {
+      $('wPlaneImg').src = pData.url;
+      $('wPlaneImg').onload = () => { $('wPlaneImg').style.opacity = '1'; };
+      $('wPlaneAttr').textContent = '© ' + pData.author;
+      $('wPlaneWrap').style.display = 'block';
+  }
+
   if(f.callsign) {
       fetchFlightRoute(f.callsign).then(async route => {
           if(route) {
@@ -963,8 +1030,14 @@ $('detailClose').addEventListener('click', () => {
 });
 
 $('trackBtn').addEventListener('click', () => { if(navigator.vibrate) navigator.vibrate(25); const f = state.flights.get(state.selectedIcao); if(f) state.map.setView([f.curLat, f.curLon], 8, {animate:true}); });
-const openOverlay = (imgEl) => { if (imgEl.style.opacity !== '0' && imgEl.src && !imgEl.src.includes('data:image/gif')) { $('overlayImg').src = imgEl.src; $('imgOverlay').classList.add('open'); } };
+
+// V67 Kuvat isoksi katselutoiminto kaupungeille ja lentokoneille
+const openOverlay = (imgEl) => { if (imgEl.style.opacity !== '0' && imgEl.src && !imgEl.src.includes('data:image/svg')) { $('overlayImg').src = imgEl.src; $('imgOverlay').classList.add('open'); } };
 $('arrTerminalWrap').addEventListener('click', () => openOverlay($('arrTerminalImg')));
+$('wPlaneWrap').addEventListener('click', () => openOverlay($('wPlaneImg')));
+$('depAvatarWrap').addEventListener('click', () => openOverlay($('depAvatar')));
+$('arrAvatarWrap').addEventListener('click', () => openOverlay($('arrAvatar')));
+
 $('imgClose').addEventListener('click', () => $('imgOverlay').classList.remove('open'));
 $('sheetGrab').addEventListener('click', () => { const s = $('sheet'); if(s.classList.contains('full')) { s.classList.remove('full'); s.classList.add('expanded'); } else if(s.classList.contains('expanded')) { s.classList.remove('expanded'); } else { s.classList.add('expanded'); } });
 $('sheetBtn').addEventListener('click', () => { $('sheet').classList.remove('mode-detail'); $('sheet').classList.remove('full'); $('sheet').classList.add('expanded'); $('detailControls').style.display = 'none';});
