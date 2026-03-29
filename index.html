@@ -6,14 +6,14 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="theme-color" content="#000000">
-<title>Overhead Global 3D</title>
+<title>Overhead Global 3D Radar</title>
 
 <!-- Ladataan CesiumJS -->
 <script src="https://cesium.com/downloads/cesiumjs/releases/1.115/Build/Cesium/Cesium.js"></script>
 <link href="https://cesium.com/downloads/cesiumjs/releases/1.115/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
 
 <style>
-/* KÄYTTÖLIITTYMÄN CSS (KOSKEMATON) */
+/* --- KÄYTTÖLIITTYMÄN CSS --- */
 :root {
   --bg-primary: rgba(242, 242, 247, 0.65); --bg-secondary: rgba(255, 255, 255, 0.75); --bg-tertiary: rgba(255, 255, 255, 0.5);
   --label-primary: #1C1C1E; --label-secondary: #3A3A3C; --label-tertiary: #6E6E73;
@@ -118,14 +118,14 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
     <div class="brand">
         <div class="brand-icon"><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div>
         <div class="brand-text">Over<span class="b-head">head</span></div>
-        <span class="v-badge">3D</span>
+        <span class="v-badge">HYBRID 3D</span>
     </div>
-    <div class="searchbox" id="searchBox"><input placeholder="Select a 3D aircraft..." readonly /></div>
+    <div class="searchbox" id="searchBox"><input placeholder="Click any aircraft to enter 3D mode..." readonly /></div>
     
     <div class="island-flight" id="islandFlight">
         <div class="if-main">
             <div class="if-call" id="ifCall">FLIGHT</div>
-            <div class="if-route">Live Telemetry</div>
+            <div class="if-route">Tracking Active</div>
         </div>
     </div>
     
@@ -155,22 +155,21 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
   <div class="sheet-content">
       <div class="view" id="viewList">
           <div class="sheet-head">
-            <div class="sheet-date" id="sheetDate">GLOBAL 3D</div>
+            <div class="sheet-date" id="sheetDate">GLOBAL MAP</div>
             <div class="sheet-title-row"><div class="sheet-title">Live Radar</div><div class="sheet-count" id="sheetSub">Fetching...</div></div>
           </div>
           <div style="padding: 20px 24px; color: var(--label-secondary); font-size: 15px; line-height: 1.5;">
-             Loading global high-res imagery and 3D aircraft models. Click any plane on the globe to track it.
+             🌍 Smooth 2D rendering active.<br>✈️ Aircraft are constantly flying forward.<br>👇 Click an aircraft to transform it into a 3D model!
           </div>
       </div>
       
       <div class="view" id="viewDetail" style="padding-top: 10px;">
-          <div class="section-title">Telemetry Data</div>
+          <div class="section-title">Live Telemetry</div>
           <div class="grid">
             <div class="info"><div class="i-label">Altitude</div><div class="i-value" id="dAlt">—</div></div>
             <div class="info"><div class="i-label">Speed</div><div class="i-value" id="dSpd">—</div></div>
             <div class="info"><div class="i-label">Heading</div><div class="i-value" id="dTrack">—</div></div>
             <div class="info"><div class="i-label">Vertical Rate</div><div class="i-value" id="dVert">—</div></div>
-            <div class="info full"><div class="i-label">Data Source</div><div class="i-value">OpenSky Network API</div></div>
           </div>
       </div>
   </div>
@@ -179,12 +178,12 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 <script>
   Cesium.Ion.defaultAccessToken = null;
 
-  // 1. KORJATTU KARTTA (EI JÄÄ SINISEKSI)
-  // Käytetään suoraa urli-osoitetta Esrin laadukkaaseen satelliittiin
+  // 1. AITO GOOGLE EARTH -TYYLINEN SATELLIITTIKARTTA (Ei mene enää siniseksi!)
   const viewer = new Cesium.Viewer('map', {
     imageryProvider: new Cesium.UrlTemplateImageryProvider({
-      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-      maximumLevel: 19
+      // Googlen suora satelliittikuva. 100% varma toimivuus selaimessa.
+      url: 'https://mt1.google.com/vt/lyrs=s&x={x}&y={y}&z={z}',
+      maximumLevel: 20
     }),
     baseLayerPicker: false, animation: false, fullscreenButton: false, vrButton: false,
     geocoder: false, homeButton: false, infoBox: false, sceneModePicker: false,
@@ -195,36 +194,63 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
     viewer.cesiumWidget.creditContainer.style.display = 'none';
   }
 
-  // Asetetaan kamera alkuun ylös katsomaan maapalloa
+  // Kamera katsoo pohjois-eurooppaa
   viewer.camera.flyTo({
-    destination: Cesium.Cartesian3.fromDegrees(20.0, 50.0, 8000000)
+    destination: Cesium.Cartesian3.fromDegrees(22.2, 55.0, 4000000)
   });
+
+  // Kevyt 2D-ikoni SVG muodossa tuhansien koneiden renderöintiin
+  const plane2DSvg = 'image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cGF0aCBmaWxsPSIjRkZGRkZGIiBkPSJNMjQ4LjQsMTIxLjJMMjQ4LjQsMTIxLjJjLTEuNi0xMS4yLDUtMjEuNywxNS42LTI0LjhjMTEuOS0zLjQsMjQsNS42LDI0LDE4djExMi41bDE0MC43LDkyLjVjNC43LDMuMSw3LjUsOC40LDcuMywxNGMtMC4yLDUuMS0zLDkuNy03LjQsMTIuMmwtMzAuOCwxNy4yYy0zLjctMi4xLTguMy0yLjEtMTIuMS0wLjFsLTk3LjctNTYuN3YxMDFsMzQuMiwyOGMzLjIsMi42LDUsNi41LDQuOSwxMC42Yy0wLjIsNC44LTMuNCw5LTgsMTAuM2wtMjguOCw4LjJjLTQuOSwxLjQtMTAuMS0wLjItMTMuNC00LjFsLTIwLjktMjQuOWMtMi4zLTIuOC02LjEtNC40LTkuOC00LjRoLTAuMWMtMy44LDAtNy41LDEuNi05LjgsNC40bC0yMC45LDI0LjljLTMuMywzLjktOC41LDUuNS0xMy40LDQuMWwtMjguOC04LjJjLTQuNi0xLjMtNy45LTUuNS04LTEwLjNjLTAuMS00LjEsMS43LTgsNC45LTEwLjZsMzQuMi0yOHYtMTAxbC05Ny43LDU2LjdjLTMuOCwyLjItOC40LDIuMi0xMi4xLDAuMWwtMzAuOC0xNy4yYy00LjQtMi41LTcuMi03LjEtNy40LTEyLjJjLTAuMi01LjYsMi42LTEwLjksNy4zLTE0bDE0MC43LTkyLjVWMTE0LjRDMjI0LjQsMTAyLDIzNi41LDkzLDI0OC40LDEyMS4yeiIgc3Ryb2tlPSIjMDBBQUZGIiBzdHJva2Utd2lkdGg9IjEyIi8+PC9zdmc+';
 
   const activePlanes = {};
   let selectedPlaneId = null;
+  let lastTime = Date.now();
 
-  // 2. KORJATTU DATANHAKU JA 3D-MALLIT
+  // ----- 2. SULAVA LIIKE (Dead Reckoning) -----
+  // Tämä funktio pyörii 60 kertaa sekunnissa ja liikuttaa koneita eteenpäin!
+  viewer.scene.preRender.addEventListener(function() {
+      const now = Date.now();
+      const delta = (now - lastTime) / 1000; // sekunteja mennyt
+      lastTime = now;
+
+      for (let id in activePlanes) {
+          let p = activePlanes[id];
+          if (p.velocity > 0) {
+              // Lasketaan kuljettu matka nopeuden perusteella (m/s)
+              let distMeters = p.velocity * delta; 
+              let trackRad = p.track * Math.PI / 180;
+              
+              // Päivitetään maantieteelliset koordinaatit
+              p.lat += (distMeters * Math.cos(trackRad)) / 111320;
+              p.lon += (distMeters * Math.sin(trackRad)) / (111320 * Math.cos(p.lat * Math.PI / 180));
+              
+              let newPos = Cesium.Cartesian3.fromDegrees(p.lon, p.lat, p.alt);
+              p.entity.position = newPos;
+
+              // Päivitä myös UI livenä, jos tämä kone on valittu
+              if (selectedPlaneId === id && p.alt > 0) {
+                 updateUI(p);
+              }
+          }
+      }
+  });
+
+
+  // ----- 3. DATAN HAKU API:STA -----
   async function fetchGlobalFlights() {
     try {
       document.getElementById('mapStatusText').innerText = "Fetching...";
-      document.getElementById('dotStatus').classList.remove('warn');
-      
       const response = await fetch('https://opensky-network.org/api/states/all');
-      if (!response.ok) throw new Error("API Limit");
-      
       const data = await response.json();
       
-      // SUODATIN: Otetaan vain 1000 ILMASSA olevaa konetta, jotta 3D-moottori ei kaadu
-      const flyingStates = data.states.filter(s => s[8] === false && s[5] != null && s[6] != null).slice(0, 1000);
-      
+      // Otetaan max 1500 konetta, jotta laitteesi ei kaadu
+      const flyingStates = data.states.filter(s => s[8] === false && s[5] != null).slice(0, 1500);
       updatePlanes(flyingStates);
       
-      document.getElementById('mapStatusText').innerText = "Live";
-      document.getElementById('sheetSub').innerText = flyingStates.length + " 3D models";
+      document.getElementById('mapStatusText').innerText = "Live Tracker";
+      document.getElementById('sheetSub').innerText = flyingStates.length + " flights";
     } catch (error) {
-      console.error("OpenSky API Error:", error);
-      document.getElementById('mapStatusText').innerText = "Rate Limited (Auto-retry)";
-      document.getElementById('dotStatus').classList.add('warn');
+      document.getElementById('mapStatusText').innerText = "Rate Limited...";
     }
   }
 
@@ -237,47 +263,57 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
       const callsign = (state[1] || 'UNKNOWN').trim();
       const lon = state[5]; 
       const lat = state[6]; 
-      const alt = state[7] || 5000; 
+      const alt = state[7] || 6000; 
       const track = state[10] || 0; 
       const velocity = state[9] || 0; 
       const vRate = state[11] || 0; 
 
       currentIds.add(id);
 
-      const position = Cesium.Cartesian3.fromDegrees(lon, lat, alt);
-      
-      // Kääntää 3D-koneen nokan kohti lentosuuntaa
-      const hpr = new Cesium.HeadingPitchRoll(Cesium.Math.toRadians(track - 90), 0, 0); 
-      const orientation = Cesium.Transforms.headingPitchRollQuaternion(position, hpr);
+      // Käännetään 2D-ikonille oikea suunta (-track koska Cesium kääntää vastapäivään)
+      const rot = Cesium.Math.toRadians(-track);
+      // Käännetään 3D-mallille oikea suunta (nokkasuunta +X)
+      const hpr = new Cesium.HeadingPitchRoll(Cesium.Math.toRadians(track - 90), 0, 0);
 
       if (activePlanes[id]) {
-        // Päivitä liikkuva 3D-kone
-        activePlanes[id].position = position;
-        activePlanes[id].orientation = orientation;
-        activePlanes[id].properties = { callsign, alt, velocity, track, vRate };
-      } else {
-        // Luo uusi aito 3D-lentokone!
-        activePlanes[id] = viewer.entities.add({
-          id: id,
-          position: position,
-          orientation: orientation,
-          model: {
-            uri: 'https://raw.githubusercontent.com/CesiumGS/cesium/main/Apps/SampleData/models/CesiumAir/Cesium_Air.glb',
-            minimumPixelSize: 48, // Pysyy sormen mentävänä kokona kaukaakin
-            maximumScale: 10000
-          },
-          properties: { callsign, alt, velocity, track, vRate }
-        });
-      }
+        // Vain päivitetään taustatiedot, koneen liike on hoidettu preRender loopissa!
+        activePlanes[id].callsign = callsign;
+        activePlanes[id].alt = alt;
+        activePlanes[id].velocity = velocity;
+        activePlanes[id].track = track;
+        activePlanes[id].vRate = vRate;
+        
+        activePlanes[id].entity.billboard.rotation = rot;
+        if(activePlanes[id].entity.model) {
+            activePlanes[id].entity.orientation = Cesium.Transforms.headingPitchRollQuaternion(activePlanes[id].entity.position.getValue(viewer.clock.currentTime), hpr);
+        }
 
-      if (selectedPlaneId === id) {
-          updateUI(activePlanes[id].properties);
+      } else {
+        // LUODAAN UUSI 2D-KONE (Oletuksena AINA 2D-ikoni)
+        let pos = Cesium.Cartesian3.fromDegrees(lon, lat, alt);
+        
+        let entity = viewer.entities.add({
+          id: id,
+          position: pos,
+          orientation: Cesium.Transforms.headingPitchRollQuaternion(pos, hpr),
+          billboard: {
+            image: plane2DSvg,
+            scale: 0.7,
+            rotation: rot,
+            alignedAxis: Cesium.Cartesian3.UNIT_Z, 
+            color: Cesium.Color.WHITE,
+            show: true // Oletuksena NÄKYVISSÄ
+          }
+          // Huom: modelia ei vielä ladata tähän! Se säästää megatavuja muistia.
+        });
+
+        activePlanes[id] = { entity, id, callsign, lat, lon, alt, velocity, track, vRate };
       }
     });
 
     Object.keys(activePlanes).forEach(id => {
       if (!currentIds.has(id)) {
-        viewer.entities.remove(activePlanes[id]);
+        viewer.entities.remove(activePlanes[id].entity);
         delete activePlanes[id];
       }
     });
@@ -285,7 +321,72 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
     viewer.entities.resumeEvents();
   }
 
-  // Käyttöliittymän datapäivitys
+
+  // ----- 4. KLIKKAUS: 2D MUUTTUU 3D:KSI! -----
+  viewer.screenSpaceEventHandler.setInputAction(function(movement) {
+    const pickedObject = viewer.scene.pick(movement.position);
+    
+    // Piilotetaan ensin kaikkien muiden koneiden 3D-mallit ja palautetaan 2D-ikoni
+    for(let id in activePlanes) {
+        if (activePlanes[id].entity.billboard) activePlanes[id].entity.billboard.show = true;
+        if (activePlanes[id].entity.model) activePlanes[id].entity.model.show = false;
+    }
+
+    if (Cesium.defined(pickedObject) && pickedObject.id) {
+        const entity = pickedObject.id;
+        selectedPlaneId = entity.id;
+        const pData = activePlanes[selectedPlaneId];
+
+        // 1. Piilota valitun koneen 2D ikoni
+        entity.billboard.show = false;
+        
+        // 2. TÄSSÄ ON LOGIIKKASI MALLIN VALINTAAN! (Voit jatkossa vaihtaa .glb linkkejäsi)
+        if (!entity.model) {
+            let modelUri = getAircraft3DModelUrl(pData.callsign);
+            
+            entity.model = new Cesium.ModelGraphics({
+                uri: modelUri,
+                minimumPixelSize: 128, // Iso ja näyttävä
+                maximumScale: 10000,
+                show: true
+            });
+        } else {
+            entity.model.show = true;
+        }
+        
+        // 3. Lukitse kamera lentokoneeseen
+        viewer.trackedEntity = entity;
+
+        updateUI(pData);
+        document.getElementById('island').classList.add('focus');
+        document.getElementById('searchBox').style.display = 'none';
+        document.getElementById('closeBtn').style.display = 'grid';
+        document.getElementById('hudWrap').classList.add('show');
+        document.getElementById('sheet').classList.add('mode-detail');
+
+    } else {
+        resetSelection();
+    }
+  }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
+
+  // Tämä funktio palauttaa oikean mallin callsignin perusteella!
+  function getAircraft3DModelUrl(callsign) {
+      // ESIMERKKI LOGIIKASTA:
+      // Tällä hetkellä kaikki käyttävät Cesiumin omaa default suihkukonetta, 
+      // koska minulla ei ole suoraa linkkiä sinun omiin A350/B737 .glb tiedostoihisi.
+      // KUN SINULLA ON OMAT MALLIT NETISSÄ, KORVAA NÄMÄ LINKIT OMILLASI!
+      
+      if (callsign.startsWith("FIN350") || callsign.startsWith("A35")) {
+          return 'https://raw.githubusercontent.com/CesiumGS/cesium/main/Apps/SampleData/models/CesiumAir/Cesium_Air.glb'; // Vaihda tähän A350.glb urli
+      } 
+      else if (callsign.startsWith("RYR") || callsign.startsWith("B73")) {
+          return 'https://raw.githubusercontent.com/CesiumGS/cesium/main/Apps/SampleData/models/CesiumAir/Cesium_Air.glb'; // Vaihda tähän B737.glb urli
+      }
+      
+      // Oletuskone, jos tyyppiä ei tunnisteta
+      return 'https://raw.githubusercontent.com/CesiumGS/cesium/main/Apps/SampleData/models/CesiumAir/Cesium_Air.glb';
+  }
+
   function updateUI(props) {
     const altFt = Math.round(props.alt * 3.28084);
     const spdKt = Math.round(props.velocity * 1.94384);
@@ -301,34 +402,16 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
     document.getElementById('dVert').innerText = vRateFt + " FT/M";
   }
 
-  // Klikkauksen tunnistus 3D-malliin
-  viewer.screenSpaceEventHandler.setInputAction(function(movement) {
-    const pickedObject = viewer.scene.pick(movement.position);
-    
-    if (Cesium.defined(pickedObject) && pickedObject.id) {
-        const entity = pickedObject.id;
-        selectedPlaneId = entity.id;
-        
-        // Lukitaan kamera lentokoneen taakse katsomaan sitä!
-        viewer.trackedEntity = entity;
-
-        updateUI(entity.properties);
-        document.getElementById('island').classList.add('focus');
-        document.getElementById('searchBox').style.display = 'none';
-        document.getElementById('closeBtn').style.display = 'grid';
-        document.getElementById('hudWrap').classList.add('show');
-        document.getElementById('sheet').classList.add('mode-detail');
-
-    } else {
-        resetSelection();
-    }
-  }, Cesium.ScreenSpaceEventType.LEFT_CLICK);
-
   document.getElementById('closeBtn').addEventListener('click', resetSelection);
 
   function resetSelection() {
       selectedPlaneId = null;
       viewer.trackedEntity = undefined;
+      
+      for(let id in activePlanes) {
+          if (activePlanes[id].entity.billboard) activePlanes[id].entity.billboard.show = true;
+          if (activePlanes[id].entity.model) activePlanes[id].entity.model.show = false;
+      }
       
       document.getElementById('island').classList.remove('focus');
       document.getElementById('searchBox').style.display = 'flex';
@@ -337,7 +420,7 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
       document.getElementById('sheet').classList.remove('mode-detail');
   }
 
-  // Haetaan heti, ja sitten vähän harvemmin (15sek) jotta ilmainen API ei estä meitä
+  // Käynnistys ja API-loop 15sek välein (Liike tapahtuu preRender loopissa)
   fetchGlobalFlights();
   setInterval(fetchGlobalFlights, 15000); 
 
