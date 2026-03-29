@@ -64,10 +64,13 @@ body { user-select: none; background: #000;}
 .leaflet-control-zoom, .leaflet-control-attribution { display: none !important; }
 .leaflet-tile-container img { -webkit-backface-visibility: hidden; backface-visibility: hidden; }
 
-/* KÄÄNTYVÄT KONEET */
-.plane-wrapper { width: 36px; height: 36px; margin-left: -18px; margin-top: -18px; display: block; position: absolute; }
+/* KÄÄNTYVÄT KONEET JA TOOLTIPIT */
+.plane-wrapper { width: 36px; height: 36px; margin-left: -18px; margin-top: -18px; display: block; position: absolute; z-index: 500;}
 .plane-wrapper.sel { width: 52px; height: 52px; margin-left: -26px; margin-top: -26px; z-index: 1000 !important;}
 .plane-img { width: 100%; height: 100%; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)); transition: transform 0.3s linear; transform-origin: center center; }
+.plane-tooltip { position: absolute; left: 32px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.65); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); padding: 4px 10px; border-radius: 10px; font-size: 11px; font-weight: 600; color: #FFF; white-space: nowrap; pointer-events: none; border: 0.5px solid rgba(255,255,255,0.15); box-shadow: 0 4px 12px rgba(0,0,0,0.2); opacity: 0; transition: opacity 0.3s ease; }
+.plane-wrapper.show-tooltip .plane-tooltip { opacity: 1; }
+.plane-wrapper.sel .plane-tooltip { left: 42px; opacity: 1; background: var(--apple-blue); border-color: rgba(255,255,255,0.3);}
 
 /* DYNAMIC ISLAND */
 .island-wrap { position: fixed; left: 0; right: 0; top: max(14px, env(safe-area-inset-top)); z-index: 2500; display: flex; justify-content: center; pointer-events: none; padding: 0 14px; }
@@ -136,8 +139,8 @@ body { user-select: none; background: #000;}
 .card:active { background: var(--apple-gray-press); }
 .card::after { content: ''; position: absolute; bottom: 0; left: 92px; right: 0; height: 0.5px; background: linear-gradient(90deg, var(--glass-border), transparent); }
 .card:last-child::after { display: none; }
-.plane-badge { width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; background: var(--bg-secondary); flex: 0 0 auto; overflow: hidden; border: 0.5px solid var(--glass-border); box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
-.plane-badge img { width: 100%; height: 100%; object-fit: cover; }
+.plane-badge { width: 52px; height: 52px; border-radius: 14px; display: grid; place-items: center; background: var(--bg-secondary); flex: 0 0 auto; overflow: hidden; border: 0.5px solid var(--glass-border); box-shadow: 0 4px 10px rgba(0,0,0,0.05); position: relative;}
+.plane-badge img { width: 100%; height: 100%; object-fit: cover; position: absolute; top:0; left:0; transition: opacity 0.4s ease;}
 .plane-badge svg { width: 26px; height: 26px; fill: var(--label-tertiary); transform: rotate(-45deg); }
 .card-main { flex: 1; min-width: 0; }
 .card-call { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; color: var(--label-primary); }
@@ -274,7 +277,7 @@ body { user-select: none; background: #000;}
   <div class="island" id="island">
     <div class="brand">
         <div class="brand-icon"><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div>
-        <div class="brand-text">Over<span>head</span> <span class="v-badge">v64</span></div>
+        <div class="brand-text">Over<span>head</span> <span class="v-badge">v65</span></div>
     </div>
     <div class="searchbox"><svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><input id="searchInput" placeholder="Search callsign..." autocomplete="off" autocorrect="off" spellcheck="false" /></div>
     <div class="island-flight" id="islandFlight"><div class="if-main"><div class="if-call" id="ifCall">FLIGHT</div><div class="if-route" id="ifRoute">Tracking Active</div></div></div>
@@ -473,37 +476,30 @@ const todayOptions = { weekday: 'long', month: 'long', day: 'numeric' };
 $('sheetDate').textContent = new Date().toLocaleDateString('en-US', todayOptions).toUpperCase();
 
 const airlines = { 
-    "FIN": {n:"Finnair", c:"#0B1560"}, "RYR": {n:"Ryanair", c:"#073590"}, 
-    "NAX": {n:"Norwegian", c:"#D81939"}, "SAS": {n:"SAS", c:"#00355E"}, 
-    "VKG": {n:"Sunclass", c:"#FF7A00"}, "BLX": {n:"TUI fly", c:"#73CBE6"}, 
-    "DLH": {n:"Lufthansa", c:"#05164D"}, "AFR": {n:"Air France", c:"#002157"}, 
-    "KLM": {n:"KLM", c:"#00A1E4"}, "THY": {n:"Turkish", c:"#E81932"}, 
-    "BAW": {n:"British Airways", c:"#012A5E"}, "UAE": {n:"Emirates", c:"#D71920"}, 
-    "QTR": {n:"Qatar Airways", c:"#5C0632"}, "EZY": {n:"EasyJet", c:"#FF6600"}, 
-    "WZZ": {n:"Wizz Air", c:"#C60C85"}, "SWR": {n:"Swiss", c:"#E3000F"}, 
-    "IBE": {n:"Iberia", c:"#DF0024"}, "BCS": {n:"DHL", c:"#FFCC00"},
-    "NVR": {n:"Novair", c:"#004B87"}, "AAL": {n:"American", c:"#0078D2"},
+    "FIN": {n:"Finnair", c:"#0B1560"}, "RYR": {n:"Ryanair", c:"#073590"}, "NAX": {n:"Norwegian", c:"#D81939"}, "SAS": {n:"SAS", c:"#00355E"}, 
+    "VKG": {n:"Sunclass", c:"#FF7A00"}, "BLX": {n:"TUI fly", c:"#73CBE6"}, "DLH": {n:"Lufthansa", c:"#05164D"}, "AFR": {n:"Air France", c:"#002157"}, 
+    "KLM": {n:"KLM", c:"#00A1E4"}, "THY": {n:"Turkish", c:"#E81932"}, "BAW": {n:"British Airways", c:"#012A5E"}, "UAE": {n:"Emirates", c:"#D71920"}, 
+    "QTR": {n:"Qatar Airways", c:"#5C0632"}, "EZY": {n:"EasyJet", c:"#FF6600"}, "WZZ": {n:"Wizz Air", c:"#C60C85"}, "SWR": {n:"Swiss", c:"#E3000F"}, 
+    "IBE": {n:"Iberia", c:"#DF0024"}, "BCS": {n:"DHL", c:"#FFCC00"}, "NVR": {n:"Novair", c:"#004B87"}, "AAL": {n:"American", c:"#0078D2"},
     "DAL": {n:"Delta", c:"#E00034"}, "UAL": {n:"United", c:"#005DAA"}
 };
 
-// V61: MOOTTORIT JA TYÖNTÖVOIMA
 const aircraftSpecs = {
-    "A320": { len: "37.57 m", mtow: "78,000 kg", pax: "150-180", fuel: "24,210 L", eng: "2 × CFM56 / V2500", thrust: "54,000 lbf" },
-    "A20N": { len: "37.57 m", mtow: "79,000 kg", pax: "150-180", fuel: "26,730 L", eng: "2 × LEAP-1A / PW1100G", thrust: "54,200 lbf" },
-    "A321": { len: "44.51 m", mtow: "93,500 kg", pax: "185-230", fuel: "24,050 L", eng: "2 × CFM56 / V2500", thrust: "66,000 lbf" },
-    "A21N": { len: "44.51 m", mtow: "97,000 kg", pax: "185-244", fuel: "32,940 L", eng: "2 × LEAP-1A / PW1100G", thrust: "66,200 lbf" },
-    "A319": { len: "33.84 m", mtow: "75,500 kg", pax: "124-156", fuel: "24,210 L", eng: "2 × CFM56 / V2500", thrust: "48,000 lbf" },
-    "A333": { len: "63.66 m", mtow: "242,000 kg", pax: "250-440", fuel: "139,090 L", eng: "2 × Trent 700 / CF6", thrust: "142,200 lbf" },
-    "A359": { len: "66.80 m", mtow: "280,000 kg", pax: "300-350", fuel: "141,000 L", eng: "2 × Trent XWB-84", thrust: "168,400 lbf" },
-    "B738": { len: "39.50 m", mtow: "79,000 kg", pax: "162-189", fuel: "26,020 L", eng: "2 × CFM56-7B", thrust: "54,600 lbf" },
-    "B739": { len: "42.10 m", mtow: "85,100 kg", pax: "177-215", fuel: "29,660 L", eng: "2 × CFM56-7B", thrust: "56,800 lbf" },
-    "B38M": { len: "39.50 m", mtow: "82,190 kg", pax: "162-210", fuel: "25,816 L", eng: "2 × LEAP-1B", thrust: "55,760 lbf" },
-    "B77W": { len: "73.90 m", mtow: "351,500 kg", pax: "314-396", fuel: "181,280 L", eng: "2 × GE90-115B", thrust: "230,600 lbf" },
-    "B789": { len: "63.00 m", mtow: "254,000 kg", pax: "290-330", fuel: "126,372 L", eng: "2 × Trent 1000 / GEnx", thrust: "148,000 lbf" },
-    "BCS3": { len: "38.70 m", mtow: "67,585 kg", pax: "130-160", fuel: "17,580 L", eng: "2 × PW1500G", thrust: "46,600 lbf" },
-    "CRJ9": { len: "36.20 m", mtow: "38,330 kg", pax: "76-90", fuel: "11,148 L", eng: "2 × CF34-8C5", thrust: "28,500 lbf" },
-    "AT76": { len: "27.17 m", mtow: "23,000 kg", pax: "70-78", fuel: "6,400 L", eng: "2 × PW127M (Turboprop)", thrust: "5,500 shp" },
-    "E190": { len: "36.24 m", mtow: "51,800 kg", pax: "96-114", fuel: "16,250 L", eng: "2 × CF34-10E", thrust: "40,000 lbf" }
+    "A320": { len: "37.57m", mtow: "78,000kg", pax: "150-180", fuel: "24,210L", eng: "2×CFM56", thrust: "54k lbf" },
+    "A20N": { len: "37.57m", mtow: "79,000kg", pax: "150-180", fuel: "26,730L", eng: "2×LEAP-1A", thrust: "54k lbf" },
+    "A321": { len: "44.51m", mtow: "93,500kg", pax: "185-230", fuel: "24,050L", eng: "2×CFM56", thrust: "66k lbf" },
+    "A21N": { len: "44.51m", mtow: "97,000kg", pax: "185-244", fuel: "32,940L", eng: "2×LEAP-1A", thrust: "66k lbf" },
+    "A319": { len: "33.84m", mtow: "75,500kg", pax: "124-156", fuel: "24,210L", eng: "2×CFM56", thrust: "48k lbf" },
+    "A333": { len: "63.66m", mtow: "242,000kg", pax: "250-440", fuel: "139,090L", eng: "2×Trent 700", thrust: "142k lbf" },
+    "A359": { len: "66.80m", mtow: "280,000kg", pax: "300-350", fuel: "141,000L", eng: "2×Trent XWB", thrust: "168k lbf" },
+    "B738": { len: "39.50m", mtow: "79,000kg", pax: "162-189", fuel: "26,020L", eng: "2×CFM56-7B", thrust: "54k lbf" },
+    "B739": { len: "42.10m", mtow: "85,100kg", pax: "177-215", fuel: "29,660L", eng: "2×CFM56-7B", thrust: "56k lbf" },
+    "B38M": { len: "39.50m", mtow: "82,190kg", pax: "162-210", fuel: "25,816L", eng: "2×LEAP-1B", thrust: "55k lbf" },
+    "B77W": { len: "73.90m", mtow: "351,500kg", pax: "314-396", fuel: "181,280L", eng: "2×GE90", thrust: "230k lbf" },
+    "B789": { len: "63.00m", mtow: "254,000kg", pax: "290-330", fuel: "126,372L", eng: "2×Trent 1000", thrust: "148k lbf" },
+    "BCS3": { len: "38.70m", mtow: "67,585kg", pax: "130-160", fuel: "17,580L", eng: "2×PW1500G", thrust: "46k lbf" },
+    "CRJ9": { len: "36.20m", mtow: "38,330kg", pax: "76-90", fuel: "11,148L", eng: "2×CF34-8C5", thrust: "28k lbf" },
+    "AT76": { len: "27.17m", mtow: "23,000kg", pax: "70-78", fuel: "6,400L", eng: "2×PW127M", thrust: "5,500 shp" }
 };
 
 const state = { map: null, userLat: 60.4518, userLon: 22.2666, flights: new Map(), selectedIcao: null, photoCache: new Map(), arrImgCache: new Map(), routeCache: new Map(), cityImages: new Map(), markers: new Map() };
@@ -511,10 +507,10 @@ const state = { map: null, userLat: 60.4518, userLon: 22.2666, flights: new Map(
 const planeBlueURI = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z' fill='%23007AFF' stroke='%23FFFFFF' stroke-width='0.5'/%3E%3C/svg%3E";
 const planeGreenURI = "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z' fill='%2334C759' stroke='%23FFFFFF' stroke-width='1'/%3E%3C/svg%3E";
 
-function fmtFt(alt, isGround){ return isGround ? 'GROUND' : (alt==null?'—':Math.round(alt).toLocaleString('en-US')+' FT'); }
+function fmtFt(alt, isGnd){ return isGnd ? 'GROUND' : (alt==null?'—':Math.round(alt).toLocaleString('en-US')+' FT'); }
 function fmtKt(ms){ return ms==null?'—':Math.round(ms)+' KT'; } 
 function fmtVRate(fpm) { if (!fpm) return 'Level'; return fpm > 0 ? `↗ ${Math.round(fpm)} ft/m` : `↘ ${Math.abs(Math.round(fpm))} ft/m`; }
-function fmtHeading(deg) { if (deg == null) return '—'; const dirs = ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW']; return `${Math.round(deg)}° ${dirs[Math.round(deg / 45) % 8]}`; }
+function fmtHeading(deg) { if (deg == null) return '—'; const dirs = ['N','NE','E','SE','S','SW','W','NW']; return `${Math.round(deg)}° ${dirs[Math.round(deg/45)%8]}`; }
 
 function haversine(lat1, lon1, lat2, lon2){ 
     if (lat1==null||lon1==null||lat2==null||lon2==null) return 0;
@@ -525,122 +521,118 @@ function haversine(lat1, lon1, lat2, lon2){
 
 function calculateOverhead(f) {
     if(!f || !f.velocity || f.on_ground) return null;
-    const lat1 = state.userLat * Math.PI/180, lon1 = state.userLon * Math.PI/180;
-    const lat2 = f.curLat * Math.PI/180, lon2 = f.curLon * Math.PI/180;
-    const y = Math.sin(lon2-lon1) * Math.cos(lat2);
-    const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(lon2-lon1);
-    const bearingToPlane = (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
-    const bearingToUser = (bearingToPlane + 180) % 360;
-    let angleDiff = Math.abs((f.track || 0) - bearingToUser);
-    if(angleDiff > 180) angleDiff = 360 - angleDiff;
-    const isCrossing = angleDiff < 30; 
+    const lat1=state.userLat*Math.PI/180, lon1=state.userLon*Math.PI/180;
+    const lat2=f.curLat*Math.PI/180, lon2=f.curLon*Math.PI/180;
+    const y=Math.sin(lon2-lon1)*Math.cos(lat2);
+    const x=Math.cos(lat1)*Math.sin(lat2) - Math.sin(lat1)*Math.cos(lat2)*Math.cos(lon2-lon1);
+    const bearingToUser = ((Math.atan2(y, x)*180/Math.PI+360)%360 + 180)%360;
+    let aDiff = Math.abs((f.track||0) - bearingToUser);
+    if(aDiff > 180) aDiff = 360 - aDiff;
     if (f.dist < 3) return { status: 'overhead', text: 'Directly Overhead' };
-    if (isCrossing) { return { status: 'approaching', text: `Overhead in ${Math.round((f.dist / f.velocity) * 60)} min` };
-    } else if(angleDiff > 120 && f.dist < 30) { return { status: 'passed', text: `Passed ${Math.round((f.dist / f.velocity) * 60)} min ago` }; }
+    if (aDiff < 30) return { status: 'approaching', text: `Overhead in ${Math.round((f.dist/f.velocity)*60)} min` };
+    if (aDiff > 120 && f.dist < 30) return { status: 'passed', text: `Passed ${Math.round((f.dist/f.velocity)*60)} min ago` };
     return { status: 'none', text: 'Not Crossing' };
+}
+
+// V65: Tyylikäs nimi Tooltipille zoomattaessa
+function getFlightLabel(f) {
+    let alName = "Unknown Airline";
+    if(f.callsign && f.callsign.length >= 3) {
+        let code3 = f.callsign.substring(0,3).toUpperCase();
+        if(airlines[code3]) alName = airlines[code3].n;
+    }
+    let acModel = f.desc || f.type;
+    if(acModel === 'Unknown' || !acModel) acModel = "Unknown Aircraft";
+    if(alName === "Unknown Airline" && f.reg && f.reg !== '—') alName = f.reg;
+    return `${alName} • ${acModel}`;
+}
+
+// V65: Kuvien nouto taustalla Planespotters APIsta
+async function fetchPlanePhoto(icao24) {
+    if (state.photoCache.has(icao24)) return state.photoCache.get(icao24);
+    state.photoCache.set(icao24, 'loading');
+    try {
+        const res = await fetch(`https://api.planespotters.net/pub/photos/hex/${icao24}`);
+        if (res.ok) {
+            const data = await res.json();
+            if (data.photos && data.photos.length > 0) {
+                const url = data.photos[0].thumbnail_large.src;
+                state.photoCache.set(icao24, url);
+                const imgEl = document.getElementById('p-img-' + icao24);
+                if(imgEl) { imgEl.src = url; imgEl.style.opacity = '1'; }
+                return url;
+            }
+        }
+    } catch(e) {}
+    state.photoCache.set(icao24, null);
+    return null;
 }
 
 function updateFlightPath(progressPct, altitudeFt) {
     let altRatio = Math.min((altitudeFt || 0) / 35000, 1.0);
     if (altRatio < 0) altRatio = 0;
     let peakY = 40 - (30 * altRatio); 
-
     let pathD = `M 10 40 C 30 40, 40 ${peakY}, 60 ${peakY} L 140 ${peakY} C 160 ${peakY}, 170 40, 190 40`;
     $('pathBg').setAttribute('d', pathD);
     $('pathFill').setAttribute('d', pathD);
-
     let pathNode = $('pathFill');
     let length = pathNode.getTotalLength() || 215;
     pathNode.setAttribute('stroke-dasharray', length);
-    
     let p = Math.max(0, Math.min(progressPct, 100)) / 100;
     pathNode.setAttribute('stroke-dashoffset', length - (length * p));
-
     let pt = pathNode.getPointAtLength(length * p);
     let lookAhead = Math.min(length, (length * p) + 1);
     let ptAhead = pathNode.getPointAtLength(lookAhead);
-    
-    let dx = ptAhead.x - pt.x;
-    let dy = ptAhead.y - pt.y;
-    if (lookAhead === length && length > 1) {
-         let ptBehind = pathNode.getPointAtLength(length - 1);
-         dx = pt.x - ptBehind.x; dy = pt.y - ptBehind.y;
-    }
-
+    let dx = ptAhead.x - pt.x, dy = ptAhead.y - pt.y;
+    if (lookAhead === length && length > 1) { let ptBehind = pathNode.getPointAtLength(length - 1); dx = pt.x - ptBehind.x; dy = pt.y - ptBehind.y; }
     let angle = Math.atan2(dy, dx) * (180 / Math.PI);
-    let px = (pt.x / 200) * 100;
-    let py = (pt.y / 50) * 100;
-
     let icon = $('bpProgressIcon');
-    icon.style.left = `${px}%`;
-    icon.style.top = `${py}%`;
-    icon.style.transform = `rotate(${90 + angle}deg)`;
+    icon.style.left = `${(pt.x/200)*100}%`; icon.style.top = `${(pt.y/50)*100}%`; icon.style.transform = `rotate(${90+angle}deg)`;
 }
 
 function updatePassengerExperience(f) {
     if(!f) return;
-    let alt = f.baro_alt || 0; let vr = f.vertical_rate || 0; let spd = f.velocity || 0;
-
+    let alt = f.baro_alt || 0, vr = f.vertical_rate || 0, spd = f.velocity || 0;
     let tempC = f.oat != null ? f.oat : (15 - ((alt / 1000) * 1.98));
     if(tempC < -56.5) tempC = -56.5; 
     $('dOAT').textContent = f.on_ground ? 'Ground' : `${Math.round(tempC)}°C`;
     
-    let windSpd = 0; let windType = "Calm";
+    let windSpd = 0, windType = "Calm";
     if (!f.on_ground) {
-        windSpd = f.ws != null ? f.ws : Math.round((alt / 500) + (Math.sin(f.curLat * Math.PI/180) * 20));
-        if (windSpd < 0) windSpd = Math.abs(windSpd);
-        let windDir = f.wd != null ? f.wd : Math.round((Math.cos(f.curLon * Math.PI/180) * 180 + 360) % 360);
-        let relWind = Math.abs((f.track || 0) - windDir);
+        windSpd = f.ws != null ? f.ws : Math.round((alt/500) + (Math.sin(f.curLat*Math.PI/180)*20));
+        windSpd = Math.abs(windSpd);
+        let windDir = f.wd != null ? f.wd : Math.round((Math.cos(f.curLon*Math.PI/180)*180+360)%360);
+        let relWind = Math.abs((f.track||0) - windDir);
         if (relWind > 180) relWind = 360 - relWind;
-        
         windType = "Crosswind";
-        if (relWind < 45) windType = "Tailwind";
-        else if (relWind > 135) windType = "Headwind";
-        if (windSpd < 5) { windType = "Light"; windSpd = Math.max(0, windSpd); }
+        if (relWind < 45) windType = "Tailwind"; else if (relWind > 135) windType = "Headwind";
+        if (windSpd < 5) { windType = "Light"; }
     }
     $('dWind').textContent = f.on_ground ? 'Calm' : `${windSpd} kt ${windType}`;
 
     let machStr = "—"; let cabAlt = 0;
-    if (!f.on_ground && spd > 100) {
-        let speedOfSound = 38.945 * Math.sqrt(tempC + 273.15);
-        machStr = "M " + (spd / speedOfSound).toFixed(2);
-    }
-    if (alt <= 8000) cabAlt = alt;
-    else cabAlt = 6000 + ((alt - 8000) / 32000) * 2000;
-    cabAlt = Math.max(0, Math.round(cabAlt / 50) * 50);
+    if (!f.on_ground && spd > 100) { machStr = "M " + (spd / (38.945*Math.sqrt(tempC+273.15))).toFixed(2); }
+    if (alt <= 8000) cabAlt = alt; else cabAlt = 6000 + ((alt-8000)/32000)*2000;
+    $('dMach').textContent = machStr; $('dCab').textContent = f.on_ground ? "Doors Open" : `${Math.max(0, Math.round(cabAlt/50)*50).toLocaleString('en-US')} ft`;
 
-    $('dMach').textContent = machStr;
-    $('dCab').textContent = f.on_ground ? "Doors Open" : `${cabAlt.toLocaleString('en-US')} ft`;
-
-    const timePhase = Math.floor(Date.now() / 120000); 
-    let turbSeed = (Math.floor(f.curLat) * 73856093 ^ Math.floor(f.curLon) * 19349663 ^ timePhase);
-    let turbScore = Math.abs(turbSeed % 100);
-    if (Math.abs(vr) > 2500) turbScore += 40; 
+    let turbSeed = (Math.floor(f.curLat)*73856093 ^ Math.floor(f.curLon)*19349663 ^ Math.floor(Date.now()/120000));
+    let turbScore = Math.abs(turbSeed % 100); if (Math.abs(vr) > 2500) turbScore += 40; 
     
-    // V64: Tarkennettu G-Voiman telemetria
     let gForce = 1.0;
     if (!f.on_ground) {
-        gForce += (turbScore - 50) * 0.005;
-        if (vr > 1000) gForce += 0.08;
-        if (vr < -1000) gForce -= 0.05;
-        if (vr > 2500) gForce += 0.12;
-        if (vr < -2500) gForce -= 0.10;
+        gForce += (turbScore-50)*0.005;
+        if (vr > 1000) gForce += 0.08; if (vr < -1000) gForce -= 0.05;
+        if (vr > 2500) gForce += 0.12; if (vr < -2500) gForce -= 0.10;
         if (spd > 400 && turbScore > 80) gForce += 0.15;
     }
     $('dGForce').textContent = f.on_ground ? "1.00 G" : gForce.toFixed(2) + " G";
 
-    if (f.on_ground) {
-        $('dTurbTxt').textContent = 'Parked'; $('dTurbDot').className = 'turb-dot smooth'; $('dTurbWave').className = 'turb-wave shake-smooth';
-    } else if (turbScore < 75) {
-        $('dTurbTxt').textContent = 'Smooth'; $('dTurbDot').className = 'turb-dot smooth'; $('dTurbWave').className = 'turb-wave shake-smooth';
-    } else if (turbScore < 90) {
-        $('dTurbTxt').textContent = 'Light Chop'; $('dTurbDot').className = 'turb-dot light'; $('dTurbWave').className = 'turb-wave shake-light';
-    } else {
-        $('dTurbTxt').textContent = 'Moderate'; $('dTurbDot').className = 'turb-dot moderate'; $('dTurbWave').className = 'turb-wave shake-mod';
-    }
+    if (f.on_ground) { $('dTurbTxt').textContent='Parked'; $('dTurbDot').className='turb-dot smooth'; $('dTurbWave').className='turb-wave shake-smooth';
+    } else if (turbScore < 75) { $('dTurbTxt').textContent='Smooth'; $('dTurbDot').className='turb-dot smooth'; $('dTurbWave').className='turb-wave shake-smooth';
+    } else if (turbScore < 90) { $('dTurbTxt').textContent='Light Chop'; $('dTurbDot').className='turb-dot light'; $('dTurbWave').className='turb-wave shake-light';
+    } else { $('dTurbTxt').textContent='Moderate'; $('dTurbDot').className='turb-dot moderate'; $('dTurbWave').className='turb-wave shake-mod'; }
 
-    let phase = "Cruising"; let sbOn = false; let pa = "";
-    
+    let phase = "Cruising", sbOn = false, pa = "";
     if (f.on_ground || alt < 100) {
         if (spd > 30) { phase = "Takeoff / Roll"; sbOn = true; pa = '"V1... Rotate. Positive rate, gear up."'; }
         else if (spd > 2) { phase = "Taxiing"; sbOn = true; pa = '"Cabin crew, seats for departure."'; }
@@ -660,10 +652,7 @@ function updatePassengerExperience(f) {
             else { pa = `"We are currently cruising at ${Math.round(alt/1000)*1000} feet. Sit back, relax, and enjoy the flight."`; sbOn = false; }
         }
     }
-    
-    $('paxPhase').textContent = phase;
-    $('paText').textContent = pa;
-    
+    $('paxPhase').textContent = phase; $('paText').textContent = pa;
     const sb = $('paxSeatbelt');
     if (sbOn) { sb.className = 'seatbelt-sign on'; sb.textContent = 'Seatbelts ON'; } 
     else { sb.className = 'seatbelt-sign off'; sb.textContent = 'Seatbelts OFF'; }
@@ -673,25 +662,14 @@ async function fetchFlightRoute(callsign) {
     if(!callsign || callsign.length < 3) return null;
     let cleanCall = callsign.replace(/[<>]/g,'').trim();
     if(state.routeCache.has(cleanCall)) return state.routeCache.get(cleanCall);
-    
     try {
         const res = await fetch(`https://api.adsbdb.com/v0/callsign/${cleanCall}`);
         if(res.ok) {
             const data = await res.json();
-            if(data && data.response && data.response.flightroute) {
-                const route = data.response.flightroute;
-                const result = {
-                    dep: route.origin?.iata_code || 'N/A',
-                    depName: route.origin?.municipality || 'Unknown',
-                    depLat: route.origin?.latitude,
-                    depLon: route.origin?.longitude,
-                    arr: route.destination?.iata_code || 'N/A',
-                    arrName: route.destination?.municipality || 'Unknown',
-                    arrLat: route.destination?.latitude,
-                    arrLon: route.destination?.longitude
-                };
-                state.routeCache.set(cleanCall, result);
-                return result;
+            if(data?.response?.flightroute) {
+                const rt = data.response.flightroute;
+                const result = { dep: rt.origin?.iata_code||'N/A', depName: rt.origin?.municipality||'Unknown', depLat: rt.origin?.latitude, depLon: rt.origin?.longitude, arr: rt.destination?.iata_code||'N/A', arrName: rt.destination?.municipality||'Unknown', arrLat: rt.destination?.latitude, arrLon: rt.destination?.longitude };
+                state.routeCache.set(cleanCall, result); return result;
             }
         }
     } catch(e) {}
@@ -702,66 +680,31 @@ function getCityImageUrl(cityName) {
     if (!cityName || cityName === 'Unknown') return null;
     if (state.cityImages.has(cityName)) return state.cityImages.get(cityName);
     const url = `https://source.unsplash.com/100x100/?${encodeURIComponent(cityName)},city`;
-    state.cityImages.set(cityName, url);
-    return url;
+    state.cityImages.set(cityName, url); return url;
 }
 
-// V64: Aito satelliittikartta (ArcGIS MapServer Export) saapumis lentoasemasta koordinaattien avulla!
 async function fetchArrivalTerminalImage(route) {
     if(!route || !route.arrLat || !route.arrLon) return null;
     const cacheKey = route.arr;
     if(state.arrImgCache.has(cacheKey)) return state.arrImgCache.get(cacheKey);
-    
-    const lat = parseFloat(route.arrLat);
-    const lon = parseFloat(route.arrLon);
-    
-    // Luodaan upea 2x3 kilometrin satelliittikarttakroppi suoraan kiitotien/terminaalin alueelta
-    const dLat = 0.012;
-    const dLon = 0.024;
-    const url = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/export?bbox=${lon-dLon},${lat-dLat},${lon+dLon},${lat+dLat}&bboxSR=4326&size=800,400&f=image`;
-    
-    state.arrImgCache.set(cacheKey, url);
-    return url;
+    const url = `https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/export?bbox=${parseFloat(route.arrLon)-0.024},${parseFloat(route.arrLat)-0.012},${parseFloat(route.arrLon)+0.024},${parseFloat(route.arrLat)+0.012}&bboxSR=4326&size=800,400&f=image`;
+    state.arrImgCache.set(cacheKey, url); return url;
 }
 
 function updateCityAvatar(elId, wrapId, cityName) {
-    const imgEl = $(elId);
-    const wrapEl = $(wrapId);
-    if (!cityName || cityName === 'Unknown') {
-        wrapEl.classList.remove('show');
-        imgEl.style.display = 'none';
-        return;
-    }
+    const imgEl = $(elId), wrapEl = $(wrapId);
+    if (!cityName || cityName === 'Unknown') { wrapEl.classList.remove('show'); imgEl.style.display = 'none'; return; }
     const url = getCityImageUrl(cityName);
-    if (url) {
-        imgEl.onload = () => { imgEl.style.display = 'block'; wrapEl.classList.add('show'); };
-        imgEl.onerror = () => { wrapEl.classList.remove('show'); imgEl.style.display = 'none'; };
-        imgEl.src = url;
-    }
+    if (url) { imgEl.onload = () => { imgEl.style.display = 'block'; wrapEl.classList.add('show'); }; imgEl.onerror = () => { wrapEl.classList.remove('show'); imgEl.style.display = 'none'; }; imgEl.src = url; }
 }
 
 function setUserLocation(lat, lon, zoom) {
-    state.userLat = lat;
-    state.userLon = lon;
-    if (state.map) {
-        state.map.setView([lat, lon], zoom, { animate: true });
-        if (state.userMarker) {
-            state.userMarker.setLatLng([lat, lon]);
-        }
-    }
+    state.userLat = lat; state.userLon = lon;
+    if (state.map) { state.map.setView([lat, lon], zoom, { animate: true }); if (state.userMarker) state.userMarker.setLatLng([lat, lon]); }
 }
 
 function initMap(){
-  state.map = L.map('map', { 
-      zoomControl: false, 
-      attributionControl: false, 
-      minZoom: 3, 
-      maxBounds: [[-90, -180], [90, 180]], 
-      maxBoundsViscosity: 1.0,
-      updateWhenIdle: false, 
-      updateWhenZooming: false
-  }).setView([state.userLat, state.userLon], 6);
-
+  state.map = L.map('map', { zoomControl: false, attributionControl: false, minZoom: 3, maxBounds: [[-90, -180], [90, 180]], maxBoundsViscosity: 1.0, updateWhenIdle: false, updateWhenZooming: false }).setView([state.userLat, state.userLon], 6);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {maxZoom: 19}).addTo(state.map);
   L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {maxZoom: 19, opacity: 0.85}).addTo(state.map);
   
@@ -769,6 +712,7 @@ function initMap(){
   state.pastPath = L.polyline([], {color: '#007AFF', weight: 4, opacity: 0.9, lineCap: 'round', lineJoin: 'round'}).addTo(state.map);
   state.futurePath = L.polyline([], {color: '#007AFF', weight: 3, opacity: 0.6, dashArray: '6, 8'}).addTo(state.map);
   
+  state.map.on('zoomend', updateMarkers);
   setTimeout(() => { state.map.invalidateSize(); }, 500);
 }
 
@@ -777,9 +721,11 @@ function updateMarkers() {
     let arr = [...state.flights.values()].sort((a,b) => a.dist - b.dist).slice(0, 300);
     if(state.selectedIcao && !arr.find(f => f.icao24 === state.selectedIcao)){ const sf = state.flights.get(state.selectedIcao); if(sf) arr.push(sf); }
     const currentIcaos = new Set(arr.map(f => f.icao24));
-
     for(const [icao, marker] of state.markers.entries()){ if(!currentIcaos.has(icao)){ state.map.removeLayer(marker); state.markers.delete(icao); } }
     
+    // V65: Tarkistetaan zoomaus tooltipeja varten
+    const showTooltip = state.map.getZoom() >= 8;
+
     for(const f of arr){
         let marker = state.markers.get(f.icao24);
         const isSel = f.icao24 === state.selectedIcao;
@@ -788,7 +734,10 @@ function updateMarkers() {
         if(!marker) {
             const icon = L.divIcon({ 
                 className: '', 
-                html: `<div class="plane-wrapper ${isSel?'sel':''}"><img src="${uri}" class="plane-img" style="transform: rotate(${f.track||0}deg)" /></div>`, 
+                html: `<div class="plane-wrapper ${isSel?'sel':''} ${showTooltip?'show-tooltip':''}">
+                         <img src="${uri}" class="plane-img" style="transform: rotate(${f.track||0}deg)" />
+                         <div class="plane-tooltip">${getFlightLabel(f)}</div>
+                       </div>`, 
                 iconSize: [0,0] 
             });
             marker = L.marker([f.curLat, f.curLon], {icon, zIndexOffset: isSel?1000:0}).addTo(state.map);
@@ -802,10 +751,8 @@ function updateMarkers() {
                 const img = el.querySelector('.plane-img');
                 if(img && wrapper) {
                     img.style.transform = `rotate(${f.track||0}deg)`;
-                    if(isSel !== wrapper.classList.contains('sel')) { 
-                        if(isSel) wrapper.classList.add('sel'); else wrapper.classList.remove('sel'); 
-                        img.src = uri; 
-                    }
+                    if(isSel !== wrapper.classList.contains('sel')) { if(isSel) wrapper.classList.add('sel'); else wrapper.classList.remove('sel'); img.src = uri; }
+                    if(showTooltip !== wrapper.classList.contains('show-tooltip')) { if(showTooltip) wrapper.classList.add('show-tooltip'); else wrapper.classList.remove('show-tooltip'); }
                 }
             }
             marker.setZIndexOffset(isSel?1000:0);
@@ -820,39 +767,24 @@ async function fetchFlights(){
     let radius = 250; if(zoom <= 5) radius = 500; if(zoom <= 4) radius = 1000;
     const res = await fetch(`https://api.airplanes.live/v2/point/${center.lat.toFixed(3)}/${center.lng.toFixed(3)}/${radius}`);
     if(!res.ok) throw new Error('API');
-    const json = await res.json();
-    const now = Date.now();
+    const json = await res.json(); const now = Date.now();
     let arr = (json.ac||[]).map(a => {
       if(a.lat==null || a.lon==null) return null;
-      let cs = (a.flight || '').trim();
-      return {
-        icao24: a.hex, callsign: cs,
-        type: a.t || 'Unknown', desc: a.desc || '', reg: a.r || '—',
-        lon: a.lon, lat: a.lat, baro_alt: a.alt_baro === 'ground' ? 0 : (a.alt_baro || a.alt_geom || 0), 
-        on_ground: a.alt_baro === 'ground', velocity: a.gs || 0, track: a.track || 0, 
-        vertical_rate: a.baro_rate || 0, squawk: a.squawk || '—', oat: a.oat, ws: a.ws, wd: a.wd,
-        sampleTime: now, curLat: a.lat, curLon: a.lon, 
-        dist: haversine(state.userLat, state.userLon, a.lat, a.lon), full_trace_loaded: false
-      };
+      return { icao24: a.hex, callsign: (a.flight||'').trim(), type: a.t||'Unknown', desc: a.desc||'', reg: a.r||'—', lon: a.lon, lat: a.lat, baro_alt: a.alt_baro === 'ground'?0:(a.alt_baro||a.alt_geom||0), on_ground: a.alt_baro === 'ground', velocity: a.gs||0, track: a.track||0, vertical_rate: a.baro_rate||0, squawk: a.squawk||'—', oat: a.oat, ws: a.ws, wd: a.wd, sampleTime: now, curLat: a.lat, curLon: a.lon, dist: haversine(state.userLat, state.userLon, a.lat, a.lon), full_trace_loaded: false };
     }).filter(Boolean);
 
     const seen = new Set();
     for(const nf of arr){ 
         seen.add(nf.icao24); const old = state.flights.get(nf.icao24); 
         if(old){ 
-            nf.history = old.history || [];
-            nf.full_trace_loaded = old.full_trace_loaded;
-            nf.route = old.route; 
-            nf.visProgress = old.visProgress;
+            nf.history = old.history || []; nf.full_trace_loaded = old.full_trace_loaded; nf.route = old.route; nf.visProgress = old.visProgress;
             if(!nf.callsign && old.callsign) nf.callsign = old.callsign;
-            
             if (old.curLat !== nf.lat || old.curLon !== nf.lon) nf.history.push([old.curLat, old.curLon]); 
             if(!nf.full_trace_loaded && nf.history.length > 300) nf.history.shift(); 
             Object.assign(old, nf); 
         } else { nf.history = [[nf.lat, nf.lon]]; state.flights.set(nf.icao24, nf); } 
     }
     for(const icao of state.flights.keys()){ if(!seen.has(icao)) state.flights.delete(icao); }
-    
     $('mapStatusText').textContent = `${state.flights.size} Live`; $('sheetSub').textContent = `${state.flights.size} Aircraft in Range`; $('dotStatus').classList.remove('warn');
   }catch(e){ $('dotStatus').classList.add('warn'); $('mapStatusText').textContent = 'Network Error'; } 
   finally{ renderList(); updateMarkers(); setTimeout(fetchFlights, 10000); } 
@@ -860,130 +792,62 @@ async function fetchFlights(){
 
 async function fetchFullTrace(icao24) {
     const f = state.flights.get(icao24);
-    if(!f || f.full_trace_loaded) {
-        if(f && f.full_trace_loaded) state.pastPath.setLatLngs(f.history);
-        return;
-    }
-    try {
-        const res = await fetch(`https://api.airplanes.live/v2/trace/${icao24}`);
-        if(res.ok) {
-            const data = await res.json();
-            if(data && data.trace && data.trace.length > 0) {
-                const apiHistory = data.trace.map(pt => [pt[1], pt[2]]);
-                f.history = [...apiHistory, [f.curLat, f.curLon]];
-                f.full_trace_loaded = true;
-                if(state.selectedIcao === icao24) { state.pastPath.setLatLngs(f.history); }
-            }
-        }
-    } catch(e) {}
+    if(!f || f.full_trace_loaded) { if(f && f.full_trace_loaded) state.pastPath.setLatLngs(f.history); return; }
+    try { const res = await fetch(`https://api.airplanes.live/v2/trace/${icao24}`); if(res.ok) { const data = await res.json(); if(data?.trace?.length > 0) { f.history = [...data.trace.map(pt => [pt[1], pt[2]]), [f.curLat, f.curLon]]; f.full_trace_loaded = true; if(state.selectedIcao === icao24) state.pastPath.setLatLngs(f.history); } } } catch(e) {}
 }
 
 function startAnimation(){
   setInterval(() => { updateMarkers(); }, 1000);
   const fmtTime = d => d.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-
   const tick = (t) => {
     requestAnimationFrame(tick);
     if(!state.animLast) { state.animLast = t; return; }
     const dt = Math.min((t - state.animLast)/1000, 0.1); state.animLast = t;
-
     for(const f of state.flights.values()){
       if(f.velocity && !f.on_ground) {
-          const tRad = (f.track||0) * Math.PI/180, sMs = f.velocity * 0.514444, dM = sMs * dt;
-          f.curLat += (dM * Math.cos(tRad))/111320; 
-          f.curLon += (dM * Math.sin(tRad))/(111320 * Math.max(0.2, Math.cos(f.lat*Math.PI/180)));
-          if (state.selectedIcao === f.icao24) { const marker = state.markers.get(f.icao24); if (marker) marker.setLatLng([f.curLat, f.curLon]); }
+          const tRad = (f.track||0)*Math.PI/180, dM = f.velocity*0.514444*dt;
+          f.curLat += (dM*Math.cos(tRad))/111320; f.curLon += (dM*Math.sin(tRad))/(111320*Math.max(0.2, Math.cos(f.lat*Math.PI/180)));
+          if (state.selectedIcao === f.icao24) { const m = state.markers.get(f.icao24); if (m) m.setLatLng([f.curLat, f.curLon]); }
       }
     }
-
     if(state.selectedIcao){
       const sf = state.flights.get(state.selectedIcao);
       if(sf) {
           sf.dist = haversine(state.userLat, state.userLon, sf.curLat, sf.curLon);
-          $('dAlt').textContent=fmtFt(sf.baro_alt, sf.on_ground); $('dSpd').textContent=fmtKt(sf.velocity);
-          $('hudAlt').textContent=fmtFt(sf.baro_alt, sf.on_ground); $('hudSpd').textContent=fmtKt(sf.velocity);
-          
-          const oh = calculateOverhead(sf);
-          const badge = $('dOverhead'); badge.className = 'overhead-badge'; 
-          if(oh && oh.status !== 'none') { badge.classList.add(oh.status); badge.textContent = oh.text; $('ifRoute').textContent = oh.text; 
-          } else { badge.classList.add('none'); $('ifRoute').textContent = 'Tracking Active'; }
-
-          let targetProgress = 0; let flownMins = 0; let remainMins = 0;
-          let currentGS = Math.max(sf.velocity || 0, 50);
-
+          $('dAlt').textContent=fmtFt(sf.baro_alt, sf.on_ground); $('dSpd').textContent=fmtKt(sf.velocity); $('hudAlt').textContent=fmtFt(sf.baro_alt, sf.on_ground); $('hudSpd').textContent=fmtKt(sf.velocity);
+          const oh = calculateOverhead(sf); const badge = $('dOverhead'); badge.className = 'overhead-badge'; 
+          if(oh && oh.status !== 'none') { badge.classList.add(oh.status); badge.textContent = oh.text; $('ifRoute').textContent = oh.text; } else { badge.classList.add('none'); $('ifRoute').textContent = 'Tracking Active'; }
+          let tp=0, fMins=0, rMins=0, cGS = Math.max(sf.velocity||0, 50);
           if (sf.route && sf.route.depLat && sf.route.arrLat) {
-              const flownDist = haversine(sf.route.depLat, sf.route.depLon, sf.curLat, sf.curLon);
-              let remainDist = haversine(sf.curLat, sf.curLon, sf.route.arrLat, sf.route.arrLon);
-              
-              remainDist *= 1.05; 
-              const totalDist = flownDist + remainDist; 
-              
-              targetProgress = Math.min(100, Math.max(0, (flownDist / totalDist) * 100));
-              
-              let assumedGS = currentGS;
-              if (remainDist > 200 && sf.baro_alt > 10000 && currentGS < 350) assumedGS = 420; 
-              
-              remainMins = (remainDist / assumedGS) * 60;
-              let avgFlownGS = Math.max(currentGS * 0.85, 300); 
-              flownMins = (flownDist / avgFlownGS) * 60;
-              
-              if(sf.on_ground && remainDist < 50) { targetProgress = 100; remainMins = 0; }
-              if(sf.on_ground && flownDist < 50) { targetProgress = 0; flownMins = 0; }
-              
-              $('dRemainNM').textContent = remainDist > 0 ? `${Math.round(remainDist).toLocaleString('en-US')} NM` : '— NM';
+              const fDist = haversine(sf.route.depLat, sf.route.depLon, sf.curLat, sf.curLon);
+              let rDist = haversine(sf.curLat, sf.curLon, sf.route.arrLat, sf.route.arrLon) * 1.05; 
+              tp = Math.min(100, Math.max(0, (fDist / (fDist + rDist)) * 100));
+              let aGS = cGS; if (rDist > 200 && sf.baro_alt > 10000 && cGS < 350) aGS = 420; 
+              rMins = (rDist / aGS) * 60; fMins = (fDist / Math.max(cGS * 0.85, 300)) * 60;
+              if(sf.on_ground && rDist < 50) { tp = 100; rMins = 0; } if(sf.on_ground && fDist < 50) { tp = 0; fMins = 0; }
+              $('dRemainNM').textContent = rDist > 0 ? `${Math.round(rDist).toLocaleString('en-US')} NM` : '— NM';
           } else {
-              if (sf.on_ground) { targetProgress = 2; }
-              else {
-                  let traceDist = 0;
-                  if(sf.history && sf.history.length > 1) {
-                      for(let i=1; i<sf.history.length; i++) traceDist += haversine(sf.history[i-1][0], sf.history[i-1][1], sf.history[i][0], sf.history[i][1]);
-                  }
-                  flownMins = (traceDist / Math.max(sf.velocity || 250, 250)) * 60;
-                  targetProgress = Math.min(95, 10 + traceDist/20);
-              }
+              if (sf.on_ground) tp = 2; else { let tDist = 0; if(sf.history?.length>1) { for(let i=1; i<sf.history.length; i++) tDist += haversine(sf.history[i-1][0], sf.history[i-1][1], sf.history[i][0], sf.history[i][1]); } fMins = (tDist / Math.max(sf.velocity||250, 250)) * 60; tp = Math.min(95, 10 + tDist/20); }
               $('dRemainNM').textContent = `— NM`;
           }
-
-          sf.visProgress = sf.visProgress !== undefined ? sf.visProgress + (targetProgress - sf.visProgress) * 0.05 : targetProgress;
+          sf.visProgress = sf.visProgress !== undefined ? sf.visProgress + (tp - sf.visProgress) * 0.05 : tp;
+          const now = new Date(); $('bpTimeFlown').textContent = fMins > 0 ? fmtTime(new Date(now.getTime() - fMins * 60000)) : "--:--"; $('bpTimeRemain').textContent = sf.route && tp < 100 ? fmtTime(new Date(now.getTime() + rMins * 60000)) : (tp >= 100 ? "ARRIVED" : "LIVE");
+          updateFlightPath(sf.visProgress, sf.baro_alt); updatePassengerExperience(sf);
           
-          const now = new Date();
-          const depTime = new Date(now.getTime() - flownMins * 60000);
-          const arrTime = new Date(now.getTime() + remainMins * 60000);
-
-          $('bpTimeFlown').textContent = flownMins > 0 ? fmtTime(depTime) : "--:--";
-          $('bpTimeRemain').textContent = sf.route && targetProgress < 100 ? fmtTime(arrTime) : (targetProgress >= 100 ? "ARRIVED" : "LIVE");
-
-          updateFlightPath(sf.visProgress, sf.baro_alt);
-          updatePassengerExperience(sf);
-          
-          // V64: Aito Live Arrival Gate päivitys
-          const b = $('arrTerminalGateBadge');
-          const t = $('arrBadgeTxt');
-          const ld = $('liveArrDot');
+          const b = $('arrTerminalGateBadge'), t = $('arrBadgeTxt'), ld = $('liveArrDot');
           if (sf.route) {
-              b.classList.add('show');
-              let aGate = $('bpArrGate').textContent;
-              if (targetProgress >= 100) { 
-                  t.textContent = "Arrived at Gate " + aGate; ld.style.display = 'none'; 
-              } else if (remainMins < 15 && sf.baro_alt < 5000 && !sf.on_ground) { 
-                  t.textContent = `Approaching Airport`; ld.style.display = 'inline-block'; ld.style.background = 'var(--apple-green)'; ld.style.boxShadow = '0 0 8px var(--apple-green)';
-              } else if (remainMins < 15 && sf.on_ground) { 
-                  t.textContent = `Taxiing to Gate ` + aGate; ld.style.display = 'inline-block'; ld.style.background = 'var(--apple-green)'; ld.style.boxShadow = '0 0 8px var(--apple-green)';
-              } else { 
-                  t.textContent = `Expected Gate ` + aGate; ld.style.display = 'none';
-              }
+              b.classList.add('show'); let aGate = $('bpArrGate').textContent;
+              if (tp >= 100) { t.textContent = "Arrived at Gate " + aGate; ld.style.display = 'none'; } 
+              else if (rMins < 15 && sf.baro_alt < 5000 && !sf.on_ground) { t.textContent = `Approaching Airport`; ld.style.display = 'inline-block'; ld.style.background = 'var(--apple-green)'; ld.style.boxShadow = '0 0 8px var(--apple-green)'; } 
+              else if (rMins < 15 && sf.on_ground) { t.textContent = `Taxiing to Gate ` + aGate; ld.style.display = 'inline-block'; ld.style.background = 'var(--apple-green)'; ld.style.boxShadow = '0 0 8px var(--apple-green)'; } 
+              else { t.textContent = `Expected Gate ` + aGate; ld.style.display = 'none'; }
           } else { b.classList.remove('show'); }
 
-          if(sf.history && sf.history.length > 0) {
-              const currentPath = [...sf.history];
-              currentPath[currentPath.length - 1] = [sf.curLat, sf.curLon];
-              state.pastPath.setLatLngs(currentPath);
-          }
-          
-          const d = 100, R = 6371, l1 = sf.curLat * Math.PI/180, n1 = sf.curLon * Math.PI/180, tr = (sf.track || 0) * Math.PI/180;
+          if(sf.history && sf.history.length > 0) { const cp = [...sf.history]; cp[cp.length - 1] = [sf.curLat, sf.curLon]; state.pastPath.setLatLngs(cp); }
+          const d = 100, R = 6371, l1 = sf.curLat*Math.PI/180, n1 = sf.curLon*Math.PI/180, tr = (sf.track||0)*Math.PI/180;
           const l2 = Math.asin( Math.sin(l1)*Math.cos(d/R) + Math.cos(l1)*Math.sin(d/R)*Math.cos(tr) );
           const n2 = n1 + Math.atan2(Math.sin(tr)*Math.sin(d/R)*Math.cos(l1), Math.cos(d/R)-Math.sin(l1)*Math.sin(l2));
-          state.futurePath.setLatLngs([[sf.curLat, sf.curLon], [l2 * 180/Math.PI, n2 * 180/Math.PI]]);
+          state.futurePath.setLatLngs([[sf.curLat, sf.curLon], [l2*180/Math.PI, n2*180/Math.PI]]);
       }
     }
   };
@@ -994,21 +858,28 @@ function renderList(){
   const q = state.search?.trim().toLowerCase() || "";
   let arr = [...state.flights.values()].sort((a,b) => (a.dist??999) - (b.dist??999));
   if(q) arr = arr.filter(f => ((f.callsign||'') + f.icao24).toLowerCase().includes(q));
-  if(!arr.length && state.flights.size === 0){ return; } 
-
+  if(!arr.length && state.flights.size === 0) return; 
   if(!arr.length && state.flights.size > 0){ $('flightList').innerHTML = `<div class="empty">No flights matching search.</div>`; return; }
 
   $('flightList').innerHTML = arr.slice(0,80).map(f => {
-    const imgHtml = `<svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>`;
-    const oh = calculateOverhead(f);
-    let ohText = oh && oh.status === 'approaching' ? `<span style="color:var(--apple-green); font-weight:600;">${oh.text}</span>` : '';
     let cs = f.callsign || f.icao24.toUpperCase();
+    
+    // V65: Kuvan näyttö listassa
+    let photoUrl = state.photoCache.get(f.icao24);
+    if (!photoUrl) { fetchPlanePhoto(f.icao24); } // Laukaisuhaku taustalle
+    
+    let imgStyle = photoUrl && photoUrl !== 'loading' ? 'opacity: 1;' : 'opacity: 0;';
+    let realImgSrc = photoUrl && photoUrl !== 'loading' ? photoUrl : '';
+
     return `
     <div class="card" onclick="openDetailUI('${f.icao24}')">
-      <div class="plane-badge">${imgHtml}</div>
+      <div class="plane-badge">
+        <svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
+        <img id="p-img-${f.icao24}" src="${realImgSrc}" style="${imgStyle}" />
+      </div>
       <div class="card-main">
         <div class="card-call">${cs.replace(/[<>]/g,'')}</div>
-        <div class="card-sub">${f.type} ${f.reg!=='—'?'• '+f.reg:''} ${ohText ? ' • '+ohText : ''}</div>
+        <div class="card-sub">${f.type} ${f.reg!=='—'?'• '+f.reg:''}</div>
       </div>
       <svg class="card-chevron" viewBox="0 0 24 24"><path d="M9.29 15.88L13.17 12 9.29 8.12c-.39-.39-.39-1.02 0-1.41.39-.39 1.02-.39 1.41 0l4.59 4.59c.39.39.39 1.02 0 1.41L10.7 17.3c-.39.39-1.02.39-1.41 0-.38-.39-.39-1.03 0-1.42z"/></svg>
     </div>`
@@ -1020,7 +891,6 @@ window.openDetailUI = async function(icao24) {
   state.selectedIcao = icao24; const f = state.flights.get(icao24); if(!f) return;
 
   $('sheet').classList.add('mode-detail'); $('sheet').classList.add('full'); $('sheet').classList.remove('expanded');
-  
   let dCall = f.callsign || f.icao24.toUpperCase();
   $('island').classList.add('focus'); $('ifCall').textContent = dCall; $('hudWrap').classList.add('show');
   $('detailControls').style.display = 'flex';
@@ -1030,110 +900,54 @@ window.openDetailUI = async function(icao24) {
   $('dIcao').textContent = f.icao24.toUpperCase();
   $('dModel').textContent = f.desc || (f.type !== 'Unknown' ? f.type : 'Loading...'); $('dReg').textContent = f.reg;
   
-  $('dPax').textContent = '—'; $('dMtow').textContent = '—'; $('dFuel').textContent = '—'; $('dLen').textContent = '—';
-  $('dEng').textContent = '—'; $('dThrust').textContent = '—';
-  
+  $('dPax').textContent = '—'; $('dMtow').textContent = '—'; $('dFuel').textContent = '—'; $('dLen').textContent = '—'; $('dEng').textContent = '—'; $('dThrust').textContent = '—';
   const specs = aircraftSpecs[f.type];
-  if(specs) { 
-      $('dPax').textContent = specs.pax; $('dMtow').textContent = specs.mtow; 
-      $('dFuel').textContent = specs.fuel; $('dLen').textContent = specs.len;
-      if (specs.eng) $('dEng').textContent = specs.eng;
-      if (specs.thrust) $('dThrust').textContent = specs.thrust;
-  }
+  if(specs) { $('dPax').textContent = specs.pax; $('dMtow').textContent = specs.mtow; $('dFuel').textContent = specs.fuel; $('dLen').textContent = specs.len; if (specs.eng) $('dEng').textContent = specs.eng; if (specs.thrust) $('dThrust').textContent = specs.thrust; }
   
   let al = null;
-  if(f.callsign && f.callsign.length >= 3) {
-      let code3 = f.callsign.substring(0,3).toUpperCase();
-      if(airlines[code3]) al = airlines[code3];
-  }
-  
+  if(f.callsign && f.callsign.length >= 3) { let code3 = f.callsign.substring(0,3).toUpperCase(); if(airlines[code3]) al = airlines[code3]; }
   if(al) {
-      $('dAirline').textContent = al.n;
-      $('bpHeaderBg').style.background = al.c;
-      if(al.c === '#FFCC00' || al.c === '#73CBE6' || al.c === '#FF7A00') { $('bpLogo').style.color = '#000'; } 
-      else { $('bpLogo').style.color = al.c; }
-      $('bpLogo').textContent = al.n.substring(0,2).toUpperCase();
-      $('dOperator').textContent = al.n;
+      $('dAirline').textContent = al.n; $('bpHeaderBg').style.background = al.c;
+      if(al.c === '#FFCC00' || al.c === '#73CBE6' || al.c === '#FF7A00') { $('bpLogo').style.color = '#000'; } else { $('bpLogo').style.color = al.c; }
+      $('bpLogo').textContent = al.n.substring(0,2).toUpperCase(); $('dOperator').textContent = al.n;
   } else {
-      $('dAirline').textContent = 'Commercial Flight';
-      $('bpHeaderBg').style.background = 'var(--apple-blue)';
-      $('bpLogo').style.color = 'var(--apple-blue)';
-      $('bpLogo').textContent = 'FL';
-      $('dOperator').textContent = '—';
+      $('dAirline').textContent = 'Commercial Flight'; $('bpHeaderBg').style.background = 'var(--apple-blue)'; $('bpLogo').style.color = 'var(--apple-blue)'; $('bpLogo').textContent = 'FL'; $('dOperator').textContent = '—';
   }
 
-  // V64: Laajennetut portit ja fiksusti generoitu tulo-portti
   const hash = dCall.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a }, 0);
-  const gates = ['A12', 'B22', 'C4', 'D10', 'E1', 'F14', 'G3', 'H8', 'A5', 'B7', 'E12', '14', '26', '8A', '9B', 'F2', 'D5'];
-  const seats = ['1A', '4F', '12B', '15C', '22A', '34J', '7C', '2F', '10A', '18D', '11C', '3A', '5B', '14D'];
+  const gates = ['A12','B22','C4','D10','E1','F14','G3','H8','A5','B7','E12','14','26','8A','9B','F2','D5'];
+  const seats = ['1A','4F','12B','15C','22A','34J','7C','2F','10A','18D','11C','3A','5B','14D'];
+  $('bpDepGate').textContent = gates[Math.abs(hash) % gates.length]; $('bpSeat').textContent = seats[Math.abs(hash * 3) % seats.length]; $('bpArrGate').textContent = gates[Math.abs(hash * 7) % gates.length];
   
-  $('bpDepGate').textContent = gates[Math.abs(hash) % gates.length];
-  $('bpSeat').textContent = seats[Math.abs(hash * 3) % seats.length];
-  $('bpArrGate').textContent = gates[Math.abs(hash * 7) % gates.length];
-  
-  $('bpDep').textContent = '—'; $('bpDepName').textContent = 'Fetching...';
-  $('bpArr').textContent = '—'; $('bpArrName').textContent = 'Fetching...';
-  updateCityAvatar('depAvatar', 'depAvatarWrap', null);
-  updateCityAvatar('arrAvatar', 'arrAvatarWrap', null);
-  $('arrTerminalImg').style.opacity = '0';
-  $('arrImgGrad').style.opacity = '0';
-  $('arrTerminalGateBadge').classList.remove('show');
-  
-  $('bpTimeFlown').textContent = "--:--"; $('bpTimeRemain').textContent = "--:--";
-  $('dRemainNM').textContent = "— NM";
+  $('bpDep').textContent = '—'; $('bpDepName').textContent = 'Fetching...'; $('bpArr').textContent = '—'; $('bpArrName').textContent = 'Fetching...';
+  updateCityAvatar('depAvatar', 'depAvatarWrap', null); updateCityAvatar('arrAvatar', 'arrAvatarWrap', null);
+  $('arrTerminalImg').style.opacity = '0'; $('arrImgGrad').style.opacity = '0'; $('arrTerminalGateBadge').classList.remove('show');
+  $('bpTimeFlown').textContent = "--:--"; $('bpTimeRemain').textContent = "--:--"; $('dRemainNM').textContent = "— NM";
 
   if(f.callsign) {
       fetchFlightRoute(f.callsign).then(async route => {
           if(route) {
-              f.route = route; 
-              $('bpDep').textContent = route.dep;
-              $('bpDepName').textContent = route.depName;
-              $('bpArr').textContent = route.arr;
-              $('bpArrName').textContent = route.arrName;
-              
-              updateCityAvatar('depAvatar', 'depAvatarWrap', route.depName);
-              updateCityAvatar('arrAvatar', 'arrAvatarWrap', route.arrName);
-              
-              // V64: Viedään route-objekti suoraan kuvahakuun satelliittikarttaa varten
+              f.route = route; $('bpDep').textContent = route.dep; $('bpDepName').textContent = route.depName; $('bpArr').textContent = route.arr; $('bpArrName').textContent = route.arrName;
+              updateCityAvatar('depAvatar', 'depAvatarWrap', route.depName); updateCityAvatar('arrAvatar', 'arrAvatarWrap', route.arrName);
               const tImgUrl = await fetchArrivalTerminalImage(route);
-              if (tImgUrl) {
-                  $('arrTerminalImg').src = tImgUrl;
-                  $('arrTerminalImg').onload = () => { 
-                      $('arrTerminalImg').style.opacity = '1'; 
-                      $('arrImgGrad').style.opacity = '1';
-                  };
-              }
-          } else {
-              $('bpDep').textContent = 'N/A'; $('bpDepName').textContent = 'Unknown';
-              $('bpArr').textContent = 'N/A'; $('bpArrName').textContent = 'Unknown';
-          }
+              if (tImgUrl) { $('arrTerminalImg').src = tImgUrl; $('arrTerminalImg').onload = () => { $('arrTerminalImg').style.opacity = '1'; $('arrImgGrad').style.opacity = '1'; }; }
+          } else { $('bpDep').textContent = 'N/A'; $('bpDepName').textContent = 'Unknown'; $('bpArr').textContent = 'N/A'; $('bpArrName').textContent = 'Unknown'; }
       });
-  } else {
-      $('bpDep').textContent = 'N/A'; $('bpDepName').textContent = 'Unknown';
-      $('bpArr').textContent = 'N/A'; $('bpArrName').textContent = 'Unknown';
-  }
+  } else { $('bpDep').textContent = 'N/A'; $('bpDepName').textContent = 'Unknown'; $('bpArr').textContent = 'N/A'; $('bpArrName').textContent = 'Unknown'; }
 
   updateFlightPath(0, f.baro_alt);
-  setTimeout(() => { 
-      updateFlightPath(f.visProgress || 0, f.baro_alt); 
-      updatePassengerExperience(f);
-  }, 50);
+  setTimeout(() => { updateFlightPath(f.visProgress || 0, f.baro_alt); updatePassengerExperience(f); }, 50);
   
-  state.map.setView([f.curLat, f.curLon], 9, {animate:true}); updateMarkers(); 
-  fetchFullTrace(icao24);
+  state.map.setView([f.curLat, f.curLon], 9, {animate:true}); updateMarkers(); fetchFullTrace(icao24);
 
   try {
       const dbRes = await fetch(`https://api.adsbdb.com/v0/aircraft/${icao24.toLowerCase()}`);
       if(dbRes.ok) {
-          const data = await dbRes.json();
-          const m = data?.response?.aircraft;
+          const data = await dbRes.json(); const m = data?.response?.aircraft;
           if(m) {
               if (!f.desc && f.type === 'Unknown') $('dModel').textContent = `${m.manufacturer} ${m.type}`;
               $('dOperator').textContent = m.registered_owner || m.icao_type || $('dOperator').textContent;
-              if(m.registered_owner && !al) {
-                  $('dAirline').textContent = m.registered_owner.substring(0, 15);
-                  $('bpLogo').textContent = m.registered_owner.substring(0,2).toUpperCase();
-              }
+              if(m.registered_owner && !al) { $('dAirline').textContent = m.registered_owner.substring(0, 15); $('bpLogo').textContent = m.registered_owner.substring(0,2).toUpperCase(); }
           } else { if(!al) $('dOperator').textContent = 'Private / Unavailable'; }
       } else { if(!al) $('dOperator').textContent = 'Private / Unavailable'; }
   } catch(e){ if(!al) $('dOperator').textContent = 'Database Unreachable'; }
@@ -1142,18 +956,13 @@ window.openDetailUI = async function(icao24) {
 $('detailClose').addEventListener('click', () => {
     state.selectedIcao = null; state.pastPath.setLatLngs([]); state.futurePath.setLatLngs([]);
     $('sheet').classList.remove('mode-detail'); $('sheet').classList.remove('full'); $('sheet').classList.add('expanded');
-    $('island').classList.remove('focus'); $('hudWrap').classList.remove('show'); 
-    $('detailControls').style.display = 'none';
-    renderList(); updateMarkers();
-    setTimeout(() => { state.map.invalidateSize(); }, 500);
+    $('island').classList.remove('focus'); $('hudWrap').classList.remove('show'); $('detailControls').style.display = 'none';
+    renderList(); updateMarkers(); setTimeout(() => { state.map.invalidateSize(); }, 500);
 });
 
 $('trackBtn').addEventListener('click', () => { if(navigator.vibrate) navigator.vibrate(25); const f = state.flights.get(state.selectedIcao); if(f) state.map.setView([f.curLat, f.curLon], 8, {animate:true}); });
-
 const openOverlay = (imgEl) => { if (imgEl.style.opacity !== '0' && imgEl.src && !imgEl.src.includes('data:image/gif')) { $('overlayImg').src = imgEl.src; $('imgOverlay').classList.add('open'); } };
-
 $('arrTerminalWrap').addEventListener('click', () => openOverlay($('arrTerminalImg')));
-
 $('imgClose').addEventListener('click', () => $('imgOverlay').classList.remove('open'));
 $('sheetGrab').addEventListener('click', () => { const s = $('sheet'); if(s.classList.contains('full')) { s.classList.remove('full'); s.classList.add('expanded'); } else if(s.classList.contains('expanded')) { s.classList.remove('expanded'); } else { s.classList.add('expanded'); } });
 $('sheetBtn').addEventListener('click', () => { $('sheet').classList.remove('mode-detail'); $('sheet').classList.remove('full'); $('sheet').classList.add('expanded'); $('detailControls').style.display = 'none';});
@@ -1161,15 +970,9 @@ $('searchInput').addEventListener('input', e => { state.search=e.target.value; r
 $('gpsBtn').addEventListener('click', () => { if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p=>setUserLocation(p.coords.latitude, p.coords.longitude, 8)); });
 $('turkuBtn').addEventListener('click', () => { setUserLocation(60.4518, 22.2666, 8); });
 
-// KÄYNNISTYS
 window.addEventListener('resize', () => { if(state.map) { state.map.invalidateSize(); }});
 window.addEventListener('orientationchange', () => { setTimeout(() => { if(state.map) state.map.invalidateSize(); }, 200); });
-window.onload = () => { 
-    initMap(); 
-    setUserLocation(60.4518, 22.2666, 6); 
-    startAnimation(); 
-    fetchFlights(); 
-};
+window.onload = () => { initMap(); setUserLocation(60.4518, 22.2666, 6); startAnimation(); fetchFlights(); };
 </script>
 </body>
 </html>
