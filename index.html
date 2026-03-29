@@ -172,7 +172,6 @@ body { user-select: none; background: #000;}
 .w-city { display: flex; flex-direction: column; width: 72px; position: relative; }
 .w-city.right { align-items: flex-end; text-align: right; }
 
-/* V67: Isot ja upeat pyöristetyt kuvakkeet kaupungeille (Wikipedia) */
 .city-avatar { width: 60px; height: 60px; border-radius: 18px; background: var(--bg-secondary); margin-bottom: 8px; border: 0.5px solid var(--glass-border); overflow: hidden; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 12px rgba(0,0,0,0.06); opacity: 0; transition: opacity 0.5s ease, transform 0.2s; cursor: pointer; }
 .city-avatar:active { transform: scale(0.92); }
 .city-avatar img { width: 100%; height: 100%; object-fit: cover; }
@@ -192,7 +191,6 @@ body { user-select: none; background: #000;}
 .path-fill { fill: none; stroke: var(--apple-blue); stroke-width: 3.5; stroke-linecap: round; transition: stroke-dashoffset 0.8s ease-out; }
 .w-timeline-icon { position: absolute; width: 28px; height: 28px; fill: var(--apple-blue); filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2)); transition: left 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), top 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.5s ease-out; margin-left: -14px; margin-top: -14px; z-index: 10; }
 
-/* V67: Lentokonekuva Boarding Passin sisälle */
 .w-plane-img-wrap { margin: 0 28px 24px; height: 140px; border-radius: 16px; background: var(--bg-primary); overflow: hidden; position: relative; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.06); border: 0.5px solid var(--glass-border); transition: transform 0.2s; }
 .w-plane-img-wrap:active { transform: scale(0.98); }
 .w-plane-img-wrap img { width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.5s ease; }
@@ -289,7 +287,7 @@ body { user-select: none; background: #000;}
   <div class="island" id="island">
     <div class="brand">
         <div class="brand-icon"><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div>
-        <div class="brand-text">Over<span>head</span> <span class="v-badge">v67</span></div>
+        <div class="brand-text">Over<span>head</span> <span class="v-badge">v68</span></div>
     </div>
     <div class="searchbox"><svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><input id="searchInput" placeholder="Search callsign..." autocomplete="off" autocorrect="off" spellcheck="false" /></div>
     <div class="island-flight" id="islandFlight"><div class="if-main"><div class="if-call" id="ifCall">FLIGHT</div><div class="if-route" id="ifRoute">Tracking Active</div></div></div>
@@ -373,23 +371,24 @@ body { user-select: none; background: #000;}
                   </div>
               </div>
 
-              <!-- V67 Plane Image within Boarding Pass -->
+              <!-- V67/68 Plane Image within Boarding Pass -->
               <div class="w-plane-img-wrap" id="wPlaneWrap" style="display: none;">
                   <img id="wPlaneImg" src="" />
                   <div id="wPlaneAttr" class="w-plane-attr"></div>
               </div>
               
+              <!-- V68: Spotter-tiedot korvaavat feikkipenkit -->
               <div class="w-extra-row">
                   <div class="w-extra-item">
-                      <div class="w-label">Dep Gate</div>
-                      <div class="w-val" id="bpDepGate">--</div>
+                      <div class="w-label">Altitude</div>
+                      <div class="w-val" id="bpAlt">--</div>
                   </div>
                   <div class="w-extra-item center">
-                      <div class="w-label">Seat</div>
-                      <div class="w-val" id="bpSeat">--</div>
+                      <div class="w-label">Speed</div>
+                      <div class="w-val" id="bpSpd">--</div>
                   </div>
                   <div class="w-extra-item right">
-                      <div class="w-label">Arr Gate</div>
+                      <div class="w-label">Gate</div>
                       <div class="w-val" id="bpArrGate">--</div>
                   </div>
               </div>
@@ -569,13 +568,11 @@ async function fetchPlanePhoto(icao24) {
                 const photoData = { url: p.thumbnail_large.src, author: p.photographer };
                 state.photoCache.set(icao24, photoData);
                 
-                // Listaus
                 const imgEl = document.getElementById('p-img-' + icao24);
                 if(imgEl) { imgEl.src = photoData.url; imgEl.style.opacity = '1'; }
                 const attrEl = document.getElementById('p-attr-' + icao24);
                 if(attrEl) { attrEl.textContent = '© ' + photoData.author; attrEl.style.display = 'block'; }
                 
-                // Boarding pass päivitys jos kyseessä valittu kone
                 if(state.selectedIcao === icao24) {
                     const wImg = $('wPlaneImg');
                     if(wImg) {
@@ -592,7 +589,6 @@ async function fetchPlanePhoto(icao24) {
     state.photoCache.set(icao24, null); return null;
 }
 
-// V67: Dynaaminen varakuva jos oikeaa ei löydy
 function generateCityAvatar(cityName) {
     const letter = (cityName || 'U').charAt(0).toUpperCase();
     const hash = [...(cityName||'U')].reduce((acc, char) => char.charCodeAt(0) + ((acc << 5) - acc), 0);
@@ -600,7 +596,6 @@ function generateCityAvatar(cityName) {
     return `data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="hsl(${hue}, 65%, 55%)"/><text x="50" y="66" font-family="-apple-system, sans-serif" font-size="48" font-weight="700" fill="white" text-anchor="middle">${letter}</text></svg>`;
 }
 
-// V67: Wikipedia API haku kaupunkikuville
 const cityImgCache = new Map();
 async function getCityImage(cityName) {
     if(!cityName || cityName === 'Unknown') return null;
@@ -629,12 +624,10 @@ async function updateCityAvatar(elId, wrapId, cityName) {
     const imgEl = $(elId), wrapEl = $(wrapId);
     if (!cityName || cityName === 'Unknown') { wrapEl.classList.remove('show'); imgEl.style.display = 'none'; return; }
     
-    // Näytä dynaaminen kirjain HETI
     imgEl.src = generateCityAvatar(cityName);
     imgEl.style.display = 'block'; 
     wrapEl.classList.add('show');
 
-    // Lataa oikea kuva taustalla
     const realImg = await getCityImage(cityName);
     if(realImg) {
         const tempImg = new Image();
@@ -870,7 +863,13 @@ function startAnimation(){
       const sf = state.flights.get(state.selectedIcao);
       if(sf) {
           sf.dist = haversine(state.userLat, state.userLon, sf.curLat, sf.curLon);
-          $('dAlt').textContent=fmtFt(sf.baro_alt, sf.on_ground); $('dSpd').textContent=fmtKt(sf.velocity); $('hudAlt').textContent=fmtFt(sf.baro_alt, sf.on_ground); $('hudSpd').textContent=fmtKt(sf.velocity);
+          $('dAlt').textContent=fmtFt(sf.baro_alt, sf.on_ground); $('dSpd').textContent=fmtKt(sf.velocity); 
+          $('hudAlt').textContent=fmtFt(sf.baro_alt, sf.on_ground); $('hudSpd').textContent=fmtKt(sf.velocity);
+          
+          // V68: Boarding Passin reaaliaikainen telemetria (korvasi Seat / Dep Gate -feikit)
+          $('bpAlt').textContent=fmtFt(sf.baro_alt, sf.on_ground);
+          $('bpSpd').textContent=fmtKt(sf.velocity);
+
           const oh = calculateOverhead(sf); const badge = $('dOverhead'); badge.className = 'overhead-badge'; 
           if(oh && oh.status !== 'none') { badge.classList.add(oh.status); badge.textContent = oh.text; $('ifRoute').textContent = oh.text; } else { badge.classList.add('none'); $('ifRoute').textContent = 'Tracking Active'; }
           let tp=0, fMins=0, rMins=0, cGS = Math.max(sf.velocity||0, 50);
@@ -974,15 +973,16 @@ window.openDetailUI = async function(icao24) {
 
   const hash = dCall.split('').reduce((a, b) => { a = ((a << 5) - a) + b.charCodeAt(0); return a & a }, 0);
   const gates = ['A12','B22','C4','D10','E1','F14','G3','H8','A5','B7','E12','14','26','8A','9B','F2','D5'];
-  const seats = ['1A','4F','12B','15C','22A','34J','7C','2F','10A','18D','11C','3A','5B','14D'];
-  $('bpDepGate').textContent = gates[Math.abs(hash) % gates.length]; $('bpSeat').textContent = seats[Math.abs(hash * 3) % seats.length]; $('bpArrGate').textContent = gates[Math.abs(hash * 7) % gates.length];
+  
+  $('bpArrGate').textContent = gates[Math.abs(hash * 7) % gates.length];
+  $('bpAlt').textContent = '—';
+  $('bpSpd').textContent = '—';
   
   $('bpDep').textContent = '—'; $('bpDepName').textContent = 'Fetching...'; $('bpArr').textContent = '—'; $('bpArrName').textContent = 'Fetching...';
   updateCityAvatar('depAvatar', 'depAvatarWrap', null); updateCityAvatar('arrAvatar', 'arrAvatarWrap', null);
   $('arrTerminalImg').style.opacity = '0'; $('arrImgGrad').style.opacity = '0'; $('arrTerminalGateBadge').classList.remove('show');
   $('bpTimeFlown').textContent = "--:--"; $('bpTimeRemain').textContent = "--:--"; $('dRemainNM').textContent = "— NM";
 
-  // Nollataan ja asetetaan lentokoneen kuva, jos sellainen on välimuistissa
   $('wPlaneImg').style.opacity = '0';
   $('wPlaneWrap').style.display = 'none';
   let pData = state.photoCache.get(icao24);
@@ -1031,7 +1031,6 @@ $('detailClose').addEventListener('click', () => {
 
 $('trackBtn').addEventListener('click', () => { if(navigator.vibrate) navigator.vibrate(25); const f = state.flights.get(state.selectedIcao); if(f) state.map.setView([f.curLat, f.curLon], 8, {animate:true}); });
 
-// V67 Kuvat isoksi katselutoiminto kaupungeille ja lentokoneille
 const openOverlay = (imgEl) => { if (imgEl.style.opacity !== '0' && imgEl.src && !imgEl.src.includes('data:image/svg')) { $('overlayImg').src = imgEl.src; $('imgOverlay').classList.add('open'); } };
 $('arrTerminalWrap').addEventListener('click', () => openOverlay($('arrTerminalImg')));
 $('wPlaneWrap').addEventListener('click', () => openOverlay($('wPlaneImg')));
