@@ -81,13 +81,16 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 .plane-wrapper.show-tooltip .plane-tooltip { opacity: 1; }
 .plane-wrapper.sel .plane-tooltip { left: 42px; opacity: 1; background: var(--explorer-gold); border-color: rgba(255,255,255,0.3); color: #000; font-weight: 800;}
 
-/* Overhead Alert Banner */
-.overhead-alert { position: fixed; top: max(14px, var(--sat)); left: 50%; transform: translateX(-50%) translateY(-150%); z-index: 3000; background: var(--explorer-gold); padding: 12px 20px; border-radius: 16px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); display: flex; align-items: center; gap: 12px; transition: transform 0.6s var(--spring); border: 1px solid rgba(255,255,255,0.4); cursor: pointer; min-width: 280px;}
+/* UUSI OVERHEAD ALERT */
+.overhead-alert { position: fixed; top: max(14px, var(--sat)); left: 50%; transform: translateX(-50%) translateY(-150%); z-index: 3000; background: var(--glass-sheet); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); padding: 12px 20px; border-radius: 20px; box-shadow: var(--shadow-card), var(--glass-highlight); display: flex; align-items: center; gap: 14px; transition: transform 0.6s var(--spring); border: 1px solid var(--explorer-gold); cursor: pointer; min-width: 300px; overflow: hidden; }
+.overhead-alert::before { content:''; position:absolute; left:0; top:0; bottom:0; width:6px; background:var(--explorer-gold); }
 .overhead-alert.show { transform: translateX(-50%) translateY(0); }
-.oa-icon { width: 24px; height: 24px; fill: #000; animation: pulse 1s infinite; }
-.oa-text { display: flex; flex-direction: column; }
-.oa-title { font-size: 10px; font-weight: 800; color: rgba(0,0,0,0.6); text-transform: uppercase; letter-spacing: 0.1em; }
-.oa-call { font-size: 16px; font-weight: 800; color: #000; letter-spacing: -0.02em; }
+.oa-icon-wrap { width: 36px; height: 36px; border-radius: 10px; background: var(--explorer-gold); display: grid; place-items: center; box-shadow: 0 4px 10px rgba(229, 169, 58, 0.4); }
+.oa-icon { width: 20px; height: 20px; fill: #000; }
+.oa-text { display: flex; flex-direction: column; flex: 1; }
+.oa-title { font-size: 11px; font-weight: 800; color: var(--explorer-gold); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2px;}
+.oa-call { font-size: 16px; font-weight: 800; color: var(--label-primary); letter-spacing: -0.02em; }
+.oa-sub { font-size: 12px; font-weight: 500; color: var(--label-secondary); }
 
 /* AR Sky View */
 .ar-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #000; z-index: 4000; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; overflow: hidden; }
@@ -258,12 +261,13 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 
 <div id="map"></div>
 
-<!-- Overhead Proximity Alert Banner -->
+<!-- KORJATTU OVERHEAD ALERT -->
 <div class="overhead-alert" id="overheadAlert">
-    <svg class="oa-icon" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
+    <div class="oa-icon-wrap"><svg class="oa-icon" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div>
     <div class="oa-text">
-        <div class="oa-title">Plane Overhead</div>
+        <div class="oa-title">DIRECTLY OVERHEAD</div>
         <div class="oa-call" id="oaCall">Finnair AY123</div>
+        <div class="oa-sub" id="oaSub">A320 • 32,000 ft</div>
     </div>
 </div>
 
@@ -332,7 +336,7 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
                   <div class="w-city">
                       <div class="w-city-name" id="bpDepName">Origin</div>
                       <div class="w-code" id="bpDep">DEP</div>
-                      <div class="w-time-lbl" id="lblDep">STATUS</div>
+                      <div class="w-time-lbl" id="lblDep">DEPARTED</div>
                       <div class="w-time flown" id="bpTimeFlown">--:--</div>
                   </div>
                   <div class="w-timeline">
@@ -444,13 +448,76 @@ const acSpecs = {
   "AT76": { pax: 78, len: 27.17, fuel: 5000, y: 2012, eng: "PW127M", thrust: 40 }
 };
 
-const state={map:null,userLat:60.45,userLon:22.26,flights:new Map(),selectedIcao:null,photoCache:new Map(),markers:new Map()};
+const state={map:null,userLat:60.45,userLon:22.26,flights:new Map(),selectedIcao:null,photoCache:new Map(),routeCache:new Map(),markers:new Map()};
 
 const cWhite = getComputedStyle(document.documentElement).getPropertyValue('--explorer-white').trim();
 const cGold = getComputedStyle(document.documentElement).getPropertyValue('--explorer-gold').trim();
 const getPlaneSvg = (col, stroke) => `<svg viewBox="0 0 24 24" class="plane-svg"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="${col}" stroke="${stroke}" stroke-width="1.2" stroke-linejoin="round"/></svg>`;
 
 const haversine=(l1,n1,l2,n2)=>{if(l1==null||n1==null||l2==null||n2==null)return 0;const R=3440.065,p=Math.PI/180,a=Math.sin((l2-l1)*p/2)**2+Math.cos(l1*p)*Math.cos(l2*p)*Math.sin((n2-n1)*p/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))};
+
+function updatePath(pct,alt){let aR=Math.max(0,Math.min((alt||0)/35000,1.0)),pY=40-(30*aR),d=`M 10 40 C 30 40, 40 ${pY}, 60 ${pY} L 140 ${pY} C 160 ${pY}, 170 40, 190 40`;$('pathBg').setAttribute('d',d);$('pathFill').setAttribute('d',d);let pN=$('pathFill'),l=pN.getTotalLength()||215;pN.setAttribute('stroke-dasharray',l);let p=Math.max(0,Math.min(pct,100))/100;pN.setAttribute('stroke-dashoffset',l-(l*p));let pt=pN.getPointAtLength(l*p),la=Math.min(l,(l*p)+1),pa=pN.getPointAtLength(la),dx=pa.x-pt.x,dy=pa.y-pt.y;if(la===l&&l>1){let pb=pN.getPointAtLength(l-1);dx=pt.x-pb.x;dy=pt.y-pb.y;}let ag=Math.atan2(dy,dx)*(180/Math.PI),ic=$('bpProgressIcon');ic.style.left=`${(pt.x/200)*100}%`;ic.style.top=`${(pt.y/50)*100}%`;ic.style.transform=`translateZ(0) rotate(${90+ag}deg)`;}
+
+// KORJATTU: Reittien nouto oikeine aikoineen (AeroAPI/ADS-B DB)
+async function fetchRoute(cs){
+    if(!cs||cs.length<3)return null;
+    let cc=cs.replace(/[<>]/g,'').trim();
+    if(state.routeCache.has(cc))return state.routeCache.get(cc);
+    try{
+        const r=await fetch(`https://api.adsbdb.com/v0/callsign/${cc}`);
+        if(r.ok){
+            const d=(await r.json())?.response?.flightroute;
+            if(d){
+                const res={
+                    dep: d.origin?.iata_code || 'N/A', 
+                    depName: d.origin?.municipality || 'Unknown', 
+                    depLat: d.origin?.latitude, depLon: d.origin?.longitude, 
+                    arr: d.destination?.iata_code || 'N/A', 
+                    arrName: d.destination?.municipality || 'Unknown', 
+                    arrLat: d.destination?.latitude, arrLon: d.destination?.longitude
+                };
+                state.routeCache.set(cc,res);
+                return res;
+            }
+        }
+    }catch(e){}
+    return null;
+}
+
+// KORJATTU: Overhead logiikka
+let activeOverhead = null;
+function checkOverheadProximity() {
+    let overheadPlane = null;
+    for(let f of state.flights.values()) {
+        if(!f.on_ground && f.dist !== undefined && f.baro_alt) {
+            // Muutetaan korkeus (ft) merimailiksi. 1 NM = 6076 ft.
+            let altNM = f.baro_alt / 6076;
+            // Kone on Overhead, jos vaakasuora etäisyys on pienempi kuin pystysuora (katselukulma > 45 astetta ylös)
+            // ja korkeus on ainakin jotain järkevää (yli 1500ft, ettei reagoi kentällä rullaaviin)
+            if(f.dist < altNM && f.baro_alt > 1500) {
+                overheadPlane = f;
+                break; // Otetaan ensimmäinen joka täyttää ehdon
+            }
+        }
+    }
+
+    const alertEl = $('overheadAlert');
+    if (overheadPlane) {
+        if (activeOverhead !== overheadPlane.icao24) {
+            activeOverhead = overheadPlane.icao24;
+            $('oaCall').textContent = (overheadPlane.callsign || overheadPlane.reg || "Unknown").replace(/[<>]/g,'');
+            $('oaSub').textContent = `${overheadPlane.type} • ${nf.format(overheadPlane.baro_alt)} ft`;
+            alertEl.classList.add('show');
+            // Vilkkuu
+            alertEl.onclick = () => { openUI(overheadPlane.icao24); };
+        }
+    } else {
+        if (activeOverhead !== null) {
+            alertEl.classList.remove('show');
+            activeOverhead = null;
+        }
+    }
+}
 
 // AR Variables & Logic
 let arActive = false, devHeading = 0, devPitch = 0, videoStream = null;
@@ -477,7 +544,7 @@ function stopAR() {
 function handleOrientation(e) {
     if(e.webkitCompassHeading) { devHeading = e.webkitCompassHeading; } 
     else { devHeading = (360 - e.alpha) % 360; }
-    devPitch = e.beta; // 0 flat, 90 vertical up
+    devPitch = e.beta; 
 }
 
 function bearingTo(lat1, lon1, lat2, lon2) {
@@ -490,27 +557,6 @@ function bearingTo(lat1, lon1, lat2, lon2) {
 
 $('arBtn').addEventListener('click', startAR);
 $('arClose').addEventListener('click', stopAR);
-
-// Proximity / Overhead Alert Logic
-let lastOverheadAlert = null;
-function checkOverheadProximity() {
-    let closest = null, minDist = 999;
-    for(let f of state.flights.values()) {
-        if(!f.on_ground && f.dist < minDist) { minDist = f.dist; closest = f; }
-    }
-    // Jos kone on alle 2 NM päässä eikä siitä ole juuri ilmoitettu
-    if(closest && minDist < 2.0 && lastOverheadAlert !== closest.icao24) {
-        lastOverheadAlert = closest.icao24;
-        let c = closest.callsign || closest.reg || "Unknown";
-        $('oaCall').textContent = `${c} • ${closest.type}`;
-        $('overheadAlert').classList.add('show');
-        setTimeout(() => { $('overheadAlert').classList.remove('show'); }, 6000);
-    }
-}
-$('overheadAlert').addEventListener('click', () => { 
-    $('overheadAlert').classList.remove('show'); 
-    if(lastOverheadAlert) openUI(lastOverheadAlert); 
-});
 
 async function fetchPlanePhoto(icao){
     if(state.photoCache.has(icao))return state.photoCache.get(icao);
@@ -568,23 +614,19 @@ function startAnim(){
   const t=(tm)=>{requestAnimationFrame(t);if(!state.aL){state.aL=tm;return;}const dt=Math.min((tm-state.aL)/1000,0.1);state.aL=tm;
     for(const f of state.flights.values()){if(f.velocity&&!f.on_ground){const r=(f.track||0)*Math.PI/180,d=f.velocity*0.514444*dt;f.curLat+=(d*Math.cos(r))/111320;f.curLon+=(d*Math.sin(r))/(111320*Math.max(0.2,Math.cos(f.lat*Math.PI/180)));if(state.selectedIcao===f.icao24){const m=state.markers.get(f.icao24);if(m)m.setLatLng([f.curLat,f.curLon]);}}}
     
-    // Update AR Overlay if active
     if(arActive) {
         let html = '';
         let w = window.innerWidth, h = window.innerHeight;
-        let pxPerDeg = w / 60; // Approx 60 deg FOV horizontally
+        let pxPerDeg = w / 60; 
         
         for(let f of state.flights.values()) {
-            if(f.dist < 100 && !f.on_ground) { // Only show planes within 100NM
+            if(f.dist < 100 && !f.on_ground) { 
                 let b = bearingTo(state.userLat, state.userLon, f.curLat, f.curLon);
-                let ele = Math.atan((f.baro_alt) / (f.dist * 6076.12)) * (180/Math.PI); // rough elevation angle
-                
+                let ele = Math.atan((f.baro_alt) / (f.dist * 6076.12)) * (180/Math.PI); 
                 let diffB = b - devHeading;
                 if(diffB > 180) diffB -= 360; else if(diffB < -180) diffB += 360;
-                
-                let diffE = ele - (devPitch - 90); // If phone flat (pitch=0), forward is ele=0. If up (pitch=90), center is ele=90.
-                
-                if(Math.abs(diffB) < 45) { // Only render if somewhat in front
+                let diffE = ele - (devPitch - 90); 
+                if(Math.abs(diffB) < 45) { 
                     let x = w/2 + diffB * pxPerDeg;
                     let y = h/2 - diffE * pxPerDeg;
                     html += `<div class="ar-plane" style="left:${x}px; top:${y}px;"><svg class="ar-plane-icon" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg><div class="ar-plane-label">${f.callsign||f.reg} • ${fmtAlt(f.baro_alt)}</div></div>`;
@@ -600,6 +642,36 @@ function startAnim(){
         $('dAlt').textContent=fmtAlt(s.baro_alt,s.on_ground);$('dSpd').textContent=fmtSpd(s.velocity);
         $('hudAlt').textContent=s.baro_alt?`${nf.format(s.baro_alt)} FT`:'—';$('hudSpd').textContent=s.velocity?`${nf.format(s.velocity)} KT`:'—';
         $('bpAlt').textContent=s.baro_alt?`${nf.format(s.baro_alt)} FT`:'—';$('bpSpd').textContent=s.velocity?`${nf.format(s.velocity)} KT`:'—';
+        
+        // KORJATTU: Järkevämpi ETA laskenta (jos reittidata löytyy)
+        let tp=0;
+        if(s.route&&s.route.depLat&&s.route.arrLat){
+          const fD=haversine(s.route.depLat,s.route.depLon,s.curLat,s.curLon);
+          let rD=haversine(s.curLat,s.curLon,s.route.arrLat,s.route.arrLon);
+          tp=Math.min(100,Math.max(0,(fD/(fD+rD))*100));
+          $('dRemainNM').textContent=fmtDist(rD);
+          if(tp>=100||(s.on_ground&&rD<50)){
+              $('bpTimeRemain').textContent="ARRIVED";
+          } else {
+              // Laske arvioitu jäljellä oleva aika matkan ja ground speedin mukaan. Jos GS on 0, käytetään 150kt.
+              let hoursLeft = rD / Math.max(s.velocity || 150, 50);
+              let estTime = new Date(Date.now() + (hoursLeft * 3600000));
+              $('bpTimeRemain').textContent=tf.format(estTime);
+          }
+        } else {
+          tp=s.on_ground?2:50; $('dRemainNM').textContent='—'; $('bpTimeRemain').textContent="LIVE";
+        }
+        
+        // KORJATTU: Departure time (nykyisellä logiikalla emme saa aitoa lähtöaikaa datasta, 
+        // joten näytämme pelkän "DEPARTED" statuksen tai jos kone on maassa, "GROUND").
+        if(s.on_ground) {
+            $('bpTimeFlown').textContent = "GROUND";
+        } else {
+            $('bpTimeFlown').textContent = "AIRBORNE";
+        }
+        
+        s.vP=s.vP!==undefined?s.vP+(tp-s.vP)*0.05:tp;
+        updatePath(s.vP,s.baro_alt);
       }
     }
   };requestAnimationFrame(t);
@@ -609,16 +681,16 @@ function renderList(){
   const q=$('searchInput').value.trim().toLowerCase();let a=[...state.flights.values()].sort((x,y)=>(x.dist||999)-(y.dist||999));if(q)a=a.filter(f=>((f.callsign||'')+f.icao24).toLowerCase().includes(q));
   if(!a.length){$('flightList').innerHTML=`<div class="empty">No flights found.</div>`;return;}
   $('flightList').innerHTML=a.slice(0,80).map(f=>{
-    let cs=f.callsign||f.icao24.toUpperCase(), pd=state.photoCache.get(f.icao24);if(!pd)fetchPlanePhoto(f.icao24);
+    let cs=(f.callsign||f.icao24.toUpperCase()).replace(/[<>]/g,''), pd=state.photoCache.get(f.icao24);if(!pd)fetchPlanePhoto(f.icao24);
     let st=pd&&pd!=='loading'?'opacity:1;':'opacity:0;', rs=pd&&pd!=='loading'?pd.url:'';
     return `<div class="card" onclick="openUI('${f.icao24}')"><div class="plane-badge"><img src="${rs}" style="${st}" /><svg viewBox="0 0 24 24" style="${pd&&pd!=='loading'?'display:none;':''}"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div><div class="card-main"><div class="card-call">${cs}</div><div class="card-sub">${f.type} ${f.reg!=='—'?'• '+f.reg:''}</div></div></div>`
   }).join('');
 }
 
 window.openUI=async function(i){
-  if(arActive) stopAR(); // Close AR if open when clicking a plane
+  if(arActive) stopAR(); 
   if(navigator.vibrate)navigator.vibrate(15);state.selectedIcao=i;const f=state.flights.get(i);if(!f)return;
-  $('sheet').className='sheet mode-detail full';let c=f.callsign||f.icao24.toUpperCase();
+  $('sheet').className='sheet mode-detail full';let c=(f.callsign||f.icao24.toUpperCase()).replace(/[<>]/g,'');
   $('island').classList.add('focus');$('ifCall').textContent=c;$('ifRoute').textContent='Live Tracking';$('hudWrap').classList.add('show');$('detailControls').style.display='flex';
   
   $('bpCall').textContent=c.substring(0,6);$('dIcao').textContent=f.icao24.toUpperCase();$('dReg').textContent=f.reg;
@@ -630,7 +702,29 @@ window.openUI=async function(i){
   $('wPlaneImg').style.opacity='0';$('wPlaneWrap').style.display='none';
   let pd=state.photoCache.get(i);if(pd&&pd!=='loading'){$('wPlaneImg').src=pd.url;$('wPlaneImg').onload=()=>$('wPlaneImg').style.opacity='1';$('wPlaneAttr').textContent='© '+pd.author;$('wPlaneWrap').style.display='block';}
   
+  // Nollataan reittitiedot heti klikattaessa
+  $('bpDep').textContent='—';$('bpDepName').textContent='Fetching...';
+  $('bpArr').textContent='—';$('bpArrName').textContent='Fetching...';
+  $('bpTimeFlown').textContent="--:--";$('bpTimeRemain').textContent="--:--";$('dRemainNM').textContent="—";
+  
   state.map.setView([f.curLat,f.curLon],9,{animate:true});updateMarkers();
+  
+  // Haetaan reitti
+  if(f.callsign){
+      fetchRoute(f.callsign).then(async r=>{
+          if(r){
+              f.route=r;
+              $('bpDep').textContent=r.dep;$('bpDepName').textContent=r.depName;
+              $('bpArr').textContent=r.arr;$('bpArrName').textContent=r.arrName;
+          }else{
+              $('bpDep').textContent='N/A';$('bpDepName').textContent='Unknown';
+              $('bpArr').textContent='N/A';$('bpArrName').textContent='Unknown';
+          }
+      });
+  }else{
+      $('bpDep').textContent='N/A';$('bpDepName').textContent='Unknown';
+      $('bpArr').textContent='N/A';$('bpArrName').textContent='Unknown';
+  }
   
   try{
       const dr=await fetch(`https://api.adsbdb.com/v0/aircraft/${i.toLowerCase()}`);
