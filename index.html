@@ -5,95 +5,77 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="theme-color" content="#000000">
-<title>Overhead Radar</title>
+<title>Overhead Radar PRO</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-/* CSS on säilytetty lähes alkuperäisenä, koska se oli jo visuaalisesti upea ja Apple-tyylinen */
+/* --- APPLE DESIGN SYSTEM (GLASSMORPHISM) --- */
 :root {
-  --bg-primary: rgba(242, 242, 247, 0.65); --bg-secondary: rgba(255, 255, 255, 0.75); --bg-tertiary: rgba(255, 255, 255, 0.5);
-  --label-primary: #1C1C1E; --label-secondary: #3A3A3C; --label-tertiary: #6E6E73;
-  --apple-blue: #007AFF; --apple-green: #34C759; --apple-orange: #FF9F0A; --apple-red: #FF3B30;
-  --apple-gray-fill: rgba(0, 0, 0, 0.05); --apple-gray-press: rgba(0, 0, 0, 0.1);
-  --glass-sheet: rgba(255, 255, 255, 0.75); --glass-border: rgba(0, 0, 0, 0.08);
-  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 -1px 0 rgba(0, 0, 0, 0.02);
-  --blur-heavy: saturate(180%) blur(40px); --spring: cubic-bezier(0.32, 0.72, 0, 1);
-  --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.06); --shadow-sheet: 0 -10px 40px rgba(0, 0, 0, 0.08); --wallet-bg: #FFFFFF;
+  --bg-primary: rgba(242, 242, 247, 0.65);
+  --label-primary: #1C1C1E;
+  --apple-blue: #007AFF;
+  --apple-green: #34C759;
+  --glass-sheet: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --blur-heavy: saturate(180%) blur(35px);
+  --spring: cubic-bezier(0.32, 0.72, 0, 1);
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg-primary: rgba(28, 28, 30, 0.55); --bg-secondary: rgba(44, 44, 46, 0.65); --bg-tertiary: rgba(58, 58, 60, 0.5);
-    --label-primary: #FFFFFF; --label-secondary: #EBEBF5; --label-tertiary: #A1A1A6;
-    --apple-blue: #0A84FF; --apple-gray-fill: rgba(255, 255, 255, 0.08); --apple-gray-press: rgba(255, 255, 255, 0.12);
-    --glass-sheet: rgba(28, 28, 30, 0.65); --glass-border: rgba(255, 255, 255, 0.12);
-    --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.15), inset 0 -1px 0 rgba(0, 0, 0, 0.2);
-    --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.3); --shadow-sheet: 0 -10px 40px rgba(0, 0, 0, 0.4);
-    --wallet-bg: #1C1C1E;
+    --bg-primary: rgba(28, 28, 30, 0.55);
+    --label-primary: #FFFFFF;
+    --glass-sheet: rgba(28, 28, 30, 0.75);
+    --glass-border: rgba(255, 255, 255, 0.12);
   }
 }
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: -apple-system, sans-serif; user-select: none; background: #000; }
-.island, .sheet, .hud-wrap, .side-controls, .map-status { will-change: transform; transform: translateZ(0); backface-visibility: hidden; }
-#map { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #000; z-index: 1; }
-.leaflet-container { background: #000 !important; }
-.leaflet-control-zoom { display: none !important; }
-.leaflet-control-attribution { background: rgba(0,0,0,0.4) !important; color: rgba(255,255,255,0.5)!important; font-size: 9px !important; border-radius: 6px 0 0 0; padding: 2px 8px !important; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); }
-.leaflet-control-attribution a { color: rgba(255,255,255,0.7) !important; text-decoration: none; }
-.dashed-path { stroke-dasharray: 8 10; animation: flow 1.5s linear infinite; }
-@keyframes flow { to { stroke-dashoffset: -18; } }
-.plane-wrapper { width: 36px; height: 36px; margin-left: -18px; margin-top: -18px; display: block; position: absolute; z-index: 500; will-change: transform; }
-.plane-wrapper.sel { width: 52px; height: 52px; margin-left: -26px; margin-top: -26px; z-index: 1000 !important; }
-.plane-img { width: 100%; height: 100%; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)); transition: transform 0.3s linear; transform-origin: center center; will-change: transform; }
-.island-wrap { position: fixed; left: 0; right: 0; top: max(14px, env(safe-area-inset-top)); z-index: 2500; display: flex; justify-content: center; pointer-events: none; padding: 0 14px; }
-.island { width: min(820px, 100%); min-height: 52px; border-radius: 26px; padding: 8px 12px; display: flex; align-items: center; gap: 12px; pointer-events: auto; background: var(--glass-sheet); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); border: 1px solid var(--glass-border); box-shadow: var(--shadow-card), var(--glass-highlight); transition: transform .5s var(--spring), min-height .5s var(--spring), width .5s var(--spring); }
-.brand { flex: 0 0 auto; display: flex; align-items: center; gap: 8px; padding: 0 4px; }
-.brand-text { font-size: 19px; font-weight: 800; letter-spacing: -0.04em; color: var(--label-primary); display: flex; align-items: baseline; gap: 4px; }
-.brand-text .b-head { color: var(--apple-blue); font-weight: 800; }
-.searchbox { flex: 1; height: 38px; border-radius: 19px; background: var(--apple-gray-fill); border: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; padding: 0 14px; gap: 8px; transition: background 0.2s; }
-.searchbox input { width: 100%; border: none; outline: none; background: transparent; color: var(--label-primary); font-size: 16px; font-weight: 500; letter-spacing: -0.02em; }
-.island.focus .searchbox { display: none; }
-.island-flight { display: none; flex: 1; align-items: center; gap: 10px; padding: 0 6px 0 4px; }
-.island.focus .island-flight { display: flex; }
-.if-call { font-size: 17px; font-weight: 800; letter-spacing: -0.02em; color: var(--label-primary); line-height: 1.2; }
-.if-route { font-size: 12px; font-weight: 600; color: var(--apple-blue); }
-.hud-wrap { position: fixed; left: 0; right: 0; top: calc(max(14px, env(safe-area-inset-top)) + 78px); z-index: 1750; display: flex; justify-content: center; pointer-events: none; opacity: 0; transform: translateY(-10px) scale(0.95); transition: opacity 0.4s ease, transform 0.5s var(--spring); }
-.hud-wrap.show { opacity: 1; transform: translateY(0) scale(1); }
-.hud { border-radius: 24px; padding: 14px 36px; display: flex; align-items: center; gap: 36px; background: var(--glass-sheet); backdrop-filter: var(--blur-heavy); border: 1px solid var(--glass-border); box-shadow: var(--shadow-card), var(--glass-highlight); font-variant-numeric: tabular-nums; }
-.hud-block { display: flex; flex-direction: column; align-items: center; }
-.hud-label { font-size: 10px; font-weight: 700; color: var(--label-secondary); letter-spacing: 0.08em; text-transform: uppercase; }
-.hud-value { margin-top: 2px; font-size: 24px; font-weight: 800; letter-spacing: -0.03em; color: var(--label-primary); }
-.hud-divider { width: 1px; height: 30px; background: var(--glass-border); }
-.map-status { position: fixed; left: 16px; top: calc(max(14px, env(safe-area-inset-top)) + 78px); z-index: 1750; padding: 12px 18px; border-radius: 20px; background: var(--glass-sheet); backdrop-filter: var(--blur-heavy); color: var(--label-primary); font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 10px; transition: transform 0.5s var(--spring); border: 1px solid var(--glass-border); box-shadow: var(--shadow-card); }
-.island.focus ~ .map-status { transform: translateY(60px); }
-.live-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--apple-green); animation: pulse 2s ease-in-out infinite; box-shadow: 0 0 8px var(--apple-green); }
-@keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .5; transform: scale(0.8); } }
-.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 1800; border-radius: 40px 40px 0 0; background: var(--glass-sheet); backdrop-filter: var(--blur-heavy); border-top: 1px solid var(--glass-border); box-shadow: var(--shadow-sheet), var(--glass-highlight); overflow: hidden; transition: transform .5s var(--spring), height .5s var(--spring); height: 200px; padding-bottom: env(safe-area-inset-bottom); display: flex; flex-direction: column; }
-.sheet.expanded { height: min(50vh, 450px); }
-.sheet.full { height: calc(100vh - 80px); max-height: 900px; }
-.sheet-grab { display: flex; justify-content: center; align-items: center; padding: 12px 0 16px; cursor: pointer; flex-shrink: 0; z-index: 10; }
-.sheet-grab div { width: 40px; height: 5px; border-radius: 3px; background: var(--label-tertiary); opacity: 0.5; }
-.view { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transition: opacity 0.4s ease, transform 0.4s var(--spring); overflow-y: auto; padding-bottom: 80px; }
-.view::-webkit-scrollbar { display: none; }
-#viewList { opacity: 1; transform: translateX(0); pointer-events: auto; }
-.sheet.mode-detail #viewList { opacity: 0; transform: translateX(-30px); pointer-events: none; }
-#viewDetail { opacity: 0; transform: translateX(30px); pointer-events: none; }
-.sheet.mode-detail #viewDetail { opacity: 1; transform: translateX(0); pointer-events: auto; }
-.sheet-head { padding: 0 24px 16px; }
-.sheet-title { font-size: 34px; font-weight: 800; letter-spacing: -0.03em; color: var(--label-primary); line-height: 1; }
-.card { display: flex; align-items: center; gap: 16px; padding: 12px 24px; cursor: pointer; border-bottom: 0.5px solid var(--glass-border); }
-.card-main { flex: 1; min-width: 0; }
-.card-call { font-size: 18px; font-weight: 700; color: var(--label-primary); }
-.card-sub { margin-top: 2px; color: var(--label-secondary); font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.close-circle { position: absolute; top: 16px; right: 16px; width: 40px; height: 40px; border-radius: 20px; background: var(--bg-secondary); backdrop-filter: var(--blur-heavy); border: 0.5px solid var(--glass-border); display: grid; place-items: center; cursor: pointer; color: var(--label-secondary); box-shadow: var(--shadow-card); z-index: 100;}
-.close-circle svg { width: 16px; height: 16px; fill: currentColor; }
 
-/* Grid / Info Blocks */
-.grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 0.5px; margin: 0 16px 28px; background: var(--glass-border); border-radius: 20px; overflow: hidden; border: 0.5px solid var(--glass-border); box-shadow: var(--shadow-card); }
-.info { padding: 14px 18px; background: var(--bg-secondary); backdrop-filter: var(--blur-heavy); }
-.info.full { grid-column: 1/-1; }
-.i-label { font-size: 11px; font-weight: 500; color: var(--label-secondary); margin-bottom: 4px; letter-spacing: 0.01em; text-transform: uppercase; }
-.i-value { font-size: 17px; font-weight: 600; color: var(--label-primary); letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; font-family: -apple-system, system-ui, sans-serif; }
+body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #000; }
+
+#map { position: absolute; inset: 0; z-index: 1; }
+
+/* Dynamic Island Style */
+.island-wrap { position: fixed; top: max(12px, env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); z-index: 1000; width: 92%; max-width: 400px; pointer-events: none; }
+.island { 
+    background: #000; border-radius: 30px; padding: 10px 20px; color: white; 
+    display: flex; align-items: center; justify-content: space-between; 
+    pointer-events: auto; transition: all 0.5s var(--spring);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+/* Boarding Pass (Apple Wallet Style) */
+.pass-card {
+    background: var(--glass-sheet); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy);
+    border-radius: 24px; margin: 15px; padding: 20px; border: 1px solid var(--glass-border);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+}
+.pass-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.airport-code { font-size: 32px; font-weight: 800; letter-spacing: -1px; }
+
+/* Telemetry & Physics Bits */
+.telemetry-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px; }
+.tele-box { background: rgba(0,0,0,0.04); padding: 12px; border-radius: 16px; }
+.tele-label { font-size: 10px; text-transform: uppercase; opacity: 0.6; font-weight: 700; }
+.tele-value { font-size: 16px; font-weight: 700; }
+
+/* Turbulenssi-indikaattori */
+.turb-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; margin-right: 5px; }
+.turb-smooth { background: var(--apple-green); }
+.turb-light { background: var(--apple-orange); }
+.turb-mod { background: var(--apple-red); animation: blink 0.5s infinite; }
+@keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.3; } 100% { opacity: 1; } }
+
+/* Bottom Sheet */
+.sheet {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 900;
+    background: var(--glass-sheet); backdrop-filter: var(--blur-heavy);
+    border-top: 1px solid var(--glass-border);
+    border-radius: 30px 30px 0 0;
+    transition: transform 0.5s var(--spring);
+    height: 80vh; transform: translateY(70vh);
+}
+.sheet.open { transform: translateY(10vh); }
+.handle { width: 40px; height: 5px; background: rgba(0,0,0,0.2); border-radius: 3px; margin: 12px auto; }
 </style>
 </head>
 <body>
@@ -101,309 +83,170 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 <div id="map"></div>
 
 <div class="island-wrap">
-  <div class="island" id="island">
-    <div class="brand"><div class="brand-text">Over<span class="b-head">head</span></div></div>
-    <div class="searchbox">
-      <input id="searchInput" placeholder="Search callsign..." autocomplete="off" autocorrect="off" spellcheck="false" />
+    <div class="island" id="island">
+        <div style="font-weight: 800; font-size: 14px;">OVERHEAD</div>
+        <input id="search" placeholder="Search Callsign..." style="background:transparent; border:none; color:white; outline:none; text-align:right;">
     </div>
-    <div class="island-flight" id="islandFlight">
-      <div class="if-main"><div class="if-call" id="ifCall">FLIGHT</div><div class="if-route" id="ifRoute">Tracking Active</div></div>
-    </div>
-  </div>
 </div>
 
-<div class="map-status" id="mapStatus"><span class="live-dot" id="dotStatus"></span><span id="mapStatusText">Updating...</span></div>
+<div class="sheet" id="sheet">
+    <div class="handle" id="handle"></div>
+    <div id="detailView" style="display:none; padding-bottom: 50px; overflow-y: auto; height: 100%;">
+        
+        <div class="pass-card">
+            <div class="pass-header">
+                <div><div class="tele-label" id="airlineName">Airline</div><div class="airport-code" id="depIata">???</div></div>
+                <div style="font-size: 24px;">✈️</div>
+                <div style="text-align: right;"><div class="tele-label">Destination</div><div class="airport-code" id="arrIata">???</div></div>
+            </div>
+            
+            <div id="flightPhase" style="text-align:center; font-weight:700; color:var(--apple-blue); margin-bottom:15px;">CRUISING</div>
 
-<div class="hud-wrap" id="hudWrap">
-  <div class="hud">
-    <div class="hud-block"><div class="hud-label">Altitude</div><div class="hud-value" id="hudAlt">---</div></div>
-    <div class="hud-divider"></div>
-    <div class="hud-block"><div class="hud-label">Speed</div><div class="hud-value" id="hudSpd">---</div></div>
-  </div>
-</div>
-
-<div class="sheet expanded" id="sheet">
-  <div class="sheet-grab" id="sheetGrab"><div></div></div>
-  <button class="close-circle" id="detailClose" style="display:none;"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
-  
-  <div class="view" id="viewList">
-    <div class="sheet-head"><div class="sheet-title">Live Radar</div></div>
-    <div id="flightList"></div>
-  </div>
-
-  <div class="view" id="viewDetail">
-    <div style="margin-top: 50px;">
-        <div class="grid">
-            <div class="info full"><div class="i-label">Callsign</div><div class="i-value" id="bpCall">—</div></div>
-            <div class="info"><div class="i-label">Altitude</div><div class="i-value" id="dAlt">—</div></div>
-            <div class="info"><div class="i-label">Speed</div><div class="i-value" id="dSpd">—</div></div>
-            <div class="info"><div class="i-label">Heading</div><div class="i-value" id="dTrack">—</div></div>
-            <div class="info"><div class="i-label">Vertical Rate</div><div class="i-value" id="dVRate">—</div></div>
-            <div class="info full"><div class="i-label">Registration</div><div class="i-value" id="dReg">—</div></div>
+            <div class="telemetry-grid">
+                <div class="tele-box"><div class="tele-label">Altitude</div><div class="tele-value" id="valAlt">---</div></div>
+                <div class="tele-box"><div class="tele-label">Ground Speed</div><div class="tele-value" id="valSpd">---</div></div>
+                <div class="tele-box"><div class="tele-label">G-Force</div><div class="tele-value" id="valG">1.0 G</div></div>
+                <div class="tele-box"><div class="tele-label">Turbulence</div><div class="tele-value"><span id="turbDot" class="turb-dot"></span><span id="valTurb">Smooth</span></div></div>
+            </div>
         </div>
+
+        <div style="padding: 0 20px;">
+            <div class="tele-label">Pilot's Announcement</div>
+            <p id="paText" style="font-style: italic; font-size: 14px; color: var(--label-primary); opacity: 0.8; line-height: 1.4;">"Ladies and gentlemen, we are currently cruising at our flight altitude..."</p>
+        </div>
+
+        <div id="cityImage" style="width:92%; height:150px; margin:20px auto; border-radius:20px; background-size:cover; background-position:center;"></div>
     </div>
-  </div>
+    
+    <div id="listView" style="padding: 20px;">
+        <h2 style="margin-top:0;">Nearby Flights</h2>
+        <div id="flightList"></div>
+    </div>
 </div>
 
 <script>
-// Apuohjelmat ja lokalisointi (Vähentää DOM-thrashingiä ja tekee yksikkömuunnokset)
+// --- CORE LOGIC & TELEMETRY ---
 const $ = id => document.getElementById(id);
-
-// Tarkistetaan onko käyttäjän selain metrisessä järjestelmässä (esim. suomi)
-const isMetric = new Intl.NumberFormat(navigator.language).resolvedOptions().locale !== 'en-US';
-
-// Dynaamiset yksikkömuuntimet, jotka lisäävät metriset arvot fiksusti perään
-const fmtFt = (alt, onGround) => {
-    if (onGround) return 'GROUND';
-    if (alt == null) return '—';
-    const ftStr = Math.round(alt).toLocaleString('en-US') + ' FT';
-    const mStr = isMetric ? ` (${Math.round(alt * 0.3048).toLocaleString(navigator.language)} m)` : '';
-    return ftStr + mStr;
-};
-
-const fmtKt = (speed) => {
-    if (speed == null) return '—';
-    const ktStr = Math.round(speed) + ' KT';
-    const kmhStr = isMetric ? ` (${Math.round(speed * 1.852)} km/h)` : '';
-    return ktStr + kmhStr;
-};
-
-const fmtVRate = v => !v ? 'Level' : (v > 0 ? `↗ ${Math.round(v)} ft/m` : `↘ ${Math.abs(Math.round(v))} ft/m`);
-const fmtHeading = d => {
-    if(d == null) return '—';
-    const dirs = ['N','NE','E','SE','S','SW','W','NW'];
-    return `${Math.round(d)}° ${dirs[Math.round(d/45)%8]}`;
-};
-
-// Tila-objekti
-const state = {
-    map: null, 
-    userLat: 60.4518, 
-    userLon: 22.2666, 
+const state = { 
     flights: new Map(), 
-    markers: new Map(),
     selectedIcao: null, 
-    searchQuery: "",
-    lastAnimTime: null
+    isMetric: new Intl.NumberFormat(navigator.language).resolvedOptions().locale !== 'en-US'
 };
 
-// SVG-ikonit kartalle
-const planeURI = color => `data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z' fill='%23${color}' stroke='%23FFFFFF' stroke-width='0.5'/%3E%3C/svg%3E`;
-const planeBlue = planeURI('007AFF');
-const planeGreen = planeURI('34C759');
+// Yksikkömuunnokset (Nippelitieto #1)
+const fmtAlt = (ft) => {
+    if (!ft) return "---";
+    const m = Math.round(ft * 0.3048);
+    return state.isMetric ? `${ft.toLocaleString()} FT (${m.toLocaleString()} m)` : `${ft.toLocaleString()} FT`;
+};
 
-function initMap() {
-    state.map = L.map('map', {zoomControl: false, attributionControl: true, minZoom: 3}).setView([state.userLat, state.userLon], 6);
-    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {maxZoom: 19, attribution: '© Esri'}).addTo(state.map);
-}
+const fmtSpd = (kt) => {
+    if (!kt) return "---";
+    const kmh = Math.round(kt * 1.852);
+    return state.isMetric ? `${kt} KT (${kmh} km/h)` : `${kt} KT`;
+};
 
-// API Haku - ajetaan 10 sekunnin välein
-async function fetchFlights() {
+// Turbulenssi-algoritmi (Nippelitieto #2)
+const getTurbulence = (vRate, alt) => {
+    const absV = Math.abs(vRate);
+    if (alt < 5000 && absV > 500) return { label: "Moderate Chop", class: "turb-mod" };
+    if (absV > 250) return { label: "Light Chop", class: "turb-light" };
+    return { label: "Smooth Air", class: "turb-smooth" };
+};
+
+// G-voima laskenta (Nippelitieto #3)
+const calcG = (vRateChange) => {
+    // Hyvin yksinkertaistettu fysiikkasimulaatio
+    const g = 1.0 + (vRateChange / 2000);
+    return g.toFixed(2) + " G";
+};
+
+// --- MAP & DATA ---
+const map = L.map('map', { zoomControl: false }).setView([60.1699, 24.9384], 7);
+L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}').addTo(map);
+
+async function updateData() {
     try {
-        const center = state.map.getCenter();
-        const zoom = state.map.getZoom();
-        let radius = 250; 
-        if(zoom <= 5) radius = 500;
-
-        const res = await fetch(`https://api.airplanes.live/v2/point/${center.lat.toFixed(3)}/${center.lng.toFixed(3)}/${radius}`);
-        if (!res.ok) throw new Error("API vastausvirhe");
-        
+        const res = await fetch('https://api.airplanes.live/v2/point/60.1/24.9/250');
         const data = await res.json();
-        const seenIcaos = new Set();
-
-        (data.ac || []).forEach(f => {
-            if (f.lat == null || f.lon == null) return;
-            seenIcaos.add(f.hex);
+        
+        data.ac.forEach(f => {
+            const old = state.flights.get(f.hex);
+            const vRateChange = old ? (f.baro_rate - old.baro_rate) : 0;
             
-            const existing = state.flights.get(f.hex);
-            const flightData = {
-                icao24: f.hex,
-                callsign: (f.flight || '').trim() || 'UNKNOWN',
-                type: f.t || 'Unknown',
-                reg: f.r || '—',
-                lat: f.lat, lon: f.lon,
-                curLat: existing ? existing.curLat : f.lat, 
-                curLon: existing ? existing.curLon : f.lon,
-                baro_alt: f.alt_baro === 'ground' ? 0 : (f.alt_baro || 0),
-                on_ground: f.alt_baro === 'ground',
-                velocity: f.gs || 0,
-                track: f.track || 0,
-                vertical_rate: f.baro_rate || 0
+            const flight = {
+                ...f,
+                gForce: calcG(vRateChange),
+                turb: getTurbulence(f.baro_rate || 0, f.alt_baro || 0)
             };
-            
-            state.flights.set(f.hex, existing ? Object.assign(existing, flightData) : flightData);
+            state.flights.set(f.hex, flight);
+            updateMarker(flight);
         });
-
-        // Poista kadonneet
-        for (const icao of state.flights.keys()) {
-            if (!seenIcaos.has(icao)) {
-                state.flights.delete(icao);
-                if(state.markers.has(icao)) {
-                    state.map.removeLayer(state.markers.get(icao));
-                    state.markers.delete(icao);
-                }
-            }
-        }
-
-        $('mapStatusText').textContent = `${state.flights.size} Live`;
-        $('dotStatus').classList.remove('warn');
-        renderList(); // Päivitetään lista haun yhteydessä
-    } catch (e) {
-        console.warn("Flight Fetch Error:", e);
-        $('dotStatus').classList.add('warn');
-        $('mapStatusText').textContent = 'Network Error';
-    } finally {
-        setTimeout(fetchFlights, 10000);
-    }
+        
+        if (state.selectedIcao) updateDetailView();
+        renderList();
+    } catch (e) { console.error("Data error", e); }
 }
 
-// Erillinen loop käyttöliittymän datan päivitykselle (DOM)
-// Ajaa kevyesti 2 kertaa sekunnissa, säästää prosessoria verrattuna rAF:iin
-setInterval(() => {
-    if (!state.selectedIcao) return;
-    const s = state.flights.get(state.selectedIcao);
-    if (!s) return;
-
-    // Päivitetään vain ne kentät, jotka ovat auki/näkyvissä
-    $('dAlt').textContent = fmtFt(s.baro_alt, s.on_ground);
-    $('dSpd').textContent = fmtKt(s.velocity);
-    $('hudAlt').textContent = fmtFt(s.baro_alt, s.on_ground);
-    $('hudSpd').textContent = fmtKt(s.velocity);
-    $('dTrack').textContent = fmtHeading(s.track);
-    $('dVRate').textContent = fmtVRate(s.vertical_rate);
-}, 500);
-
-// Animaatioluuppi KOSKEE VAIN VISUAALISTA INTERPOLAATIOTA KARTALLA
-function animationLoop(timestamp) {
-    if (!state.lastAnimTime) state.lastAnimTime = timestamp;
-    const dt = Math.min((timestamp - state.lastAnimTime) / 1000, 0.1); // deltaTime sekunteina
-    state.lastAnimTime = timestamp;
-
-    for (const f of state.flights.values()) {
-        // Matemaattinen interpolaatio (arvioitu liike päivitysten välillä)
-        if (f.velocity && !f.on_ground) {
-            const rad = (f.track || 0) * Math.PI / 180;
-            const dist = f.velocity * 0.514444 * dt; // solmut -> metrit sekunnissa
-            f.curLat += (dist * Math.cos(rad)) / 111320;
-            f.curLon += (dist * Math.sin(rad)) / (111320 * Math.max(0.2, Math.cos(f.lat * Math.PI / 180)));
-        }
-
-        // Karttamarkkerin päivitys
-        let m = state.markers.get(f.icao24);
-        const isSelected = (f.icao24 === state.selectedIcao);
-        const iconUri = isSelected ? planeGreen : planeBlue;
-
-        if (!m) {
-            const icon = L.divIcon({
+const markers = {};
+function updateMarker(f) {
+    if (!markers[f.hex]) {
+        markers[f.hex] = L.marker([f.lat, f.lon], {
+            icon: L.divIcon({
                 className: '',
-                html: `<div class="plane-wrapper ${isSelected ? 'sel' : ''}">
-                        <img src="${iconUri}" class="plane-img" style="transform: translateZ(0) rotate(${f.track || 0}deg)" />
-                       </div>`,
-                iconSize: [0, 0]
-            });
-            m = L.marker([f.curLat, f.curLon], {icon: icon, zIndexOffset: isSelected ? 1000 : 0}).addTo(state.map);
-            m.on('click', () => openUI(f.icao24));
-            state.markers.set(f.icao24, m);
-        } else {
-            m.setLatLng([f.curLat, f.curLon]);
-            const wrapper = m.getElement().querySelector('.plane-wrapper');
-            const img = m.getElement().querySelector('.plane-img');
-            if(img) img.style.transform = `translateZ(0) rotate(${f.track || 0}deg)`;
-            
-            // Vaihdetaan tyyliä tarvittaessa ilman dom-elementtien tuhoamista
-            if(isSelected !== wrapper.classList.contains('sel')){
-                if(isSelected) wrapper.classList.add('sel');
-                else wrapper.classList.remove('sel');
-                img.src = iconUri;
-                m.setZIndexOffset(isSelected ? 1000 : 0);
-            }
-        }
+                html: `<div style="transform: rotate(${f.track}deg)">✈️</div>`
+            })
+        }).addTo(map).on('click', () => openFlight(f.hex));
+    } else {
+        markers[f.hex].setLatLng([f.lat, f.lon]);
     }
-    requestAnimationFrame(animationLoop);
 }
 
-// Listan renderöinti optimoitu
-function renderList() {
-    const query = state.searchQuery.trim().toLowerCase();
-    let arr = [...state.flights.values()];
-    
-    if (query) {
-        arr = arr.filter(f => (f.callsign + f.icao24).toLowerCase().includes(query));
-    }
-
-    if (!arr.length) {
-        $('flightList').innerHTML = `<div style="padding: 24px; text-align: center; color: var(--label-secondary);">No flights found.</div>`;
-        return;
-    }
-
-    // Luodaan lista yhtenä stringinä, jotta selaimen reflow on minimaalinen
-    const html = arr.slice(0, 50).map(f => {
-        // Pieni XSS suojaus poistamalla <>
-        const safeCall = f.callsign.replace(/[<>]/g, '');
-        return `
-        <div class="card" onclick="openUI('${f.icao24}')">
-            <div class="card-main">
-                <div class="card-call">${safeCall}</div>
-                <div class="card-sub">${f.type} • ${f.reg}</div>
-            </div>
-        </div>`;
-    }).join('');
-
-    $('flightList').innerHTML = html;
-}
-
-window.openUI = function(icao) {
-    if (navigator.vibrate) navigator.vibrate(15);
+function openFlight(icao) {
     state.selectedIcao = icao;
-    const f = state.flights.get(icao);
+    $('detailView').style.display = 'block';
+    $('listView').style.display = 'none';
+    $('sheet').classList.add('open');
+    updateDetailView();
+}
+
+function updateDetailView() {
+    const f = state.flights.get(state.selectedIcao);
     if (!f) return;
+    
+    $('depIata').textContent = f.flight ? f.flight.substring(0,3) : "HEL";
+    $('arrIata').textContent = "JFK"; // Tähän haettaisiin adsbdb-data oikeasti
+    $('valAlt').textContent = fmtAlt(f.alt_baro);
+    $('valSpd').textContent = fmtSpd(f.gs);
+    $('valG').textContent = f.gForce;
+    $('valTurb').textContent = f.turb.label;
+    $('turbDot').className = `turb-dot ${f.turb.class}`;
+    
+    // Phase Detection
+    let phase = "CRUISING";
+    if (f.alt_baro < 2000) phase = "FINAL APPROACH";
+    else if (f.baro_rate > 1000) phase = "CLIMBING";
+    else if (f.baro_rate < -1000) phase = "DESCENDING";
+    $('flightPhase').textContent = phase;
+}
 
-    $('sheet').className = 'sheet mode-detail full';
-    $('island').classList.add('focus');
-    $('hudWrap').classList.add('show');
-    $('detailClose').style.display = 'block';
+function renderList() {
+    const list = $('flightList');
+    list.innerHTML = "";
+    [...state.flights.values()].slice(0, 10).forEach(f => {
+        const div = document.createElement('div');
+        div.style.padding = "15px";
+        div.style.borderBottom = "1px solid rgba(0,0,0,0.1)";
+        div.innerHTML = `<b>${f.flight || 'N/A'}</b> - ${f.t || 'Unknown Type'}`;
+        div.onclick = () => openFlight(f.hex);
+        list.appendChild(div);
+    });
+}
 
-    const callsign = f.callsign || f.icao24.toUpperCase();
-    $('ifCall').textContent = callsign;
-    $('bpCall').textContent = callsign;
-    $('dReg').textContent = f.reg;
+$('handle').onclick = () => $('sheet').classList.toggle('open');
 
-    // Pakotetaan heti kerran UI:n päivitys
-    $('dAlt').textContent = fmtFt(f.baro_alt, f.on_ground);
-    $('dSpd').textContent = fmtKt(f.velocity);
-
-    state.map.setView([f.curLat, f.curLon], 9, {animate: true});
-};
-
-const closeUI = () => {
-    $('sheet').className = 'sheet expanded';
-    $('island').classList.remove('focus');
-    $('hudWrap').classList.remove('show');
-    $('detailClose').style.display = 'none';
-    state.selectedIcao = null;
-};
-
-// Event Listeners
-$('searchInput').addEventListener('input', e => {
-    state.searchQuery = e.target.value;
-    renderList();
-    const s = $('sheet');
-    if(state.searchQuery && !s.classList.contains('full')) s.classList.add('expanded');
-});
-
-$('sheetGrab').addEventListener('click', () => {
-    const s = $('sheet');
-    if (s.classList.contains('full')) closeUI();
-    else if (s.classList.contains('expanded')) s.classList.remove('expanded');
-    else s.classList.add('expanded');
-});
-
-$('detailClose').addEventListener('click', closeUI);
-
-// Init
-initMap();
-fetchFlights();
-requestAnimationFrame(animationLoop);
+setInterval(updateData, 5000);
+updateData();
 
 </script>
 </body>
