@@ -13,7 +13,6 @@
 
 <style>
 :root {
-  /* Apple Liquid Glass -vaaleampi ja läpinäkyvämpi teema */
   --bg-primary: rgba(242, 242, 247, 0.45); 
   --bg-secondary: rgba(255, 255, 255, 0.55); 
   --label-primary: #1C1C1E; 
@@ -40,7 +39,6 @@
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    /* Tummassa tilassa lasiefekti korostuu vaaleammilla overlay-kerroksilla */
     --bg-primary: rgba(28, 28, 30, 0.45); 
     --bg-secondary: rgba(255, 255, 255, 0.08); 
     --label-primary: #FFFFFF; 
@@ -246,6 +244,24 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 .info.full { grid-column: 1 / -1; }
 .i-label { font-size: 10px; font-weight: 500; color: var(--label-secondary); margin-bottom: 2px; letter-spacing: 0.01em; }
 .i-value { font-size: 15px; font-weight: 600; color: var(--label-primary); letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+
+/* PASSENGER EXPERIENCE: Tuuli-animaatio & erillisasettelu */
+.info.pax-exp { display: flex; flex-direction: row; justify-content: space-between; align-items: center; padding: 16px; }
+.pax-text { display: flex; flex-direction: column; gap: 2px; }
+.pax-val { font-size: 16px; font-weight: 800; color: var(--label-primary); letter-spacing: -0.02em; }
+.pax-sub { font-size: 11px; font-weight: 600; color: var(--label-secondary); }
+.turb-icon { width: 32px; height: 32px; background: rgba(0,0,0,0.05); border-radius: 10px; display: grid; place-items: center; border: 1px solid var(--glass-border); }
+@media (prefers-color-scheme: dark) { .turb-icon { background: rgba(255,255,255,0.1); } }
+.turb-icon svg { width: 18px; height: 18px; stroke: var(--label-primary); }
+
+.turb-smooth .turb-icon svg { animation: sway 4s ease-in-out infinite; stroke: #34C759; }
+.turb-light .turb-icon svg { animation: shakeLight 1.5s ease-in-out infinite; stroke: #FFCC00; }
+.turb-mod .turb-icon svg { animation: shakeMod 0.4s linear infinite; stroke: #FF3B30; }
+
+@keyframes sway { 0%,100%{transform:rotate(-5deg) translateY(0);} 50%{transform:rotate(5deg) translateY(-2px);} }
+@keyframes shakeLight { 0%,100%{transform:translate(0,0) rotate(0);} 25%{transform:translate(1px,1px) rotate(2deg);} 75%{transform:translate(-1px,-1px) rotate(-2deg);} }
+@keyframes shakeMod { 0%,100%{transform:translate(0,0);} 25%{transform:translate(2px,-2px);} 50%{transform:translate(-2px,2px);} 75%{transform:translate(2px,2px);} }
+
 .empty { padding: 40px 20px; text-align: center; color: var(--label-secondary); font-weight: 500; font-size: 15px; }
 
 .legal-footer { text-align: center; padding: 10px 20px 40px; font-size: 11px; color: var(--label-tertiary); line-height: 1.5; }
@@ -380,11 +396,28 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
             <div class="info"><div class="i-label">Position Age</div><div class="i-value" id="dAge">—</div></div>
           </div>
 
-          <!-- PALAUTETTU PASSENGER EXPERIENCE -->
+          <!-- PASSENGER EXPERIENCE KORTIT -->
           <div class="section-title">Passenger Experience</div>
           <div class="grid">
-            <div class="info"><div class="i-label">Flight Phase</div><div class="i-value" id="dPhase">—</div></div>
-            <div class="info"><div class="i-label">Turbulence Estimate</div><div class="i-value" id="dTurb">—</div></div>
+            <div class="info pax-exp">
+                <div class="pax-text">
+                    <div class="i-label">Flight Phase</div>
+                    <div class="pax-val" id="dPhase">—</div>
+                    <div class="pax-sub" id="dForce">1.0 G</div>
+                </div>
+            </div>
+            <div class="info pax-exp turb-smooth" id="dTurbClass">
+                <div class="pax-text">
+                    <div class="i-label">Turbulence</div>
+                    <div class="pax-val" id="dTurb">Smooth</div>
+                    <div class="pax-sub">Estimate</div>
+                </div>
+                <div class="turb-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/>
+                    </svg>
+                </div>
+            </div>
           </div>
           
           <div class="section-title">Registration Details</div>
@@ -450,7 +483,6 @@ function getDynamicBrand(callsign, reg) {
 }
 
 const acSpecs = {
-  // Airbus
   "A319": { pax: 156, len: 33.84, fuel: 24210, y: 1995, eng: "CFM56 / V2500", thrust: 105, mass: 75500 },
   "A320": { pax: 180, len: 37.57, fuel: 24210, y: 1988, eng: "CFM56 / V2500", thrust: 120, mass: 78000 },
   "A20N": { pax: 195, len: 37.57, fuel: 26730, y: 2016, eng: "LEAP-1A / PW1100G", thrust: 120, mass: 79000 },
@@ -463,7 +495,6 @@ const acSpecs = {
   "A359": { pax: 350, len: 66.80, fuel: 141000, y: 2014, eng: "Trent XWB-84", thrust: 374, mass: 280000 },
   "A35K": { pax: 410, len: 73.79, fuel: 156000, y: 2018, eng: "Trent XWB-97", thrust: 431, mass: 319000 },
   "A388": { pax: 853, len: 72.72, fuel: 320000, y: 2007, eng: "Trent 900 / GP7200", thrust: 311, mass: 575000 },
-  // Boeing
   "B737": { pax: 149, len: 33.60, fuel: 26020, y: 1997, eng: "CFM56-7B", thrust: 101, mass: 70080 },
   "B738": { pax: 189, len: 39.50, fuel: 26020, y: 1998, eng: "CFM56-7B", thrust: 121, mass: 79010 },
   "B739": { pax: 220, len: 42.10, fuel: 29660, y: 2001, eng: "CFM56-7B", thrust: 121, mass: 85130 },
@@ -477,7 +508,6 @@ const acSpecs = {
   "B77W": { pax: 396, len: 73.90, fuel: 181280, y: 2004, eng: "GE90-115B", thrust: 512, mass: 351500 },
   "B788": { pax: 242, len: 56.70, fuel: 126206, y: 2011, eng: "GEnx-1B / Trent 1000", thrust: 280, mass: 227930 },
   "B789": { pax: 290, len: 63.00, fuel: 126372, y: 2014, eng: "GEnx-1B / Trent 1000", thrust: 320, mass: 254011 },
-  // Regional & Turboprops
   "AT72": { pax: 78, len: 27.17, fuel: 5000, y: 1989, eng: "PW127", thrust: 40, mass: 23000 },
   "AT75": { pax: 78, len: 27.17, fuel: 5000, y: 1997, eng: "PW127F", thrust: 40, mass: 23000 },
   "AT76": { pax: 78, len: 27.17, fuel: 5000, y: 2012, eng: "PW127M", thrust: 40, mass: 23000 },
@@ -695,20 +725,50 @@ function startAnim(){
         $('dSquawk').textContent = s.squawk || '—';
         $('dAge').textContent = s.seen != null ? s.seen.toFixed(1) + ' s' : '—';
 
-        // Lento-osan (Flight Phase) logiikka
+        // Lento-osan & G-voimien logiikka
         let phase = "Cruise";
-        if (s.on_ground) phase = "Ground";
-        else if (s.baro_alt < 3000) phase = s.vertical_rate < 0 ? "Approach" : "Takeoff";
-        else if (s.vertical_rate > 500) phase = "Climb";
-        else if (s.vertical_rate < -500) phase = "Descent";
-        $('dPhase').textContent = phase;
-
-        // Turbulenssin laskenta nousu/laskunopeuden perusteella
+        let vrate = s.vertical_rate || 0;
+        let gForce = 1.0; 
+        
+        if (s.on_ground) {
+            phase = "Ground";
+            gForce = 1.0;
+        } else if (s.baro_alt < 3000) {
+            if (vrate < 0) { phase = "Approach"; gForce = 0.95; }
+            else { phase = "Takeoff"; gForce = 1.15; }
+        } else if (vrate > 500) {
+            phase = "Climb";
+            gForce = 1.05 + (vrate / 20000); 
+        } else if (vrate < -500) {
+            phase = "Descent";
+            gForce = 0.95 - (Math.abs(vrate) / 20000);
+        }
+        
+        // Turbulenssin laskenta nousu/laskunopeuden poikkeamista ja arvioitu G-voiman vaihtelu
         let turb = "Smooth";
-        if (s.on_ground) turb = "None";
-        else if (Math.abs(s.vertical_rate || 0) > 3500) turb = "Moderate";
-        else if (Math.abs(s.vertical_rate || 0) > 1500) turb = "Light";
+        let tClass = "turb-smooth";
+        let gWobble = 0;
+
+        if (s.on_ground) {
+            turb = "None";
+            tClass = "turb-smooth";
+        } else if (Math.abs(vrate) > 3500) {
+            turb = "Moderate";
+            tClass = "turb-mod";
+            gWobble = 0.2; 
+        } else if (Math.abs(vrate) > 1500) {
+            turb = "Light";
+            tClass = "turb-light";
+            gWobble = 0.05;
+        }
+
+        // Satunnaista tärinää G-voimaan turbulenssin mukaan, mutta pidetään arvo yhden desimaalin tarkkuudella siistinä
+        let currentG = gForce + (Math.random() * gWobble - (gWobble/2));
+        
+        $('dPhase').textContent = phase;
+        $('dForce').textContent = `${currentG.toFixed(2)} G`;
         $('dTurb').textContent = turb;
+        $('dTurbClass').className = `info pax-exp ${tClass}`;
 
         $('hudAlt').textContent=s.baro_alt?`${nf.format(s.baro_alt)} FT`:'—';$('hudSpd').textContent=s.velocity?`${nf.format(s.velocity)} KT`:'—';
         $('bpAlt').textContent=s.baro_alt?`${nf.format(s.baro_alt)} FT`:'—';$('bpSpd').textContent=s.velocity?`${nf.format(s.velocity)} KT`:'—';
