@@ -207,12 +207,16 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 .close-circle:active { transform: scale(0.9); }
 .close-circle svg { width: 16px; height: 16px; fill: currentColor; }
 
-.section-title { font-size: 12px; font-weight: 600; margin: 0 20px 8px; letter-spacing: 0.05em; color: var(--label-secondary); text-transform: uppercase; }
+.section-title { font-size: 12px; font-weight: 600; margin: 0 20px 8px; letter-spacing: 0.05em; color: var(--label-secondary); text-transform: uppercase; display: flex; align-items: center; }
+.simulated-badge { font-size: 8px; font-weight: 700; background: var(--apple-gray-fill); color: var(--label-tertiary); padding: 2px 6px; border-radius: 6px; margin-left: 8px; letter-spacing: 0.05em; border: 0.5px solid var(--glass-border); }
+
 .d-icon { margin: 0 16px 24px; height: 200px; border-radius: 20px; background: var(--bg-secondary); overflow: hidden; border: 0.5px solid var(--glass-border); box-shadow: var(--shadow-card); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: transform 0.2s; position: relative; }
+/* Pattern for when airport image is missing */
+.d-icon.no-img { background: repeating-linear-gradient(45deg, var(--bg-secondary) 0, var(--bg-secondary) 2px, var(--glass-border) 2px, var(--glass-border) 4px); cursor: default;}
 .d-icon:active { transform: scale(0.98); }
 .d-icon img { width: 100%; height: 100%; object-fit: cover; transition: opacity 0.5s ease; z-index: 1; }
 .arr-img-gradient { position: absolute; bottom: 0; left: 0; right: 0; height: 65%; background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.3) 50%, transparent 100%); z-index: 2; pointer-events: none; opacity: 0; transition: opacity 0.5s ease; }
-.arr-gate-badge { position: absolute; bottom: 12px; left: 12px; background: rgba(0,0,0,0.55); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); color: #FFF; padding: 6px 12px; border-radius: 12px; font-weight: 600; font-size: 12px; border: 0.5px solid rgba(255,255,255,0.2); display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); opacity: 0; transition: opacity 0.3s; z-index: 3;}
+.arr-gate-badge { position: absolute; bottom: 12px; left: 12px; background: rgba(0,0,0,0.65); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); color: #FFF; padding: 6px 12px; border-radius: 12px; font-weight: 600; font-size: 12px; border: 0.5px solid rgba(255,255,255,0.2); display: flex; align-items: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); opacity: 0; transition: opacity 0.3s; z-index: 3;}
 .arr-gate-badge.show { opacity: 1; }
 .arr-gate-badge .live-dot { width: 8px; height: 8px; background: var(--apple-orange); box-shadow: 0 0 8px var(--apple-orange); animation: pulse 2s infinite; }
 .esri-attr { position: absolute; bottom: 6px; right: 8px; font-size: 9px; font-weight: 600; color: rgba(255,255,255,0.6); z-index: 5; text-shadow: 0 1px 2px rgba(0,0,0,0.8); pointer-events: none;}
@@ -281,7 +285,7 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
     <div class="brand">
         <div class="brand-icon"><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div>
         <div class="brand-text">Over<span class="b-head">head</span></div>
-        <span class="v-badge">v82</span>
+        <span class="v-badge">v83</span>
     </div>
     <div class="searchbox"><svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><input id="searchInput" placeholder="Search callsign..." autocomplete="off" autocorrect="off" spellcheck="false" /></div>
     <div class="island-flight" id="islandFlight"><div class="if-main"><div class="if-call" id="ifCall">FLIGHT</div><div class="if-route" id="ifRoute">Tracking Active</div></div></div>
@@ -371,7 +375,7 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 
           <div class="overhead-badge none" id="dOverhead">Not Crossing</div>
           
-          <div class="section-title">Passenger Experience</div>
+          <div class="section-title">Passenger Experience <span class="simulated-badge">SIMULATED</span></div>
           <div class="cond-card">
               <div class="pax-header">
                   <div class="pax-phase-info"><div class="cond-lbl">Flight Phase</div><div class="pax-phase" id="paxPhase">Cruising</div></div>
@@ -419,13 +423,13 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
           
           <div class="section-title">Aircraft Specifications</div>
           <div class="grid" style="margin-bottom: 32px;">
-            <div class="info full"><div class="i-label">Model</div><div class="i-value" id="dModel">—</div></div>
-            <div class="info"><div class="i-label">Max Passengers</div><div class="i-value" id="sPax">—</div></div>
-            <div class="info"><div class="i-label">Length</div><div class="i-value" id="sLen">—</div></div>
-            <div class="info"><div class="i-label">Fuel Capacity</div><div class="i-value" id="sFuel">—</div></div>
-            <div class="info"><div class="i-label">Launched</div><div class="i-value" id="sLaunch">—</div></div>
-            <div class="info full"><div class="i-label">Engines</div><div class="i-value" id="sEng">—</div></div>
-            <div class="info full"><div class="i-label">Total Thrust</div><div class="i-value" id="sThrust">—</div></div>
+            <div class="info full" id="wrap-dModel"><div class="i-label">Model</div><div class="i-value" id="dModel">—</div></div>
+            <div class="info" id="wrap-sPax"><div class="i-label">Max Passengers</div><div class="i-value" id="sPax">—</div></div>
+            <div class="info" id="wrap-sLen"><div class="i-label">Length</div><div class="i-value" id="sLen">—</div></div>
+            <div class="info" id="wrap-sFuel"><div class="i-label">Fuel Capacity</div><div class="i-value" id="sFuel">—</div></div>
+            <div class="info" id="wrap-sLaunch"><div class="i-label">Launched</div><div class="i-value" id="sLaunch">—</div></div>
+            <div class="info full" id="wrap-sEng"><div class="i-label">Engines</div><div class="i-value" id="sEng">—</div></div>
+            <div class="info full" id="wrap-sThrust"><div class="i-label">Total Thrust</div><div class="i-value" id="sThrust">—</div></div>
           </div>
 
           <div class="legal-footer">
@@ -474,7 +478,6 @@ const fmtThrust = kn => isMetric ? `${nf.format(kn)} kN` : `${nf.format(kn * 224
 const airlines={"FIN":{n:"Finnair",c:"#0B1560"},"RYR":{n:"Ryanair",c:"#073590"},"NAX":{n:"Norwegian",c:"#D81939"},"SAS":{n:"SAS",c:"#00355E"},"VKG":{n:"Sunclass",c:"#FF7A00"},"BLX":{n:"TUI fly",c:"#73CBE6"},"DLH":{n:"Lufthansa",c:"#05164D"},"AFR":{n:"Air France",c:"#002157"},"KLM":{n:"KLM",c:"#00A1E4"},"THY":{n:"Turkish",c:"#E81932"},"BAW":{n:"British Airways",c:"#012A5E"},"UAE":{n:"Emirates",c:"#D71920"},"QTR":{n:"Qatar Airways",c:"#5C0632"},"EZY":{n:"EasyJet",c:"#FF6600"},"WZZ":{n:"Wizz Air",c:"#C60C85"},"SWR":{n:"Swiss",c:"#E3000F"},"IBE":{n:"Iberia",c:"#DF0024"},"BCS":{n:"DHL",c:"#FFCC00"},"AAL":{n:"American",c:"#0078D2"},"DAL":{n:"Delta",c:"#E00034"},"UAL":{n:"United",c:"#005DAA"},"NKS":{n:"Spirit",c:"#FFC600"}};
 const wCodes={0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌧️',53:'🌧️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',95:'⛈️'};
 
-// Aircraft Specifications Database (määrät yleisesti max-arvoja)
 const acSpecs = {
   "A319": { pax: 156, len: 33.84, fuel: 24210, y: 1995, eng: "CFM56 or IAE V2500 (x2)", thrust: 220 },
   "A320": { pax: 180, len: 37.57, fuel: 24210, y: 1988, eng: "CFM56 or IAE V2500 (x2)", thrust: 240 },
@@ -521,9 +524,10 @@ async function getWx(lat,lon){if(!lat||!lon)return null;let k=lat.toFixed(1)+lon
 async function updateAv(id,wid,n,lat,lon){const i=$(id),w=$(wid);if(!n||n==='Unknown'){w.classList.remove('show');i.style.display='none';return;}i.src=genAv(n);i.style.display='block';w.classList.add('show');const ri=await getCityImg(n);if(ri){const t=new Image();t.onload=()=>{i.src=ri;i.dataset.real=ri;i.dataset.city=n;};t.src=ri;}if(id==='arrAvatar'){$('arrWeather').innerHTML='';if(lat&&lon){let wx=await getWx(lat,lon);if(wx){$('arrWeather').innerHTML=`${wx.icon} ${wx.t}°C`;i.dataset.weather=`${wx.icon} ${wx.t}°C`;}}}else if(lat&&lon){let wx=await getWx(lat,lon);if(wx)i.dataset.weather=`${wx.icon} ${wx.t}°C`;}}
 function updatePath(pct,alt){let aR=Math.max(0,Math.min((alt||0)/35000,1.0)),pY=40-(30*aR),d=`M 10 40 C 30 40, 40 ${pY}, 60 ${pY} L 140 ${pY} C 160 ${pY}, 170 40, 190 40`;$('pathBg').setAttribute('d',d);$('pathFill').setAttribute('d',d);let pN=$('pathFill'),l=pN.getTotalLength()||215;pN.setAttribute('stroke-dasharray',l);let p=Math.max(0,Math.min(pct,100))/100;pN.setAttribute('stroke-dashoffset',l-(l*p));let pt=pN.getPointAtLength(l*p),la=Math.min(l,(l*p)+1),pa=pN.getPointAtLength(la),dx=pa.x-pt.x,dy=pa.y-pt.y;if(la===l&&l>1){let pb=pN.getPointAtLength(l-1);dx=pt.x-pb.x;dy=pt.y-pb.y;}let ag=Math.atan2(dy,dx)*(180/Math.PI),ic=$('bpProgressIcon');ic.style.left=`${(pt.x/200)*100}%`;ic.style.top=`${(pt.y/50)*100}%`;ic.style.transform=`translateZ(0) rotate(${90+ag}deg)`;}
 
-function updatePax(f){if(!f)return;let alt=f.baro_alt||0,vr=f.vertical_rate||0,spd=f.velocity||0,tc=f.oat!=null?f.oat:(15-((alt/1000)*1.98));if(tc<-56.5)tc=-56.5;$('dOAT').textContent=f.on_ground?'Ground':fmtTemp(tc);
+function updatePax(f){if(!f)return;let alt=f.baro_alt||0,vr=f.smoothed_vr||0,spd=f.velocity||0,tc=f.oat!=null?f.oat:(15-((alt/1000)*1.98));if(tc<-56.5)tc=-56.5;$('dOAT').textContent=f.on_ground?'Ground':fmtTemp(tc);
   let gf = 1.0; 
   if(!f.on_ground && Math.abs(vr) > 500) { gf += (vr / 15000); } 
+  if(gf > 1.4) gf = 1.4; if(gf < 0.6) gf = 0.6; // Clamp against severe ADS-B anomalies
   $('dGForce').textContent=f.on_ground?"1.00 G":gf.toFixed(2)+" G";
   $('dMach').textContent=(!f.on_ground&&spd>100)?("M "+(spd/(38.945*Math.sqrt(tc+273.15))).toFixed(2)):"—";
   let cabAlt = alt;
@@ -578,7 +582,22 @@ async function fetchFlights(){
     const c=state.map?state.map.getCenter():{lat:state.userLat,lng:state.userLon},z=state.map?state.map.getZoom():6;let r=250;if(z<=5)r=500;if(z<=4)r=1000;
     const res=await fetch(`https://api.airplanes.live/v2/point/${c.lat.toFixed(3)}/${c.lng.toFixed(3)}/${r}`);if(!res.ok)throw new Error();
     const j=await res.json(),a=(j.ac||[]).map(x=>{if(x.lat==null||x.lon==null)return null;return{icao24:x.hex,callsign:(x.flight||'').trim(),type:x.t||'Unknown',desc:x.desc||'',reg:x.r||'—',lon:x.lon,lat:x.lat,baro_alt:x.alt_baro==='ground'?0:(x.alt_baro||x.alt_geom||0),on_ground:x.alt_baro==='ground',velocity:x.gs||0,track:x.track||0,vertical_rate:x.baro_rate||0,squawk:x.squawk||'—',oat:x.oat,ws:x.ws,wd:x.wd,curLat:x.lat,curLon:x.lon,dist:haversine(state.userLat,state.userLon,x.lat,x.lon),ftL:false};}).filter(Boolean);
-    const sn=new Set();for(const nf of a){sn.add(nf.icao24);const o=state.flights.get(nf.icao24);if(o){nf.history=o.history||[];nf.ftL=o.ftL;nf.route=o.route;nf.vP=o.vP;if(!nf.callsign&&o.callsign)nf.callsign=o.callsign;if(o.curLat!==nf.lat||o.curLon!==nf.lon)nf.history.push([o.curLat,o.curLon]);if(!nf.ftL&&nf.history.length>300)nf.history.shift();Object.assign(o,nf);}else{nf.history=[[nf.lat,nf.lon]];state.flights.set(nf.icao24,nf);}}
+    const sn=new Set();for(const nf of a){
+        sn.add(nf.icao24);const o=state.flights.get(nf.icao24);
+        if(o){
+            nf.history=o.history||[];nf.ftL=o.ftL;nf.route=o.route;nf.vP=o.vP;
+            if(!nf.callsign&&o.callsign)nf.callsign=o.callsign;
+            // LOW-PASS FILTER for Vertical Rate to stop G-Force glitches
+            nf.smoothed_vr = o.smoothed_vr !== undefined ? (o.smoothed_vr * 0.6 + nf.vertical_rate * 0.4) : nf.vertical_rate;
+            if(o.curLat!==nf.lat||o.curLon!==nf.lon)nf.history.push([o.curLat,o.curLon]);
+            if(!nf.ftL&&nf.history.length>300)nf.history.shift();
+            Object.assign(o,nf);
+        }else{
+            nf.history=[[nf.lat,nf.lon]];
+            nf.smoothed_vr = nf.vertical_rate;
+            state.flights.set(nf.icao24,nf);
+        }
+    }
     for(const i of state.flights.keys()){if(!sn.has(i))state.flights.delete(i);}$('mapStatusText').textContent=`${state.flights.size} Live`;$('sheetSub').textContent=`${state.flights.size} Aircraft`;$('dotStatus').classList.remove('warn');
   }catch(e){$('dotStatus').classList.add('warn');$('mapStatusText').textContent='Network Error';}finally{renderList();updateMarkers();setTimeout(fetchFlights,10000);}
 }
@@ -606,10 +625,16 @@ function startAnim(){
         if(s.route&&s.route.depLat&&s.route.arrLat){
           const fD=haversine(s.route.depLat,s.route.depLon,s.curLat,s.curLon);
           let rD=haversine(s.curLat,s.curLon,s.route.arrLat,s.route.arrLon);
+          
+          // REALISTIC ETA: Add approach routing penalty (+15% distance)
+          let routingPenalty = rD < 20 ? 1.05 : 1.15;
+          let effectiveDist = rD * routingPenalty;
+          
           tp=Math.min(100,Math.max(0,(fD/(fD+rD))*100));
           $('dRemainNM').textContent=fmtDist(rD);
           
-          let hrs = rD / cGS;
+          // Blended speed for landing
+          let hrs = effectiveDist / Math.max(cGS, 140);
           if(s.on_ground&&rD<50){tp=100; hrs=0;}
           if(s.on_ground&&fD<50){tp=0;}
           
@@ -657,16 +682,23 @@ window.openUI=async function(i){
   $('bpCall').textContent=c.substring(0,6);$('dTrack').textContent=fmtHeading(f.track);$('dVRate').textContent=fmtVRate(f.vertical_rate);$('dIcao').textContent=f.icao24.toUpperCase();
   
   $('dModel').textContent='Loading...';$('dReg').textContent=f.reg;$('dCountry').textContent='—';$('dOwner').textContent='—';$('dYear').textContent='—';
-  $('sPax').textContent='—';$('sLen').textContent='—';$('sFuel').textContent='—';$('sLaunch').textContent='—';$('sEng').textContent='—';$('sThrust').textContent='—';
+  
+  // DYNAMIC SPECS CLEARING
+  const sKeys = ['sPax', 'sLen', 'sFuel', 'sLaunch', 'sEng', 'sThrust'];
+  sKeys.forEach(k => $('wrap-'+k).style.display = 'none');
   
   let al=null;if(f.callsign&&f.callsign.length>=3){let c3=f.callsign.substring(0,3).toUpperCase();if(airlines[c3])al=airlines[c3];}
   if(al){$('dAirline').textContent=al.n;$('bpHeaderBg').style.background=al.c;if(['#FFCC00','#73CBE6','#FF7A00'].includes(al.c)){$('bpLogo').style.color='#000';}else{$('bpLogo').style.color=al.c;}$('bpLogo').textContent=al.n.substring(0,2).toUpperCase();}else{$('dAirline').textContent='Commercial Flight';$('bpHeaderBg').style.background='var(--apple-blue)';$('bpLogo').style.color='var(--apple-blue)';$('bpLogo').textContent='FL';}
   const hs=c.split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0),gts=['A12','B22','C4','D10','E1','F14','G3','H8','A5','B7','E12','14','26','8A','9B','F2','D5'];
   $('bpArrGate').textContent=gts[Math.abs(hs*7)%gts.length];$('bpAlt').textContent='—';$('bpSpd').textContent='—';$('bpDep').textContent='—';$('bpDepName').textContent='Fetching...';$('bpArr').textContent='—';$('bpArrName').textContent='Fetching...';
-  updateAv('depAvatar','depAvatarWrap',null);updateAv('arrAvatar','arrAvatarWrap',null);$('arrTerminalImg').style.opacity='0';$('arrImgGrad').style.opacity='0';$('arrTerminalGateBadge').classList.remove('show');$('bpTimeFlown').textContent="--:--";$('bpTimeRemain').textContent="--:--";$('dRemainNM').textContent="— NM";$('wPlaneImg').style.opacity='0';$('wPlaneWrap').style.display='none';
+  updateAv('depAvatar','depAvatarWrap',null);updateAv('arrAvatar','arrAvatarWrap',null);
+  
+  $('arrTerminalImg').style.opacity='0';$('arrTerminalWrap').classList.add('no-img');$('arrImgGrad').style.opacity='0';$('arrTerminalGateBadge').classList.remove('show');
+  
+  $('bpTimeFlown').textContent="--:--";$('bpTimeRemain').textContent="--:--";$('dRemainNM').textContent="— NM";$('wPlaneImg').style.opacity='0';$('wPlaneWrap').style.display='none';
   let pd=state.photoCache.get(i);if(pd&&pd!=='loading'){$('wPlaneImg').src=pd.url;$('wPlaneImg').onload=()=>$('wPlaneImg').style.opacity='1';$('wPlaneAttr').textContent='© '+pd.author;$('wPlaneWrap').style.display='block';}
   state.pastPath.setLatLngs([]);state.futurePath.setLatLngs([]);
-  if(f.callsign){fetchRoute(f.callsign).then(async r=>{if(r){f.route=r;$('bpDep').textContent=r.dep;$('bpDepName').textContent=r.depName;$('bpArr').textContent=r.arr;$('bpArrName').textContent=r.arrName;updateAv('depAvatar','depAvatarWrap',r.depName,r.depLat,r.depLon);updateAv('arrAvatar','arrAvatarWrap',r.arrName,r.arrLat,r.arrLon);const ti=await getCityImg(r.arrName);if(ti){$('arrTerminalImg').src=ti;$('arrTerminalImg').onload=()=>{if(state.selectedIcao===i){$('arrTerminalImg').style.opacity='1';$('arrImgGrad').style.opacity='1';}};} }else{$('bpDep').textContent='N/A';$('bpDepName').textContent='Unknown';$('bpArr').textContent='N/A';$('bpArrName').textContent='Unknown';}});}else{$('bpDep').textContent='N/A';$('bpDepName').textContent='Unknown';$('bpArr').textContent='N/A';$('bpArrName').textContent='Unknown';}
+  if(f.callsign){fetchRoute(f.callsign).then(async r=>{if(r){f.route=r;$('bpDep').textContent=r.dep;$('bpDepName').textContent=r.depName;$('bpArr').textContent=r.arr;$('bpArrName').textContent=r.arrName;updateAv('depAvatar','depAvatarWrap',r.depName,r.depLat,r.depLon);updateAv('arrAvatar','arrAvatarWrap',r.arrName,r.arrLat,r.arrLon);const ti=await getCityImg(r.arrName);if(ti){$('arrTerminalImg').src=ti;$('arrTerminalWrap').classList.remove('no-img');$('arrTerminalImg').onload=()=>{if(state.selectedIcao===i){$('arrTerminalImg').style.opacity='1';$('arrImgGrad').style.opacity='1';}};} }else{$('bpDep').textContent='N/A';$('bpDepName').textContent='Unknown';$('bpArr').textContent='N/A';$('bpArrName').textContent='Unknown';}});}else{$('bpDep').textContent='N/A';$('bpDepName').textContent='Unknown';$('bpArr').textContent='N/A';$('bpArrName').textContent='Unknown';}
   updatePath(0,f.baro_alt);setTimeout(()=>{updatePath(f.vP||0,f.baro_alt);updatePax(f);},50);
   state.map.setView([f.curLat,f.curLon],9,{animate:true});updateMarkers();fetchTrace(i);
   
@@ -686,31 +718,21 @@ window.openUI=async function(i){
               $('dOwner').textContent = m.registered_owner || '—';
               $('dYear').textContent = m.year_built || '—';
 
-              // Etsi specit type-koodilla (esim "A320" tai "B738")
-              let tCode = f.type;
-              if (acSpecs[tCode]) {
-                 let s = acSpecs[tCode];
-                 $('sPax').textContent = "Up to " + s.pax;
-                 $('sLen').textContent = fmtLen(s.len);
-                 $('sFuel').textContent = fmtGal(s.fuel);
-                 $('sLaunch').textContent = s.y;
-                 $('sEng').textContent = s.eng;
-                 $('sThrust').textContent = fmtThrust(s.thrust);
-              } else {
-                 $('sPax').textContent = 'N/A'; $('sLen').textContent = 'N/A'; $('sFuel').textContent = 'N/A';
-                 $('sLaunch').textContent = 'N/A'; $('sEng').textContent = 'N/A'; $('sThrust').textContent = 'N/A';
+              if (acSpecs[f.type]) {
+                 let s = acSpecs[f.type];
+                 $('sPax').textContent = "Up to " + s.pax; $('sLen').textContent = fmtLen(s.len);
+                 $('sFuel').textContent = fmtGal(s.fuel); $('sLaunch').textContent = s.y;
+                 $('sEng').textContent = s.eng; $('sThrust').textContent = fmtThrust(s.thrust);
+                 sKeys.forEach(k => $('wrap-'+k).style.display = 'block');
               }
-
           } else {
               $('dModel').textContent = f.desc || f.type;
               if (acSpecs[f.type]) {
                  let s = acSpecs[f.type];
-                 $('sPax').textContent = "Up to " + s.pax;
-                 $('sLen').textContent = fmtLen(s.len);
-                 $('sFuel').textContent = fmtGal(s.fuel);
-                 $('sLaunch').textContent = s.y;
-                 $('sEng').textContent = s.eng;
-                 $('sThrust').textContent = fmtThrust(s.thrust);
+                 $('sPax').textContent = "Up to " + s.pax; $('sLen').textContent = fmtLen(s.len);
+                 $('sFuel').textContent = fmtGal(s.fuel); $('sLaunch').textContent = s.y;
+                 $('sEng').textContent = s.eng; $('sThrust').textContent = fmtThrust(s.thrust);
+                 sKeys.forEach(k => $('wrap-'+k).style.display = 'block');
               }
           }
       }
@@ -727,7 +749,7 @@ $('gpsBtn').addEventListener('click',()=>{if(state.selectedIcao){const f=state.f
 $('trackBtn').addEventListener('click',()=>{if(state.selectedIcao){const f=state.flights.get(state.selectedIcao);if(f&&f.route&&f.route.arrLat){state.map.fitBounds(L.featureGroup([L.marker([f.curLat,f.curLon]),L.marker([f.route.arrLat,f.route.arrLon])]).getBounds(),{padding:[50,50]});}}});
 $('searchInput').addEventListener('input',e=>{state.search=e.target.value;renderList();const s=$('sheet');if(state.search&&!s.classList.contains('expanded')&&!s.classList.contains('full'))s.classList.add('expanded');});
 
-const oI=(s,t,sb)=>{if(!s)return;$('overlayImg').src=s;$('overlayTitle').textContent=t||'';$('overlaySub').innerHTML=sb||'';$('imgOverlay').classList.add('open');};
+const oI=(s,t,sb)=>{if(!s||s.includes('image'))return;$('overlayImg').src=s;$('overlayTitle').textContent=t||'';$('overlaySub').innerHTML=sb||'';$('imgOverlay').classList.add('open');};
 $('imgClose').addEventListener('click',()=>$('imgOverlay').classList.remove('open'));
 $('arrTerminalWrap').addEventListener('click',()=>oI($('arrTerminalImg').src,$('bpArrName').textContent,"Airport Overview"));
 $('wPlaneWrap').addEventListener('click',()=>oI($('wPlaneImg').src,$('dModel').textContent,$('wPlaneAttr').textContent));
