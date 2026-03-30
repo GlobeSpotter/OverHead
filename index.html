@@ -42,7 +42,6 @@
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; user-select: none; background: #000; overscroll-behavior-y: none; }
 
-/* MAP FIX: Force exact height so it doesn't collapse to 0px */
 #map { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; background: #000; z-index: 1; }
 .leaflet-container { background: #000 !important; }
 .leaflet-control-zoom { display: none !important; }
@@ -51,10 +50,11 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 .dashed-path { stroke-dasharray: 8 10; animation: flow 1.5s linear infinite; }
 @keyframes flow { to { stroke-dashoffset: -18; } }
 
-/* GPU acceleration for markers to prevent tearing */
+/* Fix for icons: Pure SVG rendering container */
 .plane-wrapper { width: 36px; height: 36px; margin-left: -18px; margin-top: -18px; display: block; position: absolute; z-index: 500; will-change: transform; transform: translateZ(0); }
 .plane-wrapper.sel { width: 52px; height: 52px; margin-left: -26px; margin-top: -26px; z-index: 1000 !important; }
-.plane-img { width: 100%; height: 100%; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)); transform-origin: center center; will-change: transform; }
+.svg-container { width: 100%; height: 100%; will-change: transform; transition: transform 0.3s linear; }
+.plane-svg { width: 100%; height: 100%; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)); display: block; }
 .plane-tooltip { position: absolute; left: 32px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.65); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); padding: 4px 10px; border-radius: 10px; font-size: 11px; font-weight: 600; color: #FFF; white-space: nowrap; pointer-events: none; border: 0.5px solid rgba(255,255,255,0.15); box-shadow: 0 4px 12px rgba(0,0,0,0.2); opacity: 0; transition: opacity 0.3s ease; }
 .plane-wrapper.show-tooltip .plane-tooltip { opacity: 1; }
 .plane-wrapper.sel .plane-tooltip { left: 42px; opacity: 1; background: var(--apple-blue); border-color: rgba(255,255,255,0.3);}
@@ -287,7 +287,7 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
     <div class="brand">
         <div class="brand-icon"><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div>
         <div class="brand-text">Over<span class="b-head">head</span></div>
-        <span class="v-badge">v80</span>
+        <span class="v-badge">v81</span>
     </div>
     <div class="searchbox"><svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><input id="searchInput" placeholder="Search callsign..." autocomplete="off" autocorrect="off" spellcheck="false" /></div>
     <div class="island-flight" id="islandFlight"><div class="if-main"><div class="if-call" id="ifCall">FLIGHT</div><div class="if-route" id="ifRoute">Tracking Active</div></div></div>
@@ -416,9 +416,12 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
           
           <div class="section-title">Aircraft Details</div>
           <div class="grid">
-            <div class="info full"><div class="i-label">Model</div><div class="i-value" id="dModel">Loading...</div></div>
+            <div class="info full"><div class="i-label">Manufacturer & Model</div><div class="i-value" id="dModel">Loading...</div></div>
             <div class="info"><div class="i-label">Registration</div><div class="i-value" id="dReg">—</div></div>
+            <div class="info"><div class="i-label">Country</div><div class="i-value" id="dCountry">—</div></div>
             <div class="info"><div class="i-label">ICAO 24-bit</div><div class="i-value" id="dIcao">—</div></div>
+            <div class="info"><div class="i-label">Year Built</div><div class="i-value" id="dYear">—</div></div>
+            <div class="info full"><div class="i-label">Owner / Operator</div><div class="i-value" id="dOwner">—</div></div>
           </div>
 
           <div class="legal-footer">
@@ -443,10 +446,9 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 <script>
 const $ = id => document.getElementById(id);
 
-// --- LOKALISOINTI (Aika ja Yksiköt) ---
+// LOKALISOINTI
 const userLoc = navigator.language || 'en-US';
 const isMetric = !userLoc.startsWith('en-US') && !userLoc.startsWith('en-GB');
-
 const df = new Intl.DateTimeFormat(userLoc, { weekday: 'long', month: 'long', day: 'numeric' });
 const tf = new Intl.DateTimeFormat(userLoc, { hour: 'numeric', minute: '2-digit' });
 const nf = new Intl.NumberFormat(userLoc, { maximumFractionDigits: 0 });
@@ -466,8 +468,8 @@ const airlines={"FIN":{n:"Finnair",c:"#0B1560"},"RYR":{n:"Ryanair",c:"#073590"},
 const wCodes={0:'☀️',1:'🌤️',2:'⛅',3:'☁️',45:'🌫️',48:'🌫️',51:'🌧️',53:'🌧️',55:'🌧️',61:'🌧️',63:'🌧️',65:'🌧️',71:'🌨️',73:'🌨️',75:'🌨️',95:'⛈️'};
 const state={map:null,userLat:60.4518,userLon:22.2666,flights:new Map(),selectedIcao:null,photoCache:new Map(),arrImgCache:new Map(),routeCache:new Map(),markers:new Map(),cityWeather:new Map()};
 
-const planeBlueURI="image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTIxIDE2di0ybC04LTVWMy41YzAtLjgzLS42Ny0xLjUtMS41LTEuNVMxMCAyLjY3IDEwIDMuNVY5bC04IDV2Mmw4LTIuNVYxOWwtMiAxLjVWMjJsMy41LTEgMy41IDF2LTEuNUwxMyAxOXYtNS41bDggMi41eiIgZmlsbD0iIzAwN0FGRiIgc3Ryb2tlPSIjRkZGRkZGIiBzdHJva2Utd2lkdGg9IjEiLz48L3N2Zz4=";
-const planeGreenURI="image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZD0iTTIxIDE2di0ybC04LTVWMy41YzAtLjgzLS42Ny0xLjUtMS41LTEuNVMxMCAyLjY3IDEwIDMuNVY5bC04IDV2Mmw4LTIuNVYxOWwtMiAxLjVWMjJsMy41LTEgMy41IDF2LTEuNUwxMyAxOXYtNS41bDggMi41eiIgZmlsbD0iIzM0Qzc1OSIgc3Ryb2tlPSIjRkZGRkZGIiBzdHJva2Utd2lkdGg9IjEuNSIvPjwvc3ZnPg==";
+// Suora SVG ikoneihin, ei img/base64-ongelmia
+const getPlaneSvg = (color) => `<svg viewBox="0 0 24 24" class="plane-svg"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="${color}" stroke="#FFFFFF" stroke-width="1"/></svg>`;
 
 const haversine=(l1,n1,l2,n2)=>{if(l1==null||n1==null||l2==null||n2==null)return 0;const R=3440.065,p=Math.PI/180,a=Math.sin((l2-l1)*p/2)**2+Math.cos(l1*p)*Math.cos(l2*p)*Math.sin((n2-n1)*p/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))};
 const getGCPoints=(l1,n1,l2,n2,nP=50)=>{const p=[],d=Math.PI/180,rl1=l1*d,rn1=n1*d,rl2=l2*d,rn2=n2*d,dst=2*Math.asin(Math.sqrt(Math.sin((rl1-rl2)/2)**2+Math.cos(rl1)*Math.cos(rl2)*Math.sin((rn1-rn2)/2)**2));if(dst===0)return[[l1,n1],[l2,n2]];for(let i=0;i<=nP;i++){const f=i/nP,A=Math.sin((1-f)*dst)/Math.sin(dst),B=Math.sin(f*dst)/Math.sin(dst),x=A*Math.cos(rl1)*Math.cos(rn1)+B*Math.cos(rl2)*Math.cos(rn2),y=A*Math.cos(rl1)*Math.sin(rn1)+B*Math.cos(rl2)*Math.sin(rn2),z=A*Math.sin(rl1)+B*Math.sin(rl2);p.push([Math.atan2(z,Math.sqrt(x*x+y*y))/d,Math.atan2(y,x)/d])}return p;};
@@ -485,8 +487,7 @@ function updatePath(pct,alt){let aR=Math.max(0,Math.min((alt||0)/35000,1.0)),pY=
 
 function updatePax(f){if(!f)return;let alt=f.baro_alt||0,vr=f.vertical_rate||0,spd=f.velocity||0,tc=f.oat!=null?f.oat:(15-((alt/1000)*1.98));if(tc<-56.5)tc=-56.5;$('dOAT').textContent=f.on_ground?'Ground':fmtTemp(tc);
   let gf = 1.0; 
-  if(!f.on_ground && Math.abs(vr) > 500) { gf += (vr / 10000); } 
-  if(!f.on_ground && f.ws && f.ws > 30) { gf += (Math.sin(Date.now()/500) * 0.05); } 
+  if(!f.on_ground && Math.abs(vr) > 500) { gf += (vr / 15000); } 
   $('dGForce').textContent=f.on_ground?"1.00 G":gf.toFixed(2)+" G";
   $('dMach').textContent=(!f.on_ground&&spd>100)?("M "+(spd/(38.945*Math.sqrt(tc+273.15))).toFixed(2)):"—";
   let cabAlt = alt;
@@ -517,18 +518,8 @@ function initMap(){
   state.futurePath=L.polyline([],{color:'#007AFF',weight:3,opacity:0.6,className:'dashed-path'}).addTo(state.map);
   state.map.on('zoomend',updateMarkers);
 
-  // Varmistetaan, että selain on piirtänyt asettelun ja pakotetaan sitten Leaflet päivittämään sen todellinen koko. 
-  // Tämä korjaa Safarilla 100vh aiheuttaman "mustan ruudun".
-  setTimeout(()=>{
-      if(state.map) {
-          state.map.invalidateSize(true);
-      }
-  }, 200);
-  
-  // Varmuuden vuoksi reagoidaan myös ikkunan koon muutoksiin
-  window.addEventListener('resize', () => {
-      if(state.map) state.map.invalidateSize(true);
-  });
+  setTimeout(()=>{ if(state.map) state.map.invalidateSize(true); }, 200);
+  window.addEventListener('resize', () => { if(state.map) state.map.invalidateSize(true); });
 }
 
 function updateMarkers(){
@@ -536,12 +527,12 @@ function updateMarkers(){
   const cI=new Set(a.map(f=>f.icao24));for(const[i,m]of state.markers.entries()){if(!cI.has(i)){state.map.removeLayer(m);state.markers.delete(i);}}
   const st=state.map.getZoom()>=8;
   for(const f of a){
-    let m=state.markers.get(f.icao24),s=(f.icao24===state.selectedIcao),u=s?planeGreenURI:planeBlueURI;
+    let m=state.markers.get(f.icao24),s=(f.icao24===state.selectedIcao);
     if(!m){
-      const ic=L.divIcon({className:'',html:`<div class="plane-wrapper ${s?'sel':''} ${st?'show-tooltip':''}"><img src="${u}" class="plane-img" style="transform: rotate(${f.track||0}deg)" /><div class="plane-tooltip">${getFlightLabel(f)}</div></div>`,iconSize:[0,0]});
+      const ic=L.divIcon({className:'',html:`<div class="plane-wrapper ${s?'sel':''} ${st?'show-tooltip':''}"><div class="svg-container" style="transform: rotate(${f.track||0}deg)">${getPlaneSvg(s?'#34C759':'#007AFF')}</div><div class="plane-tooltip">${getFlightLabel(f)}</div></div>`,iconSize:[0,0]});
       m=L.marker([f.curLat,f.curLon],{icon:ic,zIndexOffset:s?1000:0}).addTo(state.map);m.on('click',()=>openUI(f.icao24));state.markers.set(f.icao24,m);
     }else{
-      m.setLatLng([f.curLat,f.curLon]);const el=m.getElement();if(el){const w=el.querySelector('.plane-wrapper'),i=el.querySelector('.plane-img');if(i&&w){i.style.transform=`rotate(${f.track||0}deg)`;if(s!==w.classList.contains('sel')){if(s)w.classList.add('sel');else w.classList.remove('sel');i.src=u;}if(st!==w.classList.contains('show-tooltip')){if(st)w.classList.add('show-tooltip');else w.classList.remove('show-tooltip');}}}m.setZIndexOffset(s?1000:0);
+      m.setLatLng([f.curLat,f.curLon]);const el=m.getElement();if(el){const w=el.querySelector('.plane-wrapper'),c=el.querySelector('.svg-container');if(c&&w){c.style.transform=`rotate(${f.track||0}deg)`;if(s!==w.classList.contains('sel')){if(s){w.classList.add('sel');c.innerHTML=getPlaneSvg('#34C759');}else{w.classList.remove('sel');c.innerHTML=getPlaneSvg('#007AFF');}}if(st!==w.classList.contains('show-tooltip')){if(st)w.classList.add('show-tooltip');else w.classList.remove('show-tooltip');}}}m.setZIndexOffset(s?1000:0);
     }
   }
 }
@@ -626,7 +617,11 @@ window.openUI=async function(i){
   if(navigator.vibrate)navigator.vibrate(15);state.selectedIcao=i;const f=state.flights.get(i);if(!f)return;
   $('sheet').className='sheet mode-detail full';let c=f.callsign||f.icao24.toUpperCase();
   $('island').classList.add('focus');$('ifCall').textContent=c;$('hudWrap').classList.add('show');$('detailControls').style.display='flex';
-  $('bpCall').textContent=c.substring(0,6);$('dTrack').textContent=fmtHeading(f.track);$('dVRate').textContent=fmtVRate(f.vertical_rate);$('dIcao').textContent=f.icao24.toUpperCase();$('dModel').textContent=f.desc||(f.type!=='Unknown'?f.type:'Loading...');$('dReg').textContent=f.reg;
+  
+  // Tyhjennetään nörttitiedot heti latauksen alussa
+  $('bpCall').textContent=c.substring(0,6);$('dTrack').textContent=fmtHeading(f.track);$('dVRate').textContent=fmtVRate(f.vertical_rate);$('dIcao').textContent=f.icao24.toUpperCase();
+  $('dModel').textContent='Loading...';$('dReg').textContent=f.reg;$('dCountry').textContent='—';$('dOwner').textContent='—';$('dYear').textContent='—';
+  
   let al=null;if(f.callsign&&f.callsign.length>=3){let c3=f.callsign.substring(0,3).toUpperCase();if(airlines[c3])al=airlines[c3];}
   if(al){$('dAirline').textContent=al.n;$('bpHeaderBg').style.background=al.c;if(['#FFCC00','#73CBE6','#FF7A00'].includes(al.c)){$('bpLogo').style.color='#000';}else{$('bpLogo').style.color=al.c;}$('bpLogo').textContent=al.n.substring(0,2).toUpperCase();}else{$('dAirline').textContent='Commercial Flight';$('bpHeaderBg').style.background='var(--apple-blue)';$('bpLogo').style.color='var(--apple-blue)';$('bpLogo').textContent='FL';}
   const hs=c.split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0),gts=['A12','B22','C4','D10','E1','F14','G3','H8','A5','B7','E12','14','26','8A','9B','F2','D5'];
@@ -637,7 +632,28 @@ window.openUI=async function(i){
   if(f.callsign){fetchRoute(f.callsign).then(async r=>{if(r){f.route=r;$('bpDep').textContent=r.dep;$('bpDepName').textContent=r.depName;$('bpArr').textContent=r.arr;$('bpArrName').textContent=r.arrName;updateAv('depAvatar','depAvatarWrap',r.depName,r.depLat,r.depLon);updateAv('arrAvatar','arrAvatarWrap',r.arrName,r.arrLat,r.arrLon);const ti=await getCityImg(r.arrName);if(ti){$('arrTerminalImg').src=ti;$('arrTerminalImg').onload=()=>{if(state.selectedIcao===i){$('arrTerminalImg').style.opacity='1';$('arrImgGrad').style.opacity='1';}};} }else{$('bpDep').textContent='N/A';$('bpDepName').textContent='Unknown';$('bpArr').textContent='N/A';$('bpArrName').textContent='Unknown';}});}else{$('bpDep').textContent='N/A';$('bpDepName').textContent='Unknown';$('bpArr').textContent='N/A';$('bpArrName').textContent='Unknown';}
   updatePath(0,f.baro_alt);setTimeout(()=>{updatePath(f.vP||0,f.baro_alt);updatePax(f);},50);
   state.map.setView([f.curLat,f.curLon],9,{animate:true});updateMarkers();fetchTrace(i);
-  try{const dr=await fetch(`https://api.adsbdb.com/v0/aircraft/${i.toLowerCase()}`);if(dr.ok){const d=await dr.json(),m=d?.response?.aircraft;if(m){if(!f.desc&&f.type==='Unknown'){$('dModel').textContent=m.type;f.desc=m.type;}if(f.reg==='—'&&m.registration){$('dReg').textContent=m.registration;f.reg=m.registration;}}}}catch(e){}
+  
+  // Haetaan syvemmät nörttitiedot
+  try{
+      const dr=await fetch(`https://api.adsbdb.com/v0/aircraft/${i.toLowerCase()}`);
+      if(dr.ok){
+          const d=await dr.json(),m=d?.response?.aircraft;
+          if(m){
+              let man = m.manufacturer || '';
+              let typ = m.type || (f.type !== 'Unknown' ? f.type : '');
+              $('dModel').textContent = (man + ' ' + typ).trim() || 'Unknown';
+              f.desc = m.type;
+              if(m.registration) { $('dReg').textContent=m.registration; f.reg=m.registration; }
+              $('dCountry').textContent = m.flag || '—';
+              $('dOwner').textContent = m.registered_owner || '—';
+              $('dYear').textContent = m.year_built || '—';
+          } else {
+              $('dModel').textContent = f.desc || f.type;
+          }
+      }
+  }catch(e){
+      $('dModel').textContent = f.desc || f.type;
+  }
 }
 
 const cls=()=>{const s=$('sheet');s.className='sheet expanded';$('island').classList.remove('focus');$('hudWrap').classList.remove('show');$('detailControls').style.display='none';state.selectedIcao=null;state.pastPath.setLatLngs([]);state.futurePath.setLatLngs([]);updateMarkers();};
