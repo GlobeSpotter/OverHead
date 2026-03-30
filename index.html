@@ -195,10 +195,14 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 .w-barcode { height: 42px; width: 130px; background: repeating-linear-gradient(90deg, var(--label-primary), var(--label-primary) 3px, transparent 3px, transparent 5px, var(--label-primary) 5px, var(--label-primary) 6px, transparent 6px, transparent 9px, var(--label-primary) 9px, var(--label-primary) 14px, transparent 14px, transparent 16px); opacity: 0.85;}
 @media (min-width: 380px) { .w-barcode { width: 150px; } }
 
-.overhead-badge { margin: 0 16px 20px; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; padding: 10px; border-radius: 12px; letter-spacing: -0.01em;}
-.overhead-badge.approaching { background: rgba(52, 199, 89, 0.15); color: var(--apple-green); border: 0.5px solid rgba(52, 199, 89, 0.3); }
-.overhead-badge.passed { background: rgba(142, 142, 147, 0.15); color: var(--label-secondary); border: 0.5px solid rgba(142, 142, 147, 0.3); }
-.overhead-badge.none { display: none; }
+/* OVERHEAD BADGE REDESIGN */
+.overhead-badge { margin: 0 16px 20px; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; padding: 12px; border-radius: 14px; letter-spacing: -0.01em;}
+.overhead-badge svg { flex-shrink: 0; }
+.overhead-badge.approaching { background: rgba(10, 132, 255, 0.12); color: var(--apple-blue); border: 0.5px solid rgba(10, 132, 255, 0.25); }
+.overhead-badge.overhead { background: rgba(52, 199, 89, 0.12); color: var(--apple-green); border: 0.5px solid rgba(52, 199, 89, 0.25); animation: pulse 2s infinite; }
+.overhead-badge.passed { background: var(--apple-gray-fill); color: var(--label-secondary); border: 0.5px solid var(--glass-border); }
+.overhead-badge.none { display: none !important; }
+.oh-pipe { opacity: 0.4; margin: 0 4px; font-weight: 400; }
 
 .detail-actions { position: absolute; top: 16px; right: max(16px, var(--sar)); display: flex; gap: 10px; z-index: 100; }
 .action-btn { background: var(--bg-secondary); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); color: var(--apple-blue); border: 0.5px solid var(--glass-border); font-size: 14px; font-weight: 600; padding: 8px 16px; border-radius: 20px; cursor: pointer; box-shadow: var(--shadow-card); transition: transform 0.2s;}
@@ -284,7 +288,7 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
     <div class="brand">
         <div class="brand-icon"><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div>
         <div class="brand-text">Over<span class="b-head">head</span></div>
-        <span class="v-badge">v84</span>
+        <span class="v-badge">v85</span>
     </div>
     <div class="searchbox"><svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><input id="searchInput" placeholder="Search callsign..." autocomplete="off" autocorrect="off" spellcheck="false" /></div>
     <div class="island-flight" id="islandFlight"><div class="if-main"><div class="if-call" id="ifCall">FLIGHT</div><div class="if-route" id="ifRoute">Tracking Active</div></div></div>
@@ -372,7 +376,8 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
               </div>
           </div>
 
-          <div class="overhead-badge none" id="dOverhead">Not Crossing</div>
+          <!-- DYNAMIC OVERHEAD BADGE -->
+          <div class="overhead-badge none" id="dOverhead"></div>
           
           <div class="section-title">Passenger Experience <span class="simulated-badge">SIMULATED</span></div>
           <div class="cond-card">
@@ -453,7 +458,6 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 <script>
 const $ = id => document.getElementById(id);
 
-// LOKALISOINTI
 const userLoc = navigator.language || 'en-US';
 const isMetric = !userLoc.startsWith('en-US') && !userLoc.startsWith('en-GB');
 const df = new Intl.DateTimeFormat(userLoc, { weekday: 'long', month: 'long', day: 'numeric' });
@@ -474,7 +478,6 @@ const fmtGal = l => isMetric ? `${nf.format(l)} L` : `${nf.format(l * 0.264172)}
 const fmtLen = m => isMetric ? `${nf.format(m)} m` : `${nf.format(m * 3.28084)} ft`;
 const fmtThrust = kn => isMetric ? `${nf.format(kn)} kN` : `${nf.format(kn * 224.8089)} lbf`;
 
-// EXTENDED AIRLINES DATABASE
 const airlines = {
   "FIN":{n:"Finnair",c:"#0B1560"}, "RYR":{n:"Ryanair",c:"#073590"}, "NAX":{n:"Norwegian",c:"#D81939"}, "SAS":{n:"SAS",c:"#00355E"}, 
   "VKG":{n:"Sunclass",c:"#FF7A00"}, "BLX":{n:"TUI fly",c:"#73CBE6"}, "DLH":{n:"Lufthansa",c:"#05164D"}, "AFR":{n:"Air France",c:"#002157"}, 
@@ -489,7 +492,6 @@ const airlines = {
   "CXA":{n:"Cathay Pacific",c:"#006564"}, "EVA":{n:"EVA Air",c:"#00694A"}, "CAL":{n:"China Airlines",c:"#9E5A8E"}, "CSN":{n:"China Southern",c:"#003D7A"}
 };
 
-// DYNAMIC FALLBACK BRANDING GENERATOR
 function getDynamicBrand(callsign, reg) {
   let seedStr = (callsign || reg || "Unknown").toUpperCase();
   let name = "Private Aircraft";
@@ -503,7 +505,6 @@ function getDynamicBrand(callsign, reg) {
       logoText = reg.substring(0,2).replace(/[^A-Z]/g, '') || "PR";
   }
 
-  // Generate a distinct hash-based hue, keeping saturation and lightness deep for the premium look
   let hash = [...seedStr].reduce((a,c)=>c.charCodeAt(0)+((a<<5)-a),0);
   let hue = Math.abs(hash) % 360;
   let color = `hsl(${hue}, 65%, 35%)`;
@@ -548,7 +549,55 @@ const getPlaneSvg = (color) => `<svg viewBox="0 0 24 24" class="plane-svg"><path
 const haversine=(l1,n1,l2,n2)=>{if(l1==null||n1==null||l2==null||n2==null)return 0;const R=3440.065,p=Math.PI/180,a=Math.sin((l2-l1)*p/2)**2+Math.cos(l1*p)*Math.cos(l2*p)*Math.sin((n2-n1)*p/2)**2;return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a))};
 const getGCPoints=(l1,n1,l2,n2,nP=50)=>{const p=[],d=Math.PI/180,rl1=l1*d,rn1=n1*d,rl2=l2*d,rn2=n2*d,dst=2*Math.asin(Math.sqrt(Math.sin((rl1-rl2)/2)**2+Math.cos(rl1)*Math.cos(rl2)*Math.sin((rn1-rn2)/2)**2));if(dst===0)return[[l1,n1],[l2,n2]];for(let i=0;i<=nP;i++){const f=i/nP,A=Math.sin((1-f)*dst)/Math.sin(dst),B=Math.sin(f*dst)/Math.sin(dst),x=A*Math.cos(rl1)*Math.cos(rn1)+B*Math.cos(rl2)*Math.cos(rn2),y=A*Math.cos(rl1)*Math.sin(rn1)+B*Math.cos(rl2)*Math.sin(rn2),z=A*Math.sin(rl1)+B*Math.sin(rl2);p.push([Math.atan2(z,Math.sqrt(x*x+y*y))/d,Math.atan2(y,x)/d])}return p;};
 
-function calculateOverhead(f){if(!f||!f.velocity||f.on_ground)return null;const y=Math.sin((f.curLon-state.userLon)*Math.PI/180)*Math.cos(f.curLat*Math.PI/180),x=Math.cos(state.userLat*Math.PI/180)*Math.sin(f.curLat*Math.PI/180)-Math.sin(state.userLat*Math.PI/180)*Math.cos(f.curLat*Math.PI/180)*Math.cos((f.curLon-state.userLon)*Math.PI/180);let aD=Math.abs((f.track||0)-(((Math.atan2(y,x)*180/Math.PI+360)%360+180)%360));if(aD>180)aD=360-aD;if(f.dist<3)return{status:'overhead',text:'Directly Overhead'};if(aD<30)return{status:'approaching',text:`Overhead in ${Math.round((f.dist/f.velocity)*60)} min`};if(aD>120&&f.dist<30)return{status:'passed',text:`Passed ${Math.round((f.dist/f.velocity)*60)} min ago`};return{status:'none',text:'Not Crossing'};}
+// SYVÄSTI PARANNETTU OVERHEAD-LOGIIKKA
+function calculateOverhead(f){
+    if(!f || !f.velocity || f.on_ground) return {status:'none'};
+    const d2r = Math.PI/180;
+    const lat1 = f.curLat * d2r, lon1 = f.curLon * d2r;
+    const lat2 = state.userLat * d2r, lon2 = state.userLon * d2r;
+    
+    // Tosiasiallinen suunta lentokoneesta meihin
+    const y = Math.sin(lon2 - lon1) * Math.cos(lat2);
+    const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(lon2 - lon1);
+    let brg = (Math.atan2(y, x) / d2r + 360) % 360;
+    
+    // Kulmaero lentokoneen menosuunnan ja meidän sijaintimme välillä
+    let diff = Math.abs((f.track || 0) - brg);
+    if(diff > 180) diff = 360 - diff;
+    
+    // Cross Track Distance (ohitus-etäisyys sivusuunnassa merimaileina)
+    const distRad = f.dist / 3440.065;
+    const diffRad = diff * d2r;
+    const xtd = Math.abs(Math.asin(Math.sin(distRad) * Math.sin(diffRad)) * 3440.065);
+    
+    // Dynaaminen hyväksymissade: jos lentokone on korkealla (30k ft), se voi mennä 10 NM ohi ja näyttää silti menevän yli.
+    let threshold = Math.max(3, (f.baro_alt || 0) / 3000); 
+    if(threshold > 14) threshold = 14;
+    
+    // Jos menee "liian kaukaa ohi", piilotetaan alue kokonaan
+    if(xtd > threshold) return {status: 'none'};
+    
+    // Etäisyys ylityskohtaan (linjaa pitkin)
+    let atd = Math.sqrt(Math.max(0, f.dist*f.dist - xtd*xtd));
+    let mins = Math.round((atd / f.velocity) * 60);
+    
+    // Overhead design elementit
+    let icAppr = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M21 3L3 10.53v.98l6.84 2.65L12.48 21h.98L21 3z"/></svg>`;
+    let icPass = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>`;
+    
+    if(f.dist < 4) {
+        return {status: 'overhead', text: `🎯 Directly Overhead Now`};
+    } else if(diff < 90) {
+        if(mins > 60 || f.dist > 300) return {status: 'none'};
+        let d = new Date(Date.now() + mins * 60000);
+        return {status: 'approaching', text: `${icAppr} Overhead in ${mins} min <span class="oh-pipe">|</span> ${tf.format(d)}`};
+    } else {
+        if(mins > 45 || f.dist > 250) return {status: 'none'};
+        let d = new Date(Date.now() - mins * 60000);
+        return {status: 'passed', text: `${icPass} Passed ${mins} min ago <span class="oh-pipe">|</span> ${tf.format(d)}`};
+    }
+}
+
 function getFlightLabel(f){let al="Unknown Airline";if(f.callsign&&f.callsign.length>=3){let c=f.callsign.substring(0,3).toUpperCase();if(airlines[c])al=airlines[c].n}let m=f.desc||f.type;if(m==='Unknown'||!m)m="Unknown Aircraft";if(al==="Unknown Airline"&&f.reg&&f.reg!=='—')al=f.reg;return `${al} • ${m}`;}
 function updateSkyGlow(f){if(!f||f.curLon==null)return;let lh=(new Date().getUTCHours()+(f.curLon/15)+24)%24,g=$('skyGlow');if(lh>=5&&lh<8)g.style.background="linear-gradient(to bottom,rgba(255,159,10,0.3) 0%,transparent 100%)";else if(lh>=8&&lh<18)g.style.background="linear-gradient(to bottom,rgba(52,199,89,0.2) 0%,transparent 100%)";else if(lh>=18&&lh<21)g.style.background="linear-gradient(to bottom,rgba(255,59,48,0.3) 0%,rgba(175,82,222,0.1) 60%,transparent 100%)";else g.style.background="linear-gradient(to bottom,rgba(10,132,255,0.2) 0%,transparent 100%)";}
 
@@ -649,11 +698,21 @@ function startAnim(){
         $('hudAlt').textContent=fmtAltHud(s.baro_alt,s.on_ground);$('hudSpd').textContent=fmtSpdHud(s.velocity);
         $('bpAlt').textContent=fmtAltHud(s.baro_alt,s.on_ground);$('bpSpd').textContent=fmtSpdHud(s.velocity);
         $('dTrack').textContent=fmtHeading(s.track);$('dVRate').textContent=fmtVRate(s.vertical_rate);$('dSquawk').textContent=s.squawk;
-        updateSkyGlow(s);const oh=calculateOverhead(s);const bd=$('dOverhead');bd.className='overhead-badge '+(oh&&oh.status!=='none'?oh.status:'none');bd.textContent=oh&&oh.status!=='none'?oh.text:'Not Crossing';
+        updateSkyGlow(s);
         
-        let fd = "";
-        if (s.route && s.route.dep && s.route.arr) fd = `${s.route.dep} → ${s.route.arr}`;
-        $('ifRoute').textContent=oh&&oh.status!=='none'?oh.text:(fd || 'Tracking Active');
+        const oh = calculateOverhead(s);
+        const bd = $('dOverhead');
+        let fd = (s.route && s.route.dep && s.route.arr) ? `${s.route.dep} → ${s.route.arr}` : '';
+        
+        if (oh && oh.status !== 'none') {
+            bd.className = 'overhead-badge ' + oh.status;
+            bd.innerHTML = oh.text;
+            let plainTxt = oh.text.replace(/<[^>]*>?/gm, '').replace(/\|/g, '•').trim();
+            $('ifRoute').textContent = plainTxt;
+        } else {
+            bd.className = 'overhead-badge none';
+            $('ifRoute').textContent = fd || 'Tracking Active';
+        }
         
         let tp=0, cGS=Math.max(s.velocity||0, 50);
         if(s.route&&s.route.depLat&&s.route.arrLat){
@@ -724,11 +783,9 @@ window.openUI=async function(i){
       if(airlines[c3]) al=airlines[c3];
   }
   
-  // DYNAMIC BRANDING LOGIC
   if(al) {
       $('dAirline').textContent = al.n;
       $('bpHeaderBg').style.background = al.c;
-      // Dark text on bright backgrounds
       if(['#FFCC00','#73CBE6','#FF7A00','#F9B612'].includes(al.c)){
           $('bpLogo').style.color='#000';
       }else{
