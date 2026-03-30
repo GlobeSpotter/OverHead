@@ -379,6 +379,13 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
             <div class="info"><div class="i-label">Squawk</div><div class="i-value" id="dSquawk">—</div></div>
             <div class="info"><div class="i-label">Position Age</div><div class="i-value" id="dAge">—</div></div>
           </div>
+
+          <!-- PALAUTETTU PASSENGER EXPERIENCE -->
+          <div class="section-title">Passenger Experience</div>
+          <div class="grid">
+            <div class="info"><div class="i-label">Flight Phase</div><div class="i-value" id="dPhase">—</div></div>
+            <div class="info"><div class="i-label">Turbulence Estimate</div><div class="i-value" id="dTurb">—</div></div>
+          </div>
           
           <div class="section-title">Registration Details</div>
           <div class="grid">
@@ -688,6 +695,21 @@ function startAnim(){
         $('dSquawk').textContent = s.squawk || '—';
         $('dAge').textContent = s.seen != null ? s.seen.toFixed(1) + ' s' : '—';
 
+        // Lento-osan (Flight Phase) logiikka
+        let phase = "Cruise";
+        if (s.on_ground) phase = "Ground";
+        else if (s.baro_alt < 3000) phase = s.vertical_rate < 0 ? "Approach" : "Takeoff";
+        else if (s.vertical_rate > 500) phase = "Climb";
+        else if (s.vertical_rate < -500) phase = "Descent";
+        $('dPhase').textContent = phase;
+
+        // Turbulenssin laskenta nousu/laskunopeuden perusteella
+        let turb = "Smooth";
+        if (s.on_ground) turb = "None";
+        else if (Math.abs(s.vertical_rate || 0) > 3500) turb = "Moderate";
+        else if (Math.abs(s.vertical_rate || 0) > 1500) turb = "Light";
+        $('dTurb').textContent = turb;
+
         $('hudAlt').textContent=s.baro_alt?`${nf.format(s.baro_alt)} FT`:'—';$('hudSpd').textContent=s.velocity?`${nf.format(s.velocity)} KT`:'—';
         $('bpAlt').textContent=s.baro_alt?`${nf.format(s.baro_alt)} FT`:'—';$('bpSpd').textContent=s.velocity?`${nf.format(s.velocity)} KT`:'—';
         
@@ -804,8 +826,6 @@ window.openUI=async function(i){
   }
 
   const keys=['sPax','sLen','sFuel','sMass','sLaunch','sEng','sThrust'];
-  
-  // TÄMÄ ON KORJAUS: Kaikki kentät pidetään AINA esillä
   keys.forEach(k=>$('wrap-'+k).style.display='block'); 
   
   if(sp){ 
@@ -817,7 +837,6 @@ window.openUI=async function(i){
       $('sEng').textContent=sp.eng; 
       $('sThrust').textContent=sp.thrust+" kN"; 
   } else {
-      // Jos konetta ei siltikään tunnisteta, näytetään viivat piilottamisen sijaan
       $('sPax').textContent="—"; 
       $('sLen').textContent="—"; 
       $('sFuel').textContent="—"; 
