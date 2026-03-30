@@ -6,10 +6,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="theme-color" content="#000000">
-/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' fill='%231C1C1E'/%3E%3Cpath d='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z' fill='%23007AFF'/%3E%3C/svg%3E">
-/manifest+json;charset=utf-8,%7B%22name%22%3A%22Overhead%22%2C%22short_name%22%3A%22Overhead%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23000000%22%2C%22theme_color%22%3A%22%23000000%22%7D">
+<link rel="apple-touch-icon" href="image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' fill='%231C1C1E'/%3E%3Cpath d='M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z' fill='%23007AFF'/%3E%3C/svg%3E">
+<link rel="manifest" href="application/manifest+json;charset=utf-8,%7B%22name%22%3A%22Overhead%22%2C%22short_name%22%3A%22Overhead%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23000000%22%2C%22theme_color%22%3A%22%23000000%22%7D">
 <title>Overhead</title>
-//unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <style>
@@ -23,7 +23,6 @@
   --blur-heavy: saturate(180%) blur(40px); --spring: cubic-bezier(0.32, 0.72, 0, 1);
   --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.06); --shadow-sheet: 0 -10px 40px rgba(0, 0, 0, 0.08); --wallet-bg: #FFFFFF;
   
-  /* Safe Area Variables for modern phones */
   --sat: env(safe-area-inset-top, 20px);
   --sab: env(safe-area-inset-bottom, 20px);
   --sal: env(safe-area-inset-left, 0px);
@@ -40,8 +39,7 @@
   }
 }
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; user-select: none; background: #000; overscroll-behavior-y: none; }
-.island, .sheet, .hud-wrap, .side-controls, .map-status { will-change: transform; transform: translateZ(0); backface-visibility: hidden; }
+html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; user-select: none; background: #000; }
 
 #map { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: #000; z-index: 1; }
 .leaflet-container { background: #000 !important; }
@@ -51,9 +49,10 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 .dashed-path { stroke-dasharray: 8 10; animation: flow 1.5s linear infinite; }
 @keyframes flow { to { stroke-dashoffset: -18; } }
 
-.plane-wrapper { width: 36px; height: 36px; margin-left: -18px; margin-top: -18px; display: block; position: absolute; z-index: 500; will-change: transform;}
-.plane-wrapper.sel { width: 52px; height: 52px; margin-left: -26px; margin-top: -26px; z-index: 1000 !important;}
-.plane-img { width: 100%; height: 100%; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)); transition: transform 0.3s linear; transform-origin: center center; will-change: transform;}
+/* Plane wrapper that supports proper animation */
+.plane-wrapper { width: 36px; height: 36px; margin-left: -18px; margin-top: -18px; display: block; position: absolute; z-index: 500; }
+.plane-wrapper.sel { width: 52px; height: 52px; margin-left: -26px; margin-top: -26px; z-index: 1000 !important; }
+.plane-img { width: 100%; height: 100%; filter: drop-shadow(0 4px 8px rgba(0,0,0,0.5)); transform-origin: center center; }
 .plane-tooltip { position: absolute; left: 32px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.65); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); padding: 4px 10px; border-radius: 10px; font-size: 11px; font-weight: 600; color: #FFF; white-space: nowrap; pointer-events: none; border: 0.5px solid rgba(255,255,255,0.15); box-shadow: 0 4px 12px rgba(0,0,0,0.2); opacity: 0; transition: opacity 0.3s ease; }
 .plane-wrapper.show-tooltip .plane-tooltip { opacity: 1; }
 .plane-wrapper.sel .plane-tooltip { left: 42px; opacity: 1; background: var(--apple-blue); border-color: rgba(255,255,255,0.3);}
@@ -110,14 +109,14 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 .fab:active { transform: scale(0.85); background: var(--apple-gray-press); }
 
 /* Bottom Sheet */
-.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 1800; border-radius: 32px 32px 0 0; background: var(--glass-sheet); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); border-top: 1px solid var(--glass-border); box-shadow: var(--shadow-sheet), var(--glass-highlight); overflow: hidden; transition: transform .5s var(--spring), height .5s var(--spring); height: 200px; padding-bottom: max(20px, var(--sab)); display: flex; flex-direction: column; }
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 1800; border-radius: 32px 32px 0 0; background: var(--glass-sheet); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); border-top: 1px solid var(--glass-border); box-shadow: var(--shadow-sheet), var(--glass-highlight); transition: transform .5s var(--spring), height .5s var(--spring); height: 200px; padding-bottom: max(20px, var(--sab)); display: flex; flex-direction: column; }
 @media (min-width: 768px) { .sheet { left: 50%; width: 450px; margin-left: -225px; border-radius: 32px 32px 0 0; border: 1px solid var(--glass-border); border-bottom: none; } }
 .sheet.expanded { height: min(55vh, 500px); }
 .sheet.full { height: calc(100vh - max(14px, var(--sat)) - 60px); max-height: 900px; }
 .sheet-grab { display: flex; justify-content: center; align-items: center; padding: 12px 0 16px; cursor: pointer; flex-shrink: 0; z-index: 10; position: relative;}
 .sheet-grab div { width: 36px; height: 5px; border-radius: 3px; background: var(--label-tertiary); opacity: 0.5; }
 .sheet-content { position: relative; flex: 1; width: 100%; overflow: hidden; }
-.view { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transition: opacity 0.4s ease, transform 0.4s var(--spring); overflow-y: auto; padding-left: max(0px, var(--sal)); padding-right: max(0px, var(--sar)); }
+.view { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transition: opacity 0.4s ease, transform 0.4s var(--spring); overflow-y: auto; -webkit-overflow-scrolling: touch; padding-left: max(0px, var(--sal)); padding-right: max(0px, var(--sar)); }
 .view::-webkit-scrollbar { display: none; }
 
 #viewList { opacity: 1; transform: translateX(0); pointer-events: auto; }
@@ -250,6 +249,8 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 .shake-smooth svg { animation: slideWave 3s linear infinite; stroke: var(--apple-green); }
 .shake-light svg { animation: slideWave 1.5s linear infinite, shake 0.4s ease-in-out infinite; stroke: var(--apple-orange); }
 .shake-mod svg { animation: slideWave 0.5s linear infinite, shake 0.15s ease-in-out infinite; stroke: var(--apple-red); }
+@keyframes slideWave { from { transform: translateX(0); } to { transform: translateX(-25px); } }
+@keyframes shake { 0%, 100% { transform: translateY(0); } 25% { transform: translateY(-2px); } 75% { transform: translateY(2px); } }
 
 .cond-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 10px; margin-top: 2px;}
 .c-item { display: flex; flex-direction: column; gap: 2px; }
@@ -286,7 +287,7 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
         <div class="brand-text">Over<span class="b-head">head</span></div>
         <span class="v-badge">v80</span>
     </div>
-    <div class="searchbox"><svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">ircle cx="11" cy="11" r="8"></circle>e x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><input id="searchInput" placeholder="Search callsign..." autocomplete="off" autocorrect="off" spellcheck="false" /></div>
+    <div class="searchbox"><svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><input id="searchInput" placeholder="Search callsign..." autocomplete="off" autocorrect="off" spellcheck="false" /></div>
     <div class="island-flight" id="islandFlight"><div class="if-main"><div class="if-call" id="ifCall">FLIGHT</div><div class="if-route" id="ifRoute">Tracking Active</div></div></div>
     <div class="island-actions"><button class="icon-btn" id="gpsBtn" title="Location"><svg viewBox="0 0 24 24"><path d="M12 2L2 22l10-4 10 4L12 2z"/></svg></button></div>
   </div>
@@ -481,20 +482,15 @@ async function updateAv(id,wid,n,lat,lon){const i=$(id),w=$(wid);if(!n||n==='Unk
 function updatePath(pct,alt){let aR=Math.max(0,Math.min((alt||0)/35000,1.0)),pY=40-(30*aR),d=`M 10 40 C 30 40, 40 ${pY}, 60 ${pY} L 140 ${pY} C 160 ${pY}, 170 40, 190 40`;$('pathBg').setAttribute('d',d);$('pathFill').setAttribute('d',d);let pN=$('pathFill'),l=pN.getTotalLength()||215;pN.setAttribute('stroke-dasharray',l);let p=Math.max(0,Math.min(pct,100))/100;pN.setAttribute('stroke-dashoffset',l-(l*p));let pt=pN.getPointAtLength(l*p),la=Math.min(l,(l*p)+1),pa=pN.getPointAtLength(la),dx=pa.x-pt.x,dy=pa.y-pt.y;if(la===l&&l>1){let pb=pN.getPointAtLength(l-1);dx=pt.x-pb.x;dy=pt.y-pb.y;}let ag=Math.atan2(dy,dx)*(180/Math.PI),ic=$('bpProgressIcon');ic.style.left=`${(pt.x/200)*100}%`;ic.style.top=`${(pt.y/50)*100}%`;ic.style.transform=`translateZ(0) rotate(${90+ag}deg)`;}
 
 function updatePax(f){if(!f)return;let alt=f.baro_alt||0,vr=f.vertical_rate||0,spd=f.velocity||0,tc=f.oat!=null?f.oat:(15-((alt/1000)*1.98));if(tc<-56.5)tc=-56.5;$('dOAT').textContent=f.on_ground?'Ground':fmtTemp(tc);
-  // Fysiikkapohjainen G-voima: normaali matkalento = 1G. Vain kiihtyvyys muuttaa tätä.
   let gf = 1.0; 
-  if(!f.on_ground && Math.abs(vr) > 500) { gf += (vr / 10000); } // Yksinkertainen, vakaa fysiikkamalli
-  if(!f.on_ground && f.ws && f.ws > 30) { gf += (Math.sin(Date.now()/500) * 0.05); } // Pientä tärinää kovassa tuulessa
+  if(!f.on_ground && Math.abs(vr) > 500) { gf += (vr / 10000); } 
+  if(!f.on_ground && f.ws && f.ws > 30) { gf += (Math.sin(Date.now()/500) * 0.05); } 
   $('dGForce').textContent=f.on_ground?"1.00 G":gf.toFixed(2)+" G";
-  
   $('dMach').textContent=(!f.on_ground&&spd>100)?("M "+(spd/(38.945*Math.sqrt(tc+273.15))).toFixed(2)):"—";
-  
-  // Realistinen matkustamon paine (max ~8000 jalkaa lentokoneissa)
   let cabAlt = alt;
   if(alt > 8000) cabAlt = 6000 + ((alt - 8000) / 32000) * 2000;
   $('dCab').textContent=f.on_ground?"Doors Open":`${nf.format(Math.max(0,Math.round(cabAlt/50)*50))} ft`;
 
-  // Turbulenssin arviointi (sidotaan oikeaan säähän/korkeusvaihteluihin)
   let isTurbulent = !f.on_ground && (Math.abs(vr) > 1500 || (f.ws && f.ws > 40) || (gf > 1.15 || gf < 0.85));
   let isModerate = !f.on_ground && (Math.abs(vr) > 2500 || (f.ws && f.ws > 60));
   
@@ -517,7 +513,13 @@ function initMap(){
   state.userMarker=L.circleMarker([state.userLat,state.userLon],{radius:8,color:'#fff',weight:3,fillColor:'#007AFF',fillOpacity:1}).addTo(state.map);
   state.pastPath=L.polyline([],{color:'#007AFF',weight:4,opacity:0.9,lineCap:'round',lineJoin:'round'}).addTo(state.map);
   state.futurePath=L.polyline([],{color:'#007AFF',weight:3,opacity:0.6,className:'dashed-path'}).addTo(state.map);
-  state.map.on('zoomend',updateMarkers);setTimeout(()=>state.map.invalidateSize(),500);
+  
+  // Korjataan "harmaat laatat" mobiililatauksessa
+  setTimeout(() => {
+    state.map.invalidateSize();
+  }, 500);
+
+  state.map.on('zoomend',updateMarkers);
 }
 
 function updateMarkers(){
@@ -527,10 +529,10 @@ function updateMarkers(){
   for(const f of a){
     let m=state.markers.get(f.icao24),s=(f.icao24===state.selectedIcao),u=s?planeGreenURI:planeBlueURI;
     if(!m){
-      const ic=L.divIcon({className:'',html:`<div class="plane-wrapper ${s?'sel':''} ${st?'show-tooltip':''}"><img src="${u}" class="plane-img" style="transform: translateZ(0) rotate(${f.track||0}deg)" /><div class="plane-tooltip">${getFlightLabel(f)}</div></div>`,iconSize:[0,0]});
+      const ic=L.divIcon({className:'',html:`<div class="plane-wrapper ${s?'sel':''} ${st?'show-tooltip':''}"><img src="${u}" class="plane-img" style="transform: rotate(${f.track||0}deg)" /><div class="plane-tooltip">${getFlightLabel(f)}</div></div>`,iconSize:[0,0]});
       m=L.marker([f.curLat,f.curLon],{icon:ic,zIndexOffset:s?1000:0}).addTo(state.map);m.on('click',()=>openUI(f.icao24));state.markers.set(f.icao24,m);
     }else{
-      m.setLatLng([f.curLat,f.curLon]);const el=m.getElement();if(el){const w=el.querySelector('.plane-wrapper'),i=el.querySelector('.plane-img');if(i&&w){i.style.transform=`translateZ(0) rotate(${f.track||0}deg)`;if(s!==w.classList.contains('sel')){if(s)w.classList.add('sel');else w.classList.remove('sel');i.src=u;}if(st!==w.classList.contains('show-tooltip')){if(st)w.classList.add('show-tooltip');else w.classList.remove('show-tooltip');}}}m.setZIndexOffset(s?1000:0);
+      m.setLatLng([f.curLat,f.curLon]);const el=m.getElement();if(el){const w=el.querySelector('.plane-wrapper'),i=el.querySelector('.plane-img');if(i&&w){i.style.transform=`rotate(${f.track||0}deg)`;if(s!==w.classList.contains('sel')){if(s)w.classList.add('sel');else w.classList.remove('sel');i.src=u;}if(st!==w.classList.contains('show-tooltip')){if(st)w.classList.add('show-tooltip');else w.classList.remove('show-tooltip');}}}m.setZIndexOffset(s?1000:0);
     }
   }
 }
@@ -541,110 +543,4 @@ async function fetchFlights(){
     const res=await fetch(`https://api.airplanes.live/v2/point/${c.lat.toFixed(3)}/${c.lng.toFixed(3)}/${r}`);if(!res.ok)throw new Error();
     const j=await res.json(),a=(j.ac||[]).map(x=>{if(x.lat==null||x.lon==null)return null;return{icao24:x.hex,callsign:(x.flight||'').trim(),type:x.t||'Unknown',desc:x.desc||'',reg:x.r||'—',lon:x.lon,lat:x.lat,baro_alt:x.alt_baro==='ground'?0:(x.alt_baro||x.alt_geom||0),on_ground:x.alt_baro==='ground',velocity:x.gs||0,track:x.track||0,vertical_rate:x.baro_rate||0,squawk:x.squawk||'—',oat:x.oat,ws:x.ws,wd:x.wd,curLat:x.lat,curLon:x.lon,dist:haversine(state.userLat,state.userLon,x.lat,x.lon),ftL:false};}).filter(Boolean);
     const sn=new Set();for(const nf of a){sn.add(nf.icao24);const o=state.flights.get(nf.icao24);if(o){nf.history=o.history||[];nf.ftL=o.ftL;nf.route=o.route;nf.vP=o.vP;if(!nf.callsign&&o.callsign)nf.callsign=o.callsign;if(o.curLat!==nf.lat||o.curLon!==nf.lon)nf.history.push([o.curLat,o.curLon]);if(!nf.ftL&&nf.history.length>300)nf.history.shift();Object.assign(o,nf);}else{nf.history=[[nf.lat,nf.lon]];state.flights.set(nf.icao24,nf);}}
-    for(const i of state.flights.keys()){if(!sn.has(i))state.flights.delete(i);}$('mapStatusText').textContent=`${state.flights.size} Live`;$('sheetSub').textContent=`${state.flights.size} Aircraft`;$('dotStatus').classList.remove('warn');
-  }catch(e){$('dotStatus').classList.add('warn');$('mapStatusText').textContent='Network Error';}finally{renderList();updateMarkers();setTimeout(fetchFlights,10000);}
-}
-
-async function fetchTrace(i){const f=state.flights.get(i);if(!f||f.ftL)return;const pt=async(r)=>{if(r.ok){const d=await r.json();if(d?.trace){let n=[];d.trace.forEach(p=>{if(Array.isArray(p)&&p.length>=3)n.push([p[1],p[2]]);else if(p&&p.lat)n.push([p.lat,p.lon]);});if(n.length>0){f.history=n;f.ftL=true;if(state.selectedIcao===f.icao24)state.pastPath.setLatLngs([...f.history,[f.curLat,f.curLon]]);}}}};try{await pt(await fetch(`https://api.airplanes.live/v2/trace/${i}`));}catch(e){try{await pt(await fetch(`https://api.adsb.fi/v2/trace/${i}`));}catch(e){}}}
-
-function startAnim(){
-  setInterval(updateMarkers,1000);
-  const t=(tm)=>{requestAnimationFrame(t);if(!state.aL){state.aL=tm;return;}const dt=Math.min((tm-state.aL)/1000,0.1);state.aL=tm;
-    for(const f of state.flights.values()){if(f.velocity&&!f.on_ground){const r=(f.track||0)*Math.PI/180,d=f.velocity*0.514444*dt;f.curLat+=(d*Math.cos(r))/111320;f.curLon+=(d*Math.sin(r))/(111320*Math.max(0.2,Math.cos(f.lat*Math.PI/180)));if(state.selectedIcao===f.icao24){const m=state.markers.get(f.icao24);if(m)m.setLatLng([f.curLat,f.curLon]);}}}
-    if(state.selectedIcao){
-      const s=state.flights.get(state.selectedIcao);if(s){
-        s.dist=haversine(state.userLat,state.userLon,s.curLat,s.curLon);
-        $('dAlt').textContent=fmtAlt(s.baro_alt,s.on_ground);$('dSpd').textContent=fmtSpd(s.velocity);
-        $('hudAlt').textContent=fmtAltHud(s.baro_alt,s.on_ground);$('hudSpd').textContent=fmtSpdHud(s.velocity);
-        $('bpAlt').textContent=fmtAltHud(s.baro_alt,s.on_ground);$('bpSpd').textContent=fmtSpdHud(s.velocity);
-        $('dTrack').textContent=fmtHeading(s.track);$('dVRate').textContent=fmtVRate(s.vertical_rate);$('dSquawk').textContent=s.squawk;
-        updateSkyGlow(s);const oh=calculateOverhead(s);const bd=$('dOverhead');bd.className='overhead-badge '+(oh&&oh.status!=='none'?oh.status:'none');bd.textContent=oh&&oh.status!=='none'?oh.text:'Not Crossing';
-        
-        let fd = "";
-        if (s.route && s.route.dep && s.route.arr) fd = `${s.route.dep} → ${s.route.arr}`;
-        $('ifRoute').textContent=oh&&oh.status!=='none'?oh.text:(fd || 'Tracking Active');
-        
-        let tp=0, cGS=Math.max(s.velocity||0, 50);
-        if(s.route&&s.route.depLat&&s.route.arrLat){
-          const fD=haversine(s.route.depLat,s.route.depLon,s.curLat,s.curLon);
-          let rD=haversine(s.curLat,s.curLon,s.route.arrLat,s.route.arrLon);
-          tp=Math.min(100,Math.max(0,(fD/(fD+rD))*100));
-          $('dRemainNM').textContent=fmtDist(rD);
-          
-          let hrs = rD / cGS;
-          if(s.on_ground&&rD<50){tp=100; hrs=0;}
-          if(s.on_ground&&fD<50){tp=0;}
-          
-          if(tp>=100){
-            $('bpTimeRemain').textContent="ARRIVED";
-          } else {
-            let arrTime = new Date(Date.now() + hrs * 3600000);
-            $('bpTimeRemain').textContent=tf.format(arrTime);
-          }
-        }else{
-          tp=s.on_ground?2:50;
-          $('dRemainNM').textContent='—';
-          $('bpTimeRemain').textContent="LIVE";
-        }
-        
-        s.vP=s.vP!==undefined?s.vP+(tp-s.vP)*0.05:tp;
-        if(tp===0){$('lblDep').textContent="STATUS";$('bpTimeFlown').textContent="DEPARTED";}
-        else{$('lblDep').textContent="STATUS";$('bpTimeFlown').textContent="LIVE";}
-
-        updatePath(s.vP,s.baro_alt);updatePax(s);
-        const b=$('arrTerminalGateBadge'),tt=$('arrBadgeTxt'),ld=$('liveArrDot');
-        if(s.route){b.classList.add('show');let aG=$('bpArrGate').textContent;if(tp>=100){tt.textContent="Arrived at Gate "+aG;ld.style.display='none';}else if(tp>90&&s.baro_alt<5000&&!s.on_ground){tt.textContent="Approaching Airport";ld.style.display='inline-block';ld.style.background='var(--apple-green)';ld.style.boxShadow='0 0 8px var(--apple-green)';}else if(tp>90&&s.on_ground){tt.textContent="Taxiing to Gate "+aG;ld.style.display='inline-block';ld.style.background='var(--apple-green)';ld.style.boxShadow='0 0 8px var(--apple-green)';}else{tt.textContent="Expected Gate "+aG;ld.style.display='none';}}else b.classList.remove('show');
-        let cp=[];if(s.history&&s.history.length>0){for(let i=0;i<s.history.length;i++)cp.push(s.history[i]);cp.push([s.curLat,s.curLon]);}else cp.push([s.curLat,s.curLon]);state.pastPath.setLatLngs(cp);
-        if(s.route&&s.route.arrLat!=null&&s.route.arrLon!=null)state.futurePath.setLatLngs(getGCPoints(s.curLat,s.curLon,parseFloat(s.route.arrLat),parseFloat(s.route.arrLon)));else{state.futurePath.setLatLngs([]);}
-      }
-    }
-  };requestAnimationFrame(t);
-}
-
-function renderList(){
-  const q=state.search?.trim().toLowerCase()||"";let a=[...state.flights.values()].sort((x,y)=>(x.dist||999)-(y.dist||999));if(q)a=a.filter(f=>((f.callsign||'')+f.icao24).toLowerCase().includes(q));
-  if(!a.length){$('flightList').innerHTML=`<div class="empty">No flights found.</div>`;return;}
-  $('flightList').innerHTML=a.slice(0,80).map(f=>{
-    let cs=f.callsign||f.icao24.toUpperCase(),pd=state.photoCache.get(f.icao24);if(!pd)fetchPlanePhoto(f.icao24);
-    let st=pd&&pd!=='loading'?'opacity:1;':'opacity:0;',rs=pd&&pd!=='loading'?pd.url:'',at=pd&&pd!=='loading'?'© '+pd.author:'',as=pd&&pd!=='loading'?'display:block;':'display:none;';
-    return `<div class="card" onclick="openUI('${f.icao24}')"><div class="plane-badge"><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg><img id="p-img-${f.icao24}" src="${rs}" style="${st}" /><div id="p-attr-${f.icao24}" class="photo-attr" style="${as}">${at}</div></div><div class="card-main"><div class="card-call">${cs.replace(/[<>]/g,'')}</div><div class="card-sub">${f.type} ${f.reg!=='—'?'• '+f.reg:''}</div></div><svg class="card-chevron" viewBox="0 0 24 24"><path d="M9.29 15.88L13.17 12 9.29 8.12c-.39-.39-.39-1.02 0-1.41.39-.39 1.02-.39 1.41 0l4.59 4.59c.39.39.39 1.02 0 1.41L10.7 17.3c-.39.39-1.02.39-1.41 0-.38-.39-.39-1.03 0-1.42z"/></svg></div>`
-  }).join('');
-}
-
-window.openUI=async function(i){
-  if(navigator.vibrate)navigator.vibrate(15);state.selectedIcao=i;const f=state.flights.get(i);if(!f)return;
-  $('sheet').className='sheet mode-detail full';let c=f.callsign||f.icao24.toUpperCase();
-  $('island').classList.add('focus');$('ifCall').textContent=c;$('hudWrap').classList.add('show');$('detailControls').style.display='flex';
-  $('bpCall').textContent=c.substring(0,6);$('dTrack').textContent=fmtHeading(f.track);$('dVRate').textContent=fmtVRate(f.vertical_rate);$('dIcao').textContent=f.icao24.toUpperCase();$('dModel').textContent=f.desc||(f.type!=='Unknown'?f.type:'Loading...');$('dReg').textContent=f.reg;
-  let al=null;if(f.callsign&&f.callsign.length>=3){let c3=f.callsign.substring(0,3).toUpperCase();if(airlines[c3])al=airlines[c3];}
-  if(al){$('dAirline').textContent=al.n;$('bpHeaderBg').style.background=al.c;if(['#FFCC00','#73CBE6','#FF7A00'].includes(al.c)){$('bpLogo').style.color='#000';}else{$('bpLogo').style.color=al.c;}$('bpLogo').textContent=al.n.substring(0,2).toUpperCase();}else{$('dAirline').textContent='Commercial Flight';$('bpHeaderBg').style.background='var(--apple-blue)';$('bpLogo').style.color='var(--apple-blue)';$('bpLogo').textContent='FL';}
-  const hs=c.split('').reduce((a,b)=>{a=((a<<5)-a)+b.charCodeAt(0);return a&a},0),gts=['A12','B22','C4','D10','E1','F14','G3','H8','A5','B7','E12','14','26','8A','9B','F2','D5'];
-  $('bpArrGate').textContent=gts[Math.abs(hs*7)%gts.length];$('bpAlt').textContent='—';$('bpSpd').textContent='—';$('bpDep').textContent='—';$('bpDepName').textContent='Fetching...';$('bpArr').textContent='—';$('bpArrName').textContent='Fetching...';
-  updateAv('depAvatar','depAvatarWrap',null);updateAv('arrAvatar','arrAvatarWrap',null);$('arrTerminalImg').style.opacity='0';$('arrImgGrad').style.opacity='0';$('arrTerminalGateBadge').classList.remove('show');$('bpTimeFlown').textContent="--:--";$('bpTimeRemain').textContent="--:--";$('dRemainNM').textContent="— NM";$('wPlaneImg').style.opacity='0';$('wPlaneWrap').style.display='none';
-  let pd=state.photoCache.get(i);if(pd&&pd!=='loading'){$('wPlaneImg').src=pd.url;$('wPlaneImg').onload=()=>$('wPlaneImg').style.opacity='1';$('wPlaneAttr').textContent='© '+pd.author;$('wPlaneWrap').style.display='block';}
-  state.pastPath.setLatLngs([]);state.futurePath.setLatLngs([]);
-  if(f.callsign){fetchRoute(f.callsign).then(async r=>{if(r){f.route=r;$('bpDep').textContent=r.dep;$('bpDepName').textContent=r.depName;$('bpArr').textContent=r.arr;$('bpArrName').textContent=r.arrName;updateAv('depAvatar','depAvatarWrap',r.depName,r.depLat,r.depLon);updateAv('arrAvatar','arrAvatarWrap',r.arrName,r.arrLat,r.arrLon);const ti=await getCityImg(r.arrName);if(ti){$('arrTerminalImg').src=ti;$('arrTerminalImg').onload=()=>{if(state.selectedIcao===i){$('arrTerminalImg').style.opacity='1';$('arrImgGrad').style.opacity='1';}};} }else{$('bpDep').textContent='N/A';$('bpDepName').textContent='Unknown';$('bpArr').textContent='N/A';$('bpArrName').textContent='Unknown';}});}else{$('bpDep').textContent='N/A';$('bpDepName').textContent='Unknown';$('bpArr').textContent='N/A';$('bpArrName').textContent='Unknown';}
-  updatePath(0,f.baro_alt);setTimeout(()=>{updatePath(f.vP||0,f.baro_alt);updatePax(f);},50);
-  state.map.setView([f.curLat,f.curLon],9,{animate:true});updateMarkers();fetchTrace(i);
-  try{const dr=await fetch(`https://api.adsbdb.com/v0/aircraft/${i.toLowerCase()}`);if(dr.ok){const d=await dr.json(),m=d?.response?.aircraft;if(m){if(!f.desc&&f.type==='Unknown'){$('dModel').textContent=m.type;f.desc=m.type;}if(f.reg==='—'&&m.registration){$('dReg').textContent=m.registration;f.reg=m.registration;}}}}catch(e){}
-}
-
-const cls=()=>{const s=$('sheet');s.className='sheet expanded';$('island').classList.remove('focus');$('hudWrap').classList.remove('show');$('detailControls').style.display='none';state.selectedIcao=null;state.pastPath.setLatLngs([]);state.futurePath.setLatLngs([]);updateMarkers();};
-$('sheetGrab').addEventListener('click',()=>{const s=$('sheet');if(s.classList.contains('full'))cls();else if(s.classList.contains('expanded'))s.classList.remove('expanded');else s.classList.add('expanded');});
-$('detailClose').addEventListener('click',cls);
-$('turkuBtn').addEventListener('click',()=>{if(navigator.geolocation)navigator.geolocation.getCurrentPosition(p=>{state.userLat=p.coords.latitude;state.userLon=p.coords.longitude;state.map.setView([state.userLat,state.userLon],8,{animate:true});state.userMarker.setLatLng([state.userLat,state.userLon]);},()=>state.map.setView([60.45,22.26],8));});
-$('gpsBtn').addEventListener('click',()=>{if(state.selectedIcao){const f=state.flights.get(state.selectedIcao);if(f)state.map.setView([f.curLat,f.curLon],9,{animate:true});}});
-$('trackBtn').addEventListener('click',()=>{if(state.selectedIcao){const f=state.flights.get(state.selectedIcao);if(f&&f.route&&f.route.arrLat){state.map.fitBounds(L.featureGroup([L.marker([f.curLat,f.curLon]),L.marker([f.route.arrLat,f.route.arrLon])]).getBounds(),{padding:[50,50]});}}});
-$('searchInput').addEventListener('input',e=>{state.search=e.target.value;renderList();const s=$('sheet');if(state.search&&!s.classList.contains('expanded')&&!s.classList.contains('full'))s.classList.add('expanded');});
-
-const oI=(s,t,sb)=>{if(!s)return;$('overlayImg').src=s;$('overlayTitle').textContent=t||'';$('overlaySub').innerHTML=sb||'';$('imgOverlay').classList.add('open');};
-$('imgClose').addEventListener('click',()=>$('imgOverlay').classList.remove('open'));
-$('arrTerminalWrap').addEventListener('click',()=>oI($('arrTerminalImg').src,$('bpArrName').textContent,"Airport Overview"));
-$('wPlaneWrap').addEventListener('click',()=>oI($('wPlaneImg').src,$('dModel').textContent,$('wPlaneAttr').textContent));
-$('depAvatarWrap').addEventListener('click',()=>{const i=$('depAvatar');oI(i.dataset.real||i.src,i.dataset.city,i.dataset.weather);});
-$('arrAvatarWrap').addEventListener('click',()=>{const i=$('arrAvatar');oI(i.dataset.real||i.src,i.dataset.city,i.dataset.weather);});
-
-initMap();fetchFlights();startAnim();
-</script>
-</body>
-</html>
+    for(const i of state.flights.keys()){if(!sn.has(i))state.flights.delete
