@@ -251,12 +251,17 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 .pax-text { display: flex; flex-direction: column; gap: 2px; }
 .pax-val { font-size: 18px; font-weight: 800; color: var(--label-primary); letter-spacing: -0.02em; }
 
-/* Aito Seatbelt Paneeli */
-.overhead-panel { background: #111; border-radius: 6px; padding: 6px 14px; box-shadow: inset 0 2px 4px rgba(0,0,0,1), 0 1px 1px rgba(255,255,255,0.1); border: 1px solid #000; display: flex; align-items: center; justify-content: center; transition: all 0.3s ease; position: relative; overflow: hidden; }
+/* Aito Merkkivalo Paneeli (Seatbelt & No Smoking) */
+.overhead-panel { background: #111; border-radius: 6px; padding: 6px 16px; box-shadow: inset 0 2px 4px rgba(0,0,0,1), 0 1px 1px rgba(255,255,255,0.1); border: 1px solid #000; display: flex; align-items: center; justify-content: center; gap: 16px; transition: all 0.3s ease; position: relative; overflow: hidden; }
 @media (prefers-color-scheme: dark) { .overhead-panel { box-shadow: inset 0 2px 4px rgba(0,0,0,1), 0 1px 1px rgba(255,255,255,0.05); } }
 .overhead-panel::after { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 40%; background: linear-gradient(rgba(255,255,255,0.1), rgba(255,255,255,0)); pointer-events: none; }
-.overhead-panel svg { width: 22px; height: 22px; fill: rgba(255,255,255,0.15); transition: all 0.4s ease; position: relative; z-index: 2;}
-.overhead-panel.on svg { fill: #FF3B30; filter: drop-shadow(0 0 6px rgba(255,59,48,0.9)) drop-shadow(0 0 12px rgba(255,59,48,0.6)); }
+
+/* Vihreä/Punainen Seatbelt */
+.icon-seatbelt { width: 22px; height: 22px; fill: #34C759; filter: drop-shadow(0 0 4px rgba(52,199,89,0.8)); transition: all 0.4s ease; position: relative; z-index: 2; }
+.overhead-panel.on .icon-seatbelt { fill: #FF3B30; filter: drop-shadow(0 0 6px rgba(255,59,48,0.9)) drop-shadow(0 0 12px rgba(255,59,48,0.6)); }
+
+/* Aina Punainen No Smoking */
+.icon-nosmoking { width: 22px; height: 22px; color: #FF3B30; fill: none; filter: drop-shadow(0 0 6px rgba(255,59,48,0.9)) drop-shadow(0 0 12px rgba(255,59,48,0.6)); position: relative; z-index: 2; }
 
 /* Crew Kuulutus */
 .announcement-bar { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--glass-border); display: flex; align-items: center; gap: 10px; }
@@ -415,8 +420,8 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
                         <div class="pax-val" id="dPhaseSub">Cruising</div>
                     </div>
                     <div class="overhead-panel" id="realSeatbelt">
-                        <!-- Uusi toimiva koodattu Seatbelt-kuvio -->
-                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Turvavyö (Vihreä kun pois, Punainen kun päällä) -->
+                        <svg class="icon-seatbelt" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <defs>
                                 <mask id="belt-mask">
                                     <rect width="24" height="24" fill="white" />
@@ -436,6 +441,15 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
                                 <!-- Jalat -->
                                 <rect x="12" y="14" width="6" height="3" rx="1" />
                             </g>
+                        </svg>
+
+                        <!-- Tupakointikielto (Aina Punainen) -->
+                        <svg class="icon-nosmoking" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/>
+                            <line x1="5.5" y1="5.5" x2="18.5" y2="18.5" stroke="currentColor" stroke-width="2"/>
+                            <rect x="6" y="11" width="7" height="2" fill="currentColor" stroke="none"/>
+                            <rect x="14" y="11" width="3" height="2" fill="currentColor" stroke="none"/>
+                            <path d="M15.5 10c0-1.5 1.5-1.5 1.5-2.5S16 6 16 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
                         </svg>
                     </div>
                 </div>
