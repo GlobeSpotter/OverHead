@@ -396,10 +396,7 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
             <div class="info" id="wrap-sLen"><div class="i-label">Length</div><div class="i-value" id="sLen">—</div></div>
             <div class="info" id="wrap-sFuel"><div class="i-label">Fuel Capacity</div><div class="i-value" id="sFuel">—</div></div>
             <div class="info" id="wrap-sMass"><div class="i-label">Max Takeoff Weight</div><div class="i-value" id="sMass">—</div></div>
-            
-            <!-- KORJAUS "REIKÄÄN": Tämä solu on nyt 'info full' eli se ottaa koko rivin leveyden, estäen tyhjän neliön. -->
             <div class="info full" id="wrap-sLaunch"><div class="i-label">Launched</div><div class="i-value" id="sLaunch">—</div></div>
-            
             <div class="info full" id="wrap-sEng"><div class="i-label">Engines</div><div class="i-value" id="sEng">—</div></div>
             <div class="info full" id="wrap-sThrust"><div class="i-label">Total Thrust</div><div class="i-value" id="sThrust">—</div></div>
           </div>
@@ -454,6 +451,8 @@ const acSpecs = {
   "A21N": { pax: 244, len: 44.51, fuel: 32940, y: 2017, eng: "LEAP-1A / PW1100G", thrust: 147, mass: 97000 },
   "A332": { pax: 253, len: 58.82, fuel: 139090, y: 1998, eng: "Trent 700 / PW4000", thrust: 311, mass: 242000 },
   "A333": { pax: 295, len: 63.69, fuel: 97530, y: 1994, eng: "Trent 700 / PW4000", thrust: 311, mass: 242000 },
+  "A343": { pax: 295, len: 63.69, fuel: 147850, y: 1991, eng: "CFM56-5C", thrust: 151, mass: 276500 },
+  "A346": { pax: 320, len: 75.36, fuel: 195880, y: 2001, eng: "Trent 556", thrust: 249, mass: 368000 },
   "A359": { pax: 350, len: 66.80, fuel: 141000, y: 2014, eng: "Trent XWB-84", thrust: 374, mass: 280000 },
   "A35K": { pax: 410, len: 73.79, fuel: 156000, y: 2018, eng: "Trent XWB-97", thrust: 431, mass: 319000 },
   "A388": { pax: 853, len: 72.72, fuel: 320000, y: 2007, eng: "Trent 900 / GP7200", thrust: 311, mass: 575000 },
@@ -463,6 +462,10 @@ const acSpecs = {
   "B739": { pax: 220, len: 42.10, fuel: 29660, y: 2001, eng: "CFM56-7B", thrust: 121, mass: 85130 },
   "B38M": { pax: 189, len: 39.52, fuel: 25816, y: 2017, eng: "LEAP-1B", thrust: 130, mass: 82190 },
   "B39M": { pax: 220, len: 42.16, fuel: 25816, y: 2019, eng: "LEAP-1B", thrust: 130, mass: 88314 },
+  "B744": { pax: 416, len: 70.66, fuel: 216840, y: 1988, eng: "PW4000 / CF6", thrust: 282, mass: 396890 },
+  "B748": { pax: 467, len: 76.25, fuel: 238610, y: 2010, eng: "GEnx-2B67", thrust: 296, mass: 447700 },
+  "B752": { pax: 200, len: 47.32, fuel: 43490, y: 1982, eng: "PW2037 / RB211", thrust: 170, mass: 115680 },
+  "B763": { pax: 269, len: 54.90, fuel: 90770, y: 1988, eng: "PW4000 / CF6", thrust: 267, mass: 186880 },
   "B772": { pax: 313, len: 63.70, fuel: 117340, y: 1995, eng: "GE90 / PW4000", thrust: 415, mass: 247200 },
   "B77W": { pax: 396, len: 73.90, fuel: 181280, y: 2004, eng: "GE90-115B", thrust: 512, mass: 351500 },
   "B788": { pax: 242, len: 56.70, fuel: 126206, y: 2011, eng: "GEnx-1B / Trent 1000", thrust: 280, mass: 227930 },
@@ -544,7 +547,6 @@ function checkOverheadProximity() {
     }
 }
 
-// AR Variables & Logic
 let arActive = false, devHeading = 0, devPitch = 0, videoStream = null;
 async function startAR() {
     arActive = true; $('arOverlay').classList.add('open');
@@ -624,7 +626,6 @@ async function fetchFlights(){
     const c=state.map?state.map.getCenter():{lat:state.userLat,lng:state.userLon}, z=state.map?state.map.getZoom():6;
     const res=await fetch(`https://api.airplanes.live/v2/point/${c.lat.toFixed(3)}/${c.lng.toFixed(3)}/${z<=5?500:250}`);
     
-    // VIRHEENKESTÄVÄ TELEMETRIAN MÄPPÄYS
     const j=await res.json(),a=(j.ac||[]).map(x=>x.lat!=null?{
       icao24: x.hex,
       callsign: (x.flight||'').trim(),
@@ -680,7 +681,6 @@ function startAnim(){
       const s=state.flights.get(state.selectedIcao);if(s){
         s.dist=haversine(state.userLat,state.userLon,s.curLat,s.curLon);
         
-        // VIRHEENKESTÄVÄ TELEMETRIA-PÄIVITYS JATKUVASTI ESILLÄ
         $('dAlt').textContent=fmtAlt(s.baro_alt,s.on_ground);
         $('dSpd').textContent=fmtSpd(s.velocity);
         $('dTrack').textContent = s.track != null ? Math.round(s.track) + '°' : '—';
@@ -782,20 +782,32 @@ window.openUI=async function(i){
   
   let sp = acSpecs[f.type];
   if (!sp && f.type) {
-      if(f.type.startsWith('A31')) sp = acSpecs['A319'];
-      else if(f.type.startsWith('A32')) sp = acSpecs['A320'];
-      else if(f.type.startsWith('A33')) sp = acSpecs['A333'];
-      else if(f.type.startsWith('A35')) sp = acSpecs['A359'];
-      else if(f.type.startsWith('B73')) sp = acSpecs['B738'];
-      else if(f.type.startsWith('B77')) sp = acSpecs['B77W'];
-      else if(f.type.startsWith('B78')) sp = acSpecs['B789'];
-      else if(f.type.startsWith('AT7')) sp = acSpecs['AT76'];
-      else if(f.type.startsWith('E19')) sp = acSpecs['E190'];
-      else if(f.type.startsWith('CRJ')) sp = acSpecs['CRJ9'];
-      else if(f.type.startsWith('BCS')) sp = acSpecs['BCS3'];
+      const t = f.type.toUpperCase();
+      if(t.startsWith('A30')) sp = acSpecs['A306'];
+      else if(t.startsWith('A31')) sp = acSpecs['A319'];
+      else if(t.startsWith('A32')) sp = acSpecs['A320'];
+      else if(t.startsWith('A33')) sp = acSpecs['A333'];
+      else if(t.startsWith('A34')) sp = acSpecs['A346'];
+      else if(t.startsWith('A35')) sp = acSpecs['A359'];
+      else if(t.startsWith('A38')) sp = acSpecs['A388'];
+      else if(t.startsWith('B73')) sp = acSpecs['B738'];
+      else if(t.startsWith('B74')) sp = acSpecs['B744'];
+      else if(t.startsWith('B75')) sp = acSpecs['B752'];
+      else if(t.startsWith('B76')) sp = acSpecs['B763'];
+      else if(t.startsWith('B77')) sp = acSpecs['B77W'];
+      else if(t.startsWith('B78')) sp = acSpecs['B789'];
+      else if(t.startsWith('AT')) sp = acSpecs['AT76'];
+      else if(t.startsWith('E1')) sp = acSpecs['E190'];
+      else if(t.startsWith('CRJ')) sp = acSpecs['CRJ9'];
+      else if(t.startsWith('BCS') || t.startsWith('A22')) sp = acSpecs['BCS3'];
+      else if(t.startsWith('DH8') || t.startsWith('Q40')) sp = acSpecs['DH8D'];
   }
 
   const keys=['sPax','sLen','sFuel','sMass','sLaunch','sEng','sThrust'];
+  
+  // TÄMÄ ON KORJAUS: Kaikki kentät pidetään AINA esillä
+  keys.forEach(k=>$('wrap-'+k).style.display='block'); 
+  
   if(sp){ 
       $('sPax').textContent="Up to "+sp.pax; 
       $('sLen').textContent = isMetric ? `${sp.len} m` : `${(sp.len * 3.28084).toFixed(1)} ft`;
@@ -804,9 +816,16 @@ window.openUI=async function(i){
       $('sLaunch').textContent=sp.y; 
       $('sEng').textContent=sp.eng; 
       $('sThrust').textContent=sp.thrust+" kN"; 
-      keys.forEach(k=>$('wrap-'+k).style.display='block'); 
+  } else {
+      // Jos konetta ei siltikään tunnisteta, näytetään viivat piilottamisen sijaan
+      $('sPax').textContent="—"; 
+      $('sLen').textContent="—"; 
+      $('sFuel').textContent="—"; 
+      $('sMass').textContent="—"; 
+      $('sLaunch').textContent="—"; 
+      $('sEng').textContent="—"; 
+      $('sThrust').textContent="—"; 
   }
-  else { keys.forEach(k=>$('wrap-'+k).style.display='none'); }
 }
 
 const cls=()=>{const s=$('sheet');s.className='sheet expanded';$('island').classList.remove('focus');$('hudWrap').classList.remove('show');$('detailControls').style.display='none';state.selectedIcao=null;updateMarkers();};
