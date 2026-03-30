@@ -13,8 +13,9 @@
 
 <style>
 :root {
-  --bg-primary: rgba(242, 242, 247, 0.65); 
-  --bg-secondary: rgba(255, 255, 255, 0.75); 
+  /* Apple Liquid Glass -vaaleampi ja läpinäkyvämpi teema */
+  --bg-primary: rgba(242, 242, 247, 0.45); 
+  --bg-secondary: rgba(255, 255, 255, 0.55); 
   --label-primary: #1C1C1E; 
   --label-secondary: #3A3A3C; 
   --label-tertiary: #6E6E73;
@@ -24,10 +25,10 @@
   --explorer-border: #5C4D3C; 
   --apple-gray-fill: rgba(0, 0, 0, 0.05); 
   --apple-gray-press: rgba(0, 0, 0, 0.1);
-  --glass-sheet: rgba(255, 255, 255, 0.85); 
-  --glass-border: rgba(0, 0, 0, 0.1);
-  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.9), inset 0 -1px 0 rgba(0, 0, 0, 0.02);
-  --blur-heavy: saturate(180%) blur(40px); 
+  --glass-sheet: rgba(250, 250, 252, 0.65); 
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.8), inset 0 -1px 0 rgba(0, 0, 0, 0.02);
+  --blur-heavy: saturate(200%) blur(40px); 
   --spring: cubic-bezier(0.32, 0.72, 0, 1);
   --shadow-card: 0 8px 24px rgba(0, 0, 0, 0.06); 
   --shadow-sheet: 0 -10px 40px rgba(0, 0, 0, 0.08); 
@@ -39,8 +40,9 @@
 }
 @media (prefers-color-scheme: dark) {
   :root {
-    --bg-primary: rgba(28, 28, 30, 0.65); 
-    --bg-secondary: rgba(44, 44, 46, 0.75); 
+    /* Tummassa tilassa lasiefekti korostuu vaaleammilla overlay-kerroksilla */
+    --bg-primary: rgba(28, 28, 30, 0.45); 
+    --bg-secondary: rgba(255, 255, 255, 0.08); 
     --label-primary: #FFFFFF; 
     --label-secondary: #EBEBF5; 
     --label-tertiary: #A1A1A6;
@@ -50,8 +52,8 @@
     --explorer-border: #3A3126;
     --apple-gray-fill: rgba(255, 255, 255, 0.1); 
     --apple-gray-press: rgba(255, 255, 255, 0.15);
-    --glass-sheet: rgba(28, 28, 30, 0.75); 
-    --glass-border: rgba(255, 255, 255, 0.15);
+    --glass-sheet: rgba(28, 28, 30, 0.55); 
+    --glass-border: rgba(255, 255, 255, 0.12);
     --glass-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.15), inset 0 -1px 0 rgba(0, 0, 0, 0.2);
     --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.3); 
     --shadow-sheet: 0 -10px 40px rgba(0, 0, 0, 0.4); 
@@ -212,7 +214,6 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 .w-code { font-size: 32px; font-weight: 300; color: var(--label-primary); letter-spacing: -0.05em; line-height: 1; font-family: -apple-system, sans-serif;}
 
 .w-time-lbl { font-size: 9px; font-weight: 800; color: var(--label-tertiary); letter-spacing: 0.06em; margin-top: 8px; text-transform: uppercase; }
-/* KORJATTU: Väri sidottu var(--label-primary), jolloin teksti on valkoinen tummassa tilassa */
 .w-time { font-size: 15px; font-weight: 800; margin-top: 2px; font-variant-numeric: tabular-nums; color: var(--label-primary); }
 .w-time.remain { color: var(--explorer-gold); }
 
@@ -388,7 +389,6 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
             <div class="info"><div class="i-label">Year Built</div><div class="i-value" id="dYear">—</div></div>
           </div>
           
-          <!-- LISÄTTY MASSA (Max Takeoff Weight) JA KAIKKI MUUT INFO-PALIKAT -->
           <div class="section-title">Aircraft Specifications</div>
           <div class="grid" style="margin-bottom: 32px;">
             <div class="info full" id="wrap-dModel"><div class="i-label">Model</div><div class="i-value" id="dModel">—</div></div>
@@ -396,7 +396,10 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
             <div class="info" id="wrap-sLen"><div class="i-label">Length</div><div class="i-value" id="sLen">—</div></div>
             <div class="info" id="wrap-sFuel"><div class="i-label">Fuel Capacity</div><div class="i-value" id="sFuel">—</div></div>
             <div class="info" id="wrap-sMass"><div class="i-label">Max Takeoff Weight</div><div class="i-value" id="sMass">—</div></div>
-            <div class="info" id="wrap-sLaunch"><div class="i-label">Launched</div><div class="i-value" id="sLaunch">—</div></div>
+            
+            <!-- KORJAUS "REIKÄÄN": Tämä solu on nyt 'info full' eli se ottaa koko rivin leveyden, estäen tyhjän neliön. -->
+            <div class="info full" id="wrap-sLaunch"><div class="i-label">Launched</div><div class="i-value" id="sLaunch">—</div></div>
+            
             <div class="info full" id="wrap-sEng"><div class="i-label">Engines</div><div class="i-value" id="sEng">—</div></div>
             <div class="info full" id="wrap-sThrust"><div class="i-label">Total Thrust</div><div class="i-value" id="sThrust">—</div></div>
           </div>
@@ -442,7 +445,6 @@ function getDynamicBrand(callsign, reg) {
   return { n: name, c: `hsl(${h}, 65%, 35%)`, logo: s.substring(0,2).replace(/[^A-Z]/g,'')||"PR" };
 }
 
-// LAAJENNETTU TIETOKANTA (sisältää myös massan kg)
 const acSpecs = {
   // Airbus
   "A319": { pax: 156, len: 33.84, fuel: 24210, y: 1995, eng: "CFM56 / V2500", thrust: 105, mass: 75500 },
@@ -621,7 +623,28 @@ async function fetchFlights(){
   try{
     const c=state.map?state.map.getCenter():{lat:state.userLat,lng:state.userLon}, z=state.map?state.map.getZoom():6;
     const res=await fetch(`https://api.airplanes.live/v2/point/${c.lat.toFixed(3)}/${c.lng.toFixed(3)}/${z<=5?500:250}`);
-    const j=await res.json(),a=(j.ac||[]).map(x=>x.lat!=null?{icao24:x.hex,callsign:(x.flight||'').trim(),type:x.t||'Unknown',desc:x.desc||'',reg:x.r||'—',lon:x.lon,lat:x.lat,baro_alt:x.alt_baro==='ground'?0:(x.alt_baro||0),on_ground:x.alt_baro==='ground',velocity:x.gs||0,track:x.track||0,vertical_rate:x.baro_rate||0,squawk:x.squawk||'—',curLat:x.lat,curLon:x.lon,dist:haversine(state.userLat,state.userLon,x.lat,x.lon),seen:x.seen}:null).filter(Boolean);
+    
+    // VIRHEENKESTÄVÄ TELEMETRIAN MÄPPÄYS
+    const j=await res.json(),a=(j.ac||[]).map(x=>x.lat!=null?{
+      icao24: x.hex,
+      callsign: (x.flight||'').trim(),
+      type: x.t||'Unknown',
+      desc: x.desc||'',
+      reg: x.r||'—',
+      lon: x.lon,
+      lat: x.lat,
+      baro_alt: x.alt_baro==='ground'?0:(x.alt_baro||null),
+      on_ground: x.alt_baro==='ground',
+      velocity: x.gs!=null?x.gs:null,
+      track: x.track!=null?x.track:null,
+      vertical_rate: x.baro_rate!=null?x.baro_rate:null,
+      squawk: x.squawk||null,
+      curLat: x.lat,
+      curLon: x.lon,
+      dist: haversine(state.userLat,state.userLon,x.lat,x.lon),
+      seen: x.seen_pos!=null ? x.seen_pos : (x.seen!=null?x.seen:null)
+    }:null).filter(Boolean);
+    
     const sn=new Set();for(const nf of a){sn.add(nf.icao24);const o=state.flights.get(nf.icao24);if(o){Object.assign(o,nf);}else{state.flights.set(nf.icao24,nf);}}
     for(const i of state.flights.keys()){if(!sn.has(i))state.flights.delete(i);}$('mapStatusText').textContent=`${state.flights.size} Live`;$('sheetSub').textContent=`${state.flights.size} Aircraft`;
   }catch(e){}finally{renderList();updateMarkers();checkOverheadProximity();setTimeout(fetchFlights,10000);}
@@ -656,7 +679,15 @@ function startAnim(){
     if(state.selectedIcao){
       const s=state.flights.get(state.selectedIcao);if(s){
         s.dist=haversine(state.userLat,state.userLon,s.curLat,s.curLon);
-        $('dAlt').textContent=fmtAlt(s.baro_alt,s.on_ground);$('dSpd').textContent=fmtSpd(s.velocity);
+        
+        // VIRHEENKESTÄVÄ TELEMETRIA-PÄIVITYS JATKUVASTI ESILLÄ
+        $('dAlt').textContent=fmtAlt(s.baro_alt,s.on_ground);
+        $('dSpd').textContent=fmtSpd(s.velocity);
+        $('dTrack').textContent = s.track != null ? Math.round(s.track) + '°' : '—';
+        $('dVRate').textContent = s.vertical_rate != null ? (s.vertical_rate > 0 ? '+' : '') + s.vertical_rate + ' ft/min' : '—';
+        $('dSquawk').textContent = s.squawk || '—';
+        $('dAge').textContent = s.seen != null ? s.seen.toFixed(1) + ' s' : '—';
+
         $('hudAlt').textContent=s.baro_alt?`${nf.format(s.baro_alt)} FT`:'—';$('hudSpd').textContent=s.velocity?`${nf.format(s.velocity)} KT`:'—';
         $('bpAlt').textContent=s.baro_alt?`${nf.format(s.baro_alt)} FT`:'—';$('bpSpd').textContent=s.velocity?`${nf.format(s.velocity)} KT`:'—';
         
@@ -749,7 +780,6 @@ window.openUI=async function(i){
       }
   }catch(e){ $('dModel').textContent = f.desc || f.type; }
   
-  // PARANNETTU MALLINTUNNISTUS (FALLBACK LOGIC) JOS TARKKA TYYPPI PUUTTUU
   let sp = acSpecs[f.type];
   if (!sp && f.type) {
       if(f.type.startsWith('A31')) sp = acSpecs['A319'];
