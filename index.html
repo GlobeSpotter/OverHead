@@ -245,11 +245,20 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 .i-label { font-size: 10px; font-weight: 500; color: var(--label-secondary); margin-bottom: 2px; letter-spacing: 0.01em; }
 .i-value { font-size: 15px; font-weight: 600; color: var(--label-primary); letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
 
-/* PASSENGER EXPERIENCE */
+/* LAAJA PASSENGER EXPERIENCE KOKONAISUUS */
 .info.pax-exp { display: flex; flex-direction: row; justify-content: space-between; align-items: center; padding: 16px; }
 .pax-text { display: flex; flex-direction: column; gap: 2px; }
 .pax-val { font-size: 16px; font-weight: 800; color: var(--label-primary); letter-spacing: -0.02em; }
 .pax-sub { font-size: 11px; font-weight: 600; color: var(--label-secondary); }
+
+.seatbelt-wrap { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.seatbelt-icon { width: 44px; height: 44px; border-radius: 12px; background: rgba(0,0,0,0.8); display: grid; place-items: center; box-shadow: inset 0 2px 4px rgba(255,255,255,0.1), 0 4px 10px rgba(0,0,0,0.2); position: relative; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); }
+.seatbelt-icon svg { width: 24px; height: 24px; fill: rgba(255,255,255,0.2); transition: fill 0.3s ease; position: relative; z-index: 2; }
+.seatbelt-glow { position: absolute; width: 100%; height: 100%; background: radial-gradient(circle at center, rgba(255,59,48,0.4) 0%, transparent 70%); opacity: 0; transition: opacity 0.3s ease; z-index: 1; }
+.seatbelt-on .seatbelt-icon svg { fill: #FF3B30; filter: drop-shadow(0 0 8px rgba(255,59,48,0.8)); }
+.seatbelt-on .seatbelt-glow { opacity: 1; }
+.seatbelt-lbl { font-size: 9px; font-weight: 800; color: var(--label-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
+
 .turb-icon { width: 32px; height: 32px; background: rgba(0,0,0,0.05); border-radius: 10px; display: grid; place-items: center; border: 1px solid var(--glass-border); }
 @media (prefers-color-scheme: dark) { .turb-icon { background: rgba(255,255,255,0.1); } }
 .turb-icon svg { width: 18px; height: 18px; stroke: var(--label-primary); }
@@ -386,21 +395,29 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
               </div>
           </div>
           
-          <!-- SIIRRETTY: PASSENGER EXPERIENCE TÄHÄN -->
+          <!-- TÄYDELLINEN PASSENGER EXPERIENCE -->
           <div class="section-title">Passenger Experience</div>
           <div class="grid">
-            <div class="info pax-exp">
+            <div class="info pax-exp full" id="seatbeltWrap">
                 <div class="pax-text">
-                    <div class="i-label">Flight Phase</div>
-                    <div class="pax-val" id="dPhase">—</div>
-                    <div class="pax-sub" id="dForce">1.0 G</div>
+                    <div class="i-label">Seatbelt Sign</div>
+                    <div class="pax-val" id="dSeatbeltText">OFF</div>
+                    <div class="pax-sub" id="dPhaseSub">Cruising</div>
+                </div>
+                <div class="seatbelt-wrap">
+                    <div class="seatbelt-icon">
+                        <div class="seatbelt-glow"></div>
+                        <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
+                    </div>
+                    <div class="seatbelt-lbl">Fasten</div>
                 </div>
             </div>
+            
             <div class="info pax-exp turb-smooth" id="dTurbClass">
                 <div class="pax-text">
                     <div class="i-label">Turbulence</div>
                     <div class="pax-val" id="dTurb">Smooth</div>
-                    <div class="pax-sub">Estimate</div>
+                    <div class="pax-sub" id="dForce">1.00 G</div>
                 </div>
                 <div class="turb-icon">
                     <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -408,9 +425,29 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
                     </svg>
                 </div>
             </div>
+
+            <div class="info pax-exp">
+                <div class="pax-text">
+                    <div class="i-label">Mach Speed</div>
+                    <div class="pax-val" id="dMach">—</div>
+                    <div class="pax-sub">True Airspeed</div>
+                </div>
+            </div>
+            
+            <div class="info">
+                <div class="i-label">Outside Air Temp</div>
+                <div class="i-value" id="dOAT">—</div>
+            </div>
+            <div class="info">
+                <div class="i-label">Cabin Altitude</div>
+                <div class="i-value" id="dCabinAlt">—</div>
+            </div>
+            <div class="info full">
+                <div class="i-label">Winds Aloft (Est.)</div>
+                <div class="i-value" id="dWinds">—</div>
+            </div>
           </div>
 
-          <!-- SIIRRETTY: TELEMETRY TÄHÄN -->
           <div class="section-title">Telemetry</div>
           <div class="grid">
             <div class="info"><div class="i-label">Altitude</div><div class="i-value" id="dAlt">—</div></div>
@@ -726,16 +763,21 @@ function startAnim(){
         $('dSquawk').textContent = s.squawk || '—';
         $('dAge').textContent = s.seen != null ? s.seen.toFixed(1) + ' s' : '—';
 
+        // LAAJA PASSENGER EXPERIENCE MATEMATIIKKA
         let phase = "Cruise";
         let vrate = s.vertical_rate || 0;
+        let alt = s.baro_alt || 0;
         let gForce = 1.0; 
+        let seatbeltOn = false;
         
         if (s.on_ground) {
-            phase = "Ground";
+            phase = "Taxi / Ground";
             gForce = 1.0;
-        } else if (s.baro_alt < 3000) {
-            if (vrate < 0) { phase = "Approach"; gForce = 0.95; }
-            else { phase = "Takeoff"; gForce = 1.15; }
+            seatbeltOn = true;
+        } else if (alt < 10000) {
+            seatbeltOn = true;
+            if (vrate < 0) { phase = "Approach / Landing"; gForce = 0.95; }
+            else { phase = "Takeoff / Climb"; gForce = 1.15; }
         } else if (vrate > 500) {
             phase = "Climb";
             gForce = 1.05 + (vrate / 20000); 
@@ -755,6 +797,7 @@ function startAnim(){
             turb = "Moderate";
             tClass = "turb-mod";
             gWobble = 0.2; 
+            seatbeltOn = true; // Turbulenssi laittaa vyövalon päälle
         } else if (Math.abs(vrate) > 1500) {
             turb = "Light";
             tClass = "turb-light";
@@ -762,11 +805,57 @@ function startAnim(){
         }
 
         let currentG = gForce + (Math.random() * gWobble - (gWobble/2));
-        
-        $('dPhase').textContent = phase;
+
+        // Mach nopeus
+        if(s.velocity && !s.on_ground && alt > 10000) {
+            let speedOfSoundKt = 661 - (alt / 1000); // Karkea arvio äänestä korkeudessa
+            let mach = s.velocity / speedOfSoundKt;
+            $('dMach').textContent = 'M ' + mach.toFixed(2);
+        } else {
+            $('dMach').textContent = '—';
+        }
+
+        // Ulkolämpötila (OAT)
+        if(s.on_ground) {
+            $('dOAT').textContent = "Ground";
+        } else {
+            let tempC = 15 - (alt / 1000) * 2; // Karkea ilmakehän malli (ISA)
+            if(tempC < -56) tempC = -56;
+            $('dOAT').textContent = isMetric ? `${tempC.toFixed(0)} °C` : `${(tempC * 9/5 + 32).toFixed(0)} °F`;
+        }
+
+        // Matkustamon paine (Cabin Alt)
+        if(alt > 8000) {
+            let cabAlt = 8000 * (alt / 40000); 
+            if(cabAlt > 8000) cabAlt = 8000;
+            $('dCabinAlt').textContent = isMetric ? `${(cabAlt * 0.3048).toFixed(0)} m` : `${cabAlt.toFixed(0)} ft`;
+        } else {
+            $('dCabinAlt').textContent = "Ambient";
+        }
+
+        // Winds Aloft
+        if(!s.on_ground && alt > 15000) {
+            let windDir = (s.track + 45) % 360; 
+            let windSpd = 30 + (alt / 1000) * 1.5; 
+            $('dWinds').textContent = `${windDir.toFixed(0)}° at ${windSpd.toFixed(0)} kt`;
+        } else {
+            $('dWinds').textContent = "—";
+        }
+
+        // Päivitä DOM
+        $('dPhaseSub').textContent = phase;
         $('dForce').textContent = `${currentG.toFixed(2)} G`;
         $('dTurb').textContent = turb;
         $('dTurbClass').className = `info pax-exp ${tClass}`;
+        
+        let sbWrap = $('seatbeltWrap');
+        if(seatbeltOn) {
+            sbWrap.classList.add('seatbelt-on');
+            $('dSeatbeltText').textContent = "ON";
+        } else {
+            sbWrap.classList.remove('seatbelt-on');
+            $('dSeatbeltText').textContent = "OFF";
+        }
 
         $('hudAlt').textContent=s.baro_alt?`${nf.format(s.baro_alt)} FT`:'—';$('hudSpd').textContent=s.velocity?`${nf.format(s.velocity)} KT`:'—';
         $('bpAlt').textContent=s.baro_alt?`${nf.format(s.baro_alt)} FT`:'—';$('bpSpd').textContent=s.velocity?`${nf.format(s.velocity)} KT`:'—';
