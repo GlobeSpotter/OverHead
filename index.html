@@ -81,7 +81,7 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 .plane-wrapper.show-tooltip .plane-tooltip { opacity: 1; }
 .plane-wrapper.sel .plane-tooltip { left: 42px; opacity: 1; background: var(--explorer-gold); border-color: rgba(255,255,255,0.3); color: #000; font-weight: 800;}
 
-/* UUSI OVERHEAD ALERT */
+/* Overhead Alert */
 .overhead-alert { position: fixed; top: max(14px, var(--sat)); left: 50%; transform: translateX(-50%) translateY(-150%); z-index: 3000; background: var(--glass-sheet); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); padding: 12px 20px; border-radius: 20px; box-shadow: var(--shadow-card), var(--glass-highlight); display: flex; align-items: center; gap: 14px; transition: transform 0.6s var(--spring); border: 1px solid var(--explorer-gold); cursor: pointer; min-width: 300px; overflow: hidden; }
 .overhead-alert::before { content:''; position:absolute; left:0; top:0; bottom:0; width:6px; background:var(--explorer-gold); }
 .overhead-alert.show { transform: translateX(-50%) translateY(0); }
@@ -212,7 +212,8 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 .w-code { font-size: 32px; font-weight: 300; color: var(--label-primary); letter-spacing: -0.05em; line-height: 1; font-family: -apple-system, sans-serif;}
 
 .w-time-lbl { font-size: 9px; font-weight: 800; color: var(--label-tertiary); letter-spacing: 0.06em; margin-top: 8px; text-transform: uppercase; }
-.w-time { font-size: 15px; font-weight: 800; margin-top: 2px; font-variant-numeric: tabular-nums; }
+/* KORJATTU: Väri sidottu var(--label-primary), jolloin teksti on valkoinen tummassa tilassa */
+.w-time { font-size: 15px; font-weight: 800; margin-top: 2px; font-variant-numeric: tabular-nums; color: var(--label-primary); }
 .w-time.remain { color: var(--explorer-gold); }
 
 .w-timeline { flex: 1; margin: 0 8px; position: relative; height: 54px; display: flex; align-items: center; justify-content: center; margin-top: 32px;}
@@ -261,7 +262,7 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 
 <div id="map"></div>
 
-<!-- KORJATTU OVERHEAD ALERT -->
+<!-- Overhead Alert -->
 <div class="overhead-alert" id="overheadAlert">
     <div class="oa-icon-wrap"><svg class="oa-icon" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div>
     <div class="oa-text">
@@ -271,7 +272,7 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
     </div>
 </div>
 
-<!-- AR Sky View (Overhead Mode) -->
+<!-- AR Sky View -->
 <div class="ar-overlay" id="arOverlay">
     <video class="ar-video" id="arVideo" autoplay playsinline muted></video>
     <div class="ar-crosshair"></div>
@@ -387,12 +388,14 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
             <div class="info"><div class="i-label">Year Built</div><div class="i-value" id="dYear">—</div></div>
           </div>
           
+          <!-- LISÄTTY MASSA (Max Takeoff Weight) JA KAIKKI MUUT INFO-PALIKAT -->
           <div class="section-title">Aircraft Specifications</div>
           <div class="grid" style="margin-bottom: 32px;">
             <div class="info full" id="wrap-dModel"><div class="i-label">Model</div><div class="i-value" id="dModel">—</div></div>
             <div class="info" id="wrap-sPax"><div class="i-label">Max Passengers</div><div class="i-value" id="sPax">—</div></div>
             <div class="info" id="wrap-sLen"><div class="i-label">Length</div><div class="i-value" id="sLen">—</div></div>
             <div class="info" id="wrap-sFuel"><div class="i-label">Fuel Capacity</div><div class="i-value" id="sFuel">—</div></div>
+            <div class="info" id="wrap-sMass"><div class="i-label">Max Takeoff Weight</div><div class="i-value" id="sMass">—</div></div>
             <div class="info" id="wrap-sLaunch"><div class="i-label">Launched</div><div class="i-value" id="sLaunch">—</div></div>
             <div class="info full" id="wrap-sEng"><div class="i-label">Engines</div><div class="i-value" id="sEng">—</div></div>
             <div class="info full" id="wrap-sThrust"><div class="i-label">Total Thrust</div><div class="i-value" id="sThrust">—</div></div>
@@ -439,13 +442,40 @@ function getDynamicBrand(callsign, reg) {
   return { n: name, c: `hsl(${h}, 65%, 35%)`, logo: s.substring(0,2).replace(/[^A-Z]/g,'')||"PR" };
 }
 
+// LAAJENNETTU TIETOKANTA (sisältää myös massan kg)
 const acSpecs = {
-  "A320": { pax: 180, len: 37.57, fuel: 24210, y: 1988, eng: "CFM56", thrust: 240 },
-  "A20N": { pax: 195, len: 37.57, fuel: 26730, y: 2016, eng: "LEAP-1A", thrust: 242 },
-  "B738": { pax: 189, len: 39.50, fuel: 26020, y: 1998, eng: "CFM56-7B", thrust: 242 },
-  "B38M": { pax: 189, len: 39.52, fuel: 25816, y: 2017, eng: "LEAP-1B", thrust: 254 },
-  "B788": { pax: 381, len: 56.70, fuel: 126206, y: 2011, eng: "GEnx-1B", thrust: 640 },
-  "AT76": { pax: 78, len: 27.17, fuel: 5000, y: 2012, eng: "PW127M", thrust: 40 }
+  // Airbus
+  "A319": { pax: 156, len: 33.84, fuel: 24210, y: 1995, eng: "CFM56 / V2500", thrust: 105, mass: 75500 },
+  "A320": { pax: 180, len: 37.57, fuel: 24210, y: 1988, eng: "CFM56 / V2500", thrust: 120, mass: 78000 },
+  "A20N": { pax: 195, len: 37.57, fuel: 26730, y: 2016, eng: "LEAP-1A / PW1100G", thrust: 120, mass: 79000 },
+  "A321": { pax: 220, len: 44.51, fuel: 24050, y: 1994, eng: "CFM56 / V2500", thrust: 147, mass: 93500 },
+  "A21N": { pax: 244, len: 44.51, fuel: 32940, y: 2017, eng: "LEAP-1A / PW1100G", thrust: 147, mass: 97000 },
+  "A332": { pax: 253, len: 58.82, fuel: 139090, y: 1998, eng: "Trent 700 / PW4000", thrust: 311, mass: 242000 },
+  "A333": { pax: 295, len: 63.69, fuel: 97530, y: 1994, eng: "Trent 700 / PW4000", thrust: 311, mass: 242000 },
+  "A359": { pax: 350, len: 66.80, fuel: 141000, y: 2014, eng: "Trent XWB-84", thrust: 374, mass: 280000 },
+  "A35K": { pax: 410, len: 73.79, fuel: 156000, y: 2018, eng: "Trent XWB-97", thrust: 431, mass: 319000 },
+  "A388": { pax: 853, len: 72.72, fuel: 320000, y: 2007, eng: "Trent 900 / GP7200", thrust: 311, mass: 575000 },
+  // Boeing
+  "B737": { pax: 149, len: 33.60, fuel: 26020, y: 1997, eng: "CFM56-7B", thrust: 101, mass: 70080 },
+  "B738": { pax: 189, len: 39.50, fuel: 26020, y: 1998, eng: "CFM56-7B", thrust: 121, mass: 79010 },
+  "B739": { pax: 220, len: 42.10, fuel: 29660, y: 2001, eng: "CFM56-7B", thrust: 121, mass: 85130 },
+  "B38M": { pax: 189, len: 39.52, fuel: 25816, y: 2017, eng: "LEAP-1B", thrust: 130, mass: 82190 },
+  "B39M": { pax: 220, len: 42.16, fuel: 25816, y: 2019, eng: "LEAP-1B", thrust: 130, mass: 88314 },
+  "B772": { pax: 313, len: 63.70, fuel: 117340, y: 1995, eng: "GE90 / PW4000", thrust: 415, mass: 247200 },
+  "B77W": { pax: 396, len: 73.90, fuel: 181280, y: 2004, eng: "GE90-115B", thrust: 512, mass: 351500 },
+  "B788": { pax: 242, len: 56.70, fuel: 126206, y: 2011, eng: "GEnx-1B / Trent 1000", thrust: 280, mass: 227930 },
+  "B789": { pax: 290, len: 63.00, fuel: 126372, y: 2014, eng: "GEnx-1B / Trent 1000", thrust: 320, mass: 254011 },
+  // Regional & Turboprops
+  "AT72": { pax: 78, len: 27.17, fuel: 5000, y: 1989, eng: "PW127", thrust: 40, mass: 23000 },
+  "AT75": { pax: 78, len: 27.17, fuel: 5000, y: 1997, eng: "PW127F", thrust: 40, mass: 23000 },
+  "AT76": { pax: 78, len: 27.17, fuel: 5000, y: 2012, eng: "PW127M", thrust: 40, mass: 23000 },
+  "DH8D": { pax: 78, len: 32.81, fuel: 6526, y: 2000, eng: "PW150A", thrust: 45, mass: 29257 },
+  "BCS1": { pax: 135, len: 35.00, fuel: 21805, y: 2016, eng: "PW1500G", thrust: 104, mass: 63100 },
+  "BCS3": { pax: 160, len: 38.70, fuel: 21805, y: 2016, eng: "PW1500G", thrust: 104, mass: 69900 },
+  "CRJ9": { pax: 90, len: 36.20, fuel: 8822, y: 2003, eng: "CF34-8C5", thrust: 63, mass: 38330 },
+  "E170": { pax: 78, len: 29.90, fuel: 9335, y: 2004, eng: "CF34-8E", thrust: 62, mass: 38600 },
+  "E190": { pax: 114, len: 36.24, fuel: 12971, y: 2005, eng: "CF34-10E", thrust: 89, mass: 51800 },
+  "E295": { pax: 120, len: 41.50, fuel: 13690, y: 2018, eng: "PW1900G", thrust: 101, mass: 62000 }
 };
 
 const state={map:null,userLat:60.45,userLon:22.26,flights:new Map(),selectedIcao:null,photoCache:new Map(),routeCache:new Map(),markers:new Map()};
@@ -458,7 +488,6 @@ const haversine=(l1,n1,l2,n2)=>{if(l1==null||n1==null||l2==null||n2==null)return
 
 function updatePath(pct,alt){let aR=Math.max(0,Math.min((alt||0)/35000,1.0)),pY=40-(30*aR),d=`M 10 40 C 30 40, 40 ${pY}, 60 ${pY} L 140 ${pY} C 160 ${pY}, 170 40, 190 40`;$('pathBg').setAttribute('d',d);$('pathFill').setAttribute('d',d);let pN=$('pathFill'),l=pN.getTotalLength()||215;pN.setAttribute('stroke-dasharray',l);let p=Math.max(0,Math.min(pct,100))/100;pN.setAttribute('stroke-dashoffset',l-(l*p));let pt=pN.getPointAtLength(l*p),la=Math.min(l,(l*p)+1),pa=pN.getPointAtLength(la),dx=pa.x-pt.x,dy=pa.y-pt.y;if(la===l&&l>1){let pb=pN.getPointAtLength(l-1);dx=pt.x-pb.x;dy=pt.y-pb.y;}let ag=Math.atan2(dy,dx)*(180/Math.PI),ic=$('bpProgressIcon');ic.style.left=`${(pt.x/200)*100}%`;ic.style.top=`${(pt.y/50)*100}%`;ic.style.transform=`translateZ(0) rotate(${90+ag}deg)`;}
 
-// KORJATTU: Reittien nouto oikeine aikoineen (AeroAPI/ADS-B DB)
 async function fetchRoute(cs){
     if(!cs||cs.length<3)return null;
     let cc=cs.replace(/[<>]/g,'').trim();
@@ -484,23 +513,18 @@ async function fetchRoute(cs){
     return null;
 }
 
-// KORJATTU: Overhead logiikka
 let activeOverhead = null;
 function checkOverheadProximity() {
     let overheadPlane = null;
     for(let f of state.flights.values()) {
         if(!f.on_ground && f.dist !== undefined && f.baro_alt) {
-            // Muutetaan korkeus (ft) merimailiksi. 1 NM = 6076 ft.
             let altNM = f.baro_alt / 6076;
-            // Kone on Overhead, jos vaakasuora etäisyys on pienempi kuin pystysuora (katselukulma > 45 astetta ylös)
-            // ja korkeus on ainakin jotain järkevää (yli 1500ft, ettei reagoi kentällä rullaaviin)
             if(f.dist < altNM && f.baro_alt > 1500) {
                 overheadPlane = f;
-                break; // Otetaan ensimmäinen joka täyttää ehdon
+                break; 
             }
         }
     }
-
     const alertEl = $('overheadAlert');
     if (overheadPlane) {
         if (activeOverhead !== overheadPlane.icao24) {
@@ -508,7 +532,6 @@ function checkOverheadProximity() {
             $('oaCall').textContent = (overheadPlane.callsign || overheadPlane.reg || "Unknown").replace(/[<>]/g,'');
             $('oaSub').textContent = `${overheadPlane.type} • ${nf.format(overheadPlane.baro_alt)} ft`;
             alertEl.classList.add('show');
-            // Vilkkuu
             alertEl.onclick = () => { openUI(overheadPlane.icao24); };
         }
     } else {
@@ -521,7 +544,6 @@ function checkOverheadProximity() {
 
 // AR Variables & Logic
 let arActive = false, devHeading = 0, devPitch = 0, videoStream = null;
-
 async function startAR() {
     arActive = true; $('arOverlay').classList.add('open');
     if(window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') {
@@ -531,22 +553,19 @@ async function startAR() {
     try {
         videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
         $('arVideo').srcObject = videoStream;
-    } catch(err) { console.log("Camera fail (falling back to dark sky)", err); }
+    } catch(err) { console.log("Camera fail", err); }
 }
-
 function stopAR() {
     arActive = false; $('arOverlay').classList.remove('open');
     window.removeEventListener('deviceorientation', handleOrientation);
     if(videoStream) { videoStream.getTracks().forEach(t => t.stop()); videoStream = null; }
     $('arContainer').innerHTML = '';
 }
-
 function handleOrientation(e) {
     if(e.webkitCompassHeading) { devHeading = e.webkitCompassHeading; } 
     else { devHeading = (360 - e.alpha) % 360; }
     devPitch = e.beta; 
 }
-
 function bearingTo(lat1, lon1, lat2, lon2) {
     const toRad = Math.PI/180, toDeg = 180/Math.PI;
     let dLon = (lon2-lon1)*toRad;
@@ -554,7 +573,6 @@ function bearingTo(lat1, lon1, lat2, lon2) {
     let x = Math.cos(lat1*toRad)*Math.sin(lat2*toRad) - Math.sin(lat1*toRad)*Math.cos(lat2*toRad)*Math.cos(dLon);
     return (Math.atan2(y, x) * toDeg + 360) % 360;
 }
-
 $('arBtn').addEventListener('click', startAR);
 $('arClose').addEventListener('click', stopAR);
 
@@ -618,7 +636,6 @@ function startAnim(){
         let html = '';
         let w = window.innerWidth, h = window.innerHeight;
         let pxPerDeg = w / 60; 
-        
         for(let f of state.flights.values()) {
             if(f.dist < 100 && !f.on_ground) { 
                 let b = bearingTo(state.userLat, state.userLon, f.curLat, f.curLon);
@@ -643,7 +660,6 @@ function startAnim(){
         $('hudAlt').textContent=s.baro_alt?`${nf.format(s.baro_alt)} FT`:'—';$('hudSpd').textContent=s.velocity?`${nf.format(s.velocity)} KT`:'—';
         $('bpAlt').textContent=s.baro_alt?`${nf.format(s.baro_alt)} FT`:'—';$('bpSpd').textContent=s.velocity?`${nf.format(s.velocity)} KT`:'—';
         
-        // KORJATTU: Järkevämpi ETA laskenta (jos reittidata löytyy)
         let tp=0;
         if(s.route&&s.route.depLat&&s.route.arrLat){
           const fD=haversine(s.route.depLat,s.route.depLon,s.curLat,s.curLon);
@@ -653,7 +669,6 @@ function startAnim(){
           if(tp>=100||(s.on_ground&&rD<50)){
               $('bpTimeRemain').textContent="ARRIVED";
           } else {
-              // Laske arvioitu jäljellä oleva aika matkan ja ground speedin mukaan. Jos GS on 0, käytetään 150kt.
               let hoursLeft = rD / Math.max(s.velocity || 150, 50);
               let estTime = new Date(Date.now() + (hoursLeft * 3600000));
               $('bpTimeRemain').textContent=tf.format(estTime);
@@ -662,8 +677,6 @@ function startAnim(){
           tp=s.on_ground?2:50; $('dRemainNM').textContent='—'; $('bpTimeRemain').textContent="LIVE";
         }
         
-        // KORJATTU: Departure time (nykyisellä logiikalla emme saa aitoa lähtöaikaa datasta, 
-        // joten näytämme pelkän "DEPARTED" statuksen tai jos kone on maassa, "GROUND").
         if(s.on_ground) {
             $('bpTimeFlown').textContent = "GROUND";
         } else {
@@ -702,14 +715,12 @@ window.openUI=async function(i){
   $('wPlaneImg').style.opacity='0';$('wPlaneWrap').style.display='none';
   let pd=state.photoCache.get(i);if(pd&&pd!=='loading'){$('wPlaneImg').src=pd.url;$('wPlaneImg').onload=()=>$('wPlaneImg').style.opacity='1';$('wPlaneAttr').textContent='© '+pd.author;$('wPlaneWrap').style.display='block';}
   
-  // Nollataan reittitiedot heti klikattaessa
   $('bpDep').textContent='—';$('bpDepName').textContent='Fetching...';
   $('bpArr').textContent='—';$('bpArrName').textContent='Fetching...';
   $('bpTimeFlown').textContent="--:--";$('bpTimeRemain').textContent="--:--";$('dRemainNM').textContent="—";
   
   state.map.setView([f.curLat,f.curLon],9,{animate:true});updateMarkers();
   
-  // Haetaan reitti
   if(f.callsign){
       fetchRoute(f.callsign).then(async r=>{
           if(r){
@@ -738,8 +749,33 @@ window.openUI=async function(i){
       }
   }catch(e){ $('dModel').textContent = f.desc || f.type; }
   
-  let sp=acSpecs[f.type]; const keys=['sPax','sLen','sFuel','sLaunch','sEng','sThrust'];
-  if(sp){ $('sPax').textContent="Up to "+sp.pax; $('sLen').textContent=fmtAlt(sp.len*3.28); $('sFuel').textContent=sp.fuel+" Gal"; $('sLaunch').textContent=sp.y; $('sEng').textContent=sp.eng; $('sThrust').textContent=sp.thrust+" kN"; keys.forEach(k=>$('wrap-'+k).style.display='block'); }
+  // PARANNETTU MALLINTUNNISTUS (FALLBACK LOGIC) JOS TARKKA TYYPPI PUUTTUU
+  let sp = acSpecs[f.type];
+  if (!sp && f.type) {
+      if(f.type.startsWith('A31')) sp = acSpecs['A319'];
+      else if(f.type.startsWith('A32')) sp = acSpecs['A320'];
+      else if(f.type.startsWith('A33')) sp = acSpecs['A333'];
+      else if(f.type.startsWith('A35')) sp = acSpecs['A359'];
+      else if(f.type.startsWith('B73')) sp = acSpecs['B738'];
+      else if(f.type.startsWith('B77')) sp = acSpecs['B77W'];
+      else if(f.type.startsWith('B78')) sp = acSpecs['B789'];
+      else if(f.type.startsWith('AT7')) sp = acSpecs['AT76'];
+      else if(f.type.startsWith('E19')) sp = acSpecs['E190'];
+      else if(f.type.startsWith('CRJ')) sp = acSpecs['CRJ9'];
+      else if(f.type.startsWith('BCS')) sp = acSpecs['BCS3'];
+  }
+
+  const keys=['sPax','sLen','sFuel','sMass','sLaunch','sEng','sThrust'];
+  if(sp){ 
+      $('sPax').textContent="Up to "+sp.pax; 
+      $('sLen').textContent = isMetric ? `${sp.len} m` : `${(sp.len * 3.28084).toFixed(1)} ft`;
+      $('sFuel').textContent = isMetric ? `${nf.format(sp.fuel)} L` : `${nf.format(sp.fuel * 0.264172)} Gal`;
+      $('sMass').textContent = isMetric ? `${nf.format(sp.mass)} kg` : `${nf.format(sp.mass * 2.20462)} lbs`;
+      $('sLaunch').textContent=sp.y; 
+      $('sEng').textContent=sp.eng; 
+      $('sThrust').textContent=sp.thrust+" kN"; 
+      keys.forEach(k=>$('wrap-'+k).style.display='block'); 
+  }
   else { keys.forEach(k=>$('wrap-'+k).style.display='none'); }
 }
 
