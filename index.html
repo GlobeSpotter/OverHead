@@ -7,6 +7,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
 <meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
+
 <!-- SEO & Open Graph -->
 <meta name="description" content="Overhead Radar — live flight tracking with a beautiful adventure-map interface. See every aircraft above you in real time." />
 <meta name="keywords" content="flight tracker, live flights, overhead radar, ADS-B, aviation, plane spotter, lentoseuranta" />
@@ -19,10 +20,11 @@
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="Overhead Radar — Explorer" />
 <meta name="twitter:description" content="Live flight tracking. See every aircraft above you in real time." />
+
 <title>Overhead Radar - Explorer</title>
-<!-- Leaflet 1.9.4 — BSD 2-Clause License (commercial use allowed) — https://leafletjs.com -->
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+
 <style>
 :root {
   --bg-primary: rgba(242, 242, 247, 0.45);
@@ -70,24 +72,32 @@
     --wallet-bg: #1C1C1E;
   }
 }
+
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; user-select: none; background: #e5e5ea; overscroll-behavior-y: none; }
+
 #map { position: absolute; top: 0; left: 0; right: 0; bottom: 0; width: 100vw; height: 100vh; background: #d7c8a8; z-index: 1; }
+
 /* INDIANA JONES TREASURE MAP FILTER — warm sepia, mountains and seas shine through */
 .leaflet-tile-pane { filter: sepia(0.65) saturate(1.6) contrast(1.08) brightness(0.88); }
+
 .leaflet-control-zoom { display: none !important; }
 .leaflet-control-attribution { background: var(--glass-sheet) !important; color: var(--label-secondary) !important; font-size: 9px !important; border-radius: 6px 0 0 0; padding: 4px 8px !important; backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); margin-bottom: var(--sab) !important; border-top: 1px solid var(--glass-border); border-left: 1px solid var(--glass-border); line-height: 1.3;}
 .leaflet-control-attribution a { color: var(--explorer-ink) !important; text-decoration: none; font-weight: 600;}
+
 .dashed-path { stroke-dasharray: 8 10; animation: flow 1.5s linear infinite; }
 @keyframes flow { to { stroke-dashoffset: -18; } }
+
 .plane-wrapper { width: 36px; height: 36px; margin-left: -18px; margin-top: -18px; display: block; position: absolute; z-index: 500; will-change: transform; transform: translateZ(0); }
 .plane-wrapper.sel { width: 52px; height: 52px; margin-left: -26px; margin-top: -26px; z-index: 1000 !important; }
 .svg-container { width: 100%; height: 100%; will-change: transform; transition: transform 0.3s linear; }
 .plane-svg { width: 100%; height: 100%; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.5)); display: block; }
 .plane-wrapper.sel .plane-svg { filter: drop-shadow(0 6px 10px rgba(0,0,0,0.7)); }
+
 .plane-tooltip { position: absolute; left: 32px; top: 50%; transform: translateY(-50%); background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); padding: 4px 10px; border-radius: 10px; font-size: 11px; font-weight: 600; color: #FFF; white-space: nowrap; pointer-events: none; border: 0.5px solid rgba(255,255,255,0.15); box-shadow: 0 4px 12px rgba(0,0,0,0.3); opacity: 0; transition: opacity 0.3s ease; }
 .plane-wrapper.show-tooltip .plane-tooltip { opacity: 1; }
 .plane-wrapper.sel .plane-tooltip { left: 42px; opacity: 1; background: var(--explorer-gold); border-color: rgba(255,255,255,0.3); color: #000; font-weight: 800;}
+
 /* Overhead Alert */
 .overhead-alert { position: fixed; top: max(14px, var(--sat)); left: 50%; transform: translateX(-50%) translateY(-150%); z-index: 3000; background: var(--glass-sheet); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); padding: 12px 20px; border-radius: 20px; box-shadow: var(--shadow-card), var(--glass-highlight); display: flex; align-items: center; gap: 14px; transition: transform 0.6s var(--spring); border: 1px solid var(--explorer-gold); cursor: pointer; min-width: 300px; overflow: hidden; }
 .overhead-alert::before { content:''; position:absolute; left:0; top:0; bottom:0; width:6px; background:var(--explorer-gold); }
@@ -98,6 +108,7 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 .oa-title { font-size: 11px; font-weight: 800; color: var(--explorer-gold); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2px;}
 .oa-call { font-size: 16px; font-weight: 800; color: var(--label-primary); letter-spacing: -0.02em; }
 .oa-sub { font-size: 12px; font-weight: 500; color: var(--label-secondary); }
+
 /* AR Sky View */
 .ar-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: #000; z-index: 4000; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; overflow: hidden; }
 .ar-overlay.open { opacity: 1; pointer-events: auto; }
@@ -111,6 +122,7 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 .ar-plane-label { background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); color: #FFF; font-size: 10px; font-weight: 700; padding: 4px 8px; border-radius: 8px; border: 0.5px solid rgba(255,255,255,0.2); white-space: nowrap;}
 .ar-close { position: absolute; top: max(20px, var(--sat)); right: max(20px, var(--sar)); width: 44px; height: 44px; border-radius: 22px; background: rgba(255,255,255,0.2); border: 0.5px solid rgba(255,255,255,0.4); color: #FFF; display: grid; place-items: center; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); font-size: 12px; font-weight: 700; z-index: 10;}
 .ar-info { position: absolute; bottom: max(30px, var(--sab)); left: 20px; right: 20px; text-align: center; color: rgba(255,255,255,0.6); font-size: 12px; font-weight: 600; pointer-events: none; text-shadow: 0 1px 2px #000; }
+
 .island-wrap { position: fixed; left: 0; right: 0; top: max(14px, var(--sat)); z-index: 2500; display: flex; justify-content: center; pointer-events: none; padding: 0 max(14px, var(--sal)) 0 max(14px, var(--sar)); transition: transform 0.4s ease; }
 .ar-overlay.open ~ .island-wrap { transform: translateY(-100px); }
 .island { width: min(820px, 100%); min-height: 52px; border-radius: 26px; padding: 8px 12px; display: flex; align-items: center; gap: 12px; pointer-events: auto; background: var(--glass-sheet); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); border: 1px solid var(--glass-border); box-shadow: var(--shadow-card), var(--glass-highlight); transition: transform .5s var(--spring), min-height .5s var(--spring), width .5s var(--spring); }
@@ -120,6 +132,7 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 .brand-icon svg { width: 16px; height: 16px; fill: currentColor; }
 .brand-text { font-size: 19px; font-weight: 800; letter-spacing: -0.04em; color: var(--label-primary); display: flex; align-items: baseline; gap: 4px; }
 .brand-text .b-head { color: var(--explorer-gold); font-weight: 800; text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+
 .searchbox { flex: 1; height: 38px; border-radius: 19px; background: var(--apple-gray-fill); border: 1px solid rgba(255,255,255,0.05); display: flex; align-items: center; padding: 0 14px; gap: 8px; transition: background 0.2s; }
 .searchbox:focus-within { background: var(--bg-secondary); box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); }
 .search-icon { width: 16px; height: 16px; color: var(--label-secondary); }
@@ -131,9 +144,11 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 .if-main { display: flex; flex-direction: column; }
 .if-call { font-size: 17px; font-weight: 800; letter-spacing: -0.02em; color: var(--label-primary); line-height: 1.2; }
 .if-route { font-size: 12px; font-weight: 600; color: var(--explorer-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px;}
+
 .icon-btn { width: 38px; height: 38px; border: none; border-radius: 19px; background: var(--bg-secondary); color: var(--explorer-gold); cursor: pointer; display: grid; place-items: center; transition: transform 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid var(--glass-border);}
 .icon-btn svg { width: 18px; height: 18px; fill: currentColor; }
 .icon-btn:active { transform: scale(0.85); background: var(--apple-gray-press); }
+
 .hud-wrap { position: fixed; left: 0; right: 0; top: calc(max(14px, var(--sat)) + 78px); z-index: 1750; display: flex; justify-content: center; pointer-events: none; opacity: 0; transform: translateY(-10px) scale(0.95); transition: opacity 0.4s ease, transform 0.5s var(--spring); }
 .hud-wrap.show { opacity: 1; transform: translateY(0) scale(1); }
 .hud { border-radius: 24px; padding: 12px 28px; display: flex; align-items: center; gap: 28px; background: var(--glass-sheet); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); border: 1px solid var(--glass-border); box-shadow: var(--shadow-card), var(--glass-highlight); font-variant-numeric: tabular-nums; }
@@ -141,16 +156,19 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 .hud-block { display: flex; flex-direction: column; align-items: center; }
 .hud-label { font-size: 10px; font-weight: 700; color: var(--label-secondary); letter-spacing: 0.08em; text-transform: uppercase; }
 .hud-value { margin-top: 2px; font-size: 20px; font-weight: 800; letter-spacing: -0.03em; color: var(--label-primary); text-shadow: 0 1px 2px rgba(255,255,255,0.5);}
+
 .map-status { position: fixed; left: max(16px, var(--sal)); top: calc(max(14px, var(--sat)) + 78px); z-index: 1750; padding: 10px 14px; border-radius: 20px; background: var(--glass-sheet); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); color: var(--label-primary); font-size: 13px; font-weight: 700; display: flex; align-items: center; gap: 8px; transition: transform 0.5s var(--spring); border: 1px solid var(--glass-border); box-shadow: var(--shadow-card), var(--glass-highlight); }
 .island.focus ~ .map-status { transform: translateY(60px); }
 .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--explorer-gold); animation: pulse 2s ease-in-out infinite; box-shadow: 0 0 8px var(--explorer-gold); flex-shrink: 0;}
 @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: .5; transform: scale(0.8); } }
+
 .side-controls { position: fixed; right: max(16px, var(--sar)); top: calc(max(14px, var(--sat)) + 78px); z-index: 1750; display: flex; flex-direction: column; gap: 12px; transition: transform 0.5s var(--spring); }
 .island.focus ~ .side-controls { transform: translateY(60px); }
 .fab { width: 44px; height: 44px; border: none; border-radius: 22px; color: var(--label-primary); font-weight: 700; font-size: 13px; cursor: pointer; background: var(--glass-sheet); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); transition: transform 0.2s; box-shadow: var(--shadow-card), var(--glass-highlight); border: 1px solid var(--glass-border); display: grid; place-items: center;}
 .fab svg { width: 20px; height: 20px; fill: currentColor; }
 .fab:active { transform: scale(0.85); background: var(--apple-gray-press); }
 .fab.ar { background: var(--explorer-gold); color: #000; border: none; }
+
 /* Bottom Sheet */
 .sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 1800; border-radius: 32px 32px 0 0; background: var(--glass-sheet); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); border-top: 1px solid var(--glass-border); box-shadow: var(--shadow-sheet), var(--glass-highlight); transition: transform .5s var(--spring), height .5s var(--spring); height: 200px; padding-bottom: max(20px, var(--sab)); display: flex; flex-direction: column; }
 @media (min-width: 768px) { .sheet { left: 50%; width: 450px; margin-left: -225px; border-radius: 32px 32px 0 0; border: 1px solid var(--glass-border); border-bottom: none; } }
@@ -161,6 +179,7 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 .sheet-content { position: relative; flex: 1; width: 100%; overflow: hidden; }
 .view { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transition: opacity 0.4s ease, transform 0.4s var(--spring); overflow-y: auto; -webkit-overflow-scrolling: touch; padding-left: max(0px, var(--sal)); padding-right: max(0px, var(--sar)); }
 .view::-webkit-scrollbar { display: none; }
+
 #viewList { opacity: 1; transform: translateX(0); pointer-events: auto; }
 .sheet.mode-detail #viewList { opacity: 0; transform: translateX(-30px); pointer-events: none; }
 .sheet-head { padding: 0 20px 16px; display: flex; flex-direction: column; }
@@ -169,19 +188,24 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 .sheet-title { font-size: 32px; font-weight: 800; letter-spacing: -0.03em; color: var(--label-primary); line-height: 1; }
 .sheet-count { font-size: 14px; font-weight: 600; color: var(--explorer-gold); }
 .sheet-list { padding: 0 0 40px; }
+
 .card { display: flex; align-items: center; gap: 14px; padding: 12px 20px; position: relative; cursor: pointer; transition: background 0.2s; }
 .card:active { background: var(--apple-gray-press); }
 .card::after { content: ''; position: absolute; bottom: 0; left: 86px; right: 0; height: 0.5px; background: linear-gradient(90deg, var(--glass-border), transparent); }
 .card:last-child::after { display: none; }
+
 .plane-badge { width: 50px; height: 50px; border-radius: 12px; display: grid; place-items: center; background: var(--bg-secondary); flex: 0 0 auto; overflow: hidden; border: 0.5px solid var(--glass-border); box-shadow: 0 4px 10px rgba(0,0,0,0.1); position: relative;}
 @media (prefers-color-scheme: dark) { .plane-badge { box-shadow: 0 4px 10px rgba(0,0,0,0.5); } }
 .plane-badge img { width: 100%; height: 100%; object-fit: cover; position: absolute; top:0; left:0; transition: opacity 0.4s ease;}
 .plane-badge svg { width: 24px; height: 24px; fill: var(--explorer-ink); transform: rotate(-45deg); }
+
 .card-main { flex: 1; min-width: 0; }
 .card-call { font-size: 17px; font-weight: 700; letter-spacing: -0.02em; color: var(--label-primary); display: flex; align-items: center; gap: 6px; }
 .card-sub { margin-top: 2px; color: var(--label-secondary); font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 6px;}
+
 #viewDetail { opacity: 0; transform: translateX(30px); pointer-events: none; padding-bottom: 50px; }
 .sheet.mode-detail #viewDetail { opacity: 1; transform: translateX(0); pointer-events: auto; }
+
 /* Wallet Card */
 .wallet-card { background: var(--wallet-bg); margin: 0 16px 24px; border-radius: 24px; box-shadow: 0 16px 40px rgba(0,0,0,0.15); position: relative; overflow: hidden; border: 0.5px solid var(--glass-border);}
 @media (prefers-color-scheme: dark) { .wallet-card { box-shadow: 0 16px 40px rgba(0,0,0,0.5); } }
@@ -191,28 +215,34 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 .wallet-card::before { left: -14px; border-right: 0.5px solid var(--glass-border); }
 .wallet-card::after { right: -14px; border-left: 0.5px solid var(--glass-border); }
 .wallet-divider { position: absolute; top: 102px; left: 20px; right: 20px; border-top: 1.5px dashed var(--label-tertiary); opacity: 0.3; z-index: 1; }
+
 .w-header { padding: 20px 24px 40px; display: flex; justify-content: space-between; align-items: flex-start; color: white; transition: background 0.4s ease; position: relative; z-index: 2; }
 .w-logo-area { display: flex; align-items: center; gap: 10px; z-index: 2;}
 .w-logo { width: 36px; height: 36px; border-radius: 10px; background: #FFF; display: grid; place-items: center; font-weight: 900; font-size: 15px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); color: #000; }
 .w-airline { font-size: 18px; font-weight: 800; letter-spacing: -0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);}
 .w-class { font-size: 11px; font-weight: 800; opacity: 0.9; letter-spacing: 0.08em; text-transform: uppercase; background: rgba(0,0,0,0.3); padding: 4px 8px; border-radius: 8px;}
+
 .w-progress-container { padding: 28px 24px 16px; display: flex; justify-content: space-between; align-items: stretch; position: relative; z-index: 2;}
 .w-city { display: flex; flex-direction: column; width: 68px; position: relative; }
 @media (min-width: 380px) { .w-city { width: 76px; } }
 .w-city.right { align-items: flex-end; text-align: right; }
 .w-city-name { font-size: 11px; font-weight: 600; color: var(--label-secondary); margin-bottom: 2px; letter-spacing: -0.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; width: 100%;}
 .w-code { font-size: 32px; font-weight: 300; color: var(--label-primary); letter-spacing: -0.05em; line-height: 1; font-family: -apple-system, sans-serif;}
+
 .w-time-lbl { font-size: 9px; font-weight: 800; color: var(--label-tertiary); letter-spacing: 0.06em; margin-top: 8px; text-transform: uppercase; }
 .w-time { font-size: 15px; font-weight: 800; margin-top: 2px; font-variant-numeric: tabular-nums; color: var(--label-primary); }
 .w-time.remain { color: var(--explorer-gold); }
+
 .w-timeline { flex: 1; margin: 0 8px; position: relative; height: 54px; display: flex; align-items: center; justify-content: center; margin-top: 32px;}
 .w-timeline svg.path-svg { width: 100%; height: 100%; overflow: visible; }
 .path-bg { fill: none; stroke: var(--apple-gray-fill); stroke-width: 3; stroke-linecap: round; }
 .path-fill { fill: none; stroke: var(--explorer-gold); stroke-width: 3; stroke-linecap: round; transition: stroke-dashoffset 0.8s ease-out; }
 .w-timeline-icon { position: absolute; width: 26px; height: 26px; fill: var(--explorer-gold); filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3)); transition: left 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), top 0.8s cubic-bezier(0.2, 0.8, 0.2, 1), transform 0.5s ease-out; margin-left: -13px; margin-top: -13px; z-index: 10; }
+
 .w-plane-img-wrap { margin: 0 24px 20px; height: 120px; border-radius: 14px; background: var(--bg-primary); overflow: hidden; position: relative; cursor: pointer; box-shadow: 0 4px 16px rgba(0,0,0,0.15); border: 0.5px solid var(--glass-border); transition: transform 0.2s; z-index: 2;}
 .w-plane-img-wrap img { width: 100%; height: 100%; object-fit: cover; opacity: 0; transition: opacity 0.5s ease; }
 .w-plane-attr { position: absolute; bottom: 6px; left: 8px; background: rgba(0,0,0,0.65); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); color: #fff; font-size: 8px; padding: 3px 6px; border-radius: 6px; border: 0.5px solid rgba(255,255,255,0.2);}
+
 .w-extra-row { padding: 0 24px 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 0.5px solid var(--glass-border); margin-bottom: 20px;}
 .w-extra-item { display: flex; flex-direction: column; gap: 4px; }
 .w-bottom { padding: 0 24px 24px; display: flex; justify-content: space-between; align-items: flex-end;}
@@ -220,31 +250,38 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 .w-label { font-size: 10px; font-weight: 700; color: var(--label-secondary); text-transform: uppercase; letter-spacing: 0.08em;}
 .w-val { font-size: 18px; font-weight: 700; color: var(--label-primary); letter-spacing: -0.02em;}
 .w-barcode { height: 42px; width: 130px; background: repeating-linear-gradient(90deg, var(--label-secondary), var(--label-secondary) 3px, transparent 3px, transparent 5px, var(--label-secondary) 5px, var(--label-secondary) 6px, transparent 6px, transparent 9px, var(--label-secondary) 9px, var(--label-secondary) 14px, transparent 14px, transparent 16px); opacity: 0.3;}
+
 .detail-actions { position: absolute; top: 16px; right: max(16px, var(--sar)); display: flex; gap: 10px; z-index: 100; }
 .close-circle { width: 36px; height: 36px; border-radius: 18px; background: var(--bg-secondary); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy); border: 0.5px solid var(--glass-border); display: grid; place-items: center; cursor: pointer; color: var(--label-secondary); box-shadow: var(--shadow-card); transition: transform 0.2s;}
 .close-circle:active { transform: scale(0.9); }
 .close-circle svg { width: 16px; height: 16px; fill: currentColor; }
+
 .section-title { font-size: 12px; font-weight: 600; margin: 0 20px 8px; letter-spacing: 0.05em; color: var(--label-secondary); text-transform: uppercase; }
 .grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 0.5px; margin: 0 16px 24px; background: var(--glass-border); border-radius: 16px; overflow: hidden; border: 0.5px solid var(--glass-border); box-shadow: var(--shadow-card);}
 .info { padding: 12px 16px; background: var(--bg-secondary); backdrop-filter: var(--blur-heavy); -webkit-backdrop-filter: var(--blur-heavy);}
 .info.full { grid-column: 1 / -1; }
 .i-label { font-size: 10px; font-weight: 500; color: var(--label-secondary); margin-bottom: 2px; letter-spacing: 0.01em; }
 .i-value { font-size: 15px; font-weight: 600; color: var(--label-primary); letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+
 /* PASSENGER EXPERIENCE */
 .pax-header-card { display: flex; flex-direction: column; padding: 16px; }
 .pax-header-top { display: flex; justify-content: space-between; align-items: center; width: 100%; }
 .pax-text { display: flex; flex-direction: column; gap: 2px; }
 .pax-val { font-size: 18px; font-weight: 800; color: var(--label-primary); letter-spacing: -0.02em; }
+
 .overhead-panel { background: transparent; padding: 6px 4px; display: flex; align-items: center; justify-content: center; gap: 16px; transition: all 0.3s ease; position: relative; }
 .icon-seatbelt { width: 22px; height: 22px; fill: #34C759; filter: drop-shadow(0 0 4px rgba(52,199,89,0.8)); transition: all 0.4s ease; position: relative; z-index: 2; }
 .overhead-panel.on .icon-seatbelt { fill: #FF3B30; filter: drop-shadow(0 0 6px rgba(255,59,48,0.9)) drop-shadow(0 0 12px rgba(255,59,48,0.6)); }
 .icon-nosmoking { width: 22px; height: 22px; color: #FF3B30; fill: none; filter: drop-shadow(0 0 6px rgba(255,59,48,0.9)) drop-shadow(0 0 12px rgba(255,59,48,0.6)); position: relative; z-index: 2; }
+
 .announcement-bar { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--glass-border); display: flex; align-items: center; gap: 10px; }
 .announcement-icon { width: 20px; height: 20px; fill: var(--explorer-gold); flex-shrink: 0; animation: chime 2.5s infinite ease-in-out; }
 @keyframes chime { 0%, 100% { transform: scale(1); opacity: 0.7; } 50% { transform: scale(1.15); opacity: 1; filter: drop-shadow(0 0 4px var(--explorer-gold)); } }
 .announcement-text { font-size: 13px; font-style: italic; color: var(--label-secondary); font-weight: 500; line-height: 1.3; }
+
 .info.pax-exp { display: flex; flex-direction: row; justify-content: space-between; align-items: center; padding: 16px; }
 .pax-sub { font-size: 11px; font-weight: 600; color: var(--label-secondary); }
+
 .turb-icon { width: 32px; height: 32px; background: rgba(0,0,0,0.05); border-radius: 10px; display: grid; place-items: center; border: 1px solid var(--glass-border); }
 @media (prefers-color-scheme: dark) { .turb-icon { background: rgba(255,255,255,0.1); } }
 .turb-icon svg { width: 18px; height: 18px; stroke: var(--label-primary); }
@@ -254,16 +291,20 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 @keyframes sway { 0%,100%{transform:rotate(-5deg) translateY(0);} 50%{transform:rotate(5deg) translateY(-2px);} }
 @keyframes shakeLight { 0%,100%{transform:translate(0,0) rotate(0);} 25%{transform:translate(1px,1px) rotate(2deg);} 75%{transform:translate(-1px,-1px) rotate(-2deg);} }
 @keyframes shakeMod { 0%,100%{transform:translate(0,0);} 25%{transform:translate(2px,-2px);} 50%{transform:translate(-2px,2px);} 75%{transform:translate(2px,2px);} }
+
 .empty { padding: 40px 20px; text-align: center; color: var(--label-secondary); font-weight: 500; font-size: 15px; }
+
 .legal-footer { text-align: center; padding: 20px 20px 50px; font-size: 11px; color: var(--label-tertiary); line-height: 1.6; }
 .legal-footer a { color: inherit; font-weight: 600; text-decoration: underline; text-decoration-color: rgba(161,161,166,0.4); }
 .legal-strong { display: block; margin-top: 14px; font-weight: 700; color: var(--label-secondary); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em;}
 .footer-easter-egg { font-weight: 800; color: var(--explorer-gold); margin-bottom: 12px; letter-spacing: 0.05em; font-size: 10px; text-transform: uppercase; text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+
 .img-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 4000; background: rgba(0,0,0,0.9); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
 .img-overlay.open { opacity: 1; pointer-events: auto; }
 .img-overlay img { max-width: 90%; max-height: 75%; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); object-fit: contain; }
 .overlay-close { position: absolute; top: calc(20px + var(--sat)); right: max(20px, var(--sar)); width: 40px; height: 40px; border-radius: 20px; background: rgba(255,255,255,0.2); color: #FFF; border: none; display: grid; place-items: center; cursor: pointer; border: 0.5px solid rgba(255,255,255,0.3);}
 .overlay-close svg { width: 16px; height: 16px; fill: currentColor; }
+
 /* WELCOME MODAL */
 .welcome-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 5000; background: rgba(0,0,0,0.6); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 1; transition: opacity 0.4s ease; }
 .welcome-overlay.hidden { opacity: 0; pointer-events: none; }
@@ -275,56 +316,57 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 .welcome-btn { width: 100%; padding: 16px; border-radius: 16px; border: none; background: var(--label-primary); color: var(--bg-primary); font-size: 15px; font-weight: 800; cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.1); letter-spacing: -0.01em;}
 .welcome-btn:active { transform: scale(0.96); }
 @media (prefers-color-scheme: dark) {
-  .welcome-btn { background: var(--explorer-gold); color: #000; }
-  .welcome-disclaimer { background: rgba(255,69,58,0.12); border-color: rgba(255,69,58,0.25); }
-  .welcome-disclaimer strong { color: #FF453A; }
+    .welcome-btn { background: var(--explorer-gold); color: #000; }
+    .welcome-disclaimer { background: rgba(255,69,58,0.12); border-color: rgba(255,69,58,0.25); }
+    .welcome-disclaimer strong { color: #FF453A; }
 }
 </style>
 </head>
 <body>
+
 <!-- Welcome Modal / Disclaimer -->
 <div class="welcome-overlay" id="welcomeOverlay">
-  <div class="welcome-card">
-    <div class="brand" style="justify-content: center; margin-bottom: 12px;">
-      <div class="brand-icon" style="width: 36px; height: 36px;"><svg viewBox="0 0 24 24" style="width: 20px; height: 20px;"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div>
-      <div class="brand-text" style="font-size: 26px;">Welcome to Over<span class="b-head">head</span></div>
+    <div class="welcome-card">
+        <div class="brand" style="justify-content: center; margin-bottom: 12px;">
+            <div class="brand-icon" style="width: 36px; height: 36px;"><svg viewBox="0 0 24 24" style="width: 20px; height: 20px;"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div>
+            <div class="brand-text" style="font-size: 26px;">Welcome to Over<span class="b-head">head</span></div>
+        </div>
+        <div class="welcome-tag">// Crafted through Human Vision & Artificial Intelligence //</div>
+        <p class="welcome-text">This application was born from an innovative human idea and brought to life through powerful Artificial Intelligence.</p>
+        <p class="welcome-text" style="font-size: 13px; color: var(--label-secondary);">OVERhead was created to spark your wanderlust and satisfy your curiosity. Whether you're wondering what just flew directly over your house, or dreaming of your next adventure, OVERhead makes flight tracking beautifully simple.</p>
+        <div class="welcome-disclaimer">
+            <strong>LEGAL NOTICE:</strong> The data presented in this application is gathered from open-source networks and APIs. It may be delayed, incomplete, or inaccurate. This app is strictly for <strong>entertainment and educational purposes only</strong> and is not developed for professional aviation, navigational use, or safety-critical decisions.
+        </div>
+        <button class="welcome-btn" id="welcomeBtn">I Understand, Let's Explore</button>
     </div>
-    <div class="welcome-tag">// Crafted through Human Vision &amp; Artificial Intelligence //</div>
-    <p class="welcome-text">This application was born from an innovative human idea and brought to life through powerful Artificial Intelligence.</p>
-    <p class="welcome-text" style="font-size: 13px; color: var(--label-secondary);">OVERhead was created to spark your wanderlust and satisfy your curiosity. Whether you're wondering what just flew directly over your house, or dreaming of your next adventure, OVERhead makes flight tracking beautifully simple.</p>
-    <div class="welcome-disclaimer">
-      <strong>LEGAL NOTICE:</strong> The data presented in this application is gathered from open-source networks and APIs. It may be delayed, incomplete, or inaccurate. This app is strictly for <strong>entertainment and educational purposes only</strong> and is not developed for professional aviation, navigational use, or safety-critical decisions.
-    </div>
-    <button class="welcome-btn" id="welcomeBtn">I Understand, Let's Explore</button>
-  </div>
 </div>
 
 <div id="map"></div>
 
 <!-- Overhead Alert -->
 <div class="overhead-alert" id="overheadAlert">
-  <div class="oa-icon-wrap"><svg class="oa-icon" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div>
-  <div class="oa-text">
-    <div class="oa-title">DIRECTLY OVERHEAD</div>
-    <div class="oa-call" id="oaCall">Finnair AY123</div>
-    <div class="oa-sub" id="oaSub">A320 • 32,000 ft</div>
-  </div>
+    <div class="oa-icon-wrap"><svg class="oa-icon" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div>
+    <div class="oa-text">
+        <div class="oa-title">DIRECTLY OVERHEAD</div>
+        <div class="oa-call" id="oaCall">Finnair AY123</div>
+        <div class="oa-sub" id="oaSub">A320 • 32,000 ft</div>
+    </div>
 </div>
 
 <!-- AR Sky View -->
 <div class="ar-overlay" id="arOverlay">
-  <video class="ar-video" id="arVideo" autoplay playsinline muted></video>
-  <div class="ar-crosshair"></div>
-  <div id="arContainer"></div>
-  <button class="ar-close" id="arClose">X</button>
-  <div class="ar-info">Point to the sky. Move device to locate planes.</div>
+    <video class="ar-video" id="arVideo" autoplay playsinline muted></video>
+    <div class="ar-crosshair"></div>
+    <div id="arContainer"></div>
+    <button class="ar-close" id="arClose">X</button>
+    <div class="ar-info">Point to the sky. Move device to locate planes.</div>
 </div>
 
 <div class="island-wrap">
   <div class="island" id="island">
     <div class="brand">
-      <div class="brand-icon"><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div>
-      <div class="brand-text">Over<span class="b-head">head</span></div>
+        <div class="brand-icon"><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div>
+        <div class="brand-text">Over<span class="b-head">head</span></div>
     </div>
     <div class="searchbox"><svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><input id="searchInput" placeholder="Search airline, flight or model..." autocomplete="off" autocorrect="off" spellcheck="false" /></div>
     <div class="island-flight" id="islandFlight"><div class="if-main"><div class="if-call" id="ifCall">FLIGHT</div><div class="if-route" id="ifRoute">Tracking Active</div></div></div>
@@ -347,163 +389,194 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 <div class="sheet expanded" id="sheet">
   <div class="sheet-grab" id="sheetGrab"><div></div></div>
   <div class="detail-actions" id="detailControls" style="display:none;">
-    <button class="close-circle" id="detailClose"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+      <button class="close-circle" id="detailClose"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
   </div>
+
   <div class="sheet-content">
-    <div class="view" id="viewList">
-      <div class="sheet-head">
-        <div class="sheet-date" id="sheetDate">TODAY</div>
-        <div class="sheet-title-row"><div class="sheet-title">Live Radar</div><div class="sheet-count" id="sheetSub">Fetching...</div></div>
+      <div class="view" id="viewList">
+          <div class="sheet-head">
+            <div class="sheet-date" id="sheetDate">TODAY</div>
+            <div class="sheet-title-row"><div class="sheet-title">Live Radar</div><div class="sheet-count" id="sheetSub">Fetching...</div></div>
+          </div>
+          <div class="sheet-list" id="flightList">
+              <div style="padding: 24px; opacity: 0.6;"><div style="height: 52px; width: 100%; background: var(--apple-gray-fill); border-radius: 14px;"></div></div>
+          </div>
       </div>
-      <div class="sheet-list" id="flightList">
-        <div style="padding: 24px; opacity: 0.6;"><div style="height: 52px; width: 100%; background: var(--apple-gray-fill); border-radius: 14px;"></div></div>
-      </div>
-    </div>
-    <div class="view" id="viewDetail" style="padding-top: 4px;">
-      <div class="wallet-card">
-        <div class="wallet-shine"></div>
-        <div class="w-header" id="bpHeaderBg" style="background: var(--explorer-gold);">
-          <div class="w-logo-area">
-            <div class="w-logo" id="bpLogo" style="color: var(--explorer-gold);">FL</div>
-            <div class="w-airline" id="dAirline">Airlines</div>
+
+      <div class="view" id="viewDetail" style="padding-top: 4px;">
+          <div class="wallet-card">
+              <div class="wallet-shine"></div>
+              <div class="w-header" id="bpHeaderBg" style="background: var(--explorer-gold);">
+                  <div class="w-logo-area">
+                      <div class="w-logo" id="bpLogo" style="color: var(--explorer-gold);">FL</div>
+                      <div class="w-airline" id="dAirline">Airlines</div>
+                  </div>
+                  <div class="w-class">Boarding Pass</div>
+              </div>
+              <div class="wallet-divider"></div>
+              <div class="w-progress-container">
+                  <div class="w-city">
+                      <div class="w-city-name" id="bpDepName">Origin</div>
+                      <div class="w-code" id="bpDep">DEP</div>
+                      <div class="w-time-lbl" id="lblDep">DEPARTED</div>
+                      <div class="w-time flown" id="bpTimeFlown">--:--</div>
+                  </div>
+                  <div class="w-timeline">
+                      <svg class="path-svg" id="flightPathSvg" viewBox="0 0 200 50" preserveAspectRatio="none">
+                          <path id="pathBg" class="path-bg" d="M 10 40 C 30 40, 40 10, 60 10 L 140 10 C 160 10, 170 40, 190 40"></path>
+                          <path id="pathFill" class="path-fill" d="M 10 40 C 30 40, 40 10, 60 10 L 140 10 C 160 10, 170 40, 190 40" stroke-dasharray="250" stroke-dashoffset="250"></path>
+                      </svg>
+                      <svg class="w-timeline-icon" id="bpProgressIcon" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
+                  </div>
+                  <div class="w-city right">
+                      <div class="w-city-name" id="bpArrName">Destination</div>
+                      <div class="w-code" id="bpArr">ARR</div>
+                      <div class="w-time-lbl right" id="lblArr">EST. ARRIVAL</div>
+                      <div class="w-time remain" id="bpTimeRemain">--:--</div>
+                  </div>
+              </div>
+              <div class="w-plane-img-wrap" id="wPlaneWrap" style="display: none;">
+                  <img id="wPlaneImg" src="" />
+                  <div id="wPlaneAttr" class="w-plane-attr"></div>
+              </div>
+              <div class="w-extra-row">
+                  <div class="w-extra-item"><div class="w-label">Altitude</div><div class="w-val" id="bpAlt">--</div></div>
+                  <div class="w-extra-item center"><div class="w-label">Speed</div><div class="w-val" id="bpSpd">--</div></div>
+                  <div class="w-extra-item right"><div class="w-label">Dist. to Dest</div><div class="w-val" id="dRemainNM">--</div></div>
+              </div>
+              <div class="w-bottom">
+                  <div class="w-info-block"><div class="w-label">Flight</div><div class="w-val" id="bpCall">----</div></div>
+                  <div class="w-barcode"></div>
+              </div>
           </div>
-          <div class="w-class">Boarding Pass</div>
-        </div>
-        <div class="wallet-divider"></div>
-        <div class="w-progress-container">
-          <div class="w-city">
-            <div class="w-city-name" id="bpDepName">Origin</div>
-            <div class="w-code" id="bpDep">DEP</div>
-            <div class="w-time-lbl" id="lblDep">DEPARTED</div>
-            <div class="w-time flown" id="bpTimeFlown">--:--</div>
-          </div>
-          <div class="w-timeline">
-            <svg class="path-svg" id="flightPathSvg" viewBox="0 0 200 50" preserveAspectRatio="none">
-              <path id="pathBg" class="path-bg" d="M 10 40 C 30 40, 40 10, 60 10 L 140 10 C 160 10, 170 40, 190 40"></path>
-              <path id="pathFill" class="path-fill" d="M 10 40 C 30 40, 40 10, 60 10 L 140 10 C 160 10, 170 40, 190 40" stroke-dasharray="250" stroke-dashoffset="250"></path>
-            </svg>
-            <svg class="w-timeline-icon" id="bpProgressIcon" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
-          </div>
-          <div class="w-city right">
-            <div class="w-city-name" id="bpArrName">Destination</div>
-            <div class="w-code" id="bpArr">ARR</div>
-            <div class="w-time-lbl right" id="lblArr">EST. ARRIVAL</div>
-            <div class="w-time remain" id="bpTimeRemain">--:--</div>
-          </div>
-        </div>
-        <div class="w-plane-img-wrap" id="wPlaneWrap" style="display: none;">
-          <img id="wPlaneImg" src="" />
-          <div id="wPlaneAttr" class="w-plane-attr"></div>
-        </div>
-        <div class="w-extra-row">
-          <div class="w-extra-item"><div class="w-label">Altitude</div><div class="w-val" id="bpAlt">--</div></div>
-          <div class="w-extra-item center"><div class="w-label">Speed</div><div class="w-val" id="bpSpd">--</div></div>
-          <div class="w-extra-item right"><div class="w-label">Dist. to Dest</div><div class="w-val" id="dRemainNM">--</div></div>
-        </div>
-        <div class="w-bottom">
-          <div class="w-info-block"><div class="w-label">Flight</div><div class="w-val" id="bpCall">----</div></div>
-          <div class="w-barcode"></div>
-        </div>
-      </div>
-      <div class="section-title">Passenger Experience</div>
-      <div class="grid">
-        <div class="info full pax-header-card">
-          <div class="pax-header-top">
-            <div class="pax-text">
-              <div class="i-label">Flight Phase</div>
-              <div class="pax-val" id="dPhaseSub">Cruising</div>
+
+          <div class="section-title">Passenger Experience</div>
+          <div class="grid">
+            <div class="info full pax-header-card">
+                <div class="pax-header-top">
+                    <div class="pax-text">
+                        <div class="i-label">Flight Phase</div>
+                        <div class="pax-val" id="dPhaseSub">Cruising</div>
+                    </div>
+                    <div class="overhead-panel" id="realSeatbelt">
+                        <svg class="icon-seatbelt" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <mask id="belt-mask">
+                                    <rect width="24" height="24" fill="white" />
+                                    <line x1="7.5" y1="9.5" x2="15" y2="16.5" stroke="black" stroke-width="2.5" stroke-linecap="round" />
+                                </mask>
+                            </defs>
+                            <g mask="url(#belt-mask)">
+                                <rect x="5" y="5" width="2" height="14" rx="1" />
+                                <rect x="5" y="17" width="14" height="2" rx="1" />
+                                <circle cx="11" cy="5.5" r="2.2" />
+                                <rect x="8.5" y="8.5" width="5.5" height="8.5" rx="1.5" />
+                                <rect x="12" y="14" width="6" height="3" rx="1" />
+                            </g>
+                        </svg>
+                        <svg class="icon-nosmoking" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/>
+                            <line x1="5.5" y1="5.5" x2="18.5" y2="18.5" stroke="currentColor" stroke-width="2"/>
+                            <rect x="6" y="11" width="7" height="2" fill="currentColor" stroke="none"/>
+                            <rect x="14" y="11" width="3" height="2" fill="currentColor" stroke="none"/>
+                            <path d="M15.5 10c0-1.5 1.5-1.5 1.5-2.5S16 6 16 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                </div>
+                <div class="announcement-bar">
+                    <svg class="announcement-icon" viewBox="0 0 24 24">
+                        <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                    </svg>
+                    <div class="announcement-text" id="dAnnouncement">"Sit back, relax, and enjoy the flight."</div>
+                </div>
             </div>
-            <div class="overhead-panel" id="realSeatbelt">
-              <svg class="icon-seatbelt" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <defs><mask id="belt-mask"><rect width="24" height="24" fill="white" /><line x1="7.5" y1="9.5" x2="15" y2="16.5" stroke="black" stroke-width="2.5" stroke-linecap="round" /></mask></defs>
-                <g mask="url(#belt-mask)"><rect x="5" y="5" width="2" height="14" rx="1" /><rect x="5" y="17" width="14" height="2" rx="1" /><circle cx="11" cy="5.5" r="2.2" /><rect x="8.5" y="8.5" width="5.5" height="8.5" rx="1.5" /><rect x="12" y="14" width="6" height="3" rx="1" /></g>
-              </svg>
-              <svg class="icon-nosmoking" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/>
-                <line x1="5.5" y1="5.5" x2="18.5" y2="18.5" stroke="currentColor" stroke-width="2"/>
-                <rect x="6" y="11" width="7" height="2" fill="currentColor" stroke="none"/>
-                <rect x="14" y="11" width="3" height="2" fill="currentColor" stroke="none"/>
-                <path d="M15.5 10c0-1.5 1.5-1.5 1.5-2.5S16 6 16 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-              </svg>
+
+            <div class="info pax-exp turb-smooth" id="dTurbClass">
+                <div class="pax-text">
+                    <div class="i-label">Turbulence</div>
+                    <div class="pax-val" id="dTurb">Smooth</div>
+                    <div class="pax-sub" id="dForce">1.00 G</div>
+                </div>
+                <div class="turb-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/>
+                    </svg>
+                </div>
+            </div>
+
+            <div class="info pax-exp">
+                <div class="pax-text">
+                    <div class="i-label">Mach Speed</div>
+                    <div class="pax-val" id="dMach">—</div>
+                    <div class="pax-sub">True Airspeed</div>
+                </div>
+            </div>
+
+            <div class="info">
+                <div class="i-label">Outside Air Temp</div>
+                <div class="i-value" id="dOAT">—</div>
+            </div>
+            <div class="info">
+                <div class="i-label">Cabin Altitude</div>
+                <div class="i-value" id="dCabinAlt">—</div>
+            </div>
+            <div class="info full">
+                <div class="i-label">Winds Aloft (Est.)</div>
+                <div class="i-value" id="dWinds">—</div>
             </div>
           </div>
-          <div class="announcement-bar">
-            <svg class="announcement-icon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
-            <div class="announcement-text" id="dAnnouncement">"Sit back, relax, and enjoy the flight."</div>
+
+          <div class="section-title" id="secRouteTitle" style="display:none;">Flight Route Details</div>
+          <div class="grid" id="secRouteGrid" style="display:none; margin-bottom: 24px;">
+            <div class="info full"><div class="i-label">Origin Airport</div><div class="i-value" id="dDepFull">—</div></div>
+            <div class="info full"><div class="i-label">Destination Airport</div><div class="i-value" id="dArrFull">—</div></div>
           </div>
-        </div>
-        <div class="info pax-exp turb-smooth" id="dTurbClass">
-          <div class="pax-text">
-            <div class="i-label">Turbulence</div>
-            <div class="pax-val" id="dTurb">Smooth</div>
-            <div class="pax-sub" id="dForce">1.00 G</div>
+
+          <div class="section-title">Telemetry</div>
+          <div class="grid">
+            <div class="info"><div class="i-label">Baro Altitude</div><div class="i-value" id="dAlt">—</div></div>
+            <div class="info"><div class="i-label">GPS Altitude</div><div class="i-value" id="dAltGeom">—</div></div>
+            <div class="info"><div class="i-label">Ground Speed</div><div class="i-value" id="dSpd">—</div></div>
+            <div class="info"><div class="i-label">True Airspeed</div><div class="i-value" id="dTas">—</div></div>
+            <div class="info"><div class="i-label">Indicated Speed</div><div class="i-value" id="dIas">—</div></div>
+            <div class="info"><div class="i-label">True Track</div><div class="i-value" id="dTrack">—</div></div>
+            <div class="info"><div class="i-label">Mag Heading</div><div class="i-value" id="dMagHdg">—</div></div>
+            <div class="info"><div class="i-label">Vertical Rate</div><div class="i-value" id="dVRate">—</div></div>
+            <div class="info"><div class="i-label">Squawk</div><div class="i-value" id="dSquawk">—</div></div>
+            <div class="info"><div class="i-label">Position Age</div><div class="i-value" id="dAge">—</div></div>
           </div>
-          <div class="turb-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/>
-            </svg>
+
+          <div class="section-title">Registration Details</div>
+          <div class="grid">
+            <div class="info full"><div class="i-label">Owner / Operator</div><div class="i-value" id="dOwner">Loading...</div></div>
+            <div class="info"><div class="i-label">Registration</div><div class="i-value" id="dReg">—</div></div>
+            <div class="info"><div class="i-label">Country</div><div class="i-value" id="dCountry">—</div></div>
+            <div class="info"><div class="i-label">ICAO 24-bit</div><div class="i-value" id="dIcao">—</div></div>
+            <div class="info"><div class="i-label">Year Built</div><div class="i-value" id="dYear">—</div></div>
           </div>
-        </div>
-        <div class="info pax-exp">
-          <div class="pax-text">
-            <div class="i-label">Mach Speed</div>
-            <div class="pax-val" id="dMach">—</div>
-            <div class="pax-sub">True Airspeed</div>
+
+          <div class="section-title">Aircraft Specifications</div>
+          <div class="grid" style="margin-bottom: 32px;">
+            <div class="info full" id="wrap-dModel"><div class="i-label">Model</div><div class="i-value" id="dModel">—</div></div>
+            <div class="info" id="wrap-sPax"><div class="i-label">Max Passengers</div><div class="i-value" id="sPax">—</div></div>
+            <div class="info" id="wrap-sLen"><div class="i-label">Length</div><div class="i-value" id="sLen">—</div></div>
+            <div class="info" id="wrap-sFuel"><div class="i-label">Fuel Capacity</div><div class="i-value" id="sFuel">—</div></div>
+            <div class="info" id="wrap-sMass"><div class="i-label">Max Takeoff Weight</div><div class="i-value" id="sMass">—</div></div>
+            <div class="info full" id="wrap-sLaunch"><div class="i-label">Launched</div><div class="i-value" id="sLaunch">—</div></div>
+            <div class="info full" id="wrap-sEng"><div class="i-label">Engines</div><div class="i-value" id="sEng">—</div></div>
+            <div class="info full" id="wrap-sThrust"><div class="i-label">Total Thrust</div><div class="i-value" id="sThrust">—</div></div>
           </div>
-        </div>
-        <div class="info"><div class="i-label">Outside Air Temp</div><div class="i-value" id="dOAT">—</div></div>
-        <div class="info"><div class="i-label">Cabin Altitude</div><div class="i-value" id="dCabinAlt">—</div></div>
-        <div class="info full"><div class="i-label">Winds Aloft (Est.)</div><div class="i-value" id="dWinds">—</div></div>
+
+          <div class="legal-footer">
+            <div class="footer-easter-egg">// Crafted through Human Vision & Artificial Intelligence //</div>
+            Map tiles &copy; <a href="https://opentopomap.org" target="_blank">OpenTopoMap</a> (CC-BY-SA) &mdash;
+            Map data &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org" target="_blank">SRTM</a>.<br/>
+            Aircraft Photos via <a href="https://www.planespotters.net" target="_blank">Planespotters.net</a>.<br/>
+            Live Flight Telemetry by <a href="https://airplanes.live" target="_blank">Airplanes.live</a>.<br/>
+            Route &amp; Registration Data by <a href="https://adsbdb.com" target="_blank">ADSBdb</a>.<br/>
+            <span class="legal-strong">FOR ENTERTAINMENT AND EDUCATIONAL PURPOSES ONLY.<br/>NOT FOR PROFESSIONAL OR NAVIGATIONAL USE.</span>
+          </div>
       </div>
-      <div class="section-title" id="secRouteTitle" style="display:none;">Flight Route Details</div>
-      <div class="grid" id="secRouteGrid" style="display:none; margin-bottom: 24px;">
-        <div class="info full"><div class="i-label">Origin Airport</div><div class="i-value" id="dDepFull">—</div></div>
-        <div class="info full"><div class="i-label">Destination Airport</div><div class="i-value" id="dArrFull">—</div></div>
-      </div>
-      <div class="section-title">Telemetry</div>
-      <div class="grid">
-        <div class="info"><div class="i-label">Baro Altitude</div><div class="i-value" id="dAlt">—</div></div>
-        <div class="info"><div class="i-label">GPS Altitude</div><div class="i-value" id="dAltGeom">—</div></div>
-        <div class="info"><div class="i-label">Ground Speed</div><div class="i-value" id="dSpd">—</div></div>
-        <div class="info"><div class="i-label">True Airspeed</div><div class="i-value" id="dTas">—</div></div>
-        <div class="info"><div class="i-label">Indicated Speed</div><div class="i-value" id="dIas">—</div></div>
-        <div class="info"><div class="i-label">True Track</div><div class="i-value" id="dTrack">—</div></div>
-        <div class="info"><div class="i-label">Mag Heading</div><div class="i-value" id="dMagHdg">—</div></div>
-        <div class="info"><div class="i-label">Vertical Rate</div><div class="i-value" id="dVRate">—</div></div>
-        <div class="info"><div class="i-label">Squawk</div><div class="i-value" id="dSquawk">—</div></div>
-        <div class="info"><div class="i-label">Position Age</div><div class="i-value" id="dAge">—</div></div>
-      </div>
-      <div class="section-title">Registration Details</div>
-      <div class="grid">
-        <div class="info full"><div class="i-label">Owner / Operator</div><div class="i-value" id="dOwner">Loading...</div></div>
-        <div class="info"><div class="i-label">Registration</div><div class="i-value" id="dReg">—</div></div>
-        <div class="info"><div class="i-label">Country</div><div class="i-value" id="dCountry">—</div></div>
-        <div class="info"><div class="i-label">ICAO 24-bit</div><div class="i-value" id="dIcao">—</div></div>
-        <div class="info"><div class="i-label">Year Built</div><div class="i-value" id="dYear">—</div></div>
-      </div>
-      <div class="section-title">Aircraft Specifications</div>
-      <div class="grid" style="margin-bottom: 32px;">
-        <div class="info full" id="wrap-dModel"><div class="i-label">Model</div><div class="i-value" id="dModel">—</div></div>
-        <div class="info" id="wrap-sPax"><div class="i-label">Max Passengers</div><div class="i-value" id="sPax">—</div></div>
-        <div class="info" id="wrap-sLen"><div class="i-label">Length</div><div class="i-value" id="sLen">—</div></div>
-        <div class="info" id="wrap-sFuel"><div class="i-label">Fuel Capacity</div><div class="i-value" id="sFuel">—</div></div>
-        <div class="info" id="wrap-sMass"><div class="i-label">Max Takeoff Weight</div><div class="i-value" id="sMass">—</div></div>
-        <div class="info full" id="wrap-sLaunch"><div class="i-label">Launched</div><div class="i-value" id="sLaunch">—</div></div>
-        <div class="info full" id="wrap-sEng"><div class="i-label">Engines</div><div class="i-value" id="sEng">—</div></div>
-        <div class="info full" id="wrap-sThrust"><div class="i-label">Total Thrust</div><div class="i-value" id="sThrust">—</div></div>
-      </div>
-      <div class="legal-footer">
-        <div class="footer-easter-egg">// Crafted through Human Vision &amp; Artificial Intelligence //</div>
-        Map tiles &copy; <a href="https://opentopomap.org" target="_blank">OpenTopoMap</a> (CC-BY-SA) &mdash;
-        Map data &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org" target="_blank">SRTM</a>.<br/>
-        Aircraft photos via <a href="https://commons.wikimedia.org" target="_blank">Wikimedia Commons</a> (CC BY-SA) &mdash; commercial use allowed with attribution.<br/>
-        Original SVG silhouettes as fallback illustration &mdash; own work.<br/>
-        <!-- *** MUUTOS: airplanes.live (non-commercial) → adsb.lol (ODbL 1.0, kaupallinen käyttö sallittu) *** -->
-        Live Flight Telemetry by <a href="https://adsb.lol" target="_blank">ADSB.lol</a> &mdash; Open Data licensed under <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank">ODbL 1.0</a> (commercial use permitted with attribution).<br/>
-        Route &amp; Registration Data by <a href="https://adsbdb.com" target="_blank">ADSBdb</a>.<br/>
-        <span class="legal-strong">FOR ENTERTAINMENT AND EDUCATIONAL PURPOSES ONLY.<br/>NOT FOR PROFESSIONAL OR NAVIGATIONAL USE.</span>
-      </div>
-    </div>
   </div>
 </div>
 
@@ -511,14 +584,15 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 
 <script>
 const $ = id => document.getElementById(id);
+
 // ── WELCOME MODAL ──────────────────────────────────────────────────────────
 if(localStorage.getItem('overhead_accepted') === 'true') {
-  $('welcomeOverlay').classList.add('hidden');
+    $('welcomeOverlay').classList.add('hidden');
 }
 $('welcomeBtn').addEventListener('click', () => {
-  $('welcomeOverlay').style.opacity = '0';
-  setTimeout(() => { $('welcomeOverlay').classList.add('hidden'); }, 400);
-  localStorage.setItem('overhead_accepted', 'true');
+    $('welcomeOverlay').style.opacity = '0';
+    setTimeout(() => { $('welcomeOverlay').classList.add('hidden'); }, 400);
+    localStorage.setItem('overhead_accepted', 'true');
 });
 
 // ── LOCALE / FORMAT ────────────────────────────────────────────────────────
@@ -528,926 +602,817 @@ const df = new Intl.DateTimeFormat(userLoc, { weekday: 'long', month: 'long', da
 const tf = new Intl.DateTimeFormat(userLoc, { hour: 'numeric', minute: '2-digit' });
 const nf = new Intl.NumberFormat(userLoc, { maximumFractionDigits: 0 });
 $('sheetDate').textContent = df.format(new Date()).toUpperCase();
-const fmtAlt = (ft, gnd) => gnd ? 'GROUND' : (ft == null ? '—' : `${nf.format(ft)} ft` + (isMetric ? ` (${nf.format(ft * 0.3048)} m)` : ''));
-const fmtSpd = (kt) => kt == null ? '—' : `${nf.format(kt)} kt` + (isMetric ? ` (${nf.format(kt * 1.852)} km/h)` : '');
+
+const fmtAlt  = (ft, gnd) => gnd ? 'GROUND' : (ft == null ? '—' : `${nf.format(ft)} ft` + (isMetric ? ` (${nf.format(ft * 0.3048)} m)` : ''));
+const fmtSpd  = (kt) => kt == null ? '—' : `${nf.format(kt)} kt` + (isMetric ? ` (${nf.format(kt * 1.852)} km/h)` : '');
 const fmtDist = (nm) => nm == null || nm === 0 ? '—' : (isMetric ? `${nf.format(nm * 1.852)} km` : `${nf.format(nm)} NM`);
 
 // ── FETCH WITH TIMEOUT ─────────────────────────────────────────────────────
 async function fetchWithTimeout(url, ms = 8000) {
-  const ctrl = new AbortController();
-  const id = setTimeout(() => ctrl.abort(), ms);
-  try {
-    const r = await fetch(url, { signal: ctrl.signal });
-    clearTimeout(id);
-    return r;
-  } catch(e) {
-    clearTimeout(id);
-    throw e;
-  }
+    const ctrl = new AbortController();
+    const id   = setTimeout(() => ctrl.abort(), ms);
+    try {
+        const r = await fetch(url, { signal: ctrl.signal });
+        clearTimeout(id);
+        return r;
+    } catch(e) {
+        clearTimeout(id);
+        throw e;
+    }
 }
 
 // ── CACHE TRIM (LRU via Map insertion order) ───────────────────────────────
 function trimCache(cache, max = 200) {
-  while(cache.size > max) cache.delete(cache.keys().next().value);
+    while(cache.size > max) cache.delete(cache.keys().next().value);
 }
 
 // ── VISIBILITY API — pause animation when tab hidden ──────────────────────
 document.addEventListener('visibilitychange', () => {
-  state.animPaused = document.hidden;
-  if(!document.hidden) state.aL = null;
+    state.animPaused = document.hidden;
+    if(!document.hidden) state.aL = null; // reset timestamp on resume
 });
 
 // ── AIRLINES DATABASE (90+ carriers) ──────────────────────────────────────
 const airlines = {
-  "FIN":{n:"Finnair",c:"#0B1560"},
-  "NLY":{n:"Norra",c:"#003087"},
-  "FCM":{n:"FinnComm Airlines",c:"#003380"},
-  "NAX":{n:"Norwegian",c:"#D81939"},
-  "NOZ":{n:"Norwegian",c:"#D81939"},
-  "SAS":{n:"SAS Scandinavian",c:"#00355E"},
-  "VKG":{n:"Sunclass Airlines",c:"#FF7A00"},
-  "BLX":{n:"TUI Nordic",c:"#00A0E1"},
-  "WIF":{n:"Widerøe",c:"#003082"},
-  "ICE":{n:"Icelandair",c:"#00416A"},
-  "DLH":{n:"Lufthansa",c:"#05164D"},
-  "EWG":{n:"Eurowings",c:"#8B0000"},
-  "CLH":{n:"Lufthansa CityLine",c:"#05164D"},
-  "CFG":{n:"Condor",c:"#E8502A"},
-  "GEC":{n:"Lufthansa Cargo",c:"#05164D"},
-  "KLM":{n:"KLM",c:"#00A1E4"},
-  "TRA":{n:"Transavia",c:"#1D5FA4"},
-  "BAW":{n:"British Airways",c:"#012A5E"},
-  "EZY":{n:"easyJet",c:"#FF6600"},
-  "EZS":{n:"easyJet Switzerland",c:"#FF6600"},
-  "TOM":{n:"TUI Airways",c:"#00A0E1"},
-  "EXS":{n:"Jet2",c:"#003082"},
-  "LOG":{n:"Loganair",c:"#003082"},
-  "AFR":{n:"Air France",c:"#002157"},
-  "TVF":{n:"Transavia France",c:"#1D5FA4"},
-  "IBE":{n:"Iberia",c:"#CC0000"},
-  "VLG":{n:"Vueling",c:"#FFCC00"},
-  "ANE":{n:"Air Nostrum",c:"#003082"},
-  "AUA":{n:"Austrian Airlines",c:"#CC0000"},
-  "SWR":{n:"SWISS",c:"#CC0000"},
-  "BEL":{n:"Brussels Airlines",c:"#CC0000"},
-  "TAP":{n:"TAP Air Portugal",c:"#006600"},
-  "EIN":{n:"Aer Lingus",c:"#00693E"},
-  "RYR":{n:"Ryanair",c:"#073590"},
-  "RUK":{n:"Ryanair UK",c:"#073590"},
-  "WZZ":{n:"Wizz Air",c:"#C60C85"},
-  "WUK":{n:"Wizz Air UK",c:"#C60C85"},
-  "AZA":{n:"ITA Airways",c:"#009246"},
-  "AEE":{n:"Aegean Airlines",c:"#004A97"},
-  "OAL":{n:"Olympic Air",c:"#004A97"},
-  "LOT":{n:"LOT Polish Airlines",c:"#004A97"},
-  "ENT":{n:"Enter Air",c:"#003082"},
-  "SXS":{n:"SunExpress",c:"#FF6600"},
-  "PGT":{n:"Pegasus",c:"#FF6600"},
-  "THY":{n:"Turkish Airlines",c:"#C70000"},
-  "OHY":{n:"Onur Air",c:"#003082"},
-  "FHY":{n:"Freebird Airlines",c:"#FF6600"},
-  "CSA":{n:"Czech Airlines",c:"#003082"},
-  "ROT":{n:"TAROM",c:"#004A97"},
-  "AFL":{n:"Aeroflot",c:"#003082"},
-  "UAE":{n:"Emirates",c:"#D71920"},
-  "QTR":{n:"Qatar Airways",c:"#5C0632"},
-  "ETD":{n:"Etihad Airways",c:"#BD8B13"},
-  "FDB":{n:"flydubai",c:"#DE1F2E"},
-  "ABY":{n:"Air Arabia",c:"#CC2529"},
-  "GFA":{n:"Gulf Air",c:"#B60A1D"},
-  "KAC":{n:"Kuwait Airways",c:"#2B7BD3"},
-  "OMA":{n:"Oman Air",c:"#C8102E"},
-  "SVA":{n:"Saudia",c:"#006400"},
-  "MEA":{n:"Middle East Airlines",c:"#006A4E"},
-  "RJA":{n:"Royal Jordanian",c:"#8B0000"},
-  "ETH":{n:"Ethiopian Airlines",c:"#006600"},
-  "KQA":{n:"Kenya Airways",c:"#CC0000"},
-  "RAM":{n:"Royal Air Maroc",c:"#009A44"},
-  "MSR":{n:"EgyptAir",c:"#003082"},
-  "SAA":{n:"South African Airways",c:"#007A4D"},
-  "SIA":{n:"Singapore Airlines",c:"#F6A000"},
-  "TGW":{n:"Scoot",c:"#FFD100"},
-  "MAS":{n:"Malaysia Airlines",c:"#CC0001"},
-  "AXM":{n:"AirAsia",c:"#FF0000"},
-  "THA":{n:"Thai Airways",c:"#7B1E7A"},
-  "VJC":{n:"VietJet Air",c:"#E01A22"},
-  "HVN":{n:"Vietnam Airlines",c:"#006B54"},
-  "GIA":{n:"Garuda Indonesia",c:"#00843D"},
-  "LNI":{n:"Lion Air",c:"#EE1C25"},
-  "CEB":{n:"Cebu Pacific",c:"#F9C72C"},
-  "PAL":{n:"Philippine Airlines",c:"#002D72"},
-  "AIC":{n:"Air India",c:"#CC0001"},
-  "IGO":{n:"IndiGo",c:"#1F1F8F"},
-  "CPA":{n:"Cathay Pacific",c:"#006564"},
-  "HDA":{n:"HK Express",c:"#DD0000"},
-  "JAL":{n:"Japan Airlines",c:"#C10020"},
-  "ANA":{n:"All Nippon Airways",c:"#002F6C"},
-  "KAL":{n:"Korean Air",c:"#00256C"},
-  "AAR":{n:"Asiana Airlines",c:"#00508F"},
-  "CSN":{n:"China Southern",c:"#1F5799"},
-  "CCA":{n:"Air China",c:"#C10020"},
-  "CHH":{n:"Hainan Airlines",c:"#C10020"},
-  "CES":{n:"China Eastern",c:"#1E3F8B"},
-  "CXA":{n:"Xiamen Airlines",c:"#1F5799"},
-  "QFA":{n:"Qantas",c:"#EE0000"},
-  "JST":{n:"Jetstar",c:"#FF6600"},
-  "VOZ":{n:"Virgin Australia",c:"#D2002B"},
-  "ANZ":{n:"Air New Zealand",c:"#0D0D0D"},
-  "AAL":{n:"American Airlines",c:"#0078D2"},
-  "DAL":{n:"Delta Air Lines",c:"#E00034"},
-  "UAL":{n:"United Airlines",c:"#005DAA"},
-  "SWA":{n:"Southwest Airlines",c:"#304CB2"},
-  "JBU":{n:"JetBlue",c:"#003876"},
-  "ASA":{n:"Alaska Airlines",c:"#01426A"},
-  "HAL":{n:"Hawaiian Airlines",c:"#6B2D8B"},
-  "FFT":{n:"Frontier Airlines",c:"#00840E"},
-  "SYX":{n:"Sun Country",c:"#F5A800"},
-  "FDX":{n:"FedEx Express",c:"#4D148C"},
-  "UPS":{n:"UPS Airlines",c:"#351C15"},
-  "GTI":{n:"Atlas Air",c:"#003082"},
-  "CLX":{n:"Cargolux",c:"#003082"},
-  "TAM":{n:"LATAM",c:"#1B0088"},
-  "LAN":{n:"LATAM",c:"#1B0088"},
-  "GLO":{n:"GOL Airlines",c:"#FF6600"},
-  "AZU":{n:"Azul Airlines",c:"#003082"},
-  "AVA":{n:"Avianca",c:"#C10020"},
-  "AMX":{n:"Aeromexico",c:"#006CB5"},
-  "CMP":{n:"Copa Airlines",c:"#0052A5"},
+    // Nordic / Finnish
+    "FIN":{n:"Finnair",c:"#0B1560"},
+    "NLY":{n:"Norra",c:"#003087"},
+    "FCM":{n:"FinnComm Airlines",c:"#003380"},
+    "NAX":{n:"Norwegian",c:"#D81939"},
+    "NOZ":{n:"Norwegian",c:"#D81939"},
+    "SAS":{n:"SAS Scandinavian",c:"#00355E"},
+    "VKG":{n:"Sunclass Airlines",c:"#FF7A00"},
+    "BLX":{n:"TUI Nordic",c:"#00A0E1"},
+    "WIF":{n:"Widerøe",c:"#003082"},
+    "ICE":{n:"Icelandair",c:"#00416A"},
+    // Western Europe
+    "DLH":{n:"Lufthansa",c:"#05164D"},
+    "EWG":{n:"Eurowings",c:"#8B0000"},
+    "CLH":{n:"Lufthansa CityLine",c:"#05164D"},
+    "CFG":{n:"Condor",c:"#E8502A"},
+    "GEC":{n:"Lufthansa Cargo",c:"#05164D"},
+    "KLM":{n:"KLM",c:"#00A1E4"},
+    "TRA":{n:"Transavia",c:"#1D5FA4"},
+    "BAW":{n:"British Airways",c:"#012A5E"},
+    "EZY":{n:"easyJet",c:"#FF6600"},
+    "EZS":{n:"easyJet Switzerland",c:"#FF6600"},
+    "TOM":{n:"TUI Airways",c:"#00A0E1"},
+    "EXS":{n:"Jet2",c:"#003082"},
+    "LOG":{n:"Loganair",c:"#003082"},
+    "AFR":{n:"Air France",c:"#002157"},
+    "TVF":{n:"Transavia France",c:"#1D5FA4"},
+    "IBE":{n:"Iberia",c:"#CC0000"},
+    "VLG":{n:"Vueling",c:"#FFCC00"},
+    "ANE":{n:"Air Nostrum",c:"#003082"},
+    "AUA":{n:"Austrian Airlines",c:"#CC0000"},
+    "SWR":{n:"SWISS",c:"#CC0000"},
+    "BEL":{n:"Brussels Airlines",c:"#CC0000"},
+    "TAP":{n:"TAP Air Portugal",c:"#006600"},
+    "EIN":{n:"Aer Lingus",c:"#00693E"},
+    "RYR":{n:"Ryanair",c:"#073590"},
+    "RUK":{n:"Ryanair UK",c:"#073590"},
+    "WZZ":{n:"Wizz Air",c:"#C60C85"},
+    "WUK":{n:"Wizz Air UK",c:"#C60C85"},
+    "AZA":{n:"ITA Airways",c:"#009246"},
+    "AEE":{n:"Aegean Airlines",c:"#004A97"},
+    "OAL":{n:"Olympic Air",c:"#004A97"},
+    "LOT":{n:"LOT Polish Airlines",c:"#004A97"},
+    "ENT":{n:"Enter Air",c:"#003082"},
+    "SXS":{n:"SunExpress",c:"#FF6600"},
+    "PGT":{n:"Pegasus",c:"#FF6600"},
+    "THY":{n:"Turkish Airlines",c:"#C70000"},
+    "OHY":{n:"Onur Air",c:"#003082"},
+    "FHY":{n:"Freebird Airlines",c:"#FF6600"},
+    "CSA":{n:"Czech Airlines",c:"#003082"},
+    "ROT":{n:"TAROM",c:"#004A97"},
+    "AFL":{n:"Aeroflot",c:"#003082"},
+    // Middle East
+    "UAE":{n:"Emirates",c:"#D71920"},
+    "QTR":{n:"Qatar Airways",c:"#5C0632"},
+    "ETD":{n:"Etihad Airways",c:"#BD8B13"},
+    "FDB":{n:"flydubai",c:"#DE1F2E"},
+    "ABY":{n:"Air Arabia",c:"#CC2529"},
+    "GFA":{n:"Gulf Air",c:"#B60A1D"},
+    "KAC":{n:"Kuwait Airways",c:"#2B7BD3"},
+    "OMA":{n:"Oman Air",c:"#C8102E"},
+    "SVA":{n:"Saudia",c:"#006400"},
+    "MEA":{n:"Middle East Airlines",c:"#006A4E"},
+    "RJA":{n:"Royal Jordanian",c:"#8B0000"},
+    // Africa
+    "ETH":{n:"Ethiopian Airlines",c:"#006600"},
+    "KQA":{n:"Kenya Airways",c:"#CC0000"},
+    "RAM":{n:"Royal Air Maroc",c:"#009A44"},
+    "MSR":{n:"EgyptAir",c:"#003082"},
+    "SAA":{n:"South African Airways",c:"#007A4D"},
+    // South / SE Asia
+    "SIA":{n:"Singapore Airlines",c:"#F6A000"},
+    "TGW":{n:"Scoot",c:"#FFD100"},
+    "MAS":{n:"Malaysia Airlines",c:"#CC0001"},
+    "AXM":{n:"AirAsia",c:"#FF0000"},
+    "THA":{n:"Thai Airways",c:"#7B1E7A"},
+    "VJC":{n:"VietJet Air",c:"#E01A22"},
+    "HVN":{n:"Vietnam Airlines",c:"#006B54"},
+    "GIA":{n:"Garuda Indonesia",c:"#00843D"},
+    "LNI":{n:"Lion Air",c:"#EE1C25"},
+    "CEB":{n:"Cebu Pacific",c:"#F9C72C"},
+    "PAL":{n:"Philippine Airlines",c:"#002D72"},
+    "AIC":{n:"Air India",c:"#CC0001"},
+    "IGO":{n:"IndiGo",c:"#1F1F8F"},
+    // East Asia
+    "CPA":{n:"Cathay Pacific",c:"#006564"},
+    "HDA":{n:"HK Express",c:"#DD0000"},
+    "JAL":{n:"Japan Airlines",c:"#C10020"},
+    "ANA":{n:"All Nippon Airways",c:"#002F6C"},
+    "KAL":{n:"Korean Air",c:"#00256C"},
+    "AAR":{n:"Asiana Airlines",c:"#00508F"},
+    "CSN":{n:"China Southern",c:"#1F5799"},
+    "CCA":{n:"Air China",c:"#C10020"},
+    "CHH":{n:"Hainan Airlines",c:"#C10020"},
+    "CES":{n:"China Eastern",c:"#1E3F8B"},
+    "CXA":{n:"Xiamen Airlines",c:"#1F5799"},
+    // Oceania
+    "QFA":{n:"Qantas",c:"#EE0000"},
+    "JST":{n:"Jetstar",c:"#FF6600"},
+    "VOZ":{n:"Virgin Australia",c:"#D2002B"},
+    "ANZ":{n:"Air New Zealand",c:"#0D0D0D"},
+    // North America
+    "AAL":{n:"American Airlines",c:"#0078D2"},
+    "DAL":{n:"Delta Air Lines",c:"#E00034"},
+    "UAL":{n:"United Airlines",c:"#005DAA"},
+    "SWA":{n:"Southwest Airlines",c:"#304CB2"},
+    "JBU":{n:"JetBlue",c:"#003876"},
+    "ASA":{n:"Alaska Airlines",c:"#01426A"},
+    "HAL":{n:"Hawaiian Airlines",c:"#6B2D8B"},
+    "FFT":{n:"Frontier Airlines",c:"#00840E"},
+    "SYX":{n:"Sun Country",c:"#F5A800"},
+    "FDX":{n:"FedEx Express",c:"#4D148C"},
+    "UPS":{n:"UPS Airlines",c:"#351C15"},
+    "GTI":{n:"Atlas Air",c:"#003082"},
+    "CLX":{n:"Cargolux",c:"#003082"},
+    // Latin America
+    "TAM":{n:"LATAM",c:"#1B0088"},
+    "LAN":{n:"LATAM",c:"#1B0088"},
+    "GLO":{n:"GOL Airlines",c:"#FF6600"},
+    "AZU":{n:"Azul Airlines",c:"#003082"},
+    "AVA":{n:"Avianca",c:"#C10020"},
+    "AMX":{n:"Aeromexico",c:"#006CB5"},
+    "CMP":{n:"Copa Airlines",c:"#0052A5"},
 };
 
 function getDynamicBrand(callsign, reg) {
-  let s = (callsign || reg || "U").toUpperCase();
-  let name = (callsign && callsign.length > 3 && !callsign.match(/^[0-9]/))
-    ? callsign.substring(0,3) + " Aviation"
-    : "Aircraft " + (reg || '');
-  let h = Math.abs([...s].reduce((a,c) => c.charCodeAt(0) + ((a<<5)-a), 0)) % 360;
-  return { n: name, c: `hsl(${h}, 65%, 35%)`, logo: s.substring(0,2).replace(/[^A-Z]/g,'') || "PR" };
+    let s = (callsign || reg || "U").toUpperCase();
+    let name = (callsign && callsign.length > 3 && !callsign.match(/^[0-9]/))
+        ? callsign.substring(0,3) + " Aviation"
+        : "Aircraft " + (reg || '');
+    let h = Math.abs([...s].reduce((a,c) => c.charCodeAt(0) + ((a<<5)-a), 0)) % 360;
+    return { n: name, c: `hsl(${h}, 65%, 35%)`, logo: s.substring(0,2).replace(/[^A-Z]/g,'') || "PR" };
 }
 
 // ── AIRCRAFT SPECS ─────────────────────────────────────────────────────────
 const acSpecs = {
-  "A319":{pax:156,len:33.84,fuel:24210,y:1995,eng:"CFM56 / V2500",thrust:105,mass:75500},
-  "A320":{pax:180,len:37.57,fuel:24210,y:1988,eng:"CFM56 / V2500",thrust:120,mass:78000},
-  "A20N":{pax:195,len:37.57,fuel:26730,y:2016,eng:"LEAP-1A / PW1100G",thrust:120,mass:79000},
-  "A321":{pax:220,len:44.51,fuel:24050,y:1994,eng:"CFM56 / V2500",thrust:147,mass:93500},
-  "A21N":{pax:244,len:44.51,fuel:32940,y:2017,eng:"LEAP-1A / PW1100G",thrust:147,mass:97000},
-  "A332":{pax:253,len:58.82,fuel:139090,y:1998,eng:"Trent 700 / PW4000",thrust:311,mass:242000},
-  "A333":{pax:295,len:63.69,fuel:97530,y:1994,eng:"Trent 700 / PW4000",thrust:311,mass:242000},
-  "A343":{pax:295,len:63.69,fuel:147850,y:1991,eng:"CFM56-5C",thrust:151,mass:276500},
-  "A346":{pax:320,len:75.36,fuel:195880,y:2001,eng:"Trent 556",thrust:249,mass:368000},
-  "A359":{pax:350,len:66.80,fuel:141000,y:2014,eng:"Trent XWB-84",thrust:374,mass:280000},
-  "A35K":{pax:410,len:73.79,fuel:156000,y:2018,eng:"Trent XWB-97",thrust:431,mass:319000},
-  "A388":{pax:853,len:72.72,fuel:320000,y:2007,eng:"Trent 900 / GP7200",thrust:311,mass:575000},
-  "B737":{pax:149,len:33.60,fuel:26020,y:1997,eng:"CFM56-7B",thrust:101,mass:70080},
-  "B738":{pax:189,len:39.50,fuel:26020,y:1998,eng:"CFM56-7B",thrust:121,mass:79010},
-  "B739":{pax:220,len:42.10,fuel:29660,y:2001,eng:"CFM56-7B",thrust:121,mass:85130},
-  "B38M":{pax:189,len:39.52,fuel:25816,y:2017,eng:"LEAP-1B",thrust:130,mass:82190},
-  "B39M":{pax:220,len:42.16,fuel:25816,y:2019,eng:"LEAP-1B",thrust:130,mass:88314},
-  "B744":{pax:416,len:70.66,fuel:216840,y:1988,eng:"PW4000 / CF6",thrust:282,mass:396890},
-  "B748":{pax:467,len:76.25,fuel:238610,y:2010,eng:"GEnx-2B67",thrust:296,mass:447700},
-  "B752":{pax:200,len:47.32,fuel:43490,y:1982,eng:"PW2037 / RB211",thrust:170,mass:115680},
-  "B763":{pax:269,len:54.90,fuel:90770,y:1988,eng:"PW4000 / CF6",thrust:267,mass:186880},
-  "B772":{pax:313,len:63.70,fuel:117340,y:1995,eng:"GE90 / PW4000",thrust:415,mass:247200},
-  "B77W":{pax:396,len:73.90,fuel:181280,y:2004,eng:"GE90-115B",thrust:512,mass:351500},
-  "B788":{pax:242,len:56.70,fuel:126206,y:2011,eng:"GEnx-1B / Trent 1000",thrust:280,mass:227930},
-  "B789":{pax:290,len:63.00,fuel:126372,y:2014,eng:"GEnx-1B / Trent 1000",thrust:320,mass:254011},
-  "AT72":{pax:78,len:27.17,fuel:5000,y:1989,eng:"PW127",thrust:40,mass:23000},
-  "AT75":{pax:78,len:27.17,fuel:5000,y:1997,eng:"PW127F",thrust:40,mass:23000},
-  "AT76":{pax:78,len:27.17,fuel:5000,y:2012,eng:"PW127M",thrust:40,mass:23000},
-  "DH8D":{pax:78,len:32.81,fuel:6526,y:2000,eng:"PW150A",thrust:45,mass:29257},
-  "BCS1":{pax:135,len:35.00,fuel:21805,y:2016,eng:"PW1500G",thrust:104,mass:63100},
-  "BCS3":{pax:160,len:38.70,fuel:21805,y:2016,eng:"PW1500G",thrust:104,mass:69900},
-  "CRJ9":{pax:90,len:36.20,fuel:8822,y:2003,eng:"CF34-8C5",thrust:63,mass:38330},
-  "E170":{pax:78,len:29.90,fuel:9335,y:2004,eng:"CF34-8E",thrust:62,mass:38600},
-  "E190":{pax:114,len:36.24,fuel:12971,y:2005,eng:"CF34-10E",thrust:89,mass:51800},
-  "E295":{pax:120,len:41.50,fuel:13690,y:2018,eng:"PW1900G",thrust:101,mass:62000},
+    "A319":{pax:156,len:33.84,fuel:24210,y:1995,eng:"CFM56 / V2500",thrust:105,mass:75500},
+    "A320":{pax:180,len:37.57,fuel:24210,y:1988,eng:"CFM56 / V2500",thrust:120,mass:78000},
+    "A20N":{pax:195,len:37.57,fuel:26730,y:2016,eng:"LEAP-1A / PW1100G",thrust:120,mass:79000},
+    "A321":{pax:220,len:44.51,fuel:24050,y:1994,eng:"CFM56 / V2500",thrust:147,mass:93500},
+    "A21N":{pax:244,len:44.51,fuel:32940,y:2017,eng:"LEAP-1A / PW1100G",thrust:147,mass:97000},
+    "A332":{pax:253,len:58.82,fuel:139090,y:1998,eng:"Trent 700 / PW4000",thrust:311,mass:242000},
+    "A333":{pax:295,len:63.69,fuel:97530,y:1994,eng:"Trent 700 / PW4000",thrust:311,mass:242000},
+    "A343":{pax:295,len:63.69,fuel:147850,y:1991,eng:"CFM56-5C",thrust:151,mass:276500},
+    "A346":{pax:320,len:75.36,fuel:195880,y:2001,eng:"Trent 556",thrust:249,mass:368000},
+    "A359":{pax:350,len:66.80,fuel:141000,y:2014,eng:"Trent XWB-84",thrust:374,mass:280000},
+    "A35K":{pax:410,len:73.79,fuel:156000,y:2018,eng:"Trent XWB-97",thrust:431,mass:319000},
+    "A388":{pax:853,len:72.72,fuel:320000,y:2007,eng:"Trent 900 / GP7200",thrust:311,mass:575000},
+    "B737":{pax:149,len:33.60,fuel:26020,y:1997,eng:"CFM56-7B",thrust:101,mass:70080},
+    "B738":{pax:189,len:39.50,fuel:26020,y:1998,eng:"CFM56-7B",thrust:121,mass:79010},
+    "B739":{pax:220,len:42.10,fuel:29660,y:2001,eng:"CFM56-7B",thrust:121,mass:85130},
+    "B38M":{pax:189,len:39.52,fuel:25816,y:2017,eng:"LEAP-1B",thrust:130,mass:82190},
+    "B39M":{pax:220,len:42.16,fuel:25816,y:2019,eng:"LEAP-1B",thrust:130,mass:88314},
+    "B744":{pax:416,len:70.66,fuel:216840,y:1988,eng:"PW4000 / CF6",thrust:282,mass:396890},
+    "B748":{pax:467,len:76.25,fuel:238610,y:2010,eng:"GEnx-2B67",thrust:296,mass:447700},
+    "B752":{pax:200,len:47.32,fuel:43490,y:1982,eng:"PW2037 / RB211",thrust:170,mass:115680},
+    "B763":{pax:269,len:54.90,fuel:90770,y:1988,eng:"PW4000 / CF6",thrust:267,mass:186880},
+    "B772":{pax:313,len:63.70,fuel:117340,y:1995,eng:"GE90 / PW4000",thrust:415,mass:247200},
+    "B77W":{pax:396,len:73.90,fuel:181280,y:2004,eng:"GE90-115B",thrust:512,mass:351500},
+    "B788":{pax:242,len:56.70,fuel:126206,y:2011,eng:"GEnx-1B / Trent 1000",thrust:280,mass:227930},
+    "B789":{pax:290,len:63.00,fuel:126372,y:2014,eng:"GEnx-1B / Trent 1000",thrust:320,mass:254011},
+    "AT72":{pax:78,len:27.17,fuel:5000,y:1989,eng:"PW127",thrust:40,mass:23000},
+    "AT75":{pax:78,len:27.17,fuel:5000,y:1997,eng:"PW127F",thrust:40,mass:23000},
+    "AT76":{pax:78,len:27.17,fuel:5000,y:2012,eng:"PW127M",thrust:40,mass:23000},
+    "DH8D":{pax:78,len:32.81,fuel:6526,y:2000,eng:"PW150A",thrust:45,mass:29257},
+    "BCS1":{pax:135,len:35.00,fuel:21805,y:2016,eng:"PW1500G",thrust:104,mass:63100},
+    "BCS3":{pax:160,len:38.70,fuel:21805,y:2016,eng:"PW1500G",thrust:104,mass:69900},
+    "CRJ9":{pax:90,len:36.20,fuel:8822,y:2003,eng:"CF34-8C5",thrust:63,mass:38330},
+    "E170":{pax:78,len:29.90,fuel:9335,y:2004,eng:"CF34-8E",thrust:62,mass:38600},
+    "E190":{pax:114,len:36.24,fuel:12971,y:2005,eng:"CF34-10E",thrust:89,mass:51800},
+    "E295":{pax:120,len:41.50,fuel:13690,y:2018,eng:"PW1900G",thrust:101,mass:62000},
 };
 
 // ── STATE ──────────────────────────────────────────────────────────────────
 const state = {
-  map: null,
-  userLat: 60.45, userLon: 22.26,
-  flights: new Map(),
-  selectedIcao: null,
-  photoCache: new Map(),
-  routeCache: new Map(),
-  markers: new Map(),
-  animPaused: false,
-  aL: null,
-  fetchRetries: 0,
+    map: null,
+    userLat: 60.45, userLon: 22.26,
+    flights: new Map(),
+    selectedIcao: null,
+    photoCache: new Map(),
+    routeCache: new Map(),
+    markers: new Map(),
+    animPaused: false,
+    aL: null,
+    fetchRetries: 0,
 };
+
 const cWhite = getComputedStyle(document.documentElement).getPropertyValue('--explorer-white').trim();
-const cGold = getComputedStyle(document.documentElement).getPropertyValue('--explorer-gold').trim();
+const cGold  = getComputedStyle(document.documentElement).getPropertyValue('--explorer-gold').trim();
 const getPlaneSvg = (col, stroke) =>
-  `<svg viewBox="0 0 24 24" class="plane-svg"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="${col}" stroke="${stroke}" stroke-width="1.2" stroke-linejoin="round"/></svg>`;
+    `<svg viewBox="0 0 24 24" class="plane-svg"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="${col}" stroke="${stroke}" stroke-width="1.2" stroke-linejoin="round"/></svg>`;
+
 const haversine = (l1,n1,l2,n2) => {
-  if(l1==null||n1==null||l2==null||n2==null) return 0;
-  const R=3440.065, p=Math.PI/180,
-    a=Math.sin((l2-l1)*p/2)**2 + Math.cos(l1*p)*Math.cos(l2*p)*Math.sin((n2-n1)*p/2)**2;
-  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+    if(l1==null||n1==null||l2==null||n2==null) return 0;
+    const R=3440.065, p=Math.PI/180,
+          a=Math.sin((l2-l1)*p/2)**2 + Math.cos(l1*p)*Math.cos(l2*p)*Math.sin((n2-n1)*p/2)**2;
+    return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 };
 
 // ── FLIGHT PATH PROGRESS ───────────────────────────────────────────────────
 function updatePath(pct, alt) {
-  let aR = Math.max(0, Math.min((alt||0)/35000, 1.0)), pY = 40-(30*aR);
-  let d = `M 10 40 C 30 40, 40 ${pY}, 60 ${pY} L 140 ${pY} C 160 ${pY}, 170 40, 190 40`;
-  $('pathBg').setAttribute('d',d);
-  $('pathFill').setAttribute('d',d);
-  let pN=$('pathFill'), l=pN.getTotalLength()||215;
-  pN.setAttribute('stroke-dasharray',l);
-  let p=Math.max(0,Math.min(pct,100))/100;
-  pN.setAttribute('stroke-dashoffset', l-(l*p));
-  let pt=pN.getPointAtLength(l*p), la=Math.min(l,(l*p)+1), pa=pN.getPointAtLength(la);
-  let dx=pa.x-pt.x, dy=pa.y-pt.y;
-  if(la===l&&l>1){let pb=pN.getPointAtLength(l-1);dx=pt.x-pb.x;dy=pt.y-pb.y;}
-  let ag=Math.atan2(dy,dx)*(180/Math.PI), ic=$('bpProgressIcon');
-  ic.style.left=`${(pt.x/200)*100}%`;
-  ic.style.top=`${(pt.y/50)*100}%`;
-  ic.style.transform=`translateZ(0) rotate(${90+ag}deg)`;
+    let aR = Math.max(0, Math.min((alt||0)/35000, 1.0)), pY = 40-(30*aR);
+    let d = `M 10 40 C 30 40, 40 ${pY}, 60 ${pY} L 140 ${pY} C 160 ${pY}, 170 40, 190 40`;
+    $('pathBg').setAttribute('d',d);
+    $('pathFill').setAttribute('d',d);
+    let pN=$('pathFill'), l=pN.getTotalLength()||215;
+    pN.setAttribute('stroke-dasharray',l);
+    let p=Math.max(0,Math.min(pct,100))/100;
+    pN.setAttribute('stroke-dashoffset', l-(l*p));
+    let pt=pN.getPointAtLength(l*p), la=Math.min(l,(l*p)+1), pa=pN.getPointAtLength(la);
+    let dx=pa.x-pt.x, dy=pa.y-pt.y;
+    if(la===l&&l>1){let pb=pN.getPointAtLength(l-1);dx=pt.x-pb.x;dy=pt.y-pb.y;}
+    let ag=Math.atan2(dy,dx)*(180/Math.PI), ic=$('bpProgressIcon');
+    ic.style.left=`${(pt.x/200)*100}%`;
+    ic.style.top=`${(pt.y/50)*100}%`;
+    ic.style.transform=`translateZ(0) rotate(${90+ag}deg)`;
 }
 
 // ── ROUTE FETCH ────────────────────────────────────────────────────────────
 async function fetchRoute(cs) {
-  if(!cs||cs.length<3) return null;
-  let cc = cs.replace(/[<>]/g,'').trim();
-  if(state.routeCache.has(cc)) return state.routeCache.get(cc);
-  try {
-    const r = await fetchWithTimeout(`https://api.adsbdb.com/v0/callsign/${cc}`, 6000);
-    if(r.ok) {
-      const d = (await r.json())?.response?.flightroute;
-      if(d) {
-        const res = {
-          dep: d.origin?.iata_code || d.origin?.icao_code || 'N/A',
-          depName: d.origin?.municipality || 'Unknown',
-          depFull: d.origin?.name || d.origin?.municipality || 'Unknown',
-          depLat: d.origin?.latitude, depLon: d.origin?.longitude,
-          arr: d.destination?.iata_code || d.destination?.icao_code || 'N/A',
-          arrName: d.destination?.municipality || 'Unknown',
-          arrFull: d.destination?.name || d.destination?.municipality || 'Unknown',
-          arrLat: d.destination?.latitude, arrLon: d.destination?.longitude,
-        };
-        state.routeCache.set(cc, res);
-        trimCache(state.routeCache);
-        return res;
-      }
-    }
-  } catch(e) {}
-  return null;
+    if(!cs||cs.length<3) return null;
+    let cc = cs.replace(/[<>]/g,'').trim();
+    if(state.routeCache.has(cc)) return state.routeCache.get(cc);
+    try {
+        const r = await fetchWithTimeout(`https://api.adsbdb.com/v0/callsign/${cc}`, 6000);
+        if(r.ok) {
+            const d = (await r.json())?.response?.flightroute;
+            if(d) {
+                const res = {
+                    dep: d.origin?.iata_code || d.origin?.icao_code || 'N/A',
+                    depName: d.origin?.municipality || 'Unknown',
+                    depFull: d.origin?.name || d.origin?.municipality || 'Unknown',
+                    depLat: d.origin?.latitude, depLon: d.origin?.longitude,
+                    arr: d.destination?.iata_code || d.destination?.icao_code || 'N/A',
+                    arrName: d.destination?.municipality || 'Unknown',
+                    arrFull: d.destination?.name || d.destination?.municipality || 'Unknown',
+                    arrLat: d.destination?.latitude, arrLon: d.destination?.longitude,
+                };
+                state.routeCache.set(cc, res);
+                trimCache(state.routeCache);
+                return res;
+            }
+        }
+    } catch(e) {}
+    return null;
 }
 
 // ── OVERHEAD PROXIMITY CHECK ───────────────────────────────────────────────
 let activeOverhead = null;
 function checkOverheadProximity() {
-  let overheadPlane = null;
-  for(let f of state.flights.values()) {
-    if(!f.on_ground && f.dist !== undefined && f.baro_alt) {
-      let altNM = f.baro_alt / 6076;
-      if(f.dist < altNM && f.baro_alt > 1500) { overheadPlane = f; break; }
+    let overheadPlane = null;
+    for(let f of state.flights.values()) {
+        if(!f.on_ground && f.dist !== undefined && f.baro_alt) {
+            let altNM = f.baro_alt / 6076;
+            if(f.dist < altNM && f.baro_alt > 1500) { overheadPlane = f; break; }
+        }
     }
-  }
-  const alertEl = $('overheadAlert');
-  if(overheadPlane) {
-    if(activeOverhead !== overheadPlane.icao24) {
-      activeOverhead = overheadPlane.icao24;
-      $('oaCall').textContent = (overheadPlane.callsign || overheadPlane.reg || "Unknown").replace(/[<>]/g,'');
-      $('oaSub').textContent = `${overheadPlane.type} • ${nf.format(overheadPlane.baro_alt)} ft`;
-      alertEl.classList.add('show');
-      alertEl.onclick = () => { openUI(overheadPlane.icao24); };
+    const alertEl = $('overheadAlert');
+    if(overheadPlane) {
+        if(activeOverhead !== overheadPlane.icao24) {
+            activeOverhead = overheadPlane.icao24;
+            $('oaCall').textContent = (overheadPlane.callsign || overheadPlane.reg || "Unknown").replace(/[<>]/g,'');
+            $('oaSub').textContent = `${overheadPlane.type} • ${nf.format(overheadPlane.baro_alt)} ft`;
+            alertEl.classList.add('show');
+            alertEl.onclick = () => { openUI(overheadPlane.icao24); };
+        }
+    } else {
+        if(activeOverhead !== null) { alertEl.classList.remove('show'); activeOverhead = null; }
     }
-  } else {
-    if(activeOverhead !== null) { alertEl.classList.remove('show'); activeOverhead = null; }
-  }
 }
 
 // ── AR SKY VIEW ────────────────────────────────────────────────────────────
 let arActive = false, devHeading = 0, devPitch = 0, videoStream = null;
 async function startAR() {
-  arActive = true; $('arOverlay').classList.add('open');
-  if(window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') {
-    try { const p = await DeviceOrientationEvent.requestPermission(); if(p !== 'granted') alert("AR needs compass permission."); } catch(e) {}
-  }
-  window.addEventListener('deviceorientation', handleOrientation);
-  try {
-    videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-    $('arVideo').srcObject = videoStream;
-  } catch(err) {}
+    arActive = true; $('arOverlay').classList.add('open');
+    if(window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission === 'function') {
+        try { const p = await DeviceOrientationEvent.requestPermission(); if(p !== 'granted') alert("AR needs compass permission."); } catch(e) {}
+    }
+    window.addEventListener('deviceorientation', handleOrientation);
+    try {
+        videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+        $('arVideo').srcObject = videoStream;
+    } catch(err) {}
 }
 function stopAR() {
-  arActive = false; $('arOverlay').classList.remove('open');
-  window.removeEventListener('deviceorientation', handleOrientation);
-  if(videoStream) { videoStream.getTracks().forEach(t => t.stop()); videoStream = null; }
-  $('arContainer').innerHTML = '';
+    arActive = false; $('arOverlay').classList.remove('open');
+    window.removeEventListener('deviceorientation', handleOrientation);
+    if(videoStream) { videoStream.getTracks().forEach(t => t.stop()); videoStream = null; }
+    $('arContainer').innerHTML = '';
 }
 function handleOrientation(e) {
-  devHeading = e.webkitCompassHeading ? e.webkitCompassHeading : (360 - e.alpha) % 360;
-  devPitch = e.beta;
+    devHeading = e.webkitCompassHeading ? e.webkitCompassHeading : (360 - e.alpha) % 360;
+    devPitch = e.beta;
 }
 function bearingTo(lat1, lon1, lat2, lon2) {
-  const toRad = Math.PI/180, toDeg = 180/Math.PI;
-  let dLon = (lon2-lon1)*toRad;
-  let y = Math.sin(dLon)*Math.cos(lat2*toRad);
-  let x = Math.cos(lat1*toRad)*Math.sin(lat2*toRad) - Math.sin(lat1*toRad)*Math.cos(lat2*toRad)*Math.cos(dLon);
-  return (Math.atan2(y, x) * toDeg + 360) % 360;
+    const toRad = Math.PI/180, toDeg = 180/Math.PI;
+    let dLon = (lon2-lon1)*toRad;
+    let y = Math.sin(dLon)*Math.cos(lat2*toRad);
+    let x = Math.cos(lat1*toRad)*Math.sin(lat2*toRad) - Math.sin(lat1*toRad)*Math.cos(lat2*toRad)*Math.cos(dLon);
+    return (Math.atan2(y, x) * toDeg + 360) % 360;
 }
 $('arBtn').addEventListener('click', startAR);
 $('arClose').addEventListener('click', stopAR);
 
-// ── AIRCRAFT TYPE → WIKIPEDIA ARTICLE MAPPING ─────────────────────────────
-// Kuvat haetaan Wikimedia Commons -palvelusta (CC BY-SA).
-// Kaupallinen käyttö sallittu attribuutiolla. Ilmainen, ei API-avainta.
-// Photos fetched from Wikimedia Commons (CC BY-SA) — free commercial use with attribution.
-const AC_WIKI = {
-  'A318':'Airbus_A320_family','A319':'Airbus_A320_family','A320':'Airbus_A320_family',
-  'A321':'Airbus_A320_family','A20N':'Airbus_A320neo_family','A21N':'Airbus_A320neo_family',
-  'A19N':'Airbus_A320neo_family','A310':'Airbus_A310','A332':'Airbus_A330',
-  'A333':'Airbus_A330','A338':'Airbus_A330neo','A339':'Airbus_A330neo',
-  'A342':'Airbus_A340','A343':'Airbus_A340','A345':'Airbus_A340','A346':'Airbus_A340',
-  'A359':'Airbus_A350','A35K':'Airbus_A350','A388':'Airbus_A380',
-  'B735':'Boeing_737_Classic','B736':'Boeing_737_Classic',
-  'B737':'Boeing_737_Classic','B738':'Boeing_737_Next_Generation',
-  'B739':'Boeing_737_Next_Generation','B73G':'Boeing_737_Next_Generation',
-  'B73X':'Boeing_737_Next_Generation',
-  'B38M':'Boeing_737_MAX','B39M':'Boeing_737_MAX','B3XM':'Boeing_737_MAX',
-  'B752':'Boeing_757','B753':'Boeing_757',
-  'B762':'Boeing_767','B763':'Boeing_767','B764':'Boeing_767',
-  'B772':'Boeing_777','B773':'Boeing_777','B77W':'Boeing_777X','B77L':'Boeing_777',
-  'B788':'Boeing_787','B789':'Boeing_787','B78X':'Boeing_787',
-  'B744':'Boeing_747','B748':'Boeing_747-8',
-  'AT72':'ATR_72','AT75':'ATR_72','AT76':'ATR_72',
-  'AT42':'ATR_42','AT45':'ATR_42',
-  'DH8A':'De_Havilland_Canada_Dash_8','DH8B':'De_Havilland_Canada_Dash_8',
-  'DH8C':'De_Havilland_Canada_Dash_8','DH8D':'Bombardier_Q400',
-  'CRJ1':'Bombardier_CRJ100','CRJ2':'Bombardier_CRJ200',
-  'CRJ7':'Bombardier_CRJ700_series','CRJ9':'Bombardier_CRJ900',
-  'CRJX':'Bombardier_CRJ1000',
-  'E170':'Embraer_170','E175':'Embraer_175',
-  'E190':'Embraer_190','E195':'Embraer_195',
-  'E290':'Embraer_190_E2','E295':'Embraer_195_E2',
-  'BCS1':'Airbus_A220-100','BCS3':'Airbus_A220-300',
-  'SF34':'Saab_340','SF3':'Saab_340',
-  'C208':'Cessna_208_Caravan','PC12':'Pilatus_PC-12',
-  'C25A':'Cessna_CitationJet','C25B':'Cessna_CitationJet',
-  'C56X':'Cessna_Citation_Excel','C750':'Cessna_Citation_X',
-  'GLEX':'Bombardier_Global_Express','GLF5':'Gulfstream_V',
-  'GLF6':'Gulfstream_G650','G550':'Gulfstream_V',
-  'F900':'Dassault_Falcon_900','FA7X':'Dassault_Falcon_7X',
-  'LJ35':'Learjet_35','LJ45':'Learjet_45','LJ60':'Learjet_60',
-  'B06':'Bell_206','R44':'Robinson_R44','R22':'Robinson_R22',
-  'EC35':'Airbus_H135','EC45':'Airbus_H145','S92':'Sikorsky_S-92',
-};
-
-// ── SVG SILHOUETTE FALLBACK ────────────────────────────────────────────────
-// Käytetään kun Wikipedia-kuvaa ei löydy.
-// Used when no Wikipedia photo is available. Original illustration, no copyright.
-function _acCat(t) {
-  t = (t||'').toUpperCase().substring(0,4);
-  if (/^(A38|A35|A33|A34|B74|B76|B77|B78)/.test(t)) return 'wide';
-  if (/^(A31|A32|A20|A21|A19|A22|B73|B38|B72|B75|CS1|CS3)/.test(t)) return 'narrow';
-  if (/^(CRJ|E13|E14|E17|E19|E29|E75|E70|SF3)/.test(t)) return 'regional';
-  if (/^(AT4|AT7|DH8|Q40|Q30|SF2|BE2|PC1|C20|AN2)/.test(t)) return 'turboprop';
-  if (/^[HR]/.test(t) || /^(EC3|EC4|EC5|AW1|BO1|S76|S92)/.test(t)) return 'heli';
-  if (/^(GL|G4|G5|G6|C25|C56|F90|LJ|PC2|FA7|CL3|CL6)/.test(t)) return 'bizjet';
-  return 'generic';
-}
-function _acSvg(type, color) {
-  const cat = _acCat(type);
-  const c = color || '#8B6B4A';
-  const s = {
-    wide: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 80'><g fill='${c}'><ellipse cx='70' cy='40' rx='9' ry='32'/><polygon points='61,43 4,58 4,63 61,51'/><polygon points='79,43 136,58 136,63 79,51'/><polygon points='63,37 18,26 18,31 63,44'/><polygon points='77,37 122,26 122,31 77,44'/><polygon points='65,13 55,24 85,24 75,13'/><polygon points='64,62 58,74 82,74 76,62'/></g></svg>`,
-    narrow: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 80'><g fill='${c}'><ellipse cx='70' cy='40' rx='8' ry='28'/><polygon points='62,43 8,56 8,61 62,51'/><polygon points='78,43 132,56 132,61 78,51'/><polygon points='64,37 22,27 22,32 64,44'/><polygon points='76,37 118,27 118,32 76,44'/><polygon points='66,15 57,25 83,25 74,15'/><polygon points='64,60 59,71 81,71 76,60'/></g></svg>`,
-    regional: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 80'><g fill='${c}'><ellipse cx='70' cy='40' rx='7' ry='24'/><polygon points='63,43 14,54 14,58 63,51'/><polygon points='77,43 126,54 126,58 77,51'/><polygon points='65,37 28,28 28,33 65,44'/><polygon points='75,37 112,28 112,33 75,44'/><polygon points='67,18 59,27 81,27 73,18'/><polygon points='65,58 61,68 79,68 75,58'/></g></svg>`,
-    turboprop:`<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 80'><g fill='${c}'><ellipse cx='70' cy='40' rx='7' ry='22'/><polygon points='63,43 12,52 12,56 63,51'/><polygon points='77,43 128,52 128,56 77,51'/><polygon points='65,37 30,29 30,33 65,44'/><polygon points='75,37 110,29 110,33 75,44'/><rect x='17' y='29' width='3' height='22' rx='1.5'/><polygon points='66,19 60,27 80,27 74,19'/><polygon points='65,57 61,66 79,66 75,57'/></g></svg>`,
-    heli: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 80'><g fill='${c}'><ellipse cx='55' cy='42' rx='24' ry='13'/><rect x='77' y='39' width='38' height='5' rx='2.5'/><polygon points='110,35 120,42 110,49 128,42'/><rect x='10' y='26' width='100' height='4' rx='2'/><rect x='58' y='20' width='4' height='10'/></g></svg>`,
-    bizjet: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 80'><g fill='${c}'><ellipse cx='72' cy='40' rx='7' ry='22'/><polygon points='65,43 18,54 18,58 65,51'/><polygon points='79,43 122,54 122,58 79,51'/><polygon points='66,37 34,29 34,33 66,44'/><polygon points='78,37 106,29 106,33 78,44'/><polygon points='68,19 61,27 83,27 76,19'/><polygon points='66,57 62,67 82,67 78,57'/></g></svg>`,
-    generic: `<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 80'><g fill='${c}'><ellipse cx='70' cy='40' rx='8' ry='26'/><polygon points='62,43 10,55 10,60 62,51'/><polygon points='78,43 130,55 130,60 78,51'/><polygon points='64,37 24,27 24,32 64,44'/><polygon points='76,37 116,27 116,32 76,44'/><polygon points='66,16 58,26 82,26 74,16'/><polygon points='64,60 60,70 80,70 76,60'/></g></svg>`
-  };
-  return (s[cat] || s.generic);
-}
-function _getSilhouetteEntry(type, color) {
-  const svg = _acSvg(type, color);
-  return { url: 'data:image/svg+xml,' + encodeURIComponent(svg), author: null, label: type || 'Aircraft' };
-}
-function _applyPhotoToDetail(icao, entry) {
-  if (state.selectedIcao !== icao) return;
-  const w = $('wPlaneImg');
-  if (!w) return;
-  w.src = entry.url;
-  w.onload = () => { w.style.opacity = '1'; };
-  w.onerror = () => {
-    const f = state.flights.get(icao);
-    const fallback = _getSilhouetteEntry(f?.type, '#8B6B4A');
-    state.photoCache.set(icao, fallback);
-    w.src = fallback.url;
-    w.style.opacity = '1';
-    $('wPlaneAttr').textContent = fallback.label;
-  };
-  $('wPlaneAttr').textContent = entry.label;
-  $('wPlaneWrap').style.display = 'block';
-}
-
-// ── PHOTO FETCH — 3-TASOINEN HAKU ─────────────────────────────────────────
-// Kaikki kuvat: Wikimedia Commons (CC BY-SA) — kaupallinen käyttö sallittu attribuutiolla.
-// All images from Wikimedia Commons (CC BY-SA) — commercial use allowed with attribution.
-//
-// Taso 1: Rekisterikohtainen kuva Wikimedia Commonsista (OH-LVA jne.)
-// Taso 2: Lentokonetyypin kuva Wikipediasta (A320, B737 jne.)
-// Taso 3: SVG-siluetti (itse luotu, ei ulkoisia kuvia)
-async function _fetchCommonsPhotoByReg(reg) {
-  try {
-    const cleanReg = reg.trim().replace(/[^A-Z0-9-]/gi, '');
-    if (!cleanReg || cleanReg === '—') return null;
-    const catApi = `https://commons.wikimedia.org/w/api.php?action=query&list=categorymembers&cmtitle=Category:${encodeURIComponent(cleanReg)}_(aircraft)&cmtype=file&cmlimit=1&format=json&origin=*`;
-    const r = await fetchWithTimeout(catApi, 5000);
-    if (!r.ok) return null;
-    const d = await r.json();
-    const members = d?.query?.categorymembers;
-    if (!members?.length) return null;
-    const fileTitle = members[0].title;
-    const infoApi = `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(fileTitle)}&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=400&format=json&origin=*`;
-    const r2 = await fetchWithTimeout(infoApi, 5000);
-    if (!r2.ok) return null;
-    const d2 = await r2.json();
-    const page = Object.values(d2?.query?.pages || {})[0];
-    const info = page?.imageinfo?.[0];
-    if (!info?.thumburl) return null;
-    const rawAuthor = info.extmetadata?.Artist?.value || info.extmetadata?.Credit?.value || 'Unknown';
-    const author = rawAuthor.replace(/<[^>]+>/g, '').trim();
-    const license = info.extmetadata?.LicenseShortName?.value || 'CC BY-SA';
-    return {
-      url: info.thumburl,
-      author: author,
-      label: `${cleanReg} — © ${author} / Wikimedia Commons (${license})`
-    };
-  } catch(e) { return null; }
-}
-async function _fetchWikipediaTypePhoto(article) {
-  try {
-    const r = await fetchWithTimeout(
-      `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(article)}`,
-      5000
-    );
-    if (!r.ok) return null;
-    const d = await r.json();
-    if (!d.thumbnail?.source) return null;
-    const bigUrl = d.thumbnail.source.replace(/\/\d+px-/, '/400px-');
-    return {
-      url: bigUrl,
-      author: d.description || article.replace(/_/g, ' '),
-      label: article.replace(/_/g, ' ') + ' — Wikimedia Commons (CC BY-SA)'
-    };
-  } catch(e) { return null; }
-}
+// ── PLANE PHOTO FETCH ──────────────────────────────────────────────────────
 async function fetchPlanePhoto(icao) {
-  if (state.photoCache.has(icao) && state.photoCache.get(icao) !== 'loading') {
-    return state.photoCache.get(icao);
-  }
-  state.photoCache.set(icao, 'loading');
-  const f = state.flights.get(icao);
-  const pfx = f?.callsign && f.callsign.length >= 3 ? f.callsign.substring(0,3).toUpperCase() : null;
-  const col = (pfx && airlines[pfx]) ? airlines[pfx].c : getDynamicBrand(f?.callsign, f?.reg).c;
-  if (f?.reg && f.reg !== '—') {
-    const regPhoto = await _fetchCommonsPhotoByReg(f.reg);
-    if (regPhoto) {
-      state.photoCache.set(icao, regPhoto);
-      trimCache(state.photoCache);
-      _applyPhotoToDetail(icao, regPhoto);
-      return regPhoto;
-    }
-  }
-  const typeCode = (f?.type || '').toUpperCase().substring(0, 4);
-  const article = AC_WIKI[typeCode];
-  if (article) {
-    const typePhoto = await _fetchWikipediaTypePhoto(article);
-    if (typePhoto) {
-      state.photoCache.set(icao, typePhoto);
-      trimCache(state.photoCache);
-      _applyPhotoToDetail(icao, typePhoto);
-      return typePhoto;
-    }
-  }
-  const entry = _getSilhouetteEntry(f?.type, col);
-  state.photoCache.set(icao, entry);
-  trimCache(state.photoCache);
-  _applyPhotoToDetail(icao, entry);
-  return entry;
+    if(state.photoCache.has(icao)) return state.photoCache.get(icao);
+    state.photoCache.set(icao, 'loading');
+    try {
+        const r = await fetchWithTimeout(`https://api.planespotters.net/pub/photos/hex/${icao}`, 6000);
+        if(r.ok) {
+            const d = await r.json();
+            if(d.photos?.length > 0) {
+                const p = { url: d.photos[0].thumbnail_large.src, author: d.photos[0].photographer };
+                state.photoCache.set(icao, p);
+                trimCache(state.photoCache);
+                if(state.selectedIcao === icao) {
+                    let w = $('wPlaneImg');
+                    if(w) { w.src=p.url; w.onload=()=>w.style.opacity='1'; $('wPlaneAttr').textContent='© '+p.author; $('wPlaneWrap').style.display='block'; }
+                }
+                return p;
+            }
+        }
+    } catch(e) {}
+    return null;
 }
 
-// ── MAP INIT — OpenTopoMap (CC-BY-SA, kaupallinen käyttö sallittu attribuutiolla) ──
+// ── MAP INIT — OpenTopoMap (CC-BY-SA, free commercial use) ────────────────
 function initMap() {
-  state.map = L.map('map', { zoomControl: false, attributionControl: true }).setView([state.userLat, state.userLon], 6);
-  L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-    maxZoom: 17,
-    attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (CC-BY-SA)',
-  }).addTo(state.map);
-  state.userMarker = L.circleMarker([state.userLat, state.userLon], {
-    radius: 8, color: '#fff', weight: 3, fillColor: cGold, fillOpacity: 1
-  }).addTo(state.map);
-  state.map.on('zoomend', updateMarkers);
+    state.map = L.map('map', { zoomControl: false, attributionControl: true }).setView([state.userLat, state.userLon], 6);
+    L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+        maxZoom: 17,
+        attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (CC-BY-SA)',
+    }).addTo(state.map);
+    state.userMarker = L.circleMarker([state.userLat, state.userLon], {
+        radius: 8, color: '#fff', weight: 3, fillColor: cGold, fillOpacity: 1
+    }).addTo(state.map);
+    state.map.on('zoomend', updateMarkers);
 }
 
 // ── MARKER UPDATE ──────────────────────────────────────────────────────────
 function updateMarkers() {
-  if(!state.map) return;
-  let a = [...state.flights.values()].sort((x,y) => x.dist-y.dist).slice(0,300);
-  const cI = new Set(a.map(f => f.icao24));
-  for(const [i,m] of state.markers.entries()) {
-    if(!cI.has(i)) { state.map.removeLayer(m); state.markers.delete(i); }
-  }
-  for(const f of a) {
-    let m = state.markers.get(f.icao24), s = (f.icao24 === state.selectedIcao);
-    if(!m) {
-      const ic = L.divIcon({ className:'', html:`<div class="plane-wrapper ${s?'sel':''}"><div class="svg-container" style="transform: rotate(${f.track||0}deg)">${getPlaneSvg(s?cGold:cWhite,'#5C4D3C')}</div></div>`, iconSize:[0,0] });
-      m = L.marker([f.curLat, f.curLon], { icon: ic, zIndexOffset: s?1000:0 }).addTo(state.map);
-      m.on('click', () => openUI(f.icao24));
-      state.markers.set(f.icao24, m);
-    } else {
-      m.setLatLng([f.curLat, f.curLon]);
-      const el = m.getElement();
-      if(el) {
-        const w = el.querySelector('.plane-wrapper'), c = el.querySelector('.svg-container');
-        if(c && w) {
-          c.style.transform = `rotate(${f.track||0}deg)`;
-          if(s !== w.classList.contains('sel')) {
-            w.className = `plane-wrapper ${s?'sel':''}`;
-            c.innerHTML = getPlaneSvg(s?cGold:cWhite,'#5C4D3C');
-          }
-        }
-      }
-      m.setZIndexOffset(s?1000:0);
+    if(!state.map) return;
+    let a = [...state.flights.values()].sort((x,y) => x.dist-y.dist).slice(0,300);
+    const cI = new Set(a.map(f => f.icao24));
+    for(const [i,m] of state.markers.entries()) {
+        if(!cI.has(i)) { state.map.removeLayer(m); state.markers.delete(i); }
     }
-  }
+    for(const f of a) {
+        let m = state.markers.get(f.icao24), s = (f.icao24 === state.selectedIcao);
+        if(!m) {
+            const ic = L.divIcon({ className:'', html:`<div class="plane-wrapper ${s?'sel':''}"><div class="svg-container" style="transform: rotate(${f.track||0}deg)">${getPlaneSvg(s?cGold:cWhite,'#5C4D3C')}</div></div>`, iconSize:[0,0] });
+            m = L.marker([f.curLat, f.curLon], { icon: ic, zIndexOffset: s?1000:0 }).addTo(state.map);
+            m.on('click', () => openUI(f.icao24));
+            state.markers.set(f.icao24, m);
+        } else {
+            m.setLatLng([f.curLat, f.curLon]);
+            const el = m.getElement();
+            if(el) {
+                const w = el.querySelector('.plane-wrapper'), c = el.querySelector('.svg-container');
+                if(c && w) {
+                    c.style.transform = `rotate(${f.track||0}deg)`;
+                    if(s !== w.classList.contains('sel')) {
+                        w.className = `plane-wrapper ${s?'sel':''}`;
+                        c.innerHTML = getPlaneSvg(s?cGold:cWhite,'#5C4D3C');
+                    }
+                }
+            }
+            m.setZIndexOffset(s?1000:0);
+        }
+    }
 }
 
-// ── LIVE FLIGHT FETCH ──────────────────────────────────────────────────────
-// *** MUUTOS: airplanes.live (non-commercial only) → adsb.lol (ODbL 1.0, kaupallinen käyttö sallittu) ***
-// ADSB.lol on drop-in-korvaaja, sama JSON-formaatti, ei API-avainta vaadita.
-// ADSB.lol is a drop-in replacement with identical JSON format, no API key required.
-// License: https://opendatacommons.org/licenses/odbl/1-0/
+// ── LIVE FLIGHT FETCH (with timeout, error handling & retry) ──────────────
 async function fetchFlights() {
-  try {
-    const c = state.map ? state.map.getCenter() : {lat: state.userLat, lng: state.userLon};
-    const z = state.map ? state.map.getZoom() : 6;
-    // *** KORJATTU URL: api.adsb.lol (ODbL 1.0) korvaa api.airplanes.live (non-commercial) ***
-    const res = await fetchWithTimeout(
-      `https://api.adsb.lol/v2/point/${c.lat.toFixed(3)}/${c.lng.toFixed(3)}/${z<=5?500:250}`,
-      10000
-    );
-    if(!res.ok) throw new Error(`HTTP ${res.status}`);
-    const j = await res.json();
-    const a = (j.ac||[]).map(x => x.lat != null ? {
-      icao24: x.hex,
-      callsign: (x.flight||'').trim(),
-      type: x.t||'Unknown', desc: x.desc||'', reg: x.r||'—',
-      lon: x.lon, lat: x.lat,
-      baro_alt: x.alt_baro==='ground' ? 0 : (x.alt_baro||null),
-      alt_geom: x.alt_geom != null ? x.alt_geom : null,
-      on_ground: x.alt_baro==='ground',
-      velocity: x.gs != null ? x.gs : null,
-      tas: x.tas != null ? x.tas : null,
-      ias: x.ias != null ? x.ias : null,
-      mach: x.mach != null ? x.mach : null,
-      track: x.track != null ? x.track : null,
-      mag_heading: x.mag_heading != null ? x.mag_heading : null,
-      vertical_rate: x.baro_rate != null ? x.baro_rate : null,
-      squawk: x.squawk || null,
-      curLat: x.lat, curLon: x.lon,
-      dist: haversine(state.userLat, state.userLon, x.lat, x.lon),
-      seen: x.seen_pos != null ? x.seen_pos : (x.seen != null ? x.seen : null),
-    } : null).filter(Boolean);
-    const sn = new Set();
-    for(const nf of a) {
-      sn.add(nf.icao24);
-      const o = state.flights.get(nf.icao24);
-      if(o) { Object.assign(o, nf); } else { state.flights.set(nf.icao24, nf); }
+    try {
+        const c = state.map ? state.map.getCenter() : {lat: state.userLat, lng: state.userLon};
+        const z = state.map ? state.map.getZoom() : 6;
+        const res = await fetchWithTimeout(
+            `https://api.airplanes.live/v2/point/${c.lat.toFixed(3)}/${c.lng.toFixed(3)}/${z<=5?500:250}`,
+            10000
+        );
+        if(!res.ok) throw new Error(`HTTP ${res.status}`);
+
+        const j = await res.json();
+        const a = (j.ac||[]).map(x => x.lat != null ? {
+            icao24: x.hex,
+            callsign: (x.flight||'').trim(),
+            type: x.t||'Unknown', desc: x.desc||'', reg: x.r||'—',
+            lon: x.lon, lat: x.lat,
+            baro_alt: x.alt_baro==='ground' ? 0 : (x.alt_baro||null),
+            alt_geom: x.alt_geom != null ? x.alt_geom : null,
+            on_ground: x.alt_baro==='ground',
+            velocity: x.gs != null ? x.gs : null,
+            tas: x.tas != null ? x.tas : null,
+            ias: x.ias != null ? x.ias : null,
+            mach: x.mach != null ? x.mach : null,
+            track: x.track != null ? x.track : null,
+            mag_heading: x.mag_heading != null ? x.mag_heading : null,
+            vertical_rate: x.baro_rate != null ? x.baro_rate : null,
+            squawk: x.squawk || null,
+            curLat: x.lat, curLon: x.lon,
+            dist: haversine(state.userLat, state.userLon, x.lat, x.lon),
+            seen: x.seen_pos != null ? x.seen_pos : (x.seen != null ? x.seen : null),
+        } : null).filter(Boolean);
+
+        const sn = new Set();
+        for(const nf of a) {
+            sn.add(nf.icao24);
+            const o = state.flights.get(nf.icao24);
+            if(o) { Object.assign(o, nf); } else { state.flights.set(nf.icao24, nf); }
+        }
+        for(const i of state.flights.keys()) { if(!sn.has(i)) state.flights.delete(i); }
+
+        $('mapStatusText').textContent = `${state.flights.size} Live`;
+        $('dotStatus').style.background = '';  // reset to CSS default (gold)
+        $('dotStatus').style.boxShadow = '';
+        state.fetchRetries = 0;
+
+    } catch(e) {
+        state.fetchRetries++;
+        if(state.fetchRetries <= 3) {
+            $('mapStatusText').textContent = `Retrying… (${state.fetchRetries}/3)`;
+            $('dotStatus').style.background = '#FF9500';
+            $('dotStatus').style.boxShadow = '0 0 8px #FF9500';
+        } else {
+            $('mapStatusText').textContent = 'No live data';
+            $('dotStatus').style.background = '#FF3B30';
+            $('dotStatus').style.boxShadow = '0 0 8px #FF3B30';
+        }
+    } finally {
+        $('sheetSub').textContent = `${state.flights.size} Aircraft`;
+        renderList();
+        updateMarkers();
+        checkOverheadProximity();
+        // Exponential back-off on error, normal 10s on success
+        const delay = state.fetchRetries > 0 ? Math.min(3000 * state.fetchRetries, 30000) : 10000;
+        setTimeout(fetchFlights, delay);
     }
-    for(const i of state.flights.keys()) { if(!sn.has(i)) state.flights.delete(i); }
-    $('mapStatusText').textContent = `${state.flights.size} Live`;
-    $('dotStatus').style.background = '';
-    $('dotStatus').style.boxShadow = '';
-    state.fetchRetries = 0;
-  } catch(e) {
-    state.fetchRetries++;
-    if(state.fetchRetries <= 3) {
-      $('mapStatusText').textContent = `Retrying… (${state.fetchRetries}/3)`;
-      $('dotStatus').style.background = '#FF9500';
-      $('dotStatus').style.boxShadow = '0 0 8px #FF9500';
-    } else {
-      $('mapStatusText').textContent = 'No live data';
-      $('dotStatus').style.background = '#FF3B30';
-      $('dotStatus').style.boxShadow = '0 0 8px #FF3B30';
-    }
-  } finally {
-    $('sheetSub').textContent = `${state.flights.size} Aircraft`;
-    renderList();
-    updateMarkers();
-    checkOverheadProximity();
-    const delay = state.fetchRetries > 0 ? Math.min(3000 * state.fetchRetries, 30000) : 10000;
-    setTimeout(fetchFlights, delay);
-  }
 }
 
 // ── ANIMATION LOOP (60fps, pauses when tab hidden) ─────────────────────────
 function startAnim() {
-  setInterval(updateMarkers, 1000);
-  const t = (tm) => {
+    setInterval(updateMarkers, 1000);
+    const t = (tm) => {
+        requestAnimationFrame(t);
+        if(state.animPaused) return;   // pause on hidden tab — saves battery
+        if(!state.aL) { state.aL = tm; return; }
+        const dt = Math.min((tm - state.aL) / 1000, 0.1);
+        state.aL = tm;
+
+        // Smooth plane position interpolation
+        for(const f of state.flights.values()) {
+            if(f.velocity && !f.on_ground) {
+                const r = (f.track||0) * Math.PI / 180, d = f.velocity * 0.514444 * dt;
+                f.curLat += (d * Math.cos(r)) / 111320;
+                f.curLon += (d * Math.sin(r)) / (111320 * Math.max(0.2, Math.cos(f.lat * Math.PI / 180)));
+                if(state.selectedIcao === f.icao24) {
+                    const m = state.markers.get(f.icao24);
+                    if(m) m.setLatLng([f.curLat, f.curLon]);
+                }
+            }
+        }
+
+        // AR overlay
+        if(arActive) {
+            let html = '', w = window.innerWidth, h = window.innerHeight, pxPerDeg = w / 60;
+            for(let f of state.flights.values()) {
+                if(f.dist < 100 && !f.on_ground) {
+                    let b = bearingTo(state.userLat, state.userLon, f.curLat, f.curLon);
+                    let ele = Math.atan((f.baro_alt) / (f.dist * 6076.12)) * (180/Math.PI);
+                    let diffB = b - devHeading;
+                    if(diffB > 180) diffB -= 360; else if(diffB < -180) diffB += 360;
+                    let diffE = ele - (devPitch - 90);
+                    if(Math.abs(diffB) < 45) {
+                        let x = w/2 + diffB * pxPerDeg, y = h/2 - diffE * pxPerDeg;
+                        html += `<div class="ar-plane" style="left:${x}px; top:${y}px;"><svg class="ar-plane-icon" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg><div class="ar-plane-label">${f.callsign||f.reg} • ${fmtAlt(f.baro_alt)}</div></div>`;
+                    }
+                }
+            }
+            $('arContainer').innerHTML = html;
+        }
+
+        // Selected flight live data update
+        if(state.selectedIcao) {
+            const s = state.flights.get(state.selectedIcao);
+            if(s) {
+                s.dist = haversine(state.userLat, state.userLon, s.curLat, s.curLon);
+
+                $('dAlt').textContent = fmtAlt(s.baro_alt, s.on_ground);
+                $('dAltGeom').textContent = s.alt_geom != null ? fmtAlt(s.alt_geom, s.on_ground) : '—';
+                $('dSpd').textContent = fmtSpd(s.velocity);
+                $('dTas').textContent = s.tas != null ? fmtSpd(s.tas) : '—';
+                $('dIas').textContent = s.ias != null ? fmtSpd(s.ias) : '—';
+                $('dTrack').textContent = s.track != null ? Math.round(s.track) + '°' : '—';
+                $('dMagHdg').textContent = s.mag_heading != null ? Math.round(s.mag_heading) + '°' : '—';
+                $('dVRate').textContent = s.vertical_rate != null ? (s.vertical_rate > 0 ? '+' : '') + s.vertical_rate + ' ft/min' : '—';
+                $('dSquawk').textContent = s.squawk || '—';
+                $('dAge').textContent = s.seen != null ? s.seen.toFixed(1) + ' s' : '—';
+
+                // ── Passenger Experience logic ──
+                let phase='Cruise', announcement='"Sit back, relax, and enjoy the flight."';
+                let vrate=s.vertical_rate||0, alt=s.baro_alt||0, gForce=1.0, seatbeltOn=false;
+                let isArriving = (s.route && s.route.arrLat && haversine(s.curLat,s.curLon,s.route.arrLat,s.route.arrLon)<20);
+
+                if(s.on_ground) {
+                    phase = isArriving ? "Taxi to Gate" : "Boarding / Taxi";
+                    announcement = isArriving
+                        ? '"Welcome to our destination. Please remain seated until the sign is turned off."'
+                        : '"Cabin crew, arm doors and crosscheck. Welcome aboard!"';
+                    gForce=1.0; seatbeltOn=true;
+                } else if(alt<10000) {
+                    seatbeltOn=true;
+                    if(vrate<-200) { phase="Approach"; gForce=0.95; announcement='"Cabin crew, prepare for landing."'; }
+                    else { phase="Takeoff / Climb"; gForce=1.15; announcement='"Cabin crew, prepare for takeoff."'; }
+                } else if(vrate>1000) {
+                    phase="Climbing"; gForce=1.05+(vrate/20000);
+                    announcement='"We are currently climbing to our cruising altitude. Electronic devices may now be used."';
+                } else if(vrate<-1000) {
+                    phase="Descending"; gForce=0.95-(Math.abs(vrate)/20000); seatbeltOn=true;
+                    announcement='"We have begun our initial descent. Please make sure your seatbelt is securely fastened."';
+                } else {
+                    phase="Cruising";
+                    announcement='"The captain has turned off the seatbelt sign. You may now move around the cabin."';
+                }
+
+                let turb="Smooth", tClass="turb-smooth", gWobble=0;
+                if(s.on_ground) { turb="None"; tClass="turb-smooth"; }
+                else if(Math.abs(vrate)>3500) {
+                    turb="Moderate"; tClass="turb-mod"; gWobble=0.2; seatbeltOn=true;
+                    if(phase==="Cruising"||phase==="Climbing") announcement='"The captain has switched on the seatbelt sign due to turbulence. Please return to your seats."';
+                } else if(Math.abs(vrate)>1500) { turb="Light"; tClass="turb-light"; gWobble=0.05; }
+
+                let currentG = gForce + (Math.random()*gWobble - (gWobble/2));
+
+                // Mach
+                if(s.mach!=null) {
+                    $('dMach').textContent = 'M ' + s.mach.toFixed(3);
+                } else if(s.velocity && !s.on_ground && alt>10000) {
+                    let speedOfSoundKt = 661 - (alt/1000);
+                    $('dMach').textContent = 'M ' + (s.velocity/speedOfSoundKt).toFixed(2);
+                } else { $('dMach').textContent='—'; }
+
+                // OAT
+                if(s.on_ground) { $('dOAT').textContent="Ground"; }
+                else {
+                    let tempC = Math.max(15-(alt/1000)*2, -56);
+                    $('dOAT').textContent = isMetric ? `${tempC.toFixed(0)} °C` : `${(tempC*9/5+32).toFixed(0)} °F`;
+                }
+
+                // Cabin altitude
+                if(alt>8000) {
+                    let cabAlt = Math.min(8000*(alt/40000), 8000);
+                    $('dCabinAlt').textContent = isMetric ? `${(cabAlt*0.3048).toFixed(0)} m` : `${cabAlt.toFixed(0)} ft`;
+                } else { $('dCabinAlt').textContent="Ambient"; }
+
+                // Winds
+                if(!s.on_ground && alt>15000) {
+                    let windDir=(s.track+45)%360, windSpd=30+(alt/1000)*1.5;
+                    $('dWinds').textContent = `${windDir.toFixed(0)}° at ${windSpd.toFixed(0)} kt`;
+                } else { $('dWinds').textContent="—"; }
+
+                $('dPhaseSub').textContent = phase;
+                $('dForce').textContent = `${currentG.toFixed(2)} G`;
+                $('dTurb').textContent = turb;
+                $('dTurbClass').className = `info pax-exp ${tClass}`;
+                $('realSeatbelt').classList.toggle('on', seatbeltOn);
+                $('dAnnouncement').textContent = announcement;
+
+                $('hudAlt').textContent = s.baro_alt ? `${nf.format(s.baro_alt)} FT` : '—';
+                $('hudSpd').textContent = s.velocity ? `${nf.format(s.velocity)} KT` : '—';
+                $('bpAlt').textContent = s.baro_alt ? `${nf.format(s.baro_alt)} FT` : '—';
+                $('bpSpd').textContent = s.velocity ? `${nf.format(s.velocity)} KT` : '—';
+
+                // Progress
+                let tp = 0;
+                if(s.route && s.route.depLat && s.route.arrLat) {
+                    const fD = haversine(s.route.depLat, s.route.depLon, s.curLat, s.curLon);
+                    let rD = haversine(s.curLat, s.curLon, s.route.arrLat, s.route.arrLon);
+                    tp = Math.min(100, Math.max(0, (fD/(fD+rD))*100));
+                    $('dRemainNM').textContent = fmtDist(rD);
+                    if(tp>=100||(s.on_ground&&rD<50)) {
+                        $('bpTimeRemain').textContent = "ARRIVED";
+                    } else {
+                        let hoursLeft = rD / Math.max(s.velocity||150, 50);
+                        $('bpTimeRemain').textContent = tf.format(new Date(Date.now() + hoursLeft*3600000));
+                    }
+                } else {
+                    tp = s.on_ground ? 2 : 50;
+                    $('dRemainNM').textContent = '—';
+                    $('bpTimeRemain').textContent = "LIVE";
+                }
+                $('bpTimeFlown').textContent = s.on_ground ? "GROUND" : "AIRBORNE";
+                s.vP = s.vP !== undefined ? s.vP + (tp - s.vP)*0.05 : tp;
+                updatePath(s.vP, s.baro_alt);
+            }
+        }
+    };
     requestAnimationFrame(t);
-    if(state.animPaused) return;
-    if(!state.aL) { state.aL = tm; return; }
-    const dt = Math.min((tm - state.aL) / 1000, 0.1);
-    state.aL = tm;
-    for(const f of state.flights.values()) {
-      if(f.velocity && !f.on_ground) {
-        const r = (f.track||0) * Math.PI / 180, d = f.velocity * 0.514444 * dt;
-        f.curLat += (d * Math.cos(r)) / 111320;
-        f.curLon += (d * Math.sin(r)) / (111320 * Math.max(0.2, Math.cos(f.lat * Math.PI / 180)));
-        if(state.selectedIcao === f.icao24) {
-          const m = state.markers.get(f.icao24);
-          if(m) m.setLatLng([f.curLat, f.curLon]);
-        }
-      }
-    }
-    if(arActive) {
-      let html = '', w = window.innerWidth, h = window.innerHeight, pxPerDeg = w / 60;
-      for(let f of state.flights.values()) {
-        if(f.dist < 100 && !f.on_ground) {
-          let b = bearingTo(state.userLat, state.userLon, f.curLat, f.curLon);
-          let ele = Math.atan((f.baro_alt) / (f.dist * 6076.12)) * (180/Math.PI);
-          let diffB = b - devHeading;
-          if(diffB > 180) diffB -= 360; else if(diffB < -180) diffB += 360;
-          let diffE = ele - (devPitch - 90);
-          if(Math.abs(diffB) < 45) {
-            let x = w/2 + diffB * pxPerDeg, y = h/2 - diffE * pxPerDeg;
-            html += `<div class="ar-plane" style="left:${x}px; top:${y}px;"><svg class="ar-plane-icon" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg><div class="ar-plane-label">${f.callsign||f.reg} • ${fmtAlt(f.baro_alt)}</div></div>`;
-          }
-        }
-      }
-      $('arContainer').innerHTML = html;
-    }
-    if(state.selectedIcao) {
-      const s = state.flights.get(state.selectedIcao);
-      if(s) {
-        s.dist = haversine(state.userLat, state.userLon, s.curLat, s.curLon);
-        $('dAlt').textContent = fmtAlt(s.baro_alt, s.on_ground);
-        $('dAltGeom').textContent = s.alt_geom != null ? fmtAlt(s.alt_geom, s.on_ground) : '—';
-        $('dSpd').textContent = fmtSpd(s.velocity);
-        $('dTas').textContent = s.tas != null ? fmtSpd(s.tas) : '—';
-        $('dIas').textContent = s.ias != null ? fmtSpd(s.ias) : '—';
-        $('dTrack').textContent = s.track != null ? Math.round(s.track) + '°' : '—';
-        $('dMagHdg').textContent = s.mag_heading != null ? Math.round(s.mag_heading) + '°' : '—';
-        $('dVRate').textContent = s.vertical_rate != null ? (s.vertical_rate > 0 ? '+' : '') + s.vertical_rate + ' ft/min' : '—';
-        $('dSquawk').textContent = s.squawk || '—';
-        $('dAge').textContent = s.seen != null ? s.seen.toFixed(1) + ' s' : '—';
-        let phase='Cruise', announcement='"Sit back, relax, and enjoy the flight."';
-        let vrate=s.vertical_rate||0, alt=s.baro_alt||0, gForce=1.0, seatbeltOn=false;
-        let isArriving = (s.route && s.route.arrLat && haversine(s.curLat,s.curLon,s.route.arrLat,s.route.arrLon)<20);
-        if(s.on_ground) {
-          phase = isArriving ? "Taxi to Gate" : "Boarding / Taxi";
-          announcement = isArriving
-            ? '"Welcome to our destination. Please remain seated until the sign is turned off."'
-            : '"Cabin crew, arm doors and crosscheck. Welcome aboard!"';
-          gForce=1.0; seatbeltOn=true;
-        } else if(alt<10000) {
-          seatbeltOn=true;
-          if(vrate<-200) { phase="Approach"; gForce=0.95; announcement='"Cabin crew, prepare for landing."'; }
-          else { phase="Takeoff / Climb"; gForce=1.15; announcement='"Cabin crew, prepare for takeoff."'; }
-        } else if(vrate>1000) {
-          phase="Climbing"; gForce=1.05+(vrate/20000);
-          announcement='"We are currently climbing to our cruising altitude. Electronic devices may now be used."';
-        } else if(vrate<-1000) {
-          phase="Descending"; gForce=0.95-(Math.abs(vrate)/20000); seatbeltOn=true;
-          announcement='"We have begun our initial descent. Please make sure your seatbelt is securely fastened."';
-        } else {
-          phase="Cruising";
-          announcement='"The captain has turned off the seatbelt sign. You may now move around the cabin."';
-        }
-        let turb="Smooth", tClass="turb-smooth", gWobble=0;
-        if(s.on_ground) { turb="None"; tClass="turb-smooth"; }
-        else if(Math.abs(vrate)>3500) {
-          turb="Moderate"; tClass="turb-mod"; gWobble=0.2; seatbeltOn=true;
-          if(phase==="Cruising"||phase==="Climbing") announcement='"The captain has switched on the seatbelt sign due to turbulence. Please return to your seats."';
-        } else if(Math.abs(vrate)>1500) { turb="Light"; tClass="turb-light"; gWobble=0.05; }
-        let currentG = gForce + (Math.random()*gWobble - (gWobble/2));
-        if(s.mach!=null) {
-          $('dMach').textContent = 'M ' + s.mach.toFixed(3);
-        } else if(s.velocity && !s.on_ground && alt>10000) {
-          let speedOfSoundKt = 661 - (alt/1000);
-          $('dMach').textContent = 'M ' + (s.velocity/speedOfSoundKt).toFixed(2);
-        } else { $('dMach').textContent='—'; }
-        if(s.on_ground) { $('dOAT').textContent="Ground"; }
-        else {
-          let tempC = Math.max(15-(alt/1000)*2, -56);
-          $('dOAT').textContent = isMetric ? `${tempC.toFixed(0)} °C` : `${(tempC*9/5+32).toFixed(0)} °F`;
-        }
-        if(alt>8000) {
-          let cabAlt = Math.min(8000*(alt/40000), 8000);
-          $('dCabinAlt').textContent = isMetric ? `${(cabAlt*0.3048).toFixed(0)} m` : `${cabAlt.toFixed(0)} ft`;
-        } else { $('dCabinAlt').textContent="Ambient"; }
-        if(!s.on_ground && alt>15000) {
-          let windDir=(s.track+45)%360, windSpd=30+(alt/1000)*1.5;
-          $('dWinds').textContent = `${windDir.toFixed(0)}° at ${windSpd.toFixed(0)} kt`;
-        } else { $('dWinds').textContent="—"; }
-        $('dPhaseSub').textContent = phase;
-        $('dForce').textContent = `${currentG.toFixed(2)} G`;
-        $('dTurb').textContent = turb;
-        $('dTurbClass').className = `info pax-exp ${tClass}`;
-        $('realSeatbelt').classList.toggle('on', seatbeltOn);
-        $('dAnnouncement').textContent = announcement;
-        $('hudAlt').textContent = s.baro_alt ? `${nf.format(s.baro_alt)} FT` : '—';
-        $('hudSpd').textContent = s.velocity ? `${nf.format(s.velocity)} KT` : '—';
-        $('bpAlt').textContent = s.baro_alt ? `${nf.format(s.baro_alt)} FT` : '—';
-        $('bpSpd').textContent = s.velocity ? `${nf.format(s.velocity)} KT` : '—';
-        let tp = 0;
-        if(s.route && s.route.depLat && s.route.arrLat) {
-          const fD = haversine(s.route.depLat, s.route.depLon, s.curLat, s.curLon);
-          let rD = haversine(s.curLat, s.curLon, s.route.arrLat, s.route.arrLon);
-          tp = Math.min(100, Math.max(0, (fD/(fD+rD))*100));
-          $('dRemainNM').textContent = fmtDist(rD);
-          if(tp>=100||(s.on_ground&&rD<50)) {
-            $('bpTimeRemain').textContent = "ARRIVED";
-          } else {
-            let hoursLeft = rD / Math.max(s.velocity||150, 50);
-            $('bpTimeRemain').textContent = tf.format(new Date(Date.now() + hoursLeft*3600000));
-          }
-        } else {
-          tp = s.on_ground ? 2 : 50;
-          $('dRemainNM').textContent = '—';
-          $('bpTimeRemain').textContent = "LIVE";
-        }
-        $('bpTimeFlown').textContent = s.on_ground ? "GROUND" : "AIRBORNE";
-        s.vP = s.vP !== undefined ? s.vP + (tp - s.vP)*0.05 : tp;
-        updatePath(s.vP, s.baro_alt);
-      }
-    }
-  };
-  requestAnimationFrame(t);
 }
 
 // ── FLIGHT LIST RENDER ─────────────────────────────────────────────────────
 function renderList() {
-  const q = $('searchInput').value.trim().toLowerCase();
-  let a = [...state.flights.values()].sort((x,y) => (x.dist||999)-(y.dist||999));
-  if(q) {
-    a = a.filter(f => {
-      let sStr = ((f.callsign||'') + ' ' + f.icao24 + ' ' + (f.type||'') + ' ' + (f.reg||'')).toLowerCase();
-      if(f.callsign && f.callsign.length >= 3) {
-        let pfx = f.callsign.substring(0,3).toUpperCase();
-        sStr += ' ' + (airlines[pfx] ? airlines[pfx].n : getDynamicBrand(f.callsign, f.reg).n).toLowerCase();
-      }
-      return sStr.includes(q);
-    });
-  }
-  if(!a.length) { $('flightList').innerHTML=`<div class="empty">No flights found.</div>`; return; }
-  $('flightList').innerHTML = a.slice(0,80).map(f => {
-    let cs = (f.callsign||f.icao24.toUpperCase()).replace(/[<>]/g,'');
-    let pd = state.photoCache.get(f.icao24);
-    if(!pd) fetchPlanePhoto(f.icao24);
-    let st = pd&&pd!=='loading'?'opacity:1;':'opacity:0;', rs = pd&&pd!=='loading'?pd.url:'';
-    return `<div class="card" onclick="openUI('${f.icao24}')"><div class="plane-badge"><img src="${rs}" style="${st}" /><svg viewBox="0 0 24 24" style="${pd&&pd!=='loading'?'display:none;':''}"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div><div class="card-main"><div class="card-call">${cs}</div><div class="card-sub">${f.type} ${f.reg!=='—'?'• '+f.reg:''}</div></div></div>`;
-  }).join('');
+    const q = $('searchInput').value.trim().toLowerCase();
+    let a = [...state.flights.values()].sort((x,y) => (x.dist||999)-(y.dist||999));
+    if(q) {
+        a = a.filter(f => {
+            let sStr = ((f.callsign||'') + ' ' + f.icao24 + ' ' + (f.type||'') + ' ' + (f.reg||'')).toLowerCase();
+            if(f.callsign && f.callsign.length >= 3) {
+                let pfx = f.callsign.substring(0,3).toUpperCase();
+                sStr += ' ' + (airlines[pfx] ? airlines[pfx].n : getDynamicBrand(f.callsign, f.reg).n).toLowerCase();
+            }
+            return sStr.includes(q);
+        });
+    }
+    if(!a.length) { $('flightList').innerHTML=`<div class="empty">No flights found.</div>`; return; }
+    $('flightList').innerHTML = a.slice(0,80).map(f => {
+        let cs = (f.callsign||f.icao24.toUpperCase()).replace(/[<>]/g,'');
+        let pd = state.photoCache.get(f.icao24);
+        if(!pd) fetchPlanePhoto(f.icao24);
+        let st = pd&&pd!=='loading'?'opacity:1;':'opacity:0;', rs = pd&&pd!=='loading'?pd.url:'';
+        return `<div class="card" onclick="openUI('${f.icao24}')"><div class="plane-badge"><img src="${rs}" style="${st}" /><svg viewBox="0 0 24 24" style="${pd&&pd!=='loading'?'display:none;':''}"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div><div class="card-main"><div class="card-call">${cs}</div><div class="card-sub">${f.type} ${f.reg!=='—'?'• '+f.reg:''}</div></div></div>`;
+    }).join('');
 }
 
 // ── OPEN FLIGHT DETAIL ─────────────────────────────────────────────────────
 window.openUI = async function(i) {
-  if(arActive) stopAR();
-  if(navigator.vibrate) navigator.vibrate(15);
-  state.selectedIcao = i;
-  const f = state.flights.get(i);
-  if(!f) return;
-  $('sheet').className = 'sheet mode-detail full';
-  let c = (f.callsign||f.icao24.toUpperCase()).replace(/[<>]/g,'');
-  $('island').classList.add('focus');
-  $('ifCall').textContent = c;
-  $('ifRoute').textContent = 'Live Tracking';
-  $('hudWrap').classList.add('show');
-  $('detailControls').style.display = 'flex';
-  $('bpCall').textContent = c.substring(0,6);
-  $('dIcao').textContent = f.icao24.toUpperCase();
-  $('dReg').textContent = f.reg;
-  let al = f.callsign && f.callsign.length>=3 ? airlines[f.callsign.substring(0,3).toUpperCase()] : null;
-  if(al) {
-    $('dAirline').textContent = al.n;
-    $('bpHeaderBg').style.background = al.c;
-    $('bpLogo').style.color = ['#FFCC00','#73CBE6','#FF7A00'].includes(al.c) ? '#000' : al.c;
-    $('bpLogo').textContent = al.n.substring(0,2).toUpperCase();
-  } else {
-    let dyn = getDynamicBrand(f.callsign, f.reg);
-    $('dAirline').textContent = dyn.n;
-    $('bpHeaderBg').style.background = dyn.c;
-    $('bpLogo').style.color = dyn.c;
-    $('bpLogo').textContent = dyn.logo;
-  }
-  fetchPlanePhoto(i);
-  let pd = state.photoCache.get(i);
-  if(pd && pd !== 'loading') {
-    $('wPlaneImg').src = pd.url;
-    $('wPlaneImg').style.opacity = '1';
-    $('wPlaneAttr').textContent = pd.label || f.type || 'Aircraft';
-    $('wPlaneWrap').style.display = 'block';
-  }
-  $('bpDep').textContent='—'; $('bpDepName').textContent='Fetching...';
-  $('bpArr').textContent='—'; $('bpArrName').textContent='Fetching...';
-  $('bpTimeFlown').textContent='--:--'; $('bpTimeRemain').textContent='--:--'; $('dRemainNM').textContent='—';
-  $('secRouteTitle').style.display='none'; $('secRouteGrid').style.display='none';
-  state.map.setView([f.curLat, f.curLon], 9, { animate: true });
-  updateMarkers();
-  if(f.callsign) {
-    fetchRoute(f.callsign).then(r => {
-      if(r) {
-        f.route = r;
-        $('bpDep').textContent=r.dep; $('bpDepName').textContent=r.depName;
-        $('bpArr').textContent=r.arr; $('bpArrName').textContent=r.arrName;
-        $('secRouteTitle').style.display='block'; $('secRouteGrid').style.display='grid';
-        $('dDepFull').textContent=r.depFull; $('dArrFull').textContent=r.arrFull;
-      } else {
+    if(arActive) stopAR();
+    if(navigator.vibrate) navigator.vibrate(15);
+    state.selectedIcao = i;
+    const f = state.flights.get(i);
+    if(!f) return;
+
+    $('sheet').className = 'sheet mode-detail full';
+    let c = (f.callsign||f.icao24.toUpperCase()).replace(/[<>]/g,'');
+    $('island').classList.add('focus');
+    $('ifCall').textContent = c;
+    $('ifRoute').textContent = 'Live Tracking';
+    $('hudWrap').classList.add('show');
+    $('detailControls').style.display = 'flex';
+
+    $('bpCall').textContent = c.substring(0,6);
+    $('dIcao').textContent = f.icao24.toUpperCase();
+    $('dReg').textContent = f.reg;
+
+    let al = f.callsign && f.callsign.length>=3 ? airlines[f.callsign.substring(0,3).toUpperCase()] : null;
+    if(al) {
+        $('dAirline').textContent = al.n;
+        $('bpHeaderBg').style.background = al.c;
+        $('bpLogo').style.color = ['#FFCC00','#73CBE6','#FF7A00'].includes(al.c) ? '#000' : al.c;
+        $('bpLogo').textContent = al.n.substring(0,2).toUpperCase();
+    } else {
+        let dyn = getDynamicBrand(f.callsign, f.reg);
+        $('dAirline').textContent = dyn.n;
+        $('bpHeaderBg').style.background = dyn.c;
+        $('bpLogo').style.color = dyn.c;
+        $('bpLogo').textContent = dyn.logo;
+    }
+
+    $('wPlaneImg').style.opacity = '0'; $('wPlaneWrap').style.display = 'none';
+    let pd = state.photoCache.get(i);
+    if(pd && pd !== 'loading') {
+        $('wPlaneImg').src = pd.url;
+        $('wPlaneImg').onload = () => $('wPlaneImg').style.opacity='1';
+        $('wPlaneAttr').textContent = '© ' + pd.author;
+        $('wPlaneWrap').style.display = 'block';
+    }
+
+    $('bpDep').textContent='—'; $('bpDepName').textContent='Fetching...';
+    $('bpArr').textContent='—'; $('bpArrName').textContent='Fetching...';
+    $('bpTimeFlown').textContent='--:--'; $('bpTimeRemain').textContent='--:--'; $('dRemainNM').textContent='—';
+    $('secRouteTitle').style.display='none'; $('secRouteGrid').style.display='none';
+
+    state.map.setView([f.curLat, f.curLon], 9, { animate: true });
+    updateMarkers();
+
+    if(f.callsign) {
+        fetchRoute(f.callsign).then(r => {
+            if(r) {
+                f.route = r;
+                $('bpDep').textContent=r.dep; $('bpDepName').textContent=r.depName;
+                $('bpArr').textContent=r.arr; $('bpArrName').textContent=r.arrName;
+                $('secRouteTitle').style.display='block'; $('secRouteGrid').style.display='grid';
+                $('dDepFull').textContent=r.depFull; $('dArrFull').textContent=r.arrFull;
+            } else {
+                $('bpDep').textContent='N/A'; $('bpDepName').textContent='Unknown';
+                $('bpArr').textContent='N/A'; $('bpArrName').textContent='Unknown';
+            }
+        });
+    } else {
         $('bpDep').textContent='N/A'; $('bpDepName').textContent='Unknown';
         $('bpArr').textContent='N/A'; $('bpArrName').textContent='Unknown';
-      }
-    });
-  } else {
-    $('bpDep').textContent='N/A'; $('bpDepName').textContent='Unknown';
-    $('bpArr').textContent='N/A'; $('bpArrName').textContent='Unknown';
-  }
-  try {
-    const dr = await fetchWithTimeout(`https://api.adsbdb.com/v0/aircraft/${i.toLowerCase()}`, 6000);
-    if(dr.ok) {
-      const d = await dr.json(), m = d?.response?.aircraft;
-      if(m) {
-        $('dModel').textContent = (m.manufacturer + ' ' + (m.type||f.type)).trim() || 'Unknown';
-        if(m.registration) $('dReg').textContent = m.registration;
-        $('dCountry').textContent = m.flag || '—';
-        $('dOwner').textContent = m.registered_owner || '—';
-        $('dYear').textContent = m.year_built || '—';
-      }
     }
-  } catch(e) { $('dModel').textContent = f.desc || f.type; }
-  let sp = acSpecs[f.type];
-  if(!sp && f.type) {
-    const t = f.type.toUpperCase();
-    if(t.startsWith('A31')) sp=acSpecs['A319'];
-    else if(t.startsWith('A32')) sp=acSpecs['A320'];
-    else if(t.startsWith('A33')) sp=acSpecs['A333'];
-    else if(t.startsWith('A34')) sp=acSpecs['A346'];
-    else if(t.startsWith('A35')) sp=acSpecs['A359'];
-    else if(t.startsWith('A38')) sp=acSpecs['A388'];
-    else if(t.startsWith('B73')) sp=acSpecs['B738'];
-    else if(t.startsWith('B74')) sp=acSpecs['B744'];
-    else if(t.startsWith('B75')) sp=acSpecs['B752'];
-    else if(t.startsWith('B76')) sp=acSpecs['B763'];
-    else if(t.startsWith('B77')) sp=acSpecs['B77W'];
-    else if(t.startsWith('B78')) sp=acSpecs['B789'];
-    else if(t.startsWith('AT')) sp=acSpecs['AT76'];
-    else if(t.startsWith('E1')) sp=acSpecs['E190'];
-    else if(t.startsWith('CRJ')) sp=acSpecs['CRJ9'];
-    else if(t.startsWith('BCS')||t.startsWith('A22')) sp=acSpecs['BCS3'];
-    else if(t.startsWith('DH8')||t.startsWith('Q40')) sp=acSpecs['DH8D'];
-  }
-  ['sPax','sLen','sFuel','sMass','sLaunch','sEng','sThrust'].forEach(k => $('wrap-'+k).style.display='block');
-  if(sp) {
-    $('sPax').textContent = "Up to " + sp.pax;
-    $('sLen').textContent = isMetric ? `${sp.len} m` : `${(sp.len*3.28084).toFixed(1)} ft`;
-    $('sFuel').textContent = isMetric ? `${nf.format(sp.fuel)} L` : `${nf.format(sp.fuel*0.264172)} Gal`;
-    $('sMass').textContent = isMetric ? `${nf.format(sp.mass)} kg` : `${nf.format(sp.mass*2.20462)} lbs`;
-    $('sLaunch').textContent = sp.y;
-    $('sEng').textContent = sp.eng;
-    $('sThrust').textContent = sp.thrust + " kN";
-  } else {
-    ['sPax','sLen','sFuel','sMass','sLaunch','sEng','sThrust'].forEach(k => $(k).textContent='—');
-  }
+
+    // Registration lookup
+    try {
+        const dr = await fetchWithTimeout(`https://api.adsbdb.com/v0/aircraft/${i.toLowerCase()}`, 6000);
+        if(dr.ok) {
+            const d = await dr.json(), m = d?.response?.aircraft;
+            if(m) {
+                $('dModel').textContent = (m.manufacturer + ' ' + (m.type||f.type)).trim() || 'Unknown';
+                if(m.registration) $('dReg').textContent = m.registration;
+                $('dCountry').textContent = m.flag || '—';
+                $('dOwner').textContent = m.registered_owner || '—';
+                $('dYear').textContent = m.year_built || '—';
+            }
+        }
+    } catch(e) { $('dModel').textContent = f.desc || f.type; }
+
+    // Aircraft specs
+    let sp = acSpecs[f.type];
+    if(!sp && f.type) {
+        const t = f.type.toUpperCase();
+        if(t.startsWith('A31')) sp=acSpecs['A319'];
+        else if(t.startsWith('A32')) sp=acSpecs['A320'];
+        else if(t.startsWith('A33')) sp=acSpecs['A333'];
+        else if(t.startsWith('A34')) sp=acSpecs['A346'];
+        else if(t.startsWith('A35')) sp=acSpecs['A359'];
+        else if(t.startsWith('A38')) sp=acSpecs['A388'];
+        else if(t.startsWith('B73')) sp=acSpecs['B738'];
+        else if(t.startsWith('B74')) sp=acSpecs['B744'];
+        else if(t.startsWith('B75')) sp=acSpecs['B752'];
+        else if(t.startsWith('B76')) sp=acSpecs['B763'];
+        else if(t.startsWith('B77')) sp=acSpecs['B77W'];
+        else if(t.startsWith('B78')) sp=acSpecs['B789'];
+        else if(t.startsWith('AT')) sp=acSpecs['AT76'];
+        else if(t.startsWith('E1')) sp=acSpecs['E190'];
+        else if(t.startsWith('CRJ')) sp=acSpecs['CRJ9'];
+        else if(t.startsWith('BCS')||t.startsWith('A22')) sp=acSpecs['BCS3'];
+        else if(t.startsWith('DH8')||t.startsWith('Q40')) sp=acSpecs['DH8D'];
+    }
+
+    ['sPax','sLen','sFuel','sMass','sLaunch','sEng','sThrust'].forEach(k => $('wrap-'+k).style.display='block');
+    if(sp) {
+        $('sPax').textContent = "Up to " + sp.pax;
+        $('sLen').textContent = isMetric ? `${sp.len} m` : `${(sp.len*3.28084).toFixed(1)} ft`;
+        $('sFuel').textContent = isMetric ? `${nf.format(sp.fuel)} L` : `${nf.format(sp.fuel*0.264172)} Gal`;
+        $('sMass').textContent = isMetric ? `${nf.format(sp.mass)} kg` : `${nf.format(sp.mass*2.20462)} lbs`;
+        $('sLaunch').textContent = sp.y;
+        $('sEng').textContent = sp.eng;
+        $('sThrust').textContent = sp.thrust + " kN";
+    } else {
+        ['sPax','sLen','sFuel','sMass','sLaunch','sEng','sThrust'].forEach(k => $(k).textContent='—');
+    }
 };
 
 // ── CLOSE / CONTROLS ───────────────────────────────────────────────────────
 const cls = () => {
-  $('sheet').className = 'sheet expanded';
-  $('island').classList.remove('focus');
-  $('hudWrap').classList.remove('show');
-  $('detailControls').style.display = 'none';
-  state.selectedIcao = null;
-  updateMarkers();
+    $('sheet').className = 'sheet expanded';
+    $('island').classList.remove('focus');
+    $('hudWrap').classList.remove('show');
+    $('detailControls').style.display = 'none';
+    state.selectedIcao = null;
+    updateMarkers();
 };
 $('sheetGrab').addEventListener('click', () => {
-  const s = $('sheet');
-  if(s.classList.contains('full')) cls();
-  else if(s.classList.contains('expanded')) s.classList.remove('expanded');
-  else s.classList.add('expanded');
+    const s = $('sheet');
+    if(s.classList.contains('full')) cls();
+    else if(s.classList.contains('expanded')) s.classList.remove('expanded');
+    else s.classList.add('expanded');
 });
 $('detailClose').addEventListener('click', cls);
 $('turkuBtn').addEventListener('click', () => {
-  if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p => {
-    state.userLat = p.coords.latitude; state.userLon = p.coords.longitude;
-    state.map.setView([state.userLat, state.userLon], 8, { animate: true });
-    state.userMarker.setLatLng([state.userLat, state.userLon]);
-  });
+    if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p => {
+        state.userLat = p.coords.latitude; state.userLon = p.coords.longitude;
+        state.map.setView([state.userLat, state.userLon], 8, { animate: true });
+        state.userMarker.setLatLng([state.userLat, state.userLon]);
+    });
 });
 $('gpsBtn').addEventListener('click', () => {
-  if(state.selectedIcao) {
-    const f = state.flights.get(state.selectedIcao);
-    if(f) state.map.setView([f.curLat, f.curLon], 9, { animate: true });
-  }
+    if(state.selectedIcao) {
+        const f = state.flights.get(state.selectedIcao);
+        if(f) state.map.setView([f.curLat, f.curLon], 9, { animate: true });
+    }
 });
 $('searchInput').addEventListener('input', renderList);
 $('imgClose').addEventListener('click', () => $('imgOverlay').classList.remove('open'));
 $('wPlaneWrap').addEventListener('click', () => {
-  if($('wPlaneImg').src) { $('overlayImg').src=$('wPlaneImg').src; $('imgOverlay').classList.add('open'); }
+    if($('wPlaneImg').src) { $('overlayImg').src=$('wPlaneImg').src; $('imgOverlay').classList.add('open'); }
 });
 
 // ── BOOT ───────────────────────────────────────────────────────────────────
