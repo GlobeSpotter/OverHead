@@ -284,18 +284,52 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 
 .empty { padding: 40px 20px; text-align: center; color: var(--label-secondary); font-weight: 500; font-size: 15px; }
 
-.legal-footer { text-align: center; padding: 10px 20px 40px; font-size: 11px; color: var(--label-tertiary); line-height: 1.5; }
+.legal-footer { text-align: center; padding: 20px 20px 50px; font-size: 11px; color: var(--label-tertiary); line-height: 1.6; }
 .legal-footer a { color: inherit; font-weight: 600; text-decoration: underline; text-decoration-color: rgba(161,161,166,0.4); }
-.legal-strong { display: block; margin-top: 12px; font-weight: 700; color: var(--label-secondary); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em;}
+.legal-strong { display: block; margin-top: 14px; font-weight: 700; color: var(--label-secondary); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em;}
+.footer-easter-egg { font-weight: 800; color: var(--explorer-gold); margin-bottom: 12px; letter-spacing: 0.05em; font-size: 10px; text-transform: uppercase; text-shadow: 0 1px 2px rgba(0,0,0,0.1); }
 
 .img-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 4000; background: rgba(0,0,0,0.9); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); display: flex; flex-direction: column; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; }
 .img-overlay.open { opacity: 1; pointer-events: auto; }
 .img-overlay img { max-width: 90%; max-height: 75%; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.8); object-fit: contain; }
 .overlay-close { position: absolute; top: calc(20px + var(--sat)); right: max(20px, var(--sar)); width: 40px; height: 40px; border-radius: 20px; background: rgba(255,255,255,0.2); color: #FFF; border: none; display: grid; place-items: center; cursor: pointer; border: 0.5px solid rgba(255,255,255,0.3);}
 .overlay-close svg { width: 16px; height: 16px; fill: currentColor; }
+
+/* WELCOME MODAL STYLES */
+.welcome-overlay { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 5000; background: rgba(0,0,0,0.6); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 1; transition: opacity 0.4s ease; }
+.welcome-overlay.hidden { opacity: 0; pointer-events: none; }
+.welcome-card { background: var(--glass-sheet); border: 1px solid var(--glass-border); border-radius: 28px; padding: 32px 24px; max-width: 420px; box-shadow: 0 24px 48px rgba(0,0,0,0.2), var(--glass-highlight); text-align: center; }
+.welcome-tag { font-size: 10px; font-weight: 800; color: var(--explorer-gold); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 20px; }
+.welcome-text { font-size: 14px; color: var(--label-primary); line-height: 1.5; margin-bottom: 20px; font-weight: 500; }
+.welcome-disclaimer { font-size: 11px; color: var(--label-secondary); line-height: 1.4; padding: 12px; background: rgba(255,59,48,0.08); border-radius: 12px; border: 1px solid rgba(255,59,48,0.2); margin-bottom: 24px; text-align: left;}
+.welcome-disclaimer strong { color: #FF3B30; }
+.welcome-btn { width: 100%; padding: 16px; border-radius: 16px; border: none; background: var(--label-primary); color: var(--bg-primary); font-size: 15px; font-weight: 800; cursor: pointer; transition: transform 0.2s; box-shadow: 0 4px 12px rgba(0,0,0,0.1); letter-spacing: -0.01em;}
+.welcome-btn:active { transform: scale(0.96); }
+@media (prefers-color-scheme: dark) {
+    .welcome-btn { background: var(--explorer-gold); color: #000; }
+    .welcome-disclaimer { background: rgba(255,69,58,0.12); border-color: rgba(255,69,58,0.25); }
+    .welcome-disclaimer strong { color: #FF453A; }
+}
 </style>
 </head>
 <body>
+
+<!-- Welcome Modal / Disclaimer -->
+<div class="welcome-overlay" id="welcomeOverlay">
+    <div class="welcome-card">
+        <div class="brand" style="justify-content: center; margin-bottom: 12px;">
+            <div class="brand-icon" style="width: 36px; height: 36px;"><svg viewBox="0 0 24 24" style="width: 20px; height: 20px;"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div>
+            <div class="brand-text" style="font-size: 26px;">Welcome to Over<span class="b-head">head</span></div>
+        </div>
+        <div class="welcome-tag">// Designed by a human on Planet Earth • Coded by AI //</div>
+        <p class="welcome-text">This application was born from an innovative human idea and brought to life through powerful Artificial Intelligence.</p>
+        <p class="welcome-text" style="font-size: 13px; color: var(--label-secondary);">OVERhead was created to spark your wanderlust and satisfy your curiosity. Whether you're wondering what just flew directly over your house, or dreaming of your next adventure, OVERhead makes flight tracking beautifully simple.</p>
+        <div class="welcome-disclaimer">
+            <strong>LEGAL NOTICE:</strong> The data presented in this application is gathered from open-source networks and APIs. It may be delayed, incomplete, or inaccurate. This app is strictly for <strong>entertainment and educational purposes only</strong> and is not developed for professional aviation, navigational use, or safety-critical decisions.
+        </div>
+        <button class="welcome-btn" id="welcomeBtn">I Understand, Let's Explore</button>
+    </div>
+</div>
 
 <div id="map"></div>
 
@@ -406,11 +440,8 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
               </div>
           </div>
           
-          <!-- TÄYDELLINEN PASSENGER EXPERIENCE UUDELLA DESIGNILLA -->
           <div class="section-title">Passenger Experience</div>
           <div class="grid">
-            
-            <!-- Uusi Flight Phase, Aito Turvavyöpaneeli ja Miehistön Kuulutus -->
             <div class="info full pax-header-card">
                 <div class="pax-header-top">
                     <div class="pax-text">
@@ -418,30 +449,21 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
                         <div class="pax-val" id="dPhaseSub">Cruising</div>
                     </div>
                     <div class="overhead-panel" id="realSeatbelt">
-                        <!-- Turvavyö (Vihreä kun pois, Punainen kun päällä) -->
                         <svg class="icon-seatbelt" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <defs>
                                 <mask id="belt-mask">
                                     <rect width="24" height="24" fill="white" />
-                                    <!-- Turvavyö tekee läpinäkyvän viivan -->
                                     <line x1="7.5" y1="9.5" x2="15" y2="16.5" stroke="black" stroke-width="2.5" stroke-linecap="round" />
                                 </mask>
                             </defs>
                             <g mask="url(#belt-mask)">
-                                <!-- Selkänoja -->
                                 <rect x="5" y="5" width="2" height="14" rx="1" />
-                                <!-- Istuin -->
                                 <rect x="5" y="17" width="14" height="2" rx="1" />
-                                <!-- Pää -->
                                 <circle cx="11" cy="5.5" r="2.2" />
-                                <!-- Vartalo -->
                                 <rect x="8.5" y="8.5" width="5.5" height="8.5" rx="1.5" />
-                                <!-- Jalat -->
                                 <rect x="12" y="14" width="6" height="3" rx="1" />
                             </g>
                         </svg>
-
-                        <!-- Tupakointikielto (Aina Punainen) -->
                         <svg class="icon-nosmoking" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                             <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/>
                             <line x1="5.5" y1="5.5" x2="18.5" y2="18.5" stroke="currentColor" stroke-width="2"/>
@@ -494,7 +516,6 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
             </div>
           </div>
 
-          <!-- Loput Koodista Täysin Ennallaan -->
           <div class="section-title">Telemetry</div>
           <div class="grid">
             <div class="info"><div class="i-label">Altitude</div><div class="i-value" id="dAlt">—</div></div>
@@ -526,11 +547,14 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
             <div class="info full" id="wrap-sThrust"><div class="i-label">Total Thrust</div><div class="i-value" id="sThrust">—</div></div>
           </div>
 
+          <!-- UUSI PÄIVITETTY ALATUNNISTE KAIKILLA CREDITEILLÄ -->
           <div class="legal-footer">
+            <div class="footer-easter-egg">// Designed by a human on Planet Earth • Coded by AI //</div>
             Map tiles &copy; <a href="https://www.esri.com" target="_blank">Esri</a> &mdash; NatGeo.<br/>
-            Photos via <a href="https://www.planespotters.net" target="_blank">Planespotters.net</a>.<br/>
-            Flight tracking provided by open ADSB networks.<br/>
-            <span class="legal-strong">FOR ENTERTAINMENT PURPOSES ONLY.</span>
+            Aircraft Photos via <a href="https://www.planespotters.net" target="_blank">Planespotters.net</a>.<br/>
+            Live Flight Telemetry by <a href="https://airplanes.live" target="_blank">Airplanes.live</a>.<br/>
+            Route & Registration Data by <a href="https://adsbdb.com" target="_blank">ADSBdb</a>.<br/>
+            <span class="legal-strong">FOR ENTERTAINMENT AND EDUCATIONAL PURPOSES ONLY.<br/>NOT FOR PROFESSIONAL OR NAVIGATIONAL USE.</span>
           </div>
       </div>
   </div>
@@ -540,6 +564,18 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 
 <script>
 const $ = id => document.getElementById(id);
+
+// Ponnähdusikkunan lohikonhallinta
+if(localStorage.getItem('overhead_accepted') === 'true') {
+    $('welcomeOverlay').classList.add('hidden');
+}
+$('welcomeBtn').addEventListener('click', () => {
+    $('welcomeOverlay').style.opacity = '0';
+    setTimeout(() => {
+        $('welcomeOverlay').classList.add('hidden');
+    }, 400);
+    localStorage.setItem('overhead_accepted', 'true');
+});
 
 const userLoc = navigator.language || 'en-US';
 const isMetric = !userLoc.startsWith('en-US') && !userLoc.startsWith('en-GB');
@@ -810,7 +846,6 @@ function startAnim(){
         $('dSquawk').textContent = s.squawk || '—';
         $('dAge').textContent = s.seen != null ? s.seen.toFixed(1) + ' s' : '—';
 
-        // LAAJA PASSENGER EXPERIENCE MATEMATIIKKA UUDELLA UI:LLA
         let phase = "Cruise";
         let announcement = '"Sit back, relax, and enjoy the flight."';
         let vrate = s.vertical_rate || 0;
@@ -878,7 +913,6 @@ function startAnim(){
 
         let currentG = gForce + (Math.random() * gWobble - (gWobble/2));
 
-        // Mach nopeus
         if(s.velocity && !s.on_ground && alt > 10000) {
             let speedOfSoundKt = 661 - (alt / 1000); 
             let mach = s.velocity / speedOfSoundKt;
@@ -887,7 +921,6 @@ function startAnim(){
             $('dMach').textContent = '—';
         }
 
-        // Ulkolämpötila (OAT)
         if(s.on_ground) {
             $('dOAT').textContent = "Ground";
         } else {
@@ -896,7 +929,6 @@ function startAnim(){
             $('dOAT').textContent = isMetric ? `${tempC.toFixed(0)} °C` : `${(tempC * 9/5 + 32).toFixed(0)} °F`;
         }
 
-        // Matkustamon paine (Cabin Alt)
         if(alt > 8000) {
             let cabAlt = 8000 * (alt / 40000); 
             if(cabAlt > 8000) cabAlt = 8000;
@@ -905,7 +937,6 @@ function startAnim(){
             $('dCabinAlt').textContent = "Ambient";
         }
 
-        // Winds Aloft
         if(!s.on_ground && alt > 15000) {
             let windDir = (s.track + 45) % 360; 
             let windSpd = 30 + (alt / 1000) * 1.5; 
@@ -914,13 +945,11 @@ function startAnim(){
             $('dWinds').textContent = "—";
         }
 
-        // Päivitä UUDEN DOM elementit
         $('dPhaseSub').textContent = phase;
         $('dForce').textContent = `${currentG.toFixed(2)} G`;
         $('dTurb').textContent = turb;
         $('dTurbClass').className = `info pax-exp ${tClass}`;
         
-        // Seatbelt paneeli
         let seatbeltPanel = $('realSeatbelt');
         if(seatbeltOn) {
             seatbeltPanel.classList.add('on');
