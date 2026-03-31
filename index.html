@@ -595,19 +595,50 @@ const fmtAlt = (ft, gnd) => gnd ? 'GROUND' : (ft == null ? '—' : `${nf.format(
 const fmtSpd = (kt) => kt == null ? '—' : `${nf.format(kt)} kt` + (isMetric ? ` (${nf.format(kt * 1.852)} km/h)` : '');
 const fmtDist = (nm) => nm == null || nm === 0 ? '—' : (isMetric ? `${nf.format(nm * 1.852)} km` : `${nf.format(nm)} NM`);
 
+// LAAJA LENTOYHTIÖTIETOKANTA
 const airlines = {
-  "FIN":{n:"Finnair",c:"#0B1560"}, "RYR":{n:"Ryanair",c:"#073590"}, "NAX":{n:"Norwegian",c:"#D81939"}, "SAS":{n:"SAS",c:"#00355E"}, 
-  "VKG":{n:"Sunclass",c:"#FF7A00"}, "DLH":{n:"Lufthansa",c:"#05164D"}, "KLM":{n:"KLM",c:"#00A1E4"}, "BAW":{n:"British Airways",c:"#012A5E"}, 
-  "UAE":{n:"Emirates",c:"#D71920"}, "QTR":{n:"Qatar Airways",c:"#5C0632"}, "EZY":{n:"EasyJet",c:"#FF6600"}, "WZZ":{n:"Wizz Air",c:"#C60C85"},
-  "AAL":{n:"American",c:"#0078D2"}, "DAL":{n:"Delta",c:"#E00034"}, "UAL":{n:"United",c:"#005DAA"}
+  "FIN":{n:"Finnair",c:"#0B1560"}, "FCM":{n:"Nordic Regional",c:"#0B1560"},
+  "RYR":{n:"Ryanair",c:"#073590"}, "MAY":{n:"Buzz",c:"#F4D004"}, "RUK":{n:"Ryanair UK",c:"#073590"}, "MAL":{n:"Malta Air",c:"#D22B2B"},
+  "NAX":{n:"Norwegian",c:"#D81939"}, "NOZ":{n:"Norwegian",c:"#D81939"}, "NSZ":{n:"Norwegian",c:"#D81939"}, "IBK":{n:"Norwegian",c:"#D81939"}, "NPT":{n:"Norwegian",c:"#D81939"},
+  "SAS":{n:"SAS",c:"#00355E"}, "SCX":{n:"SAS Link",c:"#00355E"}, "CNO":{n:"SAS Connect",c:"#00355E"},
+  "WIF":{n:"Widerøe",c:"#005F4B"}, "ICE":{n:"Icelandair",c:"#001C54"}, "BTI":{n:"airBaltic",c:"#00B028"},
+  "VKG":{n:"Sunclass Airlines",c:"#FF7A00"}, "NVR":{n:"Novair",c:"#00539F"}, "BRZ":{n:"Braathens Regional",c:"#00B5E2"},
+  "DLH":{n:"Lufthansa",c:"#05164D"}, "GEC":{n:"Lufthansa Cargo",c:"#05164D"}, "EWG":{n:"Eurowings",c:"#5C0A35"}, "CLH":{n:"Lufthansa CityLine",c:"#05164D"},
+  "KLM":{n:"KLM",c:"#00A1E4"}, "KLC":{n:"KLM Cityhopper",c:"#00A1E4"},
+  "AFR":{n:"Air France",c:"#002157"}, "HOP":{n:"Air France Hop",c:"#002157"},
+  "BAW":{n:"British Airways",c:"#012A5E"}, "SHT":{n:"British Airways",c:"#012A5E"}, "CFE":{n:"BA CityFlyer",c:"#012A5E"},
+  "EZY":{n:"easyJet",c:"#FF6600"}, "EZS":{n:"easyJet Switzerland",c:"#FF6600"}, "EJU":{n:"easyJet Europe",c:"#FF6600"}, "EZT":{n:"easyJet",c:"#FF6600"},
+  "WZZ":{n:"Wizz Air",c:"#C60C85"}, "WUK":{n:"Wizz Air UK",c:"#C60C85"}, "WMT":{n:"Wizz Air Malta",c:"#C60C85"}, "WAW":{n:"Wizz Air Abu Dhabi",c:"#C60C85"},
+  "VLG":{n:"Vueling",c:"#FFCC00"}, "IBE":{n:"Iberia",c:"#DF0024"}, "IBS":{n:"Iberia Express",c:"#DF0024"},
+  "TAP":{n:"TAP Air Portugal",c:"#006B45"}, "EIN":{n:"Aer Lingus",c:"#00825A"},
+  "AEE":{n:"Aegean Airlines",c:"#002251"}, "SXS":{n:"SunExpress",c:"#00529C"}, "PGT":{n:"Pegasus Airlines",c:"#D31245"}, "THY":{n:"Turkish Airlines",c:"#C30019"},
+  "TUI":{n:"TUI Airways",c:"#73CBE6"}, "TOM":{n:"TUI Airways",c:"#73CBE6"}, "TAY":{n:"TUI fly Belgium",c:"#73CBE6"}, "BLX":{n:"TUI fly Nordic",c:"#73CBE6"}, "JAF":{n:"TUI fly Belgium",c:"#73CBE6"},
+  "CFG":{n:"Condor",c:"#F1B000"}, "TVS":{n:"Smartwings",c:"#004F9E"},
+  "AAL":{n:"American Airlines",c:"#0078D2"}, "DAL":{n:"Delta Air Lines",c:"#E00034"}, "UAL":{n:"United Airlines",c:"#005DAA"},
+  "SWA":{n:"Southwest Airlines",c:"#304CB2"}, "JBU":{n:"JetBlue",c:"#003876"}, "ASA":{n:"Alaska Airlines",c:"#01426A"},
+  "ACA":{n:"Air Canada",c:"#F01428"}, "WJA":{n:"WestJet",c:"#008C95"}, "LTM":{n:"LATAM",c:"#1A1A54"},
+  "AMX":{n:"Aeromexico",c:"#0B2343"},
+  "UAE":{n:"Emirates",c:"#D71920"}, "QTR":{n:"Qatar Airways",c:"#5C0632"}, "ETD":{n:"Etihad Airways",c:"#C4A14F"},
+  "SIA":{n:"Singapore Airlines",c:"#002C5A"}, "CPA":{n:"Cathay Pacific",c:"#006564"},
+  "JAL":{n:"Japan Airlines",c:"#CC0000"}, "ANA":{n:"All Nippon Airways",c:"#113284"},
+  "CSN":{n:"China Southern",c:"#005293"}, "CES":{n:"China Eastern",c:"#003366"}, "CCA":{n:"Air China",c:"#C60C30"},
+  "QFA":{n:"Qantas",c:"#E40000"}, "ANZ":{n:"Air New Zealand",c:"#1D1D1B"},
+  "VOE":{n:"Volotea",c:"#D4003C"}, "TRA":{n:"Transavia",c:"#00D66C"}, "TVF":{n:"Transavia France",c:"#00D66C"},
+  "AEA":{n:"Air Europa",c:"#004D99"}, "LOT":{n:"LOT Polish Airlines",c:"#0B2343"},
+  "SWR":{n:"SWISS",c:"#E3000F"}, "AUA":{n:"Austrian Airlines",c:"#D81939"}, "BEL":{n:"Brussels Airlines",c:"#0B2343"},
+  "EXS":{n:"Jet2.com",c:"#E3000F"}, "PLM":{n:"Wamos Air",c:"#5C0632"}, "NOS":{n:"Neos",c:"#002157"}, "IBB":{n:"Binter Canarias",c:"#00B028"}
 };
 
+// ÄLYKÄS VARAJÄRJESTELMÄ JOS YHTIÖTÄ EI LÖYDY
 function getDynamicBrand(callsign, reg) {
   let s = (callsign || reg || "U").toUpperCase();
-  let name = (callsign && callsign.length>3 && !callsign.match(/^[0-9]/)) ? callsign.substring(0,3)+" Aviation" : "Aircraft " + (reg||'');
+  // Ei enää "Aviation"-päätettä vaan näytetään siististi lennon nimi
+  let name = (callsign && callsign.length>3 && !callsign.match(/^[0-9]/)) ? `Flight ${callsign}` : "Aircraft " + (reg||'');
   let h = Math.abs([...s].reduce((a,c)=>c.charCodeAt(0)+((a<<5)-a),0)) % 360;
   return { n: name, c: `hsl(${h}, 65%, 35%)`, logo: s.substring(0,2).replace(/[^A-Z]/g,'')||"PR" };
 }
+
+const lightColors = ['#FFCC00','#73CBE6','#FF7A00','#F1B000','#F4D004','#00D66C'];
 
 const acSpecs = {
   "A319": { pax: 156, len: 33.84, fuel: 24210, y: 1995, eng: "CFM56 / V2500", thrust: 105, mass: 75500 },
@@ -684,13 +715,17 @@ async function fetchRoute(cs){
     return null;
 }
 
+// TÄYDELLISESTI REAGOIVA OVERHEAD-TARKISTUS
 let activeOverhead = null;
 function checkOverheadProximity() {
     let overheadPlane = null;
     for(let f of state.flights.values()) {
-        if(!f.on_ground && f.dist !== undefined && f.baro_alt) {
+        if(!f.on_ground && f.curLat !== undefined && f.baro_alt) {
+            // Lasketaan etäisyys sekuntikohtaisesta animoidusta koordinaatista
+            let d = haversine(state.userLat, state.userLon, f.curLat, f.curLon);
             let altNM = f.baro_alt / 6076;
-            if(f.dist < altNM && f.baro_alt > 1500) {
+            // Alle 3 merimailia tai lentokorkeus (kumpi vain on pienempi) = Visuaalisesti suoraan yläpuolella
+            if(d < Math.min(altNM, 3) && f.baro_alt > 1500) {
                 overheadPlane = f; break; 
             }
         }
@@ -815,11 +850,16 @@ async function fetchFlights(){
     
     const sn=new Set();for(const nf of a){sn.add(nf.icao24);const o=state.flights.get(nf.icao24);if(o){Object.assign(o,nf);}else{state.flights.set(nf.icao24,nf);}}
     for(const i of state.flights.keys()){if(!sn.has(i))state.flights.delete(i);}$('mapStatusText').textContent=`${state.flights.size} Live`;$('sheetSub').textContent=`${state.flights.size} Aircraft`;
-  }catch(e){}finally{renderList();updateMarkers();checkOverheadProximity();setTimeout(fetchFlights,10000);}
+  }catch(e){}finally{renderList();updateMarkers();setTimeout(fetchFlights,10000);}
 }
 
 function startAnim(){
-  setInterval(updateMarkers,1000);
+  // Tarkistetaan live-päivitys ja overhead-hälytys täydellisesti joka sekunti
+  setInterval(() => {
+      updateMarkers();
+      checkOverheadProximity();
+  }, 1000);
+
   const t=(tm)=>{requestAnimationFrame(t);if(!state.aL){state.aL=tm;return;}const dt=Math.min((tm-state.aL)/1000,0.1);state.aL=tm;
     for(const f of state.flights.values()){if(f.velocity&&!f.on_ground){const r=(f.track||0)*Math.PI/180,d=f.velocity*0.514444*dt;f.curLat+=(d*Math.cos(r))/111320;f.curLon+=(d*Math.sin(r))/(111320*Math.max(0.2,Math.cos(f.lat*Math.PI/180)));if(state.selectedIcao===f.icao24){const m=state.markers.get(f.icao24);if(m)m.setLatLng([f.curLat,f.curLon]);}}}
     
@@ -1034,8 +1074,18 @@ window.openUI=async function(i){
   $('bpCall').textContent=c.substring(0,6);$('dIcao').textContent=f.icao24.toUpperCase();$('dReg').textContent=f.reg;
   
   let al=f.callsign&&f.callsign.length>=3?airlines[f.callsign.substring(0,3).toUpperCase()]:null;
-  if(al) { $('dAirline').textContent = al.n; $('bpHeaderBg').style.background = al.c; $('bpLogo').style.color=['#FFCC00','#73CBE6','#FF7A00'].includes(al.c)?'#000':al.c; $('bpLogo').textContent = al.n.substring(0,2).toUpperCase(); } 
-  else { let dyn = getDynamicBrand(f.callsign, f.reg); $('dAirline').textContent = dyn.n; $('bpHeaderBg').style.background = dyn.c; $('bpLogo').style.color = dyn.c; $('bpLogo').textContent = dyn.logo; }
+  if(al) { 
+      $('dAirline').textContent = al.n; 
+      $('bpHeaderBg').style.background = al.c; 
+      $('bpLogo').style.color = lightColors.includes(al.c) ? '#000' : al.c; 
+      $('bpLogo').textContent = al.n.substring(0,2).toUpperCase(); 
+  } else { 
+      let dyn = getDynamicBrand(f.callsign, f.reg); 
+      $('dAirline').textContent = dyn.n; 
+      $('bpHeaderBg').style.background = dyn.c; 
+      $('bpLogo').style.color = dyn.c; 
+      $('bpLogo').textContent = dyn.logo; 
+  }
   
   $('wPlaneImg').style.opacity='0';$('wPlaneWrap').style.display='none';
   let pd=state.photoCache.get(i);if(pd&&pd!=='loading'){$('wPlaneImg').src=pd.url;$('wPlaneImg').onload=()=>$('wPlaneImg').style.opacity='1';$('wPlaneAttr').textContent='© '+pd.author;$('wPlaneWrap').style.display='block';}
