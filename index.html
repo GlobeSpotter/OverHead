@@ -358,7 +358,7 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
         <div class="brand-icon"><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div>
         <div class="brand-text">Over<span class="b-head">head</span></div>
     </div>
-    <div class="searchbox"><svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><input id="searchInput" placeholder="Search callsign..." autocomplete="off" autocorrect="off" spellcheck="false" /></div>
+    <div class="searchbox"><svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><input id="searchInput" placeholder="Search airline, flight or model..." autocomplete="off" autocorrect="off" spellcheck="false" /></div>
     <div class="island-flight" id="islandFlight"><div class="if-main"><div class="if-call" id="ifCall">FLIGHT</div><div class="if-route" id="ifRoute">Tracking Active</div></div></div>
     <div class="island-actions"><button class="icon-btn" id="gpsBtn" title="Location"><svg viewBox="0 0 24 24"><path d="M12 2L2 22l10-4 10 4L12 2z"/></svg></button></div>
   </div>
@@ -440,6 +440,12 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
               </div>
           </div>
           
+          <div class="section-title" id="secRouteTitle" style="display:none;">Flight Route Details</div>
+          <div class="grid" id="secRouteGrid" style="display:none; margin-bottom: 24px;">
+            <div class="info full"><div class="i-label">Origin Airport</div><div class="i-value" id="dDepFull">—</div></div>
+            <div class="info full"><div class="i-label">Destination Airport</div><div class="i-value" id="dArrFull">—</div></div>
+          </div>
+
           <div class="section-title">Passenger Experience</div>
           <div class="grid">
             <div class="info full pax-header-card">
@@ -518,9 +524,13 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 
           <div class="section-title">Telemetry</div>
           <div class="grid">
-            <div class="info"><div class="i-label">Altitude</div><div class="i-value" id="dAlt">—</div></div>
+            <div class="info"><div class="i-label">Baro Altitude</div><div class="i-value" id="dAlt">—</div></div>
+            <div class="info"><div class="i-label">GPS Altitude</div><div class="i-value" id="dAltGeom">—</div></div>
             <div class="info"><div class="i-label">Ground Speed</div><div class="i-value" id="dSpd">—</div></div>
-            <div class="info"><div class="i-label">Heading</div><div class="i-value" id="dTrack">—</div></div>
+            <div class="info"><div class="i-label">True Airspeed</div><div class="i-value" id="dTas">—</div></div>
+            <div class="info"><div class="i-label">Indicated Speed</div><div class="i-value" id="dIas">—</div></div>
+            <div class="info"><div class="i-label">True Track</div><div class="i-value" id="dTrack">—</div></div>
+            <div class="info"><div class="i-label">Mag Heading</div><div class="i-value" id="dMagHdg">—</div></div>
             <div class="info"><div class="i-label">Vertical Rate</div><div class="i-value" id="dVRate">—</div></div>
             <div class="info"><div class="i-label">Squawk</div><div class="i-value" id="dSquawk">—</div></div>
             <div class="info"><div class="i-label">Position Age</div><div class="i-value" id="dAge">—</div></div>
@@ -564,15 +574,12 @@ html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
 <script>
 const $ = id => document.getElementById(id);
 
-// Ponnähdusikkunan lohikonhallinta
 if(localStorage.getItem('overhead_accepted') === 'true') {
     $('welcomeOverlay').classList.add('hidden');
 }
 $('welcomeBtn').addEventListener('click', () => {
     $('welcomeOverlay').style.opacity = '0';
-    setTimeout(() => {
-        $('welcomeOverlay').classList.add('hidden');
-    }, 400);
+    setTimeout(() => { $('welcomeOverlay').classList.add('hidden'); }, 400);
     localStorage.setItem('overhead_accepted', 'true');
 });
 
@@ -660,11 +667,13 @@ async function fetchRoute(cs){
             const d=(await r.json())?.response?.flightroute;
             if(d){
                 const res={
-                    dep: d.origin?.iata_code || 'N/A', 
+                    dep: d.origin?.iata_code || d.origin?.icao_code || 'N/A', 
                     depName: d.origin?.municipality || 'Unknown', 
+                    depFull: d.origin?.name || d.origin?.municipality || 'Unknown',
                     depLat: d.origin?.latitude, depLon: d.origin?.longitude, 
-                    arr: d.destination?.iata_code || 'N/A', 
+                    arr: d.destination?.iata_code || d.destination?.icao_code || 'N/A', 
                     arrName: d.destination?.municipality || 'Unknown', 
+                    arrFull: d.destination?.name || d.destination?.municipality || 'Unknown',
                     arrLat: d.destination?.latitude, arrLon: d.destination?.longitude
                 };
                 state.routeCache.set(cc,res);
@@ -682,8 +691,7 @@ function checkOverheadProximity() {
         if(!f.on_ground && f.dist !== undefined && f.baro_alt) {
             let altNM = f.baro_alt / 6076;
             if(f.dist < altNM && f.baro_alt > 1500) {
-                overheadPlane = f;
-                break; 
+                overheadPlane = f; break; 
             }
         }
     }
@@ -697,10 +705,7 @@ function checkOverheadProximity() {
             alertEl.onclick = () => { openUI(overheadPlane.icao24); };
         }
     } else {
-        if (activeOverhead !== null) {
-            alertEl.classList.remove('show');
-            activeOverhead = null;
-        }
+        if (activeOverhead !== null) { alertEl.classList.remove('show'); activeOverhead = null; }
     }
 }
 
@@ -792,9 +797,14 @@ async function fetchFlights(){
       lon: x.lon,
       lat: x.lat,
       baro_alt: x.alt_baro==='ground'?0:(x.alt_baro||null),
+      alt_geom: x.alt_geom!=null?x.alt_geom:null,
       on_ground: x.alt_baro==='ground',
       velocity: x.gs!=null?x.gs:null,
+      tas: x.tas!=null?x.tas:null,
+      ias: x.ias!=null?x.ias:null,
+      mach: x.mach!=null?x.mach:null,
       track: x.track!=null?x.track:null,
+      mag_heading: x.mag_heading!=null?x.mag_heading:null,
       vertical_rate: x.baro_rate!=null?x.baro_rate:null,
       squawk: x.squawk||null,
       curLat: x.lat,
@@ -839,8 +849,12 @@ function startAnim(){
         s.dist=haversine(state.userLat,state.userLon,s.curLat,s.curLon);
         
         $('dAlt').textContent=fmtAlt(s.baro_alt,s.on_ground);
+        $('dAltGeom').textContent=s.alt_geom!=null?fmtAlt(s.alt_geom,s.on_ground):'—';
         $('dSpd').textContent=fmtSpd(s.velocity);
+        $('dTas').textContent=s.tas!=null?fmtSpd(s.tas):'—';
+        $('dIas').textContent=s.ias!=null?fmtSpd(s.ias):'—';
         $('dTrack').textContent = s.track != null ? Math.round(s.track) + '°' : '—';
+        $('dMagHdg').textContent = s.mag_heading != null ? Math.round(s.mag_heading) + '°' : '—';
         $('dVRate').textContent = s.vertical_rate != null ? (s.vertical_rate > 0 ? '+' : '') + s.vertical_rate + ' ft/min' : '—';
         $('dSquawk').textContent = s.squawk || '—';
         $('dAge').textContent = s.seen != null ? s.seen.toFixed(1) + ' s' : '—';
@@ -912,7 +926,9 @@ function startAnim(){
 
         let currentG = gForce + (Math.random() * gWobble - (gWobble/2));
 
-        if(s.velocity && !s.on_ground && alt > 10000) {
+        if(s.mach != null) {
+            $('dMach').textContent = 'M ' + s.mach.toFixed(3);
+        } else if(s.velocity && !s.on_ground && alt > 10000) {
             let speedOfSoundKt = 661 - (alt / 1000); 
             let mach = s.velocity / speedOfSoundKt;
             $('dMach').textContent = 'M ' + mach.toFixed(2);
@@ -950,11 +966,7 @@ function startAnim(){
         $('dTurbClass').className = `info pax-exp ${tClass}`;
         
         let seatbeltPanel = $('realSeatbelt');
-        if(seatbeltOn) {
-            seatbeltPanel.classList.add('on');
-        } else {
-            seatbeltPanel.classList.remove('on');
-        }
+        if(seatbeltOn) { seatbeltPanel.classList.add('on'); } else { seatbeltPanel.classList.remove('on'); }
 
         $('dAnnouncement').textContent = announcement;
 
@@ -992,7 +1004,19 @@ function startAnim(){
 }
 
 function renderList(){
-  const q=$('searchInput').value.trim().toLowerCase();let a=[...state.flights.values()].sort((x,y)=>(x.dist||999)-(y.dist||999));if(q)a=a.filter(f=>((f.callsign||'')+f.icao24).toLowerCase().includes(q));
+  const q=$('searchInput').value.trim().toLowerCase();
+  let a=[...state.flights.values()].sort((x,y)=>(x.dist||999)-(y.dist||999));
+  if(q) {
+      a = a.filter(f => {
+          let sStr = ((f.callsign||'') + ' ' + f.icao24 + ' ' + (f.type||'') + ' ' + (f.reg||'')).toLowerCase();
+          if(f.callsign && f.callsign.length >= 3) {
+              let pfx = f.callsign.substring(0,3).toUpperCase();
+              if(airlines[pfx]) sStr += ' ' + airlines[pfx].n.toLowerCase();
+              else sStr += ' ' + getDynamicBrand(f.callsign, f.reg).n.toLowerCase();
+          }
+          return sStr.includes(q);
+      });
+  }
   if(!a.length){$('flightList').innerHTML=`<div class="empty">No flights found.</div>`;return;}
   $('flightList').innerHTML=a.slice(0,80).map(f=>{
     let cs=(f.callsign||f.icao24.toUpperCase()).replace(/[<>]/g,''), pd=state.photoCache.get(f.icao24);if(!pd)fetchPlanePhoto(f.icao24);
@@ -1019,6 +1043,7 @@ window.openUI=async function(i){
   $('bpDep').textContent='—';$('bpDepName').textContent='Fetching...';
   $('bpArr').textContent='—';$('bpArrName').textContent='Fetching...';
   $('bpTimeFlown').textContent="--:--";$('bpTimeRemain').textContent="--:--";$('dRemainNM').textContent="—";
+  $('secRouteTitle').style.display='none'; $('secRouteGrid').style.display='none';
   
   state.map.setView([f.curLat,f.curLon],9,{animate:true});updateMarkers();
   
@@ -1028,6 +1053,8 @@ window.openUI=async function(i){
               f.route=r;
               $('bpDep').textContent=r.dep;$('bpDepName').textContent=r.depName;
               $('bpArr').textContent=r.arr;$('bpArrName').textContent=r.arrName;
+              $('secRouteTitle').style.display='block'; $('secRouteGrid').style.display='grid';
+              $('dDepFull').textContent=r.depFull; $('dArrFull').textContent=r.arrFull;
           }else{
               $('bpDep').textContent='N/A';$('bpDepName').textContent='Unknown';
               $('bpArr').textContent='N/A';$('bpArrName').textContent='Unknown';
