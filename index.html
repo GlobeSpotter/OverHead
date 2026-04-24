@@ -1,931 +1,709 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
-<meta name="description" content="Overhead Radar — live flight tracking with altitude-coded markers, trails, and immersive detail." />
-<title>Overhead Radar - Explorer</title>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme:light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme:dark)">
+<title>Overhead Radar — Explorer</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
 <style>
-/* ── DESIGN TOKENS ───────────────────────────────────────────────────────── */
-:root {
-  --bg-primary: rgba(242,242,247,0.45);
-  --bg-secondary: rgba(255,255,255,0.55);
-  --label-primary: #1C1C1E;
-  --label-secondary: #3A3A3C;
-  --label-tertiary: #6E6E73;
-  --gold: #E5A93A;
-  --ink: #8B6B4A;
-  --explorer-white: #F5F5F0;
-  --explorer-border: #5C4D3C;
-  --gray-fill: rgba(0,0,0,0.05);
-  --gray-press: rgba(0,0,0,0.1);
-  --glass: rgba(250,250,252,0.68);
-  --glass-border: rgba(0,0,0,0.08);
-  --glass-hi: inset 0 1px 0 rgba(255,255,255,0.85), inset 0 -1px 0 rgba(0,0,0,0.02);
-  --blur: saturate(200%) blur(40px);
-  --spring: cubic-bezier(0.32,0.72,0,1);
-  --shadow: 0 8px 24px rgba(0,0,0,0.07);
-  --shadow-sheet: 0 -10px 40px rgba(0,0,0,0.1);
-  --wallet-bg: #FFFFFF;
-  --sat: env(safe-area-inset-top,20px);
-  --sab: env(safe-area-inset-bottom,20px);
-  --sal: env(safe-area-inset-left,0px);
-  --sar: env(safe-area-inset-right,0px);
-  /* Altitude palette */
-  --alt-gnd:  #8E8E93;
-  --alt-low:  #FF3B30;
-  --alt-mid:  #FF9500;
-  --alt-high: #FFD60A;
-  --alt-cruise:#34C759;
-  --alt-sky:  #5AC8FA;
+/* ── TOKENS ───────────────────────────────────────────────────────── */
+:root{
+  --bg:rgba(242,242,247,.5);--bg2:rgba(255,255,255,.62);
+  --fg:#1C1C1E;--fg2:#3A3A3C;--fg3:#6E6E73;
+  --gold:#E5A93A;--ink:#8B6B4A;
+  --glass:rgba(250,250,252,.72);--gb:rgba(0,0,0,.08);
+  --ghi:inset 0 1px 0 rgba(255,255,255,.9),inset 0 -1px 0 rgba(0,0,0,.03);
+  --blur:saturate(200%) blur(40px);--spring:cubic-bezier(.32,.72,0,1);
+  --sh:0 8px 24px rgba(0,0,0,.08);--shsh:0 -10px 40px rgba(0,0,0,.12);
+  --sat:env(safe-area-inset-top,20px);--sab:env(safe-area-inset-bottom,20px);
+  --sal:env(safe-area-inset-left,0px);--sar:env(safe-area-inset-right,0px);
+  --a0:#8E8E93;--a1:#FF3B30;--a2:#FF9500;--a3:#FFD60A;--a4:#34C759;--a5:#5AC8FA;
+  --map-filter:sepia(.6) saturate(1.7) contrast(1.07) brightness(.87);
+  --tile-url:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png';
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg-primary: rgba(28,28,30,0.45);
-    --bg-secondary: rgba(255,255,255,0.08);
-    --label-primary: #FFFFFF;
-    --label-secondary: #EBEBF5;
-    --label-tertiary: #A1A1A6;
-    --gold: #D49A32;
-    --ink: #A3876B;
-    --explorer-white: #D1D1C7;
-    --explorer-border: #3A3126;
-    --gray-fill: rgba(255,255,255,0.1);
-    --gray-press: rgba(255,255,255,0.15);
-    --glass: rgba(28,28,30,0.58);
-    --glass-border: rgba(255,255,255,0.12);
-    --glass-hi: inset 0 1px 0 rgba(255,255,255,0.15), inset 0 -1px 0 rgba(0,0,0,0.2);
-    --shadow: 0 8px 32px rgba(0,0,0,0.3);
-    --shadow-sheet: 0 -10px 40px rgba(0,0,0,0.45);
-    --wallet-bg: #1C1C1E;
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:rgba(28,28,30,.5);--bg2:rgba(255,255,255,.09);
+    --fg:#FFF;--fg2:#EBEBF5;--fg3:#A1A1A6;
+    --gold:#D49A32;--ink:#A3876B;
+    --glass:rgba(28,28,30,.62);--gb:rgba(255,255,255,.13);
+    --ghi:inset 0 1px 0 rgba(255,255,255,.18),inset 0 -1px 0 rgba(0,0,0,.22);
+    --sh:0 8px 32px rgba(0,0,0,.35);--shsh:0 -10px 40px rgba(0,0,0,.5);
   }
 }
-
-/* ── RESET ───────────────────────────────────────────────────────────────── */
-* { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
-html,body { margin:0; padding:0; width:100%; height:100%; overflow:hidden;
+/* ── MAP THEMES ───────────────────────────────────────────────────── */
+body.t-night{background:#09090F;}
+body.t-night .leaflet-tile-pane{filter:brightness(.85) saturate(.7) hue-rotate(10deg);}
+body.t-night .pw .plane-svg{filter:drop-shadow(0 0 5px rgba(229,169,58,.7)) drop-shadow(0 2px 4px rgba(0,0,0,.6));}
+body.t-night .pw.sel .plane-svg{filter:drop-shadow(0 0 10px rgba(229,169,58,1)) drop-shadow(0 0 20px rgba(229,169,58,.5));}
+body.t-clean .leaflet-tile-pane{filter:none;}
+body.t-explorer .leaflet-tile-pane{filter:var(--map-filter);}
+/* ── RESET ────────────────────────────────────────────────────────── */
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;
   font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",sans-serif;
-  user-select:none; background:#e5e5ea; overscroll-behavior-y:none; }
-
-/* ── MAP ─────────────────────────────────────────────────────────────────── */
-#map { position:absolute; inset:0; z-index:1; background:#d7c8a8; }
-.leaflet-tile-pane { filter:sepia(0.6) saturate(1.7) contrast(1.07) brightness(0.87); }
-.leaflet-control-zoom { display:none !important; }
-.leaflet-control-attribution {
-  background:var(--glass) !important; color:var(--label-secondary) !important;
-  font-size:9px !important; border-radius:6px 0 0 0; padding:4px 8px !important;
-  backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
-  margin-bottom:var(--sab) !important; border-top:1px solid var(--glass-border);
-  border-left:1px solid var(--glass-border); line-height:1.3;
+  user-select:none;background:#e5e5ea;overscroll-behavior:none;}
+/* ── MAP ──────────────────────────────────────────────────────────── */
+#map{position:absolute;inset:0;z-index:1;background:#d7c8a8;}
+.leaflet-tile-pane{filter:var(--map-filter);transition:filter .8s ease;}
+.leaflet-control-zoom{display:none!important;}
+.leaflet-control-attribution{
+  background:var(--glass)!important;color:var(--fg2)!important;font-size:9px!important;
+  border-radius:6px 0 0 0;padding:4px 8px!important;backdrop-filter:var(--blur);
+  -webkit-backdrop-filter:var(--blur);margin-bottom:var(--sab)!important;
+  border-top:1px solid var(--gb);border-left:1px solid var(--gb);line-height:1.3;
 }
-.leaflet-control-attribution a { color:var(--ink) !important; text-decoration:none; font-weight:600; }
-
-/* ── PLANE MARKERS ───────────────────────────────────────────────────────── */
-.plane-wrapper {
-  width:36px; height:36px; margin-left:-18px; margin-top:-18px;
-  display:block; position:absolute; z-index:500; will-change:transform;
+.leaflet-control-attribution a{color:var(--ink)!important;font-weight:600;text-decoration:none;}
+/* ── AIRCRAFT MARKERS ─────────────────────────────────────────────── */
+.pw{display:block;position:absolute;z-index:500;will-change:transform;
+  width:36px;height:36px;margin-left:-18px;margin-top:-18px;}
+.pw.w{width:44px;height:44px;margin-left:-22px;margin-top:-22px;}
+.pw.s{width:28px;height:28px;margin-left:-14px;margin-top:-14px;}
+.pw.h{width:32px;height:32px;margin-left:-16px;margin-top:-16px;}
+.pw.sel{width:52px;height:52px;margin-left:-26px;margin-top:-26px;z-index:1000!important;}
+.pw.fav{z-index:600!important;}
+.rot{width:100%;height:100%;will-change:transform;transition:transform .4s linear;}
+.plane-svg{width:100%;height:100%;filter:drop-shadow(0 3px 5px rgba(0,0,0,.45));display:block;}
+.pw.sel .plane-svg{filter:drop-shadow(0 6px 12px rgba(0,0,0,.65));}
+/* Pulse ring */
+.pls{position:absolute;top:50%;left:50%;border-radius:50%;
+  transform:translate(-50%,-50%) scale(0);pointer-events:none;z-index:-1;
+  animation:pulsR 2s ease-out infinite;}
+@keyframes pulsR{0%{transform:translate(-50%,-50%) scale(.7);opacity:.9}100%{transform:translate(-50%,-50%) scale(2.8);opacity:0}}
+/* Callsign label */
+.cs-label{
+  position:absolute;top:calc(100% + 3px);left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,.72);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:5px;
+  white-space:nowrap;pointer-events:none;letter-spacing:.02em;
+  border:.5px solid rgba(255,255,255,.15);line-height:1.4;
 }
-.plane-wrapper.wide { width:44px; height:44px; margin-left:-22px; margin-top:-22px; }
-.plane-wrapper.small { width:28px; height:28px; margin-left:-14px; margin-top:-14px; }
-.plane-wrapper.sel { width:52px; height:52px; margin-left:-26px; margin-top:-26px; z-index:1000 !important; }
-.plane-wrapper.fav-marker { z-index:600 !important; }
-.svg-container { width:100%; height:100%; will-change:transform; transition:transform 0.35s linear; }
-.plane-svg { width:100%; height:100%; filter:drop-shadow(0 3px 5px rgba(0,0,0,0.45)); display:block; }
-.plane-wrapper.sel .plane-svg { filter:drop-shadow(0 6px 10px rgba(0,0,0,0.7)); }
-
-/* Pulsing ring for selected */
-.plane-pulse {
-  position:absolute; top:50%; left:50%; border-radius:50%;
-  transform:translate(-50%,-50%) scale(0);
-  pointer-events:none; z-index:-1;
-  animation:pulse-ring 2s ease-out infinite;
+body.t-night .cs-label{background:rgba(0,0,0,.85);}
+/* Velocity vector line */
+.vel-v{position:absolute;top:50%;left:50%;transform-origin:0 0;pointer-events:none;z-index:490;overflow:visible;}
+/* ── OVERHEAD ALERT ───────────────────────────────────────────────── */
+.oa{
+  position:fixed;top:max(14px,var(--sat));left:50%;
+  transform:translateX(-50%) translateY(-240%);z-index:3000;
+  background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  padding:12px 20px;border-radius:20px;
+  box-shadow:var(--sh),var(--ghi);display:flex;align-items:center;gap:14px;
+  transition:transform .6s var(--spring);border:1px solid var(--gold);
+  cursor:pointer;min-width:300px;overflow:hidden;
 }
-@keyframes pulse-ring {
-  0%   { transform:translate(-50%,-50%) scale(0.7); opacity:0.9; }
-  100% { transform:translate(-50%,-50%) scale(2.8); opacity:0; }
+.oa::before{content:'';position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--gold);}
+.oa.show{transform:translateX(-50%) translateY(0);}
+.oa-ic{width:36px;height:36px;border-radius:10px;background:var(--gold);display:grid;place-items:center;box-shadow:0 4px 10px rgba(229,169,58,.4);flex-shrink:0;}
+.oa-ic svg{width:20px;height:20px;fill:#000;}
+.oa-tx{display:flex;flex-direction:column;flex:1;}
+.oa-ttl{font-size:11px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;margin-bottom:2px;}
+.oa-call{font-size:16px;font-weight:800;color:var(--fg);letter-spacing:-.02em;}
+.oa-sub{font-size:12px;font-weight:500;color:var(--fg2);}
+/* ── AR OVERLAY ───────────────────────────────────────────────────── */
+.aro{position:fixed;inset:0;background:#000;z-index:4000;opacity:0;pointer-events:none;transition:opacity .4s;overflow:hidden;}
+.aro.open{opacity:1;pointer-events:auto;}
+.ar-vid{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.6;}
+.ar-cx{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:60px;height:60px;border:1.5px solid rgba(255,255,255,.3);border-radius:50%;}
+.ar-cx::before,.ar-cx::after{content:'';position:absolute;background:rgba(255,255,255,.5);}
+.ar-cx::before{top:29px;left:-10px;width:80px;height:1.5px;}
+.ar-cx::after{left:29px;top:-10px;height:80px;width:1.5px;}
+.ar-pl{position:absolute;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:4px;pointer-events:none;}
+.ar-pl svg{width:32px;height:32px;fill:var(--gold);filter:drop-shadow(0 4px 6px rgba(0,0,0,.5));}
+.ar-lbl{background:rgba(0,0,0,.65);backdrop-filter:blur(4px);color:#FFF;font-size:10px;font-weight:700;padding:4px 8px;border-radius:8px;border:.5px solid rgba(255,255,255,.2);white-space:nowrap;}
+.ar-close{position:absolute;top:max(20px,var(--sat));right:max(20px,var(--sar));width:44px;height:44px;border-radius:22px;background:rgba(255,255,255,.2);border:.5px solid rgba(255,255,255,.4);color:#FFF;display:grid;place-items:center;backdrop-filter:blur(10px);font-size:12px;font-weight:700;z-index:10;cursor:pointer;}
+.ar-info{position:absolute;bottom:max(30px,var(--sab));left:20px;right:20px;text-align:center;color:rgba(255,255,255,.6);font-size:12px;font-weight:600;pointer-events:none;}
+/* ── ISLAND ───────────────────────────────────────────────────────── */
+.iw{position:fixed;left:0;right:0;top:max(14px,var(--sat));z-index:2500;display:flex;justify-content:center;pointer-events:none;padding:0 max(14px,var(--sal)) 0 max(14px,var(--sar));}
+.island{
+  width:min(820px,100%);min-height:52px;border-radius:26px;padding:8px 12px;
+  display:flex;align-items:center;gap:10px;pointer-events:auto;
+  background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);
+  border:1px solid var(--gb);box-shadow:var(--sh),var(--ghi);
+  transition:transform .5s var(--spring),min-height .5s var(--spring);
 }
-
-/* ── ANIMATED PATH ───────────────────────────────────────────────────────── */
-.dashed-path { stroke-dasharray:8 10; animation:flow 1.5s linear infinite; }
-@keyframes flow { to { stroke-dashoffset:-18; } }
-
-/* ── OVERHEAD ALERT ──────────────────────────────────────────────────────── */
-.overhead-alert {
-  position:fixed; top:max(14px,var(--sat)); left:50%;
-  transform:translateX(-50%) translateY(-200%); z-index:3000;
-  background:var(--glass); backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
-  padding:12px 20px; border-radius:20px;
-  box-shadow:var(--shadow),var(--glass-hi); display:flex; align-items:center; gap:14px;
-  transition:transform 0.6s var(--spring); border:1px solid var(--gold);
-  cursor:pointer; min-width:300px; overflow:hidden;
-}
-.overhead-alert::before { content:''; position:absolute; left:0; top:0; bottom:0; width:5px; background:var(--gold); }
-.overhead-alert.show { transform:translateX(-50%) translateY(0); }
-.oa-icon-wrap { width:36px; height:36px; border-radius:10px; background:var(--gold); display:grid; place-items:center; box-shadow:0 4px 10px rgba(229,169,58,0.4); flex-shrink:0; }
-.oa-icon { width:20px; height:20px; fill:#000; }
-.oa-text { display:flex; flex-direction:column; flex:1; }
-.oa-title { font-size:11px; font-weight:800; color:var(--gold); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:2px; }
-.oa-call { font-size:16px; font-weight:800; color:var(--label-primary); letter-spacing:-0.02em; }
-.oa-sub { font-size:12px; font-weight:500; color:var(--label-secondary); }
-
-/* ── AR OVERLAY ──────────────────────────────────────────────────────────── */
-.ar-overlay { position:fixed; inset:0; background:#000; z-index:4000; opacity:0; pointer-events:none; transition:opacity 0.4s; overflow:hidden; }
-.ar-overlay.open { opacity:1; pointer-events:auto; }
-.ar-video { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; opacity:0.6; }
-.ar-crosshair { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:60px; height:60px; border:1.5px solid rgba(255,255,255,0.3); border-radius:50%; }
-.ar-crosshair::before,.ar-crosshair::after { content:''; position:absolute; background:rgba(255,255,255,0.5); }
-.ar-crosshair::before { top:29px; left:-10px; width:80px; height:1.5px; }
-.ar-crosshair::after  { left:29px; top:-10px; height:80px; width:1.5px; }
-.ar-plane { position:absolute; transform:translate(-50%,-50%); display:flex; flex-direction:column; align-items:center; gap:4px; pointer-events:none; transition:top .1s,left .1s; }
-.ar-plane-icon { width:32px; height:32px; fill:var(--gold); filter:drop-shadow(0 4px 6px rgba(0,0,0,0.5)); }
-.ar-plane-label { background:rgba(0,0,0,0.6); backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px); color:#FFF; font-size:10px; font-weight:700; padding:4px 8px; border-radius:8px; border:0.5px solid rgba(255,255,255,0.2); white-space:nowrap; }
-.ar-close { position:absolute; top:max(20px,var(--sat)); right:max(20px,var(--sar)); width:44px; height:44px; border-radius:22px; background:rgba(255,255,255,0.2); border:0.5px solid rgba(255,255,255,0.4); color:#FFF; display:grid; place-items:center; backdrop-filter:blur(10px); font-size:12px; font-weight:700; z-index:10; cursor:pointer; }
-.ar-info { position:absolute; bottom:max(30px,var(--sab)); left:20px; right:20px; text-align:center; color:rgba(255,255,255,0.6); font-size:12px; font-weight:600; pointer-events:none; text-shadow:0 1px 2px #000; }
-
-/* ── TOP ISLAND ──────────────────────────────────────────────────────────── */
-.island-wrap {
-  position:fixed; left:0; right:0; top:max(14px,var(--sat)); z-index:2500;
-  display:flex; justify-content:center; pointer-events:none;
-  padding:0 max(14px,var(--sal)) 0 max(14px,var(--sar));
-  transition:transform 0.4s ease;
-}
-.ar-overlay.open ~ .island-wrap { transform:translateY(-120px); }
-.island {
-  width:min(820px,100%); min-height:52px; border-radius:26px; padding:8px 12px;
-  display:flex; align-items:center; gap:10px; pointer-events:auto;
-  background:var(--glass); backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
-  border:1px solid var(--glass-border); box-shadow:var(--shadow),var(--glass-hi);
-  transition:transform .5s var(--spring), min-height .5s var(--spring);
-}
-.brand { flex:0 0 auto; display:flex; align-items:center; gap:8px; padding:0 4px; }
-.brand-icon {
-  width:30px; height:30px; border-radius:50%;
-  background:linear-gradient(135deg,#2A2520,#4A4136); color:var(--gold);
-  display:grid; place-items:center;
-  box-shadow:inset 0 1px 3px rgba(255,255,255,0.2),0 2px 4px rgba(0,0,0,0.3);
-}
-@media (prefers-color-scheme: dark) {
-  .brand-icon { background:linear-gradient(135deg,#EBEBF5,#FFFFFF); color:#2A2520; }
-}
-.brand-icon svg { width:16px; height:16px; fill:currentColor; }
-.brand-text { font-size:19px; font-weight:800; letter-spacing:-0.04em; color:var(--label-primary); display:flex; align-items:baseline; gap:4px; }
-.brand-text .b-head { color:var(--gold); }
-
-.searchbox {
-  flex:1; height:38px; border-radius:19px; background:var(--gray-fill);
-  border:1px solid rgba(255,255,255,0.05); display:flex; align-items:center;
-  padding:0 14px; gap:8px; transition:background 0.2s;
-}
-.searchbox:focus-within { background:var(--bg-secondary); }
-.search-icon { width:16px; height:16px; color:var(--label-secondary); flex-shrink:0; }
-.searchbox input { width:100%; border:none; outline:none; background:transparent; color:var(--label-primary); font-size:16px; font-weight:500; letter-spacing:-0.02em; }
-.searchbox input::placeholder { color:var(--label-tertiary); font-weight:400; }
-.island.focus .searchbox { display:none; }
-.island-flight { display:none; flex:1; align-items:center; gap:10px; padding:0 6px 0 4px; }
-.island.focus .island-flight { display:flex; }
-.if-call { font-size:17px; font-weight:800; letter-spacing:-0.02em; color:var(--label-primary); }
-.if-route { font-size:12px; font-weight:600; color:var(--ink); }
-.icon-btn {
-  width:38px; height:38px; border:none; border-radius:19px; background:var(--bg-secondary);
-  color:var(--gold); cursor:pointer; display:grid; place-items:center;
-  transition:transform 0.2s; box-shadow:0 2px 8px rgba(0,0,0,0.05);
-  border:1px solid var(--glass-border);
-}
-.icon-btn svg { width:18px; height:18px; fill:currentColor; }
-.icon-btn:active { transform:scale(0.85); background:var(--gray-press); }
-
-/* ── FILTER CHIPS ────────────────────────────────────────────────────────── */
-.filter-row {
-  position:fixed; left:0; right:0; top:calc(max(14px,var(--sat)) + 64px);
-  z-index:2400; display:flex; justify-content:center; gap:8px;
-  padding:0 20px; pointer-events:none;
-  transition:transform 0.4s var(--spring), opacity 0.3s ease;
-  opacity:0; transform:translateY(-10px);
-}
-.filter-row.visible { opacity:1; transform:translateY(0); pointer-events:auto; }
-.island.focus ~ .filter-row { display:none; }
-.chip {
-  height:32px; padding:0 14px; border-radius:16px;
-  background:var(--glass); backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
-  border:1px solid var(--glass-border); font-size:11px; font-weight:700;
-  color:var(--label-secondary); display:flex; align-items:center; gap:6px;
-  cursor:pointer; white-space:nowrap; transition:all 0.2s; pointer-events:auto;
-  box-shadow:var(--shadow);
-}
-.chip svg { width:12px; height:12px; fill:currentColor; }
-.chip.active { background:var(--gold); color:#000; border-color:transparent; }
-.chip.active svg { fill:#000; }
-.chip:active { transform:scale(0.92); }
-
-/* ── HUD ─────────────────────────────────────────────────────────────────── */
-.hud-wrap {
-  position:fixed; left:0; right:0; top:calc(max(14px,var(--sat)) + 62px);
-  z-index:1750; display:flex; justify-content:center; pointer-events:none;
-  opacity:0; transform:translateY(-10px) scale(0.96);
-  transition:opacity 0.4s ease, transform 0.5s var(--spring);
-}
-.hud-wrap.show { opacity:1; transform:translateY(0) scale(1); }
-.hud {
-  border-radius:22px; padding:12px 28px; display:flex; align-items:center; gap:24px;
-  background:var(--glass); backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
-  border:1px solid var(--glass-border); box-shadow:var(--shadow),var(--glass-hi);
-  font-variant-numeric:tabular-nums;
-}
-@media (min-width:380px) { .hud { padding:14px 36px; gap:32px; } }
-.hud-block { display:flex; flex-direction:column; align-items:center; }
-.hud-label { font-size:10px; font-weight:700; color:var(--label-secondary); letter-spacing:0.08em; text-transform:uppercase; }
-.hud-value { margin-top:2px; font-size:20px; font-weight:800; letter-spacing:-0.03em; color:var(--label-primary); }
-.hud-divider { width:1px; height:28px; background:var(--glass-border); }
-
-/* ── MAP STATUS ──────────────────────────────────────────────────────────── */
-.map-status {
-  position:fixed; left:max(16px,var(--sal)); top:calc(max(14px,var(--sat)) + 62px);
-  z-index:1750; padding:9px 14px; border-radius:18px;
-  background:var(--glass); backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
-  color:var(--label-primary); font-size:13px; font-weight:700;
-  display:flex; align-items:center; gap:8px;
-  border:1px solid var(--glass-border); box-shadow:var(--shadow),var(--glass-hi);
-  transition:transform 0.5s var(--spring);
-}
-.island.focus ~ .map-status { transform:translateY(60px); }
-.live-dot { width:8px; height:8px; border-radius:50%; background:var(--gold); animation:blink 2s ease-in-out infinite; box-shadow:0 0 8px var(--gold); flex-shrink:0; }
-@keyframes blink { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.4;transform:scale(0.7)} }
-
-/* ── SIDE CONTROLS ───────────────────────────────────────────────────────── */
-.side-controls {
-  position:fixed; right:max(16px,var(--sar)); top:calc(max(14px,var(--sat)) + 62px);
-  z-index:1750; display:flex; flex-direction:column; gap:10px;
-  transition:transform 0.5s var(--spring);
-}
-.island.focus ~ .side-controls { transform:translateY(60px); }
-.fab {
-  width:44px; height:44px; border:none; border-radius:22px;
-  color:var(--label-primary); font-weight:700; font-size:11px; letter-spacing:-0.01em;
-  cursor:pointer; background:var(--glass); backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
-  transition:transform 0.2s; box-shadow:var(--shadow),var(--glass-hi);
-  border:1px solid var(--glass-border); display:grid; place-items:center;
-}
-.fab svg { width:20px; height:20px; fill:currentColor; }
-.fab:active { transform:scale(0.85); }
-.fab.ar { background:var(--gold); color:#000; border:none; font-weight:800; }
-.fab.rings-on { background:rgba(229,169,58,0.2); border-color:var(--gold); color:var(--gold); }
-
-/* ── ALTITUDE LEGEND ─────────────────────────────────────────────────────── */
-.alt-legend {
-  position:fixed; left:max(16px,var(--sal));
-  bottom:calc(max(20px,var(--sab)) + 230px);
-  z-index:1750; display:flex; flex-direction:column; gap:5px;
-  background:var(--glass); backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
-  border:1px solid var(--glass-border); border-radius:14px;
-  padding:10px 12px; box-shadow:var(--shadow);
-  transition:transform 0.5s var(--spring);
-}
-.island.focus ~ .alt-legend { transform:translateY(60px); }
-.alt-legend-title { font-size:8px; font-weight:800; color:var(--label-tertiary); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:3px; }
-.alt-row { display:flex; align-items:center; gap:7px; }
-.alt-dot { width:7px; height:7px; border-radius:50%; flex-shrink:0; }
-.alt-lbl { font-size:9px; font-weight:600; color:var(--label-secondary); white-space:nowrap; }
-
-/* ── BOTTOM SHEET ────────────────────────────────────────────────────────── */
-.sheet {
-  position:fixed; left:0; right:0; bottom:0; z-index:1800;
-  border-radius:30px 30px 0 0;
-  background:var(--glass); backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
-  border-top:1px solid var(--glass-border);
-  box-shadow:var(--shadow-sheet),var(--glass-hi);
-  transition:transform .5s var(--spring), height .5s var(--spring);
-  height:210px; padding-bottom:max(20px,var(--sab));
-  display:flex; flex-direction:column;
-}
-@media (min-width:768px) {
-  .sheet { left:50%; width:450px; margin-left:-225px; border-radius:30px 30px 0 0; border:1px solid var(--glass-border); border-bottom:none; }
-}
-.sheet.expanded { height:min(58vh,520px); }
-.sheet.full { height:calc(100vh - max(14px,var(--sat)) - 62px); max-height:920px; }
-.sheet-grab { display:flex; justify-content:center; align-items:center; padding:12px 0 14px; cursor:pointer; flex-shrink:0; }
-.sheet-grab div { width:36px; height:5px; border-radius:3px; background:var(--label-tertiary); opacity:0.4; }
-.sheet-content { flex:1; overflow:hidden; position:relative; }
-.view { position:absolute; inset:0; transition:opacity .4s ease, transform .4s var(--spring); overflow-y:auto; -webkit-overflow-scrolling:touch; }
-.view::-webkit-scrollbar { display:none; }
-#viewList { opacity:1; transform:translateX(0); pointer-events:auto; }
-.sheet.mode-detail #viewList { opacity:0; transform:translateX(-40px); pointer-events:none; }
-#viewDetail { opacity:0; transform:translateX(40px); pointer-events:none; padding-bottom:60px; }
-.sheet.mode-detail #viewDetail { opacity:1; transform:translateX(0); pointer-events:auto; }
-
-/* ── LIST VIEW HEADER ────────────────────────────────────────────────────── */
-.sheet-head { padding:0 20px 12px; }
-.sheet-date { font-size:11px; font-weight:700; color:var(--label-secondary); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:2px; }
-.sheet-title-row { display:flex; justify-content:space-between; align-items:flex-baseline; }
-.sheet-title { font-size:30px; font-weight:800; letter-spacing:-0.03em; color:var(--label-primary); }
-.sheet-count { font-size:13px; font-weight:600; color:var(--gold); }
-
+.brand{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:0 4px;}
+.bic{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,#2A2520,#4A4136);color:var(--gold);display:grid;place-items:center;box-shadow:inset 0 1px 3px rgba(255,255,255,.2),0 2px 4px rgba(0,0,0,.3);}
+@media(prefers-color-scheme:dark){.bic{background:linear-gradient(135deg,#EBEBF5,#FFF);color:#2A2520;}}
+.bic svg{width:16px;height:16px;fill:currentColor;}
+.btxt{font-size:19px;font-weight:800;letter-spacing:-.04em;color:var(--fg);display:flex;align-items:baseline;gap:4px;}
+.btxt .bh{color:var(--gold);}
+.sbox{flex:1;height:38px;border-radius:19px;background:rgba(0,0,0,.05);border:1px solid rgba(255,255,255,.05);display:flex;align-items:center;padding:0 14px;gap:8px;}
+@media(prefers-color-scheme:dark){.sbox{background:rgba(255,255,255,.08);}}
+.sic{width:16px;height:16px;color:var(--fg2);flex-shrink:0;}
+.sbox input{width:100%;border:none;outline:none;background:transparent;color:var(--fg);font-size:16px;font-weight:500;letter-spacing:-.02em;}
+.sbox input::placeholder{color:var(--fg3);font-weight:400;}
+.island.focus .sbox{display:none;}
+.ifl{display:none;flex:1;align-items:center;gap:10px;padding:0 6px 0 4px;}
+.island.focus .ifl{display:flex;}
+.ifc{font-size:17px;font-weight:800;letter-spacing:-.02em;color:var(--fg);}
+.ifr{font-size:12px;font-weight:600;color:var(--ink);}
+.ibtn{width:38px;height:38px;border:none;border-radius:19px;background:var(--bg2);color:var(--gold);cursor:pointer;display:grid;place-items:center;transition:transform .2s;box-shadow:0 2px 8px rgba(0,0,0,.06);border:1px solid var(--gb);}
+.ibtn svg{width:18px;height:18px;fill:currentColor;}
+.ibtn:active{transform:scale(.85);}
+.ibtn.fol{background:rgba(90,200,250,.18);border-color:#5AC8FA;color:#5AC8FA;}
+/* ── FILTER CHIPS ─────────────────────────────────────────────────── */
+.fr{position:fixed;left:0;right:0;top:calc(max(14px,var(--sat)) + 64px);z-index:2400;display:flex;justify-content:center;gap:8px;padding:0 20px;pointer-events:none;transition:transform .4s var(--spring),opacity .3s ease;opacity:0;transform:translateY(-10px);}
+.fr.vis{opacity:1;transform:translateY(0);pointer-events:auto;}
+.chip{height:32px;padding:0 14px;border-radius:16px;background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--gb);font-size:11px;font-weight:700;color:var(--fg2);display:flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap;transition:all .2s;box-shadow:var(--sh);}
+.chip svg{width:12px;height:12px;fill:currentColor;}
+.chip.on{background:var(--gold);color:#000;border-color:transparent;}
+.chip.on svg{fill:#000;}
+.chip:active{transform:scale(.92);}
+/* ── HUD ──────────────────────────────────────────────────────────── */
+.hudw{position:fixed;left:0;right:0;top:calc(max(14px,var(--sat)) + 62px);z-index:1750;display:flex;justify-content:center;pointer-events:none;opacity:0;transform:translateY(-10px) scale(.96);transition:opacity .4s,transform .5s var(--spring);}
+.hudw.show{opacity:1;transform:translateY(0) scale(1);}
+.hud{border-radius:22px;padding:12px 28px;display:flex;align-items:center;gap:24px;background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--gb);box-shadow:var(--sh),var(--ghi);font-variant-numeric:tabular-nums;}
+@media(min-width:380px){.hud{padding:14px 36px;gap:32px;}}
+.hb{display:flex;flex-direction:column;align-items:center;}
+.hl{font-size:10px;font-weight:700;color:var(--fg2);letter-spacing:.08em;text-transform:uppercase;}
+.hv{margin-top:2px;font-size:20px;font-weight:800;letter-spacing:-.03em;color:var(--fg);}
+.hdiv{width:1px;height:28px;background:var(--gb);}
+/* ── MAP STATUS ───────────────────────────────────────────────────── */
+.ms{position:fixed;left:max(16px,var(--sal));top:calc(max(14px,var(--sat)) + 62px);z-index:1750;padding:9px 14px;border-radius:18px;background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);color:var(--fg);font-size:13px;font-weight:700;display:flex;align-items:center;gap:8px;border:1px solid var(--gb);box-shadow:var(--sh),var(--ghi);transition:transform .5s var(--spring);}
+.island.focus~.ms{transform:translateY(60px);}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--gold);animation:blink 2s ease-in-out infinite;box-shadow:0 0 8px var(--gold);flex-shrink:0;}
+@keyframes blink{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.7)}}
+/* ── SIDE CONTROLS ────────────────────────────────────────────────── */
+.sc{position:fixed;right:max(16px,var(--sar));top:calc(max(14px,var(--sat)) + 62px);z-index:1750;display:flex;flex-direction:column;gap:10px;transition:transform .5s var(--spring);}
+.island.focus~.sc{transform:translateY(60px);}
+.fab{width:44px;height:44px;border:none;border-radius:22px;color:var(--fg);cursor:pointer;background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);transition:transform .2s;box-shadow:var(--sh),var(--ghi);border:1px solid var(--gb);display:grid;place-items:center;font-size:15px;}
+.fab svg{width:20px;height:20px;fill:currentColor;}
+.fab:active{transform:scale(.85);}
+.fab.ar-f{background:var(--gold);color:#000;border:none;}
+.fab.son{color:var(--gold);background:rgba(229,169,58,.12);border-color:var(--gold);}
+.fab.fon{color:#5AC8FA;background:rgba(90,200,250,.12);border-color:#5AC8FA;}
+.fab.ron{background:rgba(229,169,58,.15);border-color:var(--gold);color:var(--gold);}
+.fab .fc{font-size:16px;}
+/* ── ALT LEGEND ───────────────────────────────────────────────────── */
+.aleg{position:fixed;left:max(16px,var(--sal));bottom:calc(max(20px,var(--sab)) + 230px);z-index:1750;display:flex;flex-direction:column;gap:5px;background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:1px solid var(--gb);border-radius:14px;padding:10px 12px;box-shadow:var(--sh);transition:transform .5s var(--spring);}
+.island.focus~.aleg{transform:translateY(60px);}
+.atit{font-size:8px;font-weight:800;color:var(--fg3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:3px;}
+.arow{display:flex;align-items:center;gap:7px;}
+.adot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.albl{font-size:9px;font-weight:600;color:var(--fg2);white-space:nowrap;}
+/* Keyboard hint */
+.kbh{position:fixed;bottom:calc(max(20px,var(--sab)) + 220px);right:max(16px,var(--sar));z-index:1750;background:var(--glass);backdrop-filter:var(--blur);border:1px solid var(--gb);border-radius:10px;padding:7px 10px;font-size:9px;font-weight:600;color:var(--fg3);box-shadow:var(--sh);display:none;line-height:1.8;}
+@media(pointer:fine){.kbh{display:block;}}
+.kbh kbd{background:rgba(0,0,0,.08);padding:1px 5px;border-radius:4px;font-family:monospace;}
+@media(prefers-color-scheme:dark){.kbh kbd{background:rgba(255,255,255,.12);}}
+/* ── BOTTOM SHEET ─────────────────────────────────────────────────── */
+.sheet{position:fixed;left:0;right:0;bottom:0;z-index:1800;border-radius:30px 30px 0 0;background:var(--glass);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border-top:1px solid var(--gb);box-shadow:var(--shsh),var(--ghi);transition:height .45s var(--spring);height:210px;padding-bottom:max(20px,var(--sab));display:flex;flex-direction:column;touch-action:none;}
+@media(min-width:768px){.sheet{left:50%;width:450px;margin-left:-225px;border-radius:30px 30px 0 0;border:1px solid var(--gb);border-bottom:none;}}
+.sheet.exp{height:min(58vh,520px);}
+.sheet.full{height:calc(100vh - max(14px,var(--sat)) - 62px);max-height:920px;}
+.sheet.drag{transition:none;}
+.grab{display:flex;justify-content:center;align-items:center;padding:12px 0 14px;cursor:grab;flex-shrink:0;touch-action:none;}
+.grab:active{cursor:grabbing;}
+.grab div{width:36px;height:5px;border-radius:3px;background:var(--fg3);opacity:.4;}
+.shc{flex:1;overflow:hidden;position:relative;}
+.view{position:absolute;inset:0;transition:opacity .4s ease,transform .4s var(--spring);overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.view::-webkit-scrollbar{display:none;}
+#vL{opacity:1;transform:translateX(0);pointer-events:auto;}
+.sheet.md #vL{opacity:0;transform:translateX(-40px);pointer-events:none;}
+#vD{opacity:0;transform:translateX(40px);pointer-events:none;padding-bottom:60px;}
+.sheet.md #vD{opacity:1;transform:translateX(0);pointer-events:auto;}
+/* ── LIST VIEW ────────────────────────────────────────────────────── */
+.shhd{padding:0 20px 12px;}
+.shdt{font-size:11px;font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;}
+.shtr{display:flex;justify-content:space-between;align-items:flex-baseline;}
+.shtl{font-size:30px;font-weight:800;letter-spacing:-.03em;color:var(--fg);}
+.shcn{font-size:13px;font-weight:600;color:var(--gold);}
 /* Stats row */
-.stats-row {
-  display:flex; margin:0 16px 12px; border-radius:16px; overflow:hidden;
-  background:var(--gray-fill); border:0.5px solid var(--glass-border);
-}
-.stat-item { flex:1; padding:10px 6px; text-align:center; border-right:0.5px solid var(--glass-border); }
-.stat-item:last-child { border-right:none; }
-.stat-val {
-  font-size:18px; font-weight:800; letter-spacing:-0.03em; color:var(--label-primary);
-  font-variant-numeric:tabular-nums;
-  transition:all 0.4s ease;
-}
-.stat-val.green { color:#34C759; }
-.stat-val.red   { color:#FF3B30; }
-.stat-lbl { font-size:8px; font-weight:700; color:var(--label-tertiary); text-transform:uppercase; letter-spacing:0.07em; margin-top:1px; }
-
+.stats{display:flex;margin:0 16px 8px;border-radius:16px;overflow:hidden;background:rgba(0,0,0,.04);border:.5px solid var(--gb);}
+@media(prefers-color-scheme:dark){.stats{background:rgba(255,255,255,.05);}}
+.stat{flex:1;padding:10px 6px;text-align:center;border-right:.5px solid var(--gb);}
+.stat:last-child{border-right:none;}
+.sv{font-size:18px;font-weight:800;letter-spacing:-.03em;color:var(--fg);font-variant-numeric:tabular-nums;transition:all .4s;}
+.sv.g{color:#34C759;}.sv.r{color:#FF3B30;}.sv.b{color:#5AC8FA;}
+.sl{font-size:8px;font-weight:700;color:var(--fg3);text-transform:uppercase;letter-spacing:.07em;margin-top:1px;}
+/* Type distribution bar */
+.tybar-wrap{margin:0 16px 10px;}
+.tybar{display:flex;height:6px;border-radius:3px;overflow:hidden;gap:1px;}
+.tbs{height:100%;border-radius:1px;transition:flex .6s var(--spring);min-width:2px;}
+.tyleg{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:6px;}
+.tyli{display:flex;align-items:center;gap:4px;font-size:9px;font-weight:700;color:var(--fg3);}
+.tydot{width:6px;height:6px;border-radius:50%;}
 /* Filter tabs */
-.filter-tabs { display:flex; gap:6px; margin:0 16px 10px; overflow-x:auto; padding-bottom:2px; }
-.filter-tabs::-webkit-scrollbar { display:none; }
-.ftab {
-  height:28px; padding:0 12px; border-radius:14px; border:1px solid var(--glass-border);
-  background:var(--gray-fill); font-size:11px; font-weight:700; color:var(--label-secondary);
-  cursor:pointer; white-space:nowrap; transition:all 0.2s; flex-shrink:0;
-}
-.ftab.on { background:var(--gold); color:#000; border-color:transparent; }
-.ftab:active { transform:scale(0.93); }
-
-/* ── FLIGHT CARDS ────────────────────────────────────────────────────────── */
-.card {
-  display:flex; align-items:center; gap:12px; padding:10px 16px 10px 14px;
-  position:relative; cursor:pointer; transition:background 0.2s;
-}
-.card:active { background:var(--gray-press); }
-.card::after { content:''; position:absolute; bottom:0; left:80px; right:0; height:0.5px; background:linear-gradient(90deg,var(--glass-border),transparent); }
-.card:last-child::after { display:none; }
-.airline-strip { width:4px; align-self:stretch; border-radius:2px; flex-shrink:0; min-height:44px; }
-.plane-badge {
-  width:48px; height:48px; border-radius:12px; display:grid; place-items:center;
-  background:var(--bg-secondary); flex:0 0 auto; overflow:hidden;
-  border:0.5px solid var(--glass-border); box-shadow:0 3px 8px rgba(0,0,0,0.1);
-  position:relative;
-}
-@media (prefers-color-scheme:dark) { .plane-badge { box-shadow:0 4px 12px rgba(0,0,0,0.5); } }
-.plane-badge img { width:100%; height:100%; object-fit:cover; position:absolute; inset:0; transition:opacity 0.4s; }
-.plane-badge svg { width:22px; height:22px; fill:var(--ink); transform:rotate(-45deg); }
-.card-main { flex:1; min-width:0; }
-.card-call {
-  font-size:16px; font-weight:700; letter-spacing:-0.02em; color:var(--label-primary);
-  display:flex; align-items:center; gap:6px;
-}
-.card-call .fav-star { font-size:12px; }
-.card-sub { margin-top:2px; color:var(--label-secondary); font-size:12px; font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.card-right { display:flex; flex-direction:column; align-items:flex-end; gap:4px; }
-.alt-badge {
-  padding:3px 8px; border-radius:10px; font-size:10px; font-weight:800;
-  color:#000; flex-shrink:0;
-}
-.dist-text { font-size:10px; font-weight:600; color:var(--label-tertiary); }
-
-/* ── DETAIL VIEW ─────────────────────────────────────────────────────────── */
-.detail-actions { position:absolute; top:14px; right:max(14px,var(--sar)); display:flex; gap:8px; z-index:100; }
-.action-btn {
-  width:36px; height:36px; border-radius:18px; background:var(--bg-secondary);
-  backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur);
-  border:0.5px solid var(--glass-border); display:grid; place-items:center;
-  cursor:pointer; box-shadow:var(--shadow); transition:transform 0.2s, background 0.2s; color:var(--label-secondary);
-}
-.action-btn:active { transform:scale(0.88); }
-.action-btn svg { width:15px; height:15px; fill:currentColor; }
-.action-btn.fav { color:var(--label-tertiary); }
-.action-btn.fav.active { color:var(--gold); background:rgba(229,169,58,0.15); }
-
-/* ── WALLET CARD ─────────────────────────────────────────────────────────── */
-.wallet-card {
-  background:var(--wallet-bg); margin:0 16px 20px; border-radius:24px;
-  box-shadow:0 16px 40px rgba(0,0,0,0.15); position:relative; overflow:hidden;
-  border:0.5px solid var(--glass-border);
-}
-@media (prefers-color-scheme:dark) { .wallet-card { box-shadow:0 16px 40px rgba(0,0,0,0.5); } }
-.wallet-shine { position:absolute; top:0; left:-150%; width:100%; height:100%; background:linear-gradient(to right,rgba(255,255,255,0) 0%,rgba(255,255,255,0.18) 50%,rgba(255,255,255,0) 100%); transform:skewX(-20deg); animation:shine 4s infinite; z-index:10; pointer-events:none; }
-@keyframes shine { 0%{left:-150%}30%{left:150%}100%{left:150%} }
-.wallet-card::before,.wallet-card::after { content:''; position:absolute; top:86px; width:26px; height:26px; background:var(--bg-primary); border-radius:50%; z-index:12; box-shadow:inset 1px 1px 4px rgba(0,0,0,0.2); }
-.wallet-card::before { left:-13px; border-right:0.5px solid var(--glass-border); }
-.wallet-card::after  { right:-13px; border-left:0.5px solid var(--glass-border); }
-.wallet-divider { position:absolute; top:99px; left:18px; right:18px; border-top:1.5px dashed var(--label-tertiary); opacity:0.25; z-index:1; }
-.w-header {
-  padding:18px 22px 38px; display:flex; justify-content:space-between; align-items:flex-start;
-  color:white; transition:background 0.5s ease; position:relative; z-index:2;
-}
-.w-logo-area { display:flex; align-items:center; gap:10px; z-index:2; }
-.w-logo { width:36px; height:36px; border-radius:10px; background:#FFF; display:grid; place-items:center; font-weight:900; font-size:15px; box-shadow:0 4px 12px rgba(0,0,0,0.3); color:#000; flex-shrink:0; }
-.w-airline { font-size:18px; font-weight:800; letter-spacing:-0.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:140px; text-shadow:0 2px 4px rgba(0,0,0,0.5); }
-.w-class { font-size:10px; font-weight:800; opacity:0.9; letter-spacing:0.08em; text-transform:uppercase; background:rgba(0,0,0,0.3); padding:4px 8px; border-radius:8px; flex-shrink:0; }
-.w-progress-container { padding:26px 22px 14px; display:flex; justify-content:space-between; align-items:stretch; position:relative; z-index:2; }
-.w-city { display:flex; flex-direction:column; width:66px; }
-.w-city.right { align-items:flex-end; text-align:right; }
-.w-city-name { font-size:11px; font-weight:600; color:var(--label-secondary); margin-bottom:2px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; width:100%; }
-.w-code { font-size:30px; font-weight:300; color:var(--label-primary); letter-spacing:-0.05em; line-height:1; }
-.w-time-lbl { font-size:9px; font-weight:800; color:var(--label-tertiary); letter-spacing:0.06em; margin-top:8px; text-transform:uppercase; }
-.w-time { font-size:14px; font-weight:800; margin-top:2px; font-variant-numeric:tabular-nums; color:var(--label-primary); }
-.w-time.remain { color:var(--gold); }
-.w-timeline { flex:1; margin:0 8px; position:relative; height:50px; display:flex; align-items:center; margin-top:30px; }
-.w-timeline svg.path-svg { width:100%; height:100%; overflow:visible; }
-.path-bg   { fill:none; stroke:var(--gray-fill); stroke-width:2.5; stroke-linecap:round; }
-.path-fill { fill:none; stroke:var(--gold); stroke-width:2.5; stroke-linecap:round; transition:stroke-dashoffset 0.9s ease-out; }
-.w-timeline-icon { position:absolute; width:24px; height:24px; fill:var(--gold); filter:drop-shadow(0 4px 6px rgba(0,0,0,0.3)); transition:left .9s cubic-bezier(.2,.8,.2,1), top .9s cubic-bezier(.2,.8,.2,1), transform .5s; margin-left:-12px; margin-top:-12px; z-index:10; }
-.w-plane-img-wrap { margin:0 22px 18px; height:115px; border-radius:14px; background:var(--bg-primary); overflow:hidden; position:relative; cursor:pointer; box-shadow:0 4px 16px rgba(0,0,0,0.15); border:0.5px solid var(--glass-border); transition:transform 0.2s; z-index:2; }
-.w-plane-img-wrap:active { transform:scale(0.98); }
-.w-plane-img-wrap img { width:100%; height:100%; object-fit:cover; opacity:0; transition:opacity 0.5s; }
-.w-plane-attr { position:absolute; bottom:6px; left:8px; background:rgba(0,0,0,0.65); backdrop-filter:blur(8px); color:#fff; font-size:8px; padding:3px 6px; border-radius:6px; border:0.5px solid rgba(255,255,255,0.2); }
-.w-extra-row { padding:0 22px 18px; display:flex; justify-content:space-between; align-items:center; border-bottom:0.5px solid var(--glass-border); margin-bottom:18px; }
-.w-extra-item { display:flex; flex-direction:column; gap:3px; }
-.w-bottom { padding:0 22px 22px; display:flex; justify-content:space-between; align-items:flex-end; }
-.w-info-block { display:flex; flex-direction:column; gap:3px; }
-.w-label { font-size:9px; font-weight:700; color:var(--label-secondary); text-transform:uppercase; letter-spacing:0.08em; }
-.w-val { font-size:17px; font-weight:700; color:var(--label-primary); letter-spacing:-0.02em; }
-.w-barcode { height:38px; width:120px; background:repeating-linear-gradient(90deg,var(--label-secondary),var(--label-secondary) 3px,transparent 3px,transparent 5px,var(--label-secondary) 5px,var(--label-secondary) 6px,transparent 6px,transparent 9px,var(--label-secondary) 9px,var(--label-secondary) 14px,transparent 14px,transparent 16px); opacity:0.25; }
-
-/* ── SHARE BUTTON ────────────────────────────────────────────────────────── */
-.share-btn {
-  display:flex; align-items:center; gap:10px; margin:0 16px 16px;
-  padding:14px 18px; border-radius:16px; background:var(--bg-secondary);
-  border:0.5px solid var(--glass-border); cursor:pointer;
-  font-size:14px; font-weight:700; color:var(--label-primary);
-  transition:background 0.2s; width:auto;
-}
-.share-btn:active { background:var(--gray-press); }
-.share-btn svg { width:18px; height:18px; fill:var(--gold); flex-shrink:0; }
-.share-hint { font-size:11px; font-weight:500; color:var(--label-tertiary); margin-left:auto; }
-
-/* ── SPARKLINE ───────────────────────────────────────────────────────────── */
-.spark-wrap { margin:0 16px 16px; border-radius:16px; overflow:hidden; position:relative; background:var(--bg-secondary); border:0.5px solid var(--glass-border); }
-.spark-header { display:flex; justify-content:space-between; padding:10px 14px 6px; }
-.spark-legend { display:flex; gap:12px; }
-.spark-leg-item { display:flex; align-items:center; gap:5px; font-size:9px; font-weight:700; color:var(--label-tertiary); text-transform:uppercase; letter-spacing:0.07em; }
-.spark-leg-dot { width:6px; height:6px; border-radius:50%; }
-canvas.spark { display:block; width:100%; height:70px; }
-
-/* ── PASSENGER EXPERIENCE ────────────────────────────────────────────────── */
-.section-title { font-size:11px; font-weight:700; margin:0 20px 8px; letter-spacing:0.06em; color:var(--label-secondary); text-transform:uppercase; }
-.grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0.5px; margin:0 16px 20px; background:var(--glass-border); border-radius:16px; overflow:hidden; border:0.5px solid var(--glass-border); box-shadow:var(--shadow); }
-.info { padding:12px 14px; background:var(--bg-secondary); backdrop-filter:var(--blur); -webkit-backdrop-filter:var(--blur); }
-.info.full { grid-column:1/-1; }
-.i-label { font-size:9px; font-weight:600; color:var(--label-secondary); margin-bottom:3px; letter-spacing:0.02em; text-transform:uppercase; }
-.i-value { font-size:14px; font-weight:600; color:var(--label-primary); letter-spacing:-0.01em; font-variant-numeric:tabular-nums; }
-.pax-header-card { display:flex; flex-direction:column; padding:14px; }
-.pax-header-top { display:flex; justify-content:space-between; align-items:center; width:100%; }
-.pax-val { font-size:18px; font-weight:800; color:var(--label-primary); letter-spacing:-0.02em; }
-.overhead-panel { background:transparent; padding:6px 4px; display:flex; align-items:center; justify-content:center; gap:14px; }
-.icon-seatbelt { width:22px; height:22px; fill:#34C759; filter:drop-shadow(0 0 4px rgba(52,199,89,0.8)); transition:all 0.4s; }
-.overhead-panel.on .icon-seatbelt { fill:#FF3B30; filter:drop-shadow(0 0 6px rgba(255,59,48,0.9)) drop-shadow(0 0 12px rgba(255,59,48,0.6)); }
-.icon-nosmoking { width:22px; height:22px; color:#FF3B30; fill:none; filter:drop-shadow(0 0 6px rgba(255,59,48,0.9)); }
-.announcement-bar { margin-top:12px; padding-top:10px; border-top:1px solid var(--glass-border); display:flex; align-items:center; gap:10px; }
-.announcement-icon { width:18px; height:18px; fill:var(--gold); flex-shrink:0; animation:chime 2.5s infinite; }
-@keyframes chime { 0%,100%{transform:scale(1);opacity:0.7}50%{transform:scale(1.15);opacity:1;filter:drop-shadow(0 0 4px var(--gold))} }
-.announcement-text { font-size:12px; font-style:italic; color:var(--label-secondary); font-weight:500; line-height:1.3; }
-.info.pax-exp { display:flex; flex-direction:row; justify-content:space-between; align-items:center; padding:14px; }
-.pax-sub { font-size:10px; font-weight:600; color:var(--label-secondary); margin-top:2px; }
-.turb-icon { width:32px; height:32px; background:var(--gray-fill); border-radius:10px; display:grid; place-items:center; border:1px solid var(--glass-border); }
-.turb-icon svg { width:18px; height:18px; stroke:var(--label-primary); }
-.turb-smooth .turb-icon svg { animation:sway 4s ease-in-out infinite; stroke:#34C759; }
-.turb-light  .turb-icon svg { animation:shakeLight 1.5s ease-in-out infinite; stroke:#FFCC00; }
-.turb-mod    .turb-icon svg { animation:shakeMod 0.4s linear infinite; stroke:#FF3B30; }
-@keyframes sway      { 0%,100%{transform:rotate(-5deg) translateY(0)}50%{transform:rotate(5deg) translateY(-2px)} }
-@keyframes shakeLight{ 0%,100%{transform:translate(0,0) rotate(0)}25%{transform:translate(1px,1px) rotate(2deg)}75%{transform:translate(-1px,-1px) rotate(-2deg)} }
-@keyframes shakeMod  { 0%,100%{transform:translate(0,0)}25%{transform:translate(2px,-2px)}50%{transform:translate(-2px,2px)}75%{transform:translate(2px,2px)} }
-
-/* ── LEGAL FOOTER ────────────────────────────────────────────────────────── */
-.legal-footer { text-align:center; padding:20px 20px 60px; font-size:10px; color:var(--label-tertiary); line-height:1.7; }
-.legal-footer a { color:inherit; font-weight:600; text-decoration:underline; text-decoration-color:rgba(161,161,166,0.3); }
-.legal-strong { display:block; margin-top:14px; font-weight:700; color:var(--label-secondary); font-size:9px; text-transform:uppercase; letter-spacing:0.05em; }
-.footer-tag { font-weight:800; color:var(--gold); margin-bottom:12px; letter-spacing:0.05em; font-size:9px; text-transform:uppercase; }
-.empty { padding:48px 20px; text-align:center; color:var(--label-secondary); font-weight:500; font-size:14px; }
-
-/* ── IMAGE OVERLAY ───────────────────────────────────────────────────────── */
-.img-overlay { position:fixed; inset:0; z-index:5000; background:rgba(0,0,0,0.92); backdrop-filter:blur(20px); display:flex; flex-direction:column; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity 0.3s; }
-.img-overlay.open { opacity:1; pointer-events:auto; }
-.img-overlay img { max-width:90%; max-height:75%; border-radius:20px; box-shadow:0 20px 50px rgba(0,0,0,0.8); object-fit:contain; }
-.overlay-close { position:absolute; top:calc(20px + var(--sat)); right:max(20px,var(--sar)); width:40px; height:40px; border-radius:20px; background:rgba(255,255,255,0.2); color:#FFF; border:0.5px solid rgba(255,255,255,0.3); display:grid; place-items:center; cursor:pointer; }
-.overlay-close svg { width:16px; height:16px; fill:currentColor; }
-
-/* ── WELCOME MODAL ───────────────────────────────────────────────────────── */
-.welcome-overlay { position:fixed; inset:0; z-index:6000; background:rgba(0,0,0,0.65); backdrop-filter:blur(24px); display:flex; align-items:center; justify-content:center; padding:20px; opacity:1; transition:opacity 0.4s; }
-.welcome-overlay.hidden { opacity:0; pointer-events:none; }
-.welcome-card { background:var(--glass); border:1px solid var(--glass-border); border-radius:28px; padding:32px 24px; max-width:420px; width:100%; box-shadow:0 24px 48px rgba(0,0,0,0.2),var(--glass-hi); text-align:center; }
-.welcome-logo { display:flex; align-items:center; justify-content:center; gap:10px; margin-bottom:8px; }
-.welcome-tag { font-size:9px; font-weight:800; color:var(--gold); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:18px; }
-.welcome-text { font-size:14px; color:var(--label-primary); line-height:1.55; margin-bottom:14px; font-weight:500; }
-.welcome-disclaimer { font-size:11px; color:var(--label-secondary); line-height:1.5; padding:12px; background:rgba(255,59,48,0.08); border-radius:12px; border:1px solid rgba(255,59,48,0.2); margin-bottom:22px; text-align:left; }
-.welcome-disclaimer strong { color:#FF3B30; }
-.welcome-btn { width:100%; padding:16px; border-radius:16px; border:none; background:var(--label-primary); color:var(--bg-primary); font-size:15px; font-weight:800; cursor:pointer; transition:transform 0.2s; box-shadow:0 4px 12px rgba(0,0,0,0.1); }
-.welcome-btn:active { transform:scale(0.96); }
-@media (prefers-color-scheme:dark) {
-  .welcome-btn { background:var(--gold); color:#000; }
-  .welcome-disclaimer { background:rgba(255,69,58,0.12); border-color:rgba(255,69,58,0.25); }
-  .welcome-disclaimer strong { color:#FF453A; }
-}
+.ftabs{display:flex;gap:6px;margin:0 16px 10px;overflow-x:auto;padding-bottom:2px;}
+.ftabs::-webkit-scrollbar{display:none;}
+.ftab{height:28px;padding:0 12px;border-radius:14px;border:1px solid var(--gb);background:rgba(0,0,0,.04);font-size:11px;font-weight:700;color:var(--fg2);cursor:pointer;white-space:nowrap;transition:all .2s;flex-shrink:0;}
+@media(prefers-color-scheme:dark){.ftab{background:rgba(255,255,255,.07);}}
+.ftab.on{background:var(--gold);color:#000;border-color:transparent;}
+.ftab:active{transform:scale(.93);}
+/* Flight cards */
+.card{display:flex;align-items:center;gap:12px;padding:10px 16px 10px 14px;position:relative;cursor:pointer;transition:background .2s;}
+.card:active{background:rgba(0,0,0,.05);}
+@media(prefers-color-scheme:dark){.card:active{background:rgba(255,255,255,.06);}}
+.card::after{content:'';position:absolute;bottom:0;left:80px;right:0;height:.5px;background:linear-gradient(90deg,var(--gb),transparent);}
+.card:last-child::after{display:none;}
+.ast{width:4px;align-self:stretch;border-radius:2px;flex-shrink:0;min-height:44px;}
+.pbg{width:48px;height:48px;border-radius:12px;display:grid;place-items:center;background:var(--bg2);flex:0 0 auto;overflow:hidden;border:.5px solid var(--gb);box-shadow:0 3px 8px rgba(0,0,0,.1);position:relative;}
+.pbg img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;transition:opacity .4s;}
+.pbg svg{width:22px;height:22px;fill:var(--ink);}
+.cm{flex:1;min-width:0;}
+.cc{font-size:16px;font-weight:700;letter-spacing:-.02em;color:var(--fg);display:flex;align-items:center;gap:6px;}
+.cs2{margin-top:2px;color:var(--fg2);font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cr{display:flex;flex-direction:column;align-items:flex-end;gap:4px;}
+.ab{padding:3px 8px;border-radius:10px;font-size:10px;font-weight:800;color:#000;flex-shrink:0;}
+.dt{font-size:10px;font-weight:600;color:var(--fg3);}
+.lpip{width:6px;height:6px;border-radius:50%;background:#34C759;display:inline-block;animation:blink 2s ease-in-out infinite;}
+/* ── DETAIL VIEW ──────────────────────────────────────────────────── */
+.da{position:absolute;top:14px;right:max(14px,var(--sar));display:flex;gap:8px;z-index:100;}
+.abt{width:36px;height:36px;border-radius:18px;background:var(--bg2);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);border:.5px solid var(--gb);display:grid;place-items:center;cursor:pointer;box-shadow:var(--sh);transition:transform .2s,background .2s;color:var(--fg2);}
+.abt:active{transform:scale(.88);}
+.abt svg{width:15px;height:15px;fill:currentColor;}
+.abt.fav{color:var(--fg3);}
+.abt.fav.on{color:var(--gold);background:rgba(229,169,58,.15);}
+/* Wallet card */
+.wc{background:#FFF;margin:0 16px 20px;border-radius:24px;box-shadow:0 16px 40px rgba(0,0,0,.15);position:relative;overflow:hidden;border:.5px solid var(--gb);}
+@media(prefers-color-scheme:dark){.wc{background:#1C1C1E;box-shadow:0 16px 40px rgba(0,0,0,.5);}}
+.wsh{position:absolute;top:0;left:-150%;width:100%;height:100%;background:linear-gradient(to right,rgba(255,255,255,0) 0%,rgba(255,255,255,.18) 50%,rgba(255,255,255,0) 100%);transform:skewX(-20deg);animation:shine 4s infinite;z-index:10;pointer-events:none;}
+@keyframes shine{0%{left:-150%}30%{left:150%}100%{left:150%}}
+.wc::before,.wc::after{content:'';position:absolute;top:86px;width:26px;height:26px;background:var(--bg);border-radius:50%;z-index:12;box-shadow:inset 1px 1px 4px rgba(0,0,0,.2);}
+.wc::before{left:-13px;border-right:.5px solid var(--gb);}
+.wc::after{right:-13px;border-left:.5px solid var(--gb);}
+.wdiv{position:absolute;top:99px;left:18px;right:18px;border-top:1.5px dashed var(--fg3);opacity:.25;z-index:1;}
+.whdr{padding:18px 22px 38px;display:flex;justify-content:space-between;align-items:flex-start;color:#fff;transition:background .5s ease;position:relative;z-index:2;}
+.wla{display:flex;align-items:center;gap:10px;z-index:2;}
+.wlo{width:36px;height:36px;border-radius:10px;background:#FFF;display:grid;place-items:center;font-weight:900;font-size:15px;box-shadow:0 4px 12px rgba(0,0,0,.3);color:#000;flex-shrink:0;}
+.wair{font-size:18px;font-weight:800;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:140px;text-shadow:0 2px 4px rgba(0,0,0,.5);}
+.wcls{font-size:10px;font-weight:800;opacity:.9;letter-spacing:.08em;text-transform:uppercase;background:rgba(0,0,0,.3);padding:4px 8px;border-radius:8px;flex-shrink:0;}
+.wprog{padding:26px 22px 14px;display:flex;justify-content:space-between;align-items:stretch;position:relative;z-index:2;}
+.wcit{display:flex;flex-direction:column;width:66px;}
+.wcit.r{align-items:flex-end;text-align:right;}
+.wcn{font-size:11px;font-weight:600;color:var(--fg2);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;}
+.wcd{font-size:30px;font-weight:300;color:var(--fg);letter-spacing:-.05em;line-height:1;}
+.wtl2{font-size:9px;font-weight:800;color:var(--fg3);letter-spacing:.06em;margin-top:8px;text-transform:uppercase;}
+.wtm{font-size:14px;font-weight:800;margin-top:2px;font-variant-numeric:tabular-nums;color:var(--fg);}
+.wtm.re{color:var(--gold);}
+.wtim{flex:1;margin:0 8px;position:relative;height:50px;display:flex;align-items:center;margin-top:30px;}
+.wtim svg.psv{width:100%;height:100%;overflow:visible;}
+.pb{fill:none;stroke:rgba(0,0,0,.08);stroke-width:2.5;stroke-linecap:round;}
+@media(prefers-color-scheme:dark){.pb{stroke:rgba(255,255,255,.08);}}
+.pf{fill:none;stroke:var(--gold);stroke-width:2.5;stroke-linecap:round;transition:stroke-dashoffset .9s ease-out;}
+.wpic{position:absolute;width:24px;height:24px;fill:var(--gold);filter:drop-shadow(0 4px 6px rgba(0,0,0,.3));transition:left .9s cubic-bezier(.2,.8,.2,1),top .9s cubic-bezier(.2,.8,.2,1),transform .5s;margin-left:-12px;margin-top:-12px;z-index:10;}
+.wpi{margin:0 22px 18px;height:115px;border-radius:14px;background:var(--bg);overflow:hidden;position:relative;cursor:pointer;box-shadow:0 4px 16px rgba(0,0,0,.15);border:.5px solid var(--gb);transition:transform .2s;z-index:2;}
+.wpi:active{transform:scale(.98);}
+.wpi img{width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .5s;}
+.wpat{position:absolute;bottom:6px;left:8px;background:rgba(0,0,0,.65);backdrop-filter:blur(8px);color:#fff;font-size:8px;padding:3px 6px;border-radius:6px;border:.5px solid rgba(255,255,255,.2);}
+.wex{padding:0 22px 18px;display:flex;justify-content:space-between;align-items:center;border-bottom:.5px solid var(--gb);margin-bottom:18px;}
+.wex-i{display:flex;flex-direction:column;gap:3px;}
+.wbot{padding:0 22px 22px;display:flex;justify-content:space-between;align-items:flex-end;}
+.wlb{font-size:9px;font-weight:700;color:var(--fg2);text-transform:uppercase;letter-spacing:.08em;}
+.wvl{font-size:17px;font-weight:700;color:var(--fg);letter-spacing:-.02em;}
+.wbar{height:38px;width:120px;background:repeating-linear-gradient(90deg,var(--fg2),var(--fg2) 3px,transparent 3px,transparent 5px,var(--fg2) 5px,var(--fg2) 6px,transparent 6px,transparent 9px,var(--fg2) 9px,var(--fg2) 14px,transparent 14px,transparent 16px);opacity:.25;}
+/* Share btn */
+.sbt{display:flex;align-items:center;gap:10px;margin:0 16px 16px;padding:14px 18px;border-radius:16px;background:var(--bg2);border:.5px solid var(--gb);cursor:pointer;font-size:14px;font-weight:700;color:var(--fg);transition:background .2s;}
+.sbt:active{background:rgba(0,0,0,.06);}
+.sbt svg{width:18px;height:18px;fill:var(--gold);flex-shrink:0;}
+.shi{font-size:11px;font-weight:500;color:var(--fg3);margin-left:auto;}
+/* Sparkline */
+.spkw{margin:0 16px 16px;border-radius:16px;overflow:hidden;position:relative;background:var(--bg2);border:.5px solid var(--gb);}
+.spkh{display:flex;justify-content:space-between;padding:10px 14px 6px;}
+.spkl{display:flex;gap:12px;}
+.spki{display:flex;align-items:center;gap:5px;font-size:9px;font-weight:700;color:var(--fg3);text-transform:uppercase;letter-spacing:.07em;}
+.spkd{width:6px;height:6px;border-radius:50%;}
+canvas.spk{display:block;width:100%;height:70px;}
+/* Passenger experience */
+.sect{font-size:11px;font-weight:700;margin:0 20px 8px;letter-spacing:.06em;color:var(--fg2);text-transform:uppercase;}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.5px;margin:0 16px 20px;background:var(--gb);border-radius:16px;overflow:hidden;border:.5px solid var(--gb);box-shadow:var(--sh);}
+.info{padding:12px 14px;background:var(--bg2);backdrop-filter:var(--blur);-webkit-backdrop-filter:var(--blur);}
+.info.full{grid-column:1/-1;}
+.ilb{font-size:9px;font-weight:600;color:var(--fg2);margin-bottom:3px;letter-spacing:.02em;text-transform:uppercase;}
+.iva{font-size:14px;font-weight:600;color:var(--fg);letter-spacing:-.01em;font-variant-numeric:tabular-nums;}
+.phdr{display:flex;flex-direction:column;padding:14px;}
+.phdt{display:flex;justify-content:space-between;align-items:center;width:100%;}
+.pva{font-size:18px;font-weight:800;color:var(--fg);letter-spacing:-.02em;}
+.opan{background:transparent;padding:6px 4px;display:flex;align-items:center;justify-content:center;gap:14px;}
+.isb{width:22px;height:22px;fill:#34C759;filter:drop-shadow(0 0 4px rgba(52,199,89,.8));transition:all .4s;}
+.opan.on .isb{fill:#FF3B30;filter:drop-shadow(0 0 6px rgba(255,59,48,.9)) drop-shadow(0 0 12px rgba(255,59,48,.6));}
+.ins{width:22px;height:22px;color:#FF3B30;fill:none;filter:drop-shadow(0 0 6px rgba(255,59,48,.9));}
+.abar{margin-top:12px;padding-top:10px;border-top:1px solid var(--gb);display:flex;align-items:center;gap:10px;}
+.aic{width:18px;height:18px;fill:var(--gold);flex-shrink:0;animation:chime 2.5s infinite;}
+@keyframes chime{0%,100%{transform:scale(1);opacity:.7}50%{transform:scale(1.15);opacity:1;filter:drop-shadow(0 0 4px var(--gold))}}
+.atx{font-size:12px;font-style:italic;color:var(--fg2);font-weight:500;line-height:1.3;}
+.info.pex{display:flex;flex-direction:row;justify-content:space-between;align-items:center;padding:14px;}
+.ps{font-size:10px;font-weight:600;color:var(--fg2);margin-top:2px;}
+.tic{width:32px;height:32px;background:rgba(0,0,0,.05);border-radius:10px;display:grid;place-items:center;border:1px solid var(--gb);}
+.tic svg{width:18px;height:18px;stroke:var(--fg);}
+.tcs .tic svg{animation:sway 4s ease-in-out infinite;stroke:#34C759;}
+.tcl .tic svg{animation:shakel 1.5s ease-in-out infinite;stroke:#FFCC00;}
+.tcm .tic svg{animation:shakem .4s linear infinite;stroke:#FF3B30;}
+@keyframes sway{0%,100%{transform:rotate(-5deg) translateY(0)}50%{transform:rotate(5deg) translateY(-2px)}}
+@keyframes shakel{0%,100%{transform:translate(0,0) rotate(0)}25%{transform:translate(1px,1px) rotate(2deg)}75%{transform:translate(-1px,-1px) rotate(-2deg)}}
+@keyframes shakem{0%,100%{transform:translate(0,0)}25%{transform:translate(2px,-2px)}50%{transform:translate(-2px,2px)}75%{transform:translate(2px,2px)}}
+/* Legal */
+.legf{text-align:center;padding:20px 20px 60px;font-size:10px;color:var(--fg3);line-height:1.7;}
+.legf a{color:inherit;font-weight:600;text-decoration:underline;text-decoration-color:rgba(161,161,166,.3);}
+.legs{display:block;margin-top:14px;font-weight:700;color:var(--fg2);font-size:9px;text-transform:uppercase;letter-spacing:.05em;}
+.fott{font-weight:800;color:var(--gold);margin-bottom:12px;letter-spacing:.05em;font-size:9px;text-transform:uppercase;}
+.empty{padding:48px 20px;text-align:center;color:var(--fg2);font-weight:500;font-size:14px;}
+/* Image overlay */
+.imgo{position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,.92);backdrop-filter:blur(20px);display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .3s;}
+.imgo.open{opacity:1;pointer-events:auto;}
+.imgo img{max-width:90%;max-height:75%;border-radius:20px;box-shadow:0 20px 50px rgba(0,0,0,.8);object-fit:contain;}
+.ovcl{position:absolute;top:calc(20px + var(--sat));right:max(20px,var(--sar));width:40px;height:40px;border-radius:20px;background:rgba(255,255,255,.2);color:#FFF;border:.5px solid rgba(255,255,255,.3);display:grid;place-items:center;cursor:pointer;}
+.ovcl svg{width:16px;height:16px;fill:currentColor;}
+/* Welcome */
+.wo{position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,.65);backdrop-filter:blur(24px);display:flex;align-items:center;justify-content:center;padding:20px;transition:opacity .4s;}
+.wo.h{opacity:0;pointer-events:none;}
+.woc{background:var(--glass);border:1px solid var(--gb);border-radius:28px;padding:32px 24px;max-width:420px;width:100%;box-shadow:0 24px 48px rgba(0,0,0,.2),var(--ghi);text-align:center;}
+.wol{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;}
+.wotg{font-size:9px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;margin-bottom:18px;}
+.wotx{font-size:14px;color:var(--fg);line-height:1.55;margin-bottom:14px;font-weight:500;}
+.wodc{font-size:11px;color:var(--fg2);line-height:1.5;padding:12px;background:rgba(255,59,48,.08);border-radius:12px;border:1px solid rgba(255,59,48,.2);margin-bottom:22px;text-align:left;}
+.wodc strong{color:#FF3B30;}
+.wobt{width:100%;padding:16px;border-radius:16px;border:none;background:var(--fg);color:var(--bg);font-size:15px;font-weight:800;cursor:pointer;transition:transform .2s;}
+.wobt:active{transform:scale(.96);}
+@media(prefers-color-scheme:dark){.wobt{background:var(--gold);color:#000;}.wodc{background:rgba(255,69,58,.12);border-color:rgba(255,69,58,.25);}}
+/* Theme transition toast */
+.toast{position:fixed;bottom:calc(max(20px,var(--sab)) + 220px);left:50%;transform:translateX(-50%) translateY(20px);z-index:9000;background:rgba(0,0,0,.85);color:#fff;font-size:12px;font-weight:700;padding:8px 16px;border-radius:20px;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;backdrop-filter:blur(8px);}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+/* Type badge on cards */
+.tbdg{font-size:8px;font-weight:800;padding:2px 5px;border-radius:5px;background:rgba(0,0,0,.08);color:var(--fg3);letter-spacing:.04em;}
 </style>
 </head>
-<body>
+<body class="t-explorer">
 
-<!-- ── WELCOME MODAL ────────────────────────────────────────────────────── -->
-<div class="welcome-overlay" id="welcomeOverlay">
-  <div class="welcome-card">
-    <div class="welcome-logo">
-      <div class="brand-icon" style="width:36px;height:36px;">
-        <svg viewBox="0 0 24 24" style="width:20px;height:20px;"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
-      </div>
-      <div class="brand-text" style="font-size:26px;">Over<span class="b-head">head</span></div>
+<!-- WELCOME -->
+<div class="wo" id="wo">
+  <div class="woc">
+    <div class="wol">
+      <div class="bic" style="width:36px;height:36px;"><svg viewBox="0 0 24 24" style="width:20px;height:20px;"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div>
+      <div class="btxt" style="font-size:26px;">Over<span class="bh">head</span></div>
     </div>
-    <div class="welcome-tag">✦ Live Flight Radar · Redesigned ✦</div>
-    <p class="welcome-text">Track every aircraft above you in real time. Altitude-coloured markers, flight trails, passenger experience simulation, and more.</p>
-    <div class="welcome-disclaimer">
-      <strong>LEGAL NOTICE:</strong> Data is gathered from open-source networks and may be delayed, incomplete, or inaccurate. Strictly for <strong>entertainment and educational purposes only</strong>. Not for professional aviation or navigation.
-    </div>
-    <button class="welcome-btn" id="welcomeBtn">I Understand — Let's Explore</button>
+    <div class="wotg">✦ Live Flight Radar · Redesigned ✦</div>
+    <p class="wotx">Track every aircraft above you in real time. Altitude-coded markers, gradient trails, follow mode, AR view, and much more.</p>
+    <div class="wodc"><strong>LEGAL NOTICE:</strong> Data is gathered from open-source networks and may be delayed, incomplete, or inaccurate. Strictly for <strong>entertainment and educational purposes only</strong>. Not for professional aviation or navigation.</div>
+    <button class="wobt" id="woBtn">I Understand — Let's Explore</button>
   </div>
 </div>
 
-<!-- ── MAP ──────────────────────────────────────────────────────────────── -->
+<!-- MAP -->
 <div id="map"></div>
 
-<!-- ── OVERHEAD ALERT ────────────────────────────────────────────────────── -->
-<div class="overhead-alert" id="overheadAlert">
-  <div class="oa-icon-wrap"><svg class="oa-icon" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div>
-  <div class="oa-text">
-    <div class="oa-title">DIRECTLY OVERHEAD</div>
-    <div class="oa-call" id="oaCall">Finnair AY123</div>
-    <div class="oa-sub" id="oaSub">A320 · 32,000 ft</div>
-  </div>
+<!-- OVERHEAD ALERT -->
+<div class="oa" id="oa">
+  <div class="oa-ic"><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div>
+  <div class="oa-tx"><div class="oa-ttl">DIRECTLY OVERHEAD</div><div class="oa-call" id="oaCall">—</div><div class="oa-sub" id="oaSub">—</div></div>
 </div>
 
-<!-- ── AR OVERLAY ────────────────────────────────────────────────────────── -->
-<div class="ar-overlay" id="arOverlay">
-  <video class="ar-video" id="arVideo" autoplay playsinline muted></video>
-  <div class="ar-crosshair"></div>
-  <div id="arContainer"></div>
+<!-- AR -->
+<div class="aro" id="aro">
+  <video class="ar-vid" id="arVid" autoplay playsinline muted></video>
+  <div class="ar-cx"></div>
+  <div id="arCont"></div>
   <button class="ar-close" id="arClose">✕</button>
   <div class="ar-info">Point to the sky · Move device to locate planes</div>
 </div>
 
-<!-- ── ISLAND ────────────────────────────────────────────────────────────── -->
-<div class="island-wrap">
+<!-- ISLAND -->
+<div class="iw">
   <div class="island" id="island">
     <div class="brand">
-      <div class="brand-icon">
-        <svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
-      </div>
-      <div class="brand-text">Over<span class="b-head">head</span></div>
+      <div class="bic"><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg></div>
+      <div class="btxt">Over<span class="bh">head</span></div>
     </div>
-    <div class="searchbox">
-      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input id="searchInput" placeholder="Search flight, airline, type…" autocomplete="off" autocorrect="off" spellcheck="false"/>
+    <div class="sbox">
+      <svg class="sic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input id="srch" placeholder="Search flight, airline, type… (/)" autocomplete="off" autocorrect="off" spellcheck="false"/>
     </div>
-    <div class="island-flight" id="islandFlight">
-      <div style="display:flex;flex-direction:column;">
-        <div class="if-call" id="ifCall">FLIGHT</div>
-        <div class="if-route" id="ifRoute">Tracking Active</div>
-      </div>
+    <div class="ifl" id="ifl">
+      <div><div class="ifc" id="ifc">—</div><div class="ifr" id="ifr">Tracking Live</div></div>
     </div>
-    <button class="icon-btn" id="gpsBtn" title="Centre on flight">
+    <button class="ibtn" id="followBtn" title="Follow flight (F)" style="display:none">
+      <svg viewBox="0 0 24 24"><path d="M12 2L2 22l10-4 10 4L12 2z"/></svg>
+    </button>
+    <button class="ibtn" id="gpsBtn" title="Center on flight">
       <svg viewBox="0 0 24 24"><path d="M12 2L2 22l10-4 10 4L12 2z"/></svg>
     </button>
   </div>
 </div>
 
-<!-- ── FILTER CHIPS ───────────────────────────────────────────────────────── -->
-<div class="filter-row" id="filterRow">
-  <div class="chip active" id="chipAll" onclick="setFilter('all')">
-    <svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>All
-  </div>
-  <div class="chip" id="chipAir" onclick="setFilter('air')">✈ Airborne</div>
-  <div class="chip" id="chipFav" onclick="setFilter('fav')">★ Favourites</div>
-  <div class="chip" id="chipRings" onclick="toggleRings()">⊙ Rings</div>
+<!-- FILTER CHIPS -->
+<div class="fr" id="fr">
+  <div class="chip on" id="cAll" onclick="setFil('all')"><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>All</div>
+  <div class="chip" id="cAir" onclick="setFil('air')">✈ Airborne</div>
+  <div class="chip" id="cFav" onclick="setFil('fav')">★ Favourites</div>
+  <div class="chip" id="cRng" onclick="toggleRings()">⊙ Rings</div>
 </div>
 
-<!-- ── HUD (selected flight) ─────────────────────────────────────────────── -->
-<div class="hud-wrap" id="hudWrap">
+<!-- HUD -->
+<div class="hudw" id="hudw">
   <div class="hud">
-    <div class="hud-block"><div class="hud-label">Altitude</div><div class="hud-value" id="hudAlt">—</div></div>
-    <div class="hud-divider"></div>
-    <div class="hud-block"><div class="hud-label">Speed</div><div class="hud-value" id="hudSpd">—</div></div>
-    <div class="hud-divider"></div>
-    <div class="hud-block"><div class="hud-label">V/S</div><div class="hud-value" id="hudVs">—</div></div>
+    <div class="hb"><div class="hl">Altitude</div><div class="hv" id="hAlt">—</div></div>
+    <div class="hdiv"></div>
+    <div class="hb"><div class="hl">Speed</div><div class="hv" id="hSpd">—</div></div>
+    <div class="hdiv"></div>
+    <div class="hb"><div class="hl">V/S</div><div class="hv" id="hVs">—</div></div>
   </div>
 </div>
 
-<!-- ── MAP STATUS ─────────────────────────────────────────────────────────── -->
-<div class="map-status" id="mapStatus">
-  <span class="live-dot" id="dotStatus"></span>
-  <span id="mapStatusText">Connecting…</span>
-</div>
+<!-- STATUS -->
+<div class="ms" id="ms"><span class="dot" id="msDot"></span><span id="msT">Connecting…</span></div>
 
-<!-- ── SIDE CONTROLS ──────────────────────────────────────────────────────── -->
-<div class="side-controls">
-  <button class="fab ar" id="arBtn">AR</button>
-  <button class="fab" id="gpsLocBtn" title="My Location">
+<!-- SIDE CONTROLS -->
+<div class="sc">
+  <button class="fab ar-f" id="arBtn">AR</button>
+  <button class="fab" id="themeBtn" title="Map style (N)"><span class="fc">🌙</span></button>
+  <button class="fab" id="soundBtn" title="Sound (S)">
+    <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
+  </button>
+  <button class="fab" id="followFab" title="Follow mode (F)">
     <svg viewBox="0 0 24 24"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06z"/></svg>
   </button>
-  <button class="fab" id="sheetBtn">
+  <button class="fab" id="locBtn" title="My location">
+    <svg viewBox="0 0 24 24"><path d="M12 8c-2.21 0-4 1.79-4 4s1.79 4 4 4 4-1.79 4-4-1.79-4-4-4zm8.94 3c-.46-4.17-3.77-7.48-7.94-7.94V1h-2v2.06C6.83 3.52 3.52 6.83 3.06 11H1v2h2.06c.46 4.17 3.77 7.48 7.94 7.94V23h2v-2.06c4.17-.46 7.48-3.77 7.94-7.94H23v-2h-2.06z"/></svg>
+  </button>
+  <button class="fab" id="listBtn">
     <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>
   </button>
 </div>
 
-<!-- ── ALTITUDE LEGEND ────────────────────────────────────────────────────── -->
-<div class="alt-legend" id="altLegend">
-  <div class="alt-legend-title">Altitude</div>
-  <div class="alt-row"><div class="alt-dot" style="background:var(--alt-gnd)"></div><div class="alt-lbl">Ground</div></div>
-  <div class="alt-row"><div class="alt-dot" style="background:var(--alt-low)"></div><div class="alt-lbl">&lt; 5,000 ft</div></div>
-  <div class="alt-row"><div class="alt-dot" style="background:var(--alt-mid)"></div><div class="alt-lbl">5–15,000 ft</div></div>
-  <div class="alt-row"><div class="alt-dot" style="background:var(--alt-high)"></div><div class="alt-lbl">15–25,000 ft</div></div>
-  <div class="alt-row"><div class="alt-dot" style="background:var(--alt-cruise)"></div><div class="alt-lbl">25–35,000 ft</div></div>
-  <div class="alt-row"><div class="alt-dot" style="background:var(--alt-sky)"></div><div class="alt-lbl">&gt; 35,000 ft</div></div>
+<!-- ALT LEGEND -->
+<div class="aleg" id="aleg">
+  <div class="atit">Altitude</div>
+  <div class="arow"><div class="adot" style="background:var(--a0)"></div><div class="albl">Ground</div></div>
+  <div class="arow"><div class="adot" style="background:var(--a1)"></div><div class="albl">&lt;5,000 ft</div></div>
+  <div class="arow"><div class="adot" style="background:var(--a2)"></div><div class="albl">5–15,000 ft</div></div>
+  <div class="arow"><div class="adot" style="background:var(--a3)"></div><div class="albl">15–25,000 ft</div></div>
+  <div class="arow"><div class="adot" style="background:var(--a4)"></div><div class="albl">25–35,000 ft</div></div>
+  <div class="arow"><div class="adot" style="background:var(--a5)"></div><div class="albl">&gt;35,000 ft</div></div>
 </div>
 
-<!-- ── BOTTOM SHEET ────────────────────────────────────────────────────────── -->
-<div class="sheet expanded" id="sheet">
-  <div class="sheet-grab" id="sheetGrab"><div></div></div>
+<!-- KEYBOARD HINT -->
+<div class="kbh">
+  <kbd>/</kbd> Search &nbsp;<kbd>ESC</kbd> Back<br/>
+  <kbd>F</kbd> Follow &nbsp;<kbd>N</kbd> Map &nbsp;<kbd>S</kbd> Sound<br/>
+  <kbd>L</kbd> Labels &nbsp;<kbd>R</kbd> Rings
+</div>
 
-  <!-- Close / Fav / Share buttons (detail only) -->
-  <div class="detail-actions" id="detailActions" style="display:none;">
-    <button class="action-btn fav" id="favBtn" title="Favourite">
-      <svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-    </button>
-    <button class="action-btn" id="shareBtn" title="Share">
-      <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
-    </button>
-    <button class="action-btn" id="detailClose" title="Close">
-      <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-    </button>
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- BOTTOM SHEET -->
+<div class="sheet exp" id="sheet">
+  <div class="grab" id="grab"><div></div></div>
+  <div class="da" id="da" style="display:none">
+    <button class="abt fav" id="favBtn"><svg viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></button>
+    <button class="abt" id="shrBtn"><svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg></button>
+    <button class="abt" id="dClose"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
   </div>
-
-  <div class="sheet-content">
-
+  <div class="shc">
     <!-- LIST VIEW -->
-    <div class="view" id="viewList">
-      <div class="sheet-head">
-        <div class="sheet-date" id="sheetDate">TODAY</div>
-        <div class="sheet-title-row">
-          <div class="sheet-title">Live Radar</div>
-          <div class="sheet-count" id="sheetSub">—</div>
-        </div>
+    <div class="view" id="vL">
+      <div class="shhd">
+        <div class="shdt" id="shDt">TODAY</div>
+        <div class="shtr"><div class="shtl">Live Radar</div><div class="shcn" id="shCn">—</div></div>
       </div>
-      <!-- Stats row -->
-      <div class="stats-row">
-        <div class="stat-item">
-          <div class="stat-val" id="statTotal">—</div>
-          <div class="stat-lbl">Total</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-val green" id="statAir">—</div>
-          <div class="stat-lbl">Airborne</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-val red" id="statGnd">—</div>
-          <div class="stat-lbl">Grounded</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-val" id="statAvgAlt">—</div>
-          <div class="stat-lbl">Avg Alt</div>
-        </div>
+      <div class="stats">
+        <div class="stat"><div class="sv" id="stTot">—</div><div class="sl">Total</div></div>
+        <div class="stat"><div class="sv g" id="stAir">—</div><div class="sl">Airborne</div></div>
+        <div class="stat"><div class="sv r" id="stGnd">—</div><div class="sl">Grounded</div></div>
+        <div class="stat"><div class="sv b" id="stAvg">—</div><div class="sl">Avg Alt</div></div>
       </div>
-      <!-- Filter tabs -->
-      <div class="filter-tabs" id="filterTabs">
-        <div class="ftab on" id="tabAll"   onclick="setTabFilter('all')">All</div>
-        <div class="ftab" id="tabAir"  onclick="setTabFilter('air')">✈ Airborne</div>
-        <div class="ftab" id="tabGnd"  onclick="setTabFilter('gnd')">🛬 Grounded</div>
-        <div class="ftab" id="tabFavs" onclick="setTabFilter('fav')">★ Favourites</div>
+      <!-- Type breakdown bar -->
+      <div class="tybar-wrap" id="tybarWrap">
+        <div class="tybar" id="tybar"></div>
+        <div class="tyleg" id="tyleg"></div>
       </div>
-      <div id="flightList">
-        <div style="padding:24px;opacity:0.5;">
-          <div style="height:52px;border-radius:14px;background:var(--gray-fill);margin-bottom:8px;"></div>
-          <div style="height:52px;border-radius:14px;background:var(--gray-fill);margin-bottom:8px;"></div>
-          <div style="height:52px;border-radius:14px;background:var(--gray-fill);"></div>
-        </div>
+      <div class="ftabs" id="ftabs">
+        <div class="ftab on" id="tabA"  onclick="setTabF('all')">All</div>
+        <div class="ftab"    id="tabAi" onclick="setTabF('air')">✈ Airborne</div>
+        <div class="ftab"    id="tabG"  onclick="setTabF('gnd')">🛬 Grounded</div>
+        <div class="ftab"    id="tabFv" onclick="setTabF('fav')">★ Favourites</div>
       </div>
+      <div id="flist"><div style="padding:24px;opacity:.4;"><div style="height:52px;border-radius:14px;background:var(--gb);margin-bottom:8px;"></div><div style="height:52px;border-radius:14px;background:var(--gb);margin-bottom:8px;"></div><div style="height:52px;border-radius:14px;background:var(--gb);"></div></div></div>
     </div>
-
     <!-- DETAIL VIEW -->
-    <div class="view" id="viewDetail" style="padding-top:4px;">
-
-      <!-- Boarding Pass -->
-      <div class="wallet-card">
-        <div class="wallet-shine"></div>
-        <div class="w-header" id="bpHeaderBg" style="background:var(--gold);">
-          <div class="w-logo-area">
-            <div class="w-logo" id="bpLogo">FL</div>
-            <div class="w-airline" id="dAirline">Airline</div>
-          </div>
-          <div class="w-class">Boarding Pass</div>
+    <div class="view" id="vD" style="padding-top:4px;">
+      <!-- Boarding pass -->
+      <div class="wc">
+        <div class="wsh"></div>
+        <div class="whdr" id="bpHdr" style="background:var(--gold);">
+          <div class="wla"><div class="wlo" id="bpLogo">FL</div><div class="wair" id="dAir">Airline</div></div>
+          <div class="wcls">Boarding Pass</div>
         </div>
-        <div class="wallet-divider"></div>
-        <div class="w-progress-container">
-          <div class="w-city">
-            <div class="w-city-name" id="bpDepName">Origin</div>
-            <div class="w-code" id="bpDep">DEP</div>
-            <div class="w-time-lbl">Departed</div>
-            <div class="w-time" id="bpTimeFlown">--:--</div>
+        <div class="wdiv"></div>
+        <div class="wprog">
+          <div class="wcit">
+            <div class="wcn" id="bpDN">Origin</div>
+            <div class="wcd" id="bpDep">DEP</div>
+            <div class="wtl2">Departed</div><div class="wtm" id="bpTF">--:--</div>
           </div>
-          <div class="w-timeline">
-            <svg class="path-svg" id="flightPathSvg" viewBox="0 0 200 50" preserveAspectRatio="none">
-              <path id="pathBg"   class="path-bg"   d="M 10 40 C 30 40,40 10,60 10 L 140 10 C 160 10,170 40,190 40"/>
-              <path id="pathFill" class="path-fill" d="M 10 40 C 30 40,40 10,60 10 L 140 10 C 160 10,170 40,190 40" stroke-dasharray="250" stroke-dashoffset="250"/>
+          <div class="wtim">
+            <svg class="psv" id="psvg" viewBox="0 0 200 50" preserveAspectRatio="none">
+              <path id="pBg" class="pb" d="M 10 40 C 30 40,40 10,60 10 L 140 10 C 160 10,170 40,190 40"/>
+              <path id="pFl" class="pf" d="M 10 40 C 30 40,40 10,60 10 L 140 10 C 160 10,170 40,190 40" stroke-dasharray="250" stroke-dashoffset="250"/>
             </svg>
-            <svg class="w-timeline-icon" id="bpProgressIcon" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
+            <svg class="wpic" id="bpIco" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>
           </div>
-          <div class="w-city right">
-            <div class="w-city-name" id="bpArrName">Destination</div>
-            <div class="w-code" id="bpArr">ARR</div>
-            <div class="w-time-lbl">Est. Arrival</div>
-            <div class="w-time remain" id="bpTimeRemain">--:--</div>
+          <div class="wcit r">
+            <div class="wcn" id="bpAN">Destination</div>
+            <div class="wcd" id="bpArr">ARR</div>
+            <div class="wtl2">Est. Arrival</div><div class="wtm re" id="bpTR">--:--</div>
           </div>
         </div>
-        <div class="w-plane-img-wrap" id="wPlaneWrap" style="display:none;">
-          <img id="wPlaneImg" src=""/>
-          <div id="wPlaneAttr" class="w-plane-attr"></div>
+        <div class="wpi" id="wpi" style="display:none;"><img id="wImg" src=""/><div id="wAt" class="wpat"></div></div>
+        <div class="wex">
+          <div class="wex-i"><div class="wlb">Altitude</div><div class="wvl" id="bpAlt">—</div></div>
+          <div class="wex-i"><div class="wlb">Speed</div><div class="wvl" id="bpSpd">—</div></div>
+          <div class="wex-i"><div class="wlb">To Dest</div><div class="wvl" id="bpRem">—</div></div>
         </div>
-        <div class="w-extra-row">
-          <div class="w-extra-item"><div class="w-label">Altitude</div><div class="w-val" id="bpAlt">—</div></div>
-          <div class="w-extra-item"><div class="w-label">Speed</div><div class="w-val" id="bpSpd">—</div></div>
-          <div class="w-extra-item"><div class="w-label">Dist. to Dest</div><div class="w-val" id="dRemainNM">—</div></div>
-        </div>
-        <div class="w-bottom">
-          <div class="w-info-block"><div class="w-label">Flight</div><div class="w-val" id="bpCall">----</div></div>
-          <div class="w-barcode"></div>
+        <div class="wbot">
+          <div><div class="wlb">Flight</div><div class="wvl" id="bpCall">----</div></div>
+          <div class="wbar"></div>
         </div>
       </div>
-
-      <!-- Share Button -->
-      <div class="share-btn" id="shareCard" onclick="shareCurrentFlight()">
+      <!-- Share -->
+      <div class="sbt" id="shrCard" onclick="shareFlight()">
         <svg viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92-1.31-2.92-2.92-2.92z"/></svg>
-        Share this Flight
-        <span class="share-hint">Copy link</span>
+        Share this Flight<span class="shi">Copy link</span>
       </div>
-
-      <!-- Altitude/Speed Sparkline -->
-      <div class="section-title">Flight History (last 60 s)</div>
-      <div class="spark-wrap">
-        <div class="spark-header">
-          <div class="spark-legend">
-            <div class="spark-leg-item"><div class="spark-leg-dot" style="background:#5AC8FA"></div>Altitude</div>
-            <div class="spark-leg-item"><div class="spark-leg-dot" style="background:#FFD60A"></div>Speed</div>
-          </div>
-        </div>
-        <canvas class="spark" id="sparkCanvas" height="70"></canvas>
-      </div>
-
-      <!-- Passenger Experience -->
-      <div class="section-title">Passenger Experience</div>
+      <!-- Sparkline -->
+      <div class="sect">Flight History (last 60 s)</div>
+      <div class="spkw"><div class="spkh"><div class="spkl"><div class="spki"><div class="spkd" style="background:#5AC8FA"></div>Altitude</div><div class="spki"><div class="spkd" style="background:#FFD60A"></div>Speed</div></div></div><canvas class="spk" id="spkC" height="70"></canvas></div>
+      <!-- Passenger experience -->
+      <div class="sect">Passenger Experience</div>
       <div class="grid">
-        <div class="info full pax-header-card">
-          <div class="pax-header-top">
-            <div>
-              <div class="i-label">Flight Phase</div>
-              <div class="pax-val" id="dPhaseSub">—</div>
-            </div>
-            <div class="overhead-panel" id="realSeatbelt">
-              <svg class="icon-seatbelt" viewBox="0 0 24 24">
-                <defs><mask id="belt-mask"><rect width="24" height="24" fill="white"/><line x1="7.5" y1="9.5" x2="15" y2="16.5" stroke="black" stroke-width="2.5" stroke-linecap="round"/></mask></defs>
-                <g mask="url(#belt-mask)"><rect x="5" y="5" width="2" height="14" rx="1"/><rect x="5" y="17" width="14" height="2" rx="1"/><circle cx="11" cy="5.5" r="2.2"/><rect x="8.5" y="8.5" width="5.5" height="8.5" rx="1.5"/><rect x="12" y="14" width="6" height="3" rx="1"/></g>
-              </svg>
-              <svg class="icon-nosmoking" viewBox="0 0 24 24">
-                <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/>
-                <line x1="5.5" y1="5.5" x2="18.5" y2="18.5" stroke="currentColor" stroke-width="2"/>
-                <rect x="6" y="11" width="7" height="2" fill="currentColor" stroke="none"/>
-                <rect x="14" y="11" width="3" height="2" fill="currentColor" stroke="none"/>
-                <path d="M15.5 10c0-1.5 1.5-1.5 1.5-2.5S16 6 16 6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
-              </svg>
+        <div class="info full phdr">
+          <div class="phdt">
+            <div><div class="ilb">Flight Phase</div><div class="pva" id="dPhase">—</div></div>
+            <div class="opan" id="opan">
+              <svg class="isb" viewBox="0 0 24 24"><defs><mask id="bm"><rect width="24" height="24" fill="white"/><line x1="7.5" y1="9.5" x2="15" y2="16.5" stroke="black" stroke-width="2.5" stroke-linecap="round"/></mask></defs><g mask="url(#bm)"><rect x="5" y="5" width="2" height="14" rx="1"/><rect x="5" y="17" width="14" height="2" rx="1"/><circle cx="11" cy="5.5" r="2.2"/><rect x="8.5" y="8.5" width="5.5" height="8.5" rx="1.5"/><rect x="12" y="14" width="6" height="3" rx="1"/></g></svg>
+              <svg class="ins" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><line x1="5.5" y1="5.5" x2="18.5" y2="18.5" stroke="currentColor" stroke-width="2"/><rect x="6" y="11" width="7" height="2" fill="currentColor" stroke="none"/><rect x="14" y="11" width="3" height="2" fill="currentColor" stroke="none"/></svg>
             </div>
           </div>
-          <div class="announcement-bar">
-            <svg class="announcement-icon" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg>
-            <div class="announcement-text" id="dAnnouncement">"Sit back, relax, and enjoy the flight."</div>
-          </div>
+          <div class="abar"><svg class="aic" viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/></svg><div class="atx" id="dAnn">"Sit back, relax, and enjoy the flight."</div></div>
         </div>
-        <div class="info pax-exp turb-smooth" id="dTurbClass">
-          <div>
-            <div class="i-label">Turbulence</div>
-            <div class="pax-val" id="dTurb">Smooth</div>
-            <div class="pax-sub" id="dForce">1.00 G</div>
-          </div>
-          <div class="turb-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/>
-            </svg>
-          </div>
+        <div class="info pex tcs" id="dTurb">
+          <div><div class="ilb">Turbulence</div><div class="pva" id="dTurbV">Smooth</div><div class="ps" id="dG">1.00 G</div></div>
+          <div class="tic"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></svg></div>
         </div>
-        <div class="info pax-exp">
-          <div>
-            <div class="i-label">Mach</div>
-            <div class="pax-val" id="dMach">—</div>
-            <div class="pax-sub">True Airspeed</div>
-          </div>
-        </div>
-        <div class="info"><div class="i-label">Outside Air Temp</div><div class="i-value" id="dOAT">—</div></div>
-        <div class="info"><div class="i-label">Cabin Altitude</div><div class="i-value" id="dCabinAlt">—</div></div>
-        <div class="info full"><div class="i-label">Winds Aloft (Est.)</div><div class="i-value" id="dWinds">—</div></div>
+        <div class="info pex"><div><div class="ilb">Mach</div><div class="pva" id="dMach">—</div><div class="ps">True Airspeed</div></div></div>
+        <div class="info"><div class="ilb">Outside Air Temp</div><div class="iva" id="dOAT">—</div></div>
+        <div class="info"><div class="ilb">Cabin Altitude</div><div class="iva" id="dCab">—</div></div>
+        <div class="info full"><div class="ilb">Winds Aloft (Est.)</div><div class="iva" id="dWind">—</div></div>
       </div>
-
-      <!-- Route details -->
-      <div class="section-title" id="secRouteTitle" style="display:none;">Route Details</div>
-      <div class="grid" id="secRouteGrid" style="display:none;margin-bottom:20px;">
-        <div class="info full"><div class="i-label">Origin Airport</div><div class="i-value" id="dDepFull">—</div></div>
-        <div class="info full"><div class="i-label">Destination Airport</div><div class="i-value" id="dArrFull">—</div></div>
+      <!-- Route -->
+      <div class="sect" id="secRt" style="display:none;">Route Details</div>
+      <div class="grid" id="secRtG" style="display:none;margin-bottom:20px;">
+        <div class="info full"><div class="ilb">Origin Airport</div><div class="iva" id="dDepF">—</div></div>
+        <div class="info full"><div class="ilb">Destination Airport</div><div class="iva" id="dArrF">—</div></div>
       </div>
-
       <!-- Telemetry -->
-      <div class="section-title">Telemetry</div>
+      <div class="sect">Telemetry</div>
       <div class="grid">
-        <div class="info"><div class="i-label">Baro Altitude</div><div class="i-value" id="dAlt">—</div></div>
-        <div class="info"><div class="i-label">GPS Altitude</div><div class="i-value" id="dAltGeom">—</div></div>
-        <div class="info"><div class="i-label">Ground Speed</div><div class="i-value" id="dSpd">—</div></div>
-        <div class="info"><div class="i-label">True Airspeed</div><div class="i-value" id="dTas">—</div></div>
-        <div class="info"><div class="i-label">Indicated Speed</div><div class="i-value" id="dIas">—</div></div>
-        <div class="info"><div class="i-label">True Track</div><div class="i-value" id="dTrack">—</div></div>
-        <div class="info"><div class="i-label">Mag Heading</div><div class="i-value" id="dMagHdg">—</div></div>
-        <div class="info"><div class="i-label">Vertical Rate</div><div class="i-value" id="dVRate">—</div></div>
-        <div class="info"><div class="i-label">Squawk</div><div class="i-value" id="dSquawk">—</div></div>
-        <div class="info"><div class="i-label">Position Age</div><div class="i-value" id="dAge">—</div></div>
+        <div class="info"><div class="ilb">Baro Altitude</div><div class="iva" id="dAlt">—</div></div>
+        <div class="info"><div class="ilb">GPS Altitude</div><div class="iva" id="dAltG">—</div></div>
+        <div class="info"><div class="ilb">Ground Speed</div><div class="iva" id="dSpd">—</div></div>
+        <div class="info"><div class="ilb">True Airspeed</div><div class="iva" id="dTAS">—</div></div>
+        <div class="info"><div class="ilb">Indicated Speed</div><div class="iva" id="dIAS">—</div></div>
+        <div class="info"><div class="ilb">True Track</div><div class="iva" id="dTrk">—</div></div>
+        <div class="info"><div class="ilb">Mag Heading</div><div class="iva" id="dMHd">—</div></div>
+        <div class="info"><div class="ilb">Vertical Rate</div><div class="iva" id="dVR">—</div></div>
+        <div class="info"><div class="ilb">Squawk</div><div class="iva" id="dSqk">—</div></div>
+        <div class="info"><div class="ilb">Position Age</div><div class="iva" id="dAge">—</div></div>
       </div>
-
       <!-- Registration -->
-      <div class="section-title">Registration</div>
+      <div class="sect">Registration</div>
       <div class="grid">
-        <div class="info full"><div class="i-label">Owner / Operator</div><div class="i-value" id="dOwner">Loading…</div></div>
-        <div class="info"><div class="i-label">Registration</div><div class="i-value" id="dReg">—</div></div>
-        <div class="info"><div class="i-label">Country</div><div class="i-value" id="dCountry">—</div></div>
-        <div class="info"><div class="i-label">ICAO 24-bit</div><div class="i-value" id="dIcao">—</div></div>
-        <div class="info"><div class="i-label">Year Built</div><div class="i-value" id="dYear">—</div></div>
+        <div class="info full"><div class="ilb">Owner / Operator</div><div class="iva" id="dOwn">Loading…</div></div>
+        <div class="info"><div class="ilb">Registration</div><div class="iva" id="dReg">—</div></div>
+        <div class="info"><div class="ilb">Country</div><div class="iva" id="dCnt">—</div></div>
+        <div class="info"><div class="ilb">ICAO 24-bit</div><div class="iva" id="dIcao">—</div></div>
+        <div class="info"><div class="ilb">Year Built</div><div class="iva" id="dYr">—</div></div>
       </div>
-
       <!-- Specs -->
-      <div class="section-title">Aircraft Specifications</div>
+      <div class="sect">Aircraft Specifications</div>
       <div class="grid" style="margin-bottom:32px;">
-        <div class="info full"><div class="i-label">Model</div><div class="i-value" id="dModel">—</div></div>
-        <div class="info"><div class="i-label">Max Passengers</div><div class="i-value" id="sPax">—</div></div>
-        <div class="info"><div class="i-label">Length</div><div class="i-value" id="sLen">—</div></div>
-        <div class="info"><div class="i-label">Fuel Capacity</div><div class="i-value" id="sFuel">—</div></div>
-        <div class="info"><div class="i-label">Max Takeoff Wt.</div><div class="i-value" id="sMass">—</div></div>
-        <div class="info full"><div class="i-label">Engines</div><div class="i-value" id="sEng">—</div></div>
-        <div class="info"><div class="i-label">Total Thrust</div><div class="i-value" id="sThrust">—</div></div>
-        <div class="info"><div class="i-label">Launched</div><div class="i-value" id="sLaunch">—</div></div>
+        <div class="info full"><div class="ilb">Model</div><div class="iva" id="dMod">—</div></div>
+        <div class="info"><div class="ilb">Max Passengers</div><div class="iva" id="sPax">—</div></div>
+        <div class="info"><div class="ilb">Length</div><div class="iva" id="sLen">—</div></div>
+        <div class="info"><div class="ilb">Fuel Capacity</div><div class="iva" id="sFuel">—</div></div>
+        <div class="info"><div class="ilb">Max Takeoff Wt.</div><div class="iva" id="sMass">—</div></div>
+        <div class="info full"><div class="ilb">Engines</div><div class="iva" id="sEng">—</div></div>
+        <div class="info"><div class="ilb">Total Thrust</div><div class="iva" id="sThr">—</div></div>
+        <div class="info"><div class="ilb">Launched</div><div class="iva" id="sLch">—</div></div>
       </div>
-
-      <div class="legal-footer">
-        <div class="footer-tag">✦ Crafted through Human Vision &amp; AI ✦</div>
+      <div class="legf">
+        <div class="fott">✦ Crafted through Human Vision &amp; AI ✦</div>
         Map tiles © <a href="https://opentopomap.org" target="_blank">OpenTopoMap</a> (CC-BY-SA) —
         Map data © <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors.<br/>
         Photos via <a href="https://www.planespotters.net" target="_blank">Planespotters.net</a> ·
         Telemetry by <a href="https://airplanes.live" target="_blank">Airplanes.live</a> ·
         Route data by <a href="https://adsbdb.com" target="_blank">ADSBdb</a>
-        <span class="legal-strong">For entertainment &amp; education only — Not for navigation</span>
+        <span class="legs">For entertainment &amp; education only — Not for navigation</span>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ── IMAGE OVERLAY ──────────────────────────────────────────────────────── -->
-<div class="img-overlay" id="imgOverlay">
-  <button class="overlay-close" id="imgClose"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
-  <img id="overlayImg" src=""/>
+<!-- IMAGE OVERLAY -->
+<div class="imgo" id="imgo">
+  <button class="ovcl" id="imgCl"><svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg></button>
+  <img id="ovImg" src=""/>
 </div>
 
 <script>
+// ── UTILS ──────────────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
+const loc = navigator.language||'en-US';
+const isM = !loc.startsWith('en-US')&&!loc.startsWith('en-GB');
+const df = new Intl.DateTimeFormat(loc,{weekday:'long',month:'long',day:'numeric'});
+const tf = new Intl.DateTimeFormat(loc,{hour:'numeric',minute:'2-digit'});
+const nf = new Intl.NumberFormat(loc,{maximumFractionDigits:0});
+$('shDt').textContent = df.format(new Date()).toUpperCase();
 
 // ── WELCOME ────────────────────────────────────────────────────────────────
-if (localStorage.getItem('overhead_v2_accepted') === '1') {
-  $('welcomeOverlay').classList.add('hidden');
+if(localStorage.getItem('ohv3')!=='1') {} else $('wo').classList.add('h');
+$('woBtn').onclick=()=>{ $('wo').style.opacity='0'; setTimeout(()=>$('wo').classList.add('h'),400); localStorage.setItem('ohv3','1'); };
+
+// ── FORMAT HELPERS ─────────────────────────────────────────────────────────
+const fmtA=(ft,gnd)=>gnd?'GROUND':(ft==null?'—':`${nf.format(ft)} ft${isM?` (${nf.format(ft*.3048)} m)`:''}`);
+const fmtS=kt=>kt==null?'—':`${nf.format(kt)} kt${isM?` (${nf.format(kt*1.852)} km/h)`:''}`;
+const fmtD=nm=>!nm?'—':(isM?`${nf.format(nm*1.852)} km`:`${nf.format(nm)} NM`);
+
+// ── ALT COLOR ──────────────────────────────────────────────────────────────
+const AC=['#8E8E93','#FF3B30','#FF9500','#FFD60A','#34C759','#5AC8FA'];
+function altCol(alt,gnd){if(gnd||!alt||alt<=0)return AC[0];if(alt<5000)return AC[1];if(alt<15000)return AC[2];if(alt<25000)return AC[3];if(alt<35000)return AC[4];return AC[5];}
+
+// ── AIRCRAFT TYPE CLASSIFICATION & ICONS ───────────────────────────────────
+function acType(t){
+  if(!t)return'narrow';
+  const u=t.toUpperCase();
+  if(['A388','B748','B744','B74F'].some(x=>u.startsWith(x.slice(0,4)))||['AN1','IL9','A38'].some(x=>u.startsWith(x)))return'heavy';
+  if(['A33','A34','A35','B77','B78','IL9'].some(x=>u.startsWith(x)))return'wide';
+  if(['AT7','AT6','DH8','SF3','TBM','PC1','C20','P28','C17','BE3','PA2','DA4'].some(x=>u.startsWith(x)))return'prop';
+  if(['R44','R66','H60','EC1','EC3','AS3','MD5','B06','S76','H13'].some(x=>u.startsWith(x)))return'heli';
+  if(['GLF','C56','C52','C68','C75','LJ4','F90','PC2','E35','FA7'].some(x=>u.startsWith(x)))return'biz';
+  return'narrow';
 }
-$('welcomeBtn').addEventListener('click', () => {
-  $('welcomeOverlay').style.opacity = '0';
-  setTimeout(() => $('welcomeOverlay').classList.add('hidden'), 400);
-  localStorage.setItem('overhead_v2_accepted', '1');
-});
+const TYPE_COLORS={heavy:'#5AC8FA',wide:'#34C759',narrow:'#FFD60A',prop:'#FF9500',heli:'#FF6B6B',biz:'#C77DFF'};
+const TYPE_LABELS={heavy:'Heavy',wide:'Wide',narrow:'Narrow',prop:'Prop',heli:'Heli',biz:'Bizjet'};
 
-// ── LOCALE ─────────────────────────────────────────────────────────────────
-const loc = navigator.language || 'en-US';
-const isMetric = !loc.startsWith('en-US') && !loc.startsWith('en-GB');
-const df = new Intl.DateTimeFormat(loc, { weekday:'long', month:'long', day:'numeric' });
-const tf = new Intl.DateTimeFormat(loc, { hour:'numeric', minute:'2-digit' });
-const nf = new Intl.NumberFormat(loc, { maximumFractionDigits:0 });
-$('sheetDate').textContent = df.format(new Date()).toUpperCase();
-
-const fmtAlt  = (ft, gnd) => gnd ? 'GROUND' : (ft == null ? '—' : `${nf.format(ft)} ft${isMetric ? ` (${nf.format(ft*0.3048)} m)` : ''}`);
-const fmtSpd  = kt => kt == null ? '—' : `${nf.format(kt)} kt${isMetric ? ` (${nf.format(kt*1.852)} km/h)` : ''}`;
-const fmtDist = nm => !nm ? '—' : (isMetric ? `${nf.format(nm*1.852)} km` : `${nf.format(nm)} NM`);
-
-// ── ALTITUDE COLOR ─────────────────────────────────────────────────────────
-const ALT_COLORS = ['#8E8E93','#FF3B30','#FF9500','#FFD60A','#34C759','#5AC8FA'];
-function getAltColor(alt, onGround) {
-  if (onGround || !alt || alt <= 0) return ALT_COLORS[0];
-  if (alt < 5000)  return ALT_COLORS[1];
-  if (alt < 15000) return ALT_COLORS[2];
-  if (alt < 25000) return ALT_COLORS[3];
-  if (alt < 35000) return ALT_COLORS[4];
-  return ALT_COLORS[5];
+function getIconSvg(type,color,stroke,size){
+  const sw=size==='w'?'0.6':'1.0';
+  const paths={
+    narrow:`<path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="${color}" stroke="${stroke}" stroke-width="${sw}" stroke-linejoin="round"/>`,
+    wide:`<path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="${color}" stroke="${stroke}" stroke-width="${sw}" stroke-linejoin="round"/><ellipse cx="12" cy="12.5" rx="1.6" ry="3.5" fill="${color}" opacity=".5"/>`,
+    heavy:`<path d="M22 16v-2l-8.5-5V3.5C13.5 2.67 12.83 2 12 2s-1.5.67-1.5 1.5V9L2 14v2l8.5-2.5V19l-2.5 1.5V23l3.5-1 3.5 1v-1.5L12.5 20v-5.5L22 17z" fill="${color}" stroke="${stroke}" stroke-width="${sw}" stroke-linejoin="round"/><ellipse cx="12" cy="12" rx="2" ry="4.5" fill="${color}" opacity=".45"/>`,
+    prop:`<path d="M12 6.5c-.55 0-1 .45-1 1v4.5l-7 4v1.5l7-2v5l-2 1.5V24l3-1 3 1v-1.5l-2-1.5v-5l7 2V16l-7-4V7.5c0-.55-.45-1-1-1z" fill="${color}" stroke="${stroke}" stroke-width="${sw}" stroke-linejoin="round"/><circle cx="12" cy="4" r="3.2" fill="none" stroke="${color}" stroke-width="1.2" opacity=".65"/>`,
+    heli:`<ellipse cx="12" cy="12" rx="3.5" ry="4" fill="${color}" stroke="${stroke}" stroke-width="${sw}"/><rect x="1" y="11.2" width="22" height="1.8" rx=".9" fill="${color}" opacity=".75"/><path d="M12 16l-1 6h2z" fill="${color}" opacity=".9"/><path d="M19 17.5l-2 1.5 2 3" fill="none" stroke="${color}" stroke-width="1.2" stroke-linecap="round"/>`,
+    biz:`<path d="M12 3l1.5 4L22 11l.8 1.5-1.5.4L13 11v7l2.5 2L15.5 22 12 21l-3.5 1v-2l2.5-2v-7L3.7 12.9l-1.5-.4.8-1.5 8.5-4z" fill="${color}" stroke="${stroke}" stroke-width="${sw}" stroke-linejoin="round"/>`,
+  };
+  return`<svg viewBox="0 0 24 24" class="plane-svg">${paths[type]||paths.narrow}</svg>`;
 }
+function isWide(t){return t&&['A33','A34','A35','A38','B74','B77','B78','B76'].some(x=>t.toUpperCase().startsWith(x));}
+function isSmall(t){return t&&['C17','C90','PA2','SR2','P28','C15','BE3','DA4'].some(x=>t.toUpperCase().startsWith(x));}
 
 // ── AIRLINES DB ────────────────────────────────────────────────────────────
-const airlines = {
+const AL={
   "FIN":{n:"Finnair",c:"#0B1560"},"NLY":{n:"Norra",c:"#003087"},"NAX":{n:"Norwegian",c:"#D81939"},
   "SAS":{n:"SAS",c:"#00355E"},"VKG":{n:"Sunclass",c:"#FF7A00"},"BLX":{n:"TUI Nordic",c:"#00A0E1"},
   "WIF":{n:"Widerøe",c:"#003082"},"ICE":{n:"Icelandair",c:"#00416A"},
@@ -937,383 +715,303 @@ const airlines = {
   "SWR":{n:"SWISS",c:"#CC0000"},"BEL":{n:"Brussels Airlines",c:"#CC0000"},
   "TAP":{n:"TAP Portugal",c:"#006600"},"EIN":{n:"Aer Lingus",c:"#00693E"},
   "RYR":{n:"Ryanair",c:"#073590"},"WZZ":{n:"Wizz Air",c:"#C60C85"},
-  "AZA":{n:"ITA Airways",c:"#009246"},"AEE":{n:"Aegean",c:"#004A97"},
-  "LOT":{n:"LOT Polish",c:"#004A97"},"PGT":{n:"Pegasus",c:"#FF6600"},
-  "THY":{n:"Turkish Airlines",c:"#C70000"},"CSA":{n:"Czech Airlines",c:"#003082"},
-  "AFL":{n:"Aeroflot",c:"#003082"},"UAE":{n:"Emirates",c:"#D71920"},
-  "QTR":{n:"Qatar Airways",c:"#5C0632"},"ETD":{n:"Etihad",c:"#BD8B13"},
-  "FDB":{n:"flydubai",c:"#DE1F2E"},"ETH":{n:"Ethiopian",c:"#006600"},
-  "SIA":{n:"Singapore Airlines",c:"#F6A000"},"MAS":{n:"Malaysia Airlines",c:"#CC0001"},
-  "AXM":{n:"AirAsia",c:"#FF0000"},"THA":{n:"Thai Airways",c:"#7B1E7A"},
-  "CPA":{n:"Cathay Pacific",c:"#006564"},"JAL":{n:"JAL",c:"#C10020"},
-  "ANA":{n:"ANA",c:"#002F6C"},"KAL":{n:"Korean Air",c:"#00256C"},
-  "QFA":{n:"Qantas",c:"#EE0000"},"ANZ":{n:"Air New Zealand",c:"#0D0D0D"},
+  "AEE":{n:"Aegean",c:"#004A97"},"LOT":{n:"LOT Polish",c:"#004A97"},
+  "PGT":{n:"Pegasus",c:"#FF6600"},"THY":{n:"Turkish Airlines",c:"#C70000"},
+  "UAE":{n:"Emirates",c:"#D71920"},"QTR":{n:"Qatar Airways",c:"#5C0632"},
+  "ETD":{n:"Etihad",c:"#BD8B13"},"FDB":{n:"flydubai",c:"#DE1F2E"},
+  "SIA":{n:"Singapore Airlines",c:"#F6A000"},"CPA":{n:"Cathay Pacific",c:"#006564"},
+  "JAL":{n:"JAL",c:"#C10020"},"ANA":{n:"ANA",c:"#002F6C"},
+  "KAL":{n:"Korean Air",c:"#00256C"},"QFA":{n:"Qantas",c:"#EE0000"},
   "AAL":{n:"American Airlines",c:"#0078D2"},"DAL":{n:"Delta",c:"#E00034"},
   "UAL":{n:"United",c:"#005DAA"},"SWA":{n:"Southwest",c:"#304CB2"},
   "JBU":{n:"JetBlue",c:"#003876"},"ASA":{n:"Alaska Airlines",c:"#01426A"},
   "FDX":{n:"FedEx",c:"#4D148C"},"UPS":{n:"UPS",c:"#351C15"},
   "TAM":{n:"LATAM",c:"#1B0088"},"GLO":{n:"GOL",c:"#FF6600"},
-  "AVA":{n:"Avianca",c:"#C10020"},"AMX":{n:"Aeromexico",c:"#006CB5"},
 };
-function getDynBrand(cs, reg) {
-  const s = (cs||reg||'U').toUpperCase();
-  const h = Math.abs([...s].reduce((a,c)=>c.charCodeAt(0)+((a<<5)-a),0))%360;
-  return { n: cs&&cs.length>3&&!/^\d/.test(cs) ? cs.slice(0,3)+' Aviation' : 'Aircraft '+(reg||''), c:`hsl(${h},60%,32%)`, logo:(s.slice(0,2).replace(/[^A-Z]/g,'')||'PR') };
-}
-function getAirlineInfo(callsign) {
-  if (!callsign || callsign.length < 3) return null;
-  return airlines[callsign.slice(0,3).toUpperCase()] || null;
-}
+function airInfo(cs){if(!cs||cs.length<3)return null;return AL[cs.slice(0,3).toUpperCase()]||null;}
+function dynBrand(cs,reg){const s=(cs||reg||'U').toUpperCase();const h=Math.abs([...s].reduce((a,c)=>c.charCodeAt(0)+((a<<5)-a),0))%360;return{n:cs&&cs.length>3&&!/^\d/.test(cs)?cs.slice(0,3)+' Aviation':'Aircraft '+(reg||''),c:`hsl(${h},60%,32%)`,logo:(s.slice(0,2).replace(/[^A-Z]/g,'')||'PR')};}
 
 // ── AIRCRAFT SPECS ─────────────────────────────────────────────────────────
-const acSpecs = {
-  "A319":{pax:156,len:33.84,fuel:24210,y:1995,eng:"CFM56 / V2500",thrust:105,mass:75500},
-  "A320":{pax:180,len:37.57,fuel:24210,y:1988,eng:"CFM56 / V2500",thrust:120,mass:78000},
-  "A20N":{pax:195,len:37.57,fuel:26730,y:2016,eng:"LEAP-1A / PW1100G",thrust:120,mass:79000},
-  "A321":{pax:220,len:44.51,fuel:24050,y:1994,eng:"CFM56 / V2500",thrust:147,mass:93500},
-  "A21N":{pax:244,len:44.51,fuel:32940,y:2017,eng:"LEAP-1A / PW1100G",thrust:147,mass:97000},
-  "A332":{pax:253,len:58.82,fuel:139090,y:1998,eng:"Trent 700 / PW4000",thrust:311,mass:242000},
-  "A333":{pax:295,len:63.69,fuel:97530,y:1994,eng:"Trent 700 / PW4000",thrust:311,mass:242000},
-  "A359":{pax:350,len:66.80,fuel:141000,y:2014,eng:"Trent XWB-84",thrust:374,mass:280000},
-  "A35K":{pax:410,len:73.79,fuel:156000,y:2018,eng:"Trent XWB-97",thrust:431,mass:319000},
-  "A388":{pax:853,len:72.72,fuel:320000,y:2007,eng:"Trent 900 / GP7200",thrust:311,mass:575000},
-  "B737":{pax:149,len:33.60,fuel:26020,y:1997,eng:"CFM56-7B",thrust:101,mass:70080},
-  "B738":{pax:189,len:39.50,fuel:26020,y:1998,eng:"CFM56-7B",thrust:121,mass:79010},
-  "B739":{pax:220,len:42.10,fuel:29660,y:2001,eng:"CFM56-7B",thrust:121,mass:85130},
-  "B38M":{pax:189,len:39.52,fuel:25816,y:2017,eng:"LEAP-1B",thrust:130,mass:82190},
-  "B744":{pax:416,len:70.66,fuel:216840,y:1988,eng:"PW4000 / CF6",thrust:282,mass:396890},
-  "B748":{pax:467,len:76.25,fuel:238610,y:2010,eng:"GEnx-2B67",thrust:296,mass:447700},
-  "B77W":{pax:396,len:73.90,fuel:181280,y:2004,eng:"GE90-115B",thrust:512,mass:351500},
-  "B788":{pax:242,len:56.70,fuel:126206,y:2011,eng:"GEnx-1B / Trent 1000",thrust:280,mass:227930},
-  "B789":{pax:290,len:63.00,fuel:126372,y:2014,eng:"GEnx-1B / Trent 1000",thrust:320,mass:254011},
-  "AT72":{pax:78,len:27.17,fuel:5000,y:1989,eng:"PW127",thrust:40,mass:23000},
-  "AT76":{pax:78,len:27.17,fuel:5000,y:2012,eng:"PW127M",thrust:40,mass:23000},
-  "DH8D":{pax:78,len:32.81,fuel:6526,y:2000,eng:"PW150A",thrust:45,mass:29257},
-  "BCS1":{pax:135,len:35.00,fuel:21805,y:2016,eng:"PW1500G",thrust:104,mass:63100},
-  "BCS3":{pax:160,len:38.70,fuel:21805,y:2016,eng:"PW1500G",thrust:104,mass:69900},
-  "CRJ9":{pax:90,len:36.20,fuel:8822,y:2003,eng:"CF34-8C5",thrust:63,mass:38330},
-  "E190":{pax:114,len:36.24,fuel:12971,y:2005,eng:"CF34-10E",thrust:89,mass:51800},
-  "E295":{pax:120,len:41.50,fuel:13690,y:2018,eng:"PW1900G",thrust:101,mass:62000},
+const SP={
+  "A319":{pax:156,len:33.84,fuel:24210,y:1995,eng:"CFM56/V2500",thr:105,mass:75500},
+  "A320":{pax:180,len:37.57,fuel:24210,y:1988,eng:"CFM56/V2500",thr:120,mass:78000},
+  "A20N":{pax:195,len:37.57,fuel:26730,y:2016,eng:"LEAP-1A/PW1100G",thr:120,mass:79000},
+  "A321":{pax:220,len:44.51,fuel:24050,y:1994,eng:"CFM56/V2500",thr:147,mass:93500},
+  "A21N":{pax:244,len:44.51,fuel:32940,y:2017,eng:"LEAP-1A/PW1100G",thr:147,mass:97000},
+  "A332":{pax:253,len:58.82,fuel:139090,y:1998,eng:"Trent 700/PW4000",thr:311,mass:242000},
+  "A333":{pax:295,len:63.69,fuel:97530,y:1994,eng:"Trent 700/PW4000",thr:311,mass:242000},
+  "A359":{pax:350,len:66.80,fuel:141000,y:2014,eng:"Trent XWB-84",thr:374,mass:280000},
+  "A35K":{pax:410,len:73.79,fuel:156000,y:2018,eng:"Trent XWB-97",thr:431,mass:319000},
+  "A388":{pax:853,len:72.72,fuel:320000,y:2007,eng:"Trent 900/GP7200",thr:311,mass:575000},
+  "B737":{pax:149,len:33.60,fuel:26020,y:1997,eng:"CFM56-7B",thr:101,mass:70080},
+  "B738":{pax:189,len:39.50,fuel:26020,y:1998,eng:"CFM56-7B",thr:121,mass:79010},
+  "B739":{pax:220,len:42.10,fuel:29660,y:2001,eng:"CFM56-7B",thr:121,mass:85130},
+  "B38M":{pax:189,len:39.52,fuel:25816,y:2017,eng:"LEAP-1B",thr:130,mass:82190},
+  "B744":{pax:416,len:70.66,fuel:216840,y:1988,eng:"PW4000/CF6",thr:282,mass:396890},
+  "B748":{pax:467,len:76.25,fuel:238610,y:2010,eng:"GEnx-2B67",thr:296,mass:447700},
+  "B77W":{pax:396,len:73.90,fuel:181280,y:2004,eng:"GE90-115B",thr:512,mass:351500},
+  "B788":{pax:242,len:56.70,fuel:126206,y:2011,eng:"GEnx-1B/Trent 1000",thr:280,mass:227930},
+  "B789":{pax:290,len:63.00,fuel:126372,y:2014,eng:"GEnx-1B/Trent 1000",thr:320,mass:254011},
+  "AT72":{pax:78,len:27.17,fuel:5000,y:1989,eng:"PW127",thr:40,mass:23000},
+  "AT76":{pax:78,len:27.17,fuel:5000,y:2012,eng:"PW127M",thr:40,mass:23000},
+  "DH8D":{pax:78,len:32.81,fuel:6526,y:2000,eng:"PW150A",thr:45,mass:29257},
+  "BCS1":{pax:135,len:35.00,fuel:21805,y:2016,eng:"PW1500G",thr:104,mass:63100},
+  "BCS3":{pax:160,len:38.70,fuel:21805,y:2016,eng:"PW1500G",thr:104,mass:69900},
+  "CRJ9":{pax:90,len:36.20,fuel:8822,y:2003,eng:"CF34-8C5",thr:63,mass:38330},
+  "E190":{pax:114,len:36.24,fuel:12971,y:2005,eng:"CF34-10E",thr:89,mass:51800},
+  "E295":{pax:120,len:41.50,fuel:13690,y:2018,eng:"PW1900G",thr:101,mass:62000},
 };
+
+// ── MAP THEMES ─────────────────────────────────────────────────────────────
+const THEMES=[
+  {key:'t-explorer',icon:'🗺',name:'Explorer',url:'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',attr:'OpenTopoMap (CC-BY-SA)'},
+  {key:'t-night',icon:'🌙',name:'Night',url:'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',attr:'CartoDB'},
+  {key:'t-clean',icon:'☁️',name:'Clean',url:'https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',attr:'CartoDB'},
+];
+let themeIdx=parseInt(localStorage.getItem('ohTheme')||'0',10)%THEMES.length;
+function applyTheme(){
+  const t=THEMES[themeIdx]; document.body.className=t.key;
+  $('themeBtn').querySelector('.fc').textContent=THEMES[(themeIdx+1)%THEMES.length].icon;
+}
+applyTheme();
 
 // ── STATE ──────────────────────────────────────────────────────────────────
-const state = {
-  map: null, userLat:60.45, userLon:22.26,
-  flights: new Map(), selectedIcao: null,
-  photoCache: new Map(), routeCache: new Map(), markers: new Map(),
-  animPaused: false, aL: null, fetchRetries: 0,
-  tabFilter: 'all',
+const S={
+  map:null,userLat:60.45,userLon:22.26,
+  flights:new Map(),selIcao:null,
+  photoCache:new Map(),routeCache:new Map(),markers:new Map(),
+  animPaused:false,aL:null,retries:0,
 };
-const posHistory = new Map();   // icao24 → [{lat,lon,alt,ts}]
-const flightHistory = new Map(); // icao24 → [{alt,spd,ts}]
-const favorites = new Set(JSON.parse(localStorage.getItem('overhead_favs') || '[]'));
-let trailLine  = null;
-let routeLine  = null;
-let distRings  = [];
-let ringsOn    = false;
+const posHist=new Map(); // icao→[{lat,lon,alt,ts}]
+const fltHist=new Map(); // icao→[{alt,spd,ts}]
+const favs=new Set(JSON.parse(localStorage.getItem('ohFavs')||'[]'));
 
-const cGold = getComputedStyle(document.documentElement).getPropertyValue('--gold').trim();
+let trailSegs=[];    // gradient trail polylines
+let routeLine=null;
+let rings=[];
+let ringsOn=false;
+let followMode=false;
+let showLabels=false;
+let soundOn=JSON.parse(localStorage.getItem('ohSound')||'true');
+let audioCtx=null;
+let tabFil='all';
+let activeOH=null;
+let tileLayer=null;
 
-// ── PLANE SVG FACTORY ──────────────────────────────────────────────────────
-function getPlaneSvg(color, stroke, size) {
-  const sw = size === 'wide' ? '0.7' : '1.0';
-  return `<svg viewBox="0 0 24 24" class="plane-svg"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z" fill="${color}" stroke="${stroke}" stroke-width="${sw}" stroke-linejoin="round"/></svg>`;
+const cGold=getComputedStyle(document.documentElement).getPropertyValue('--gold').trim();
+
+// ── SOUND ──────────────────────────────────────────────────────────────────
+function getAC(){if(!audioCtx)audioCtx=new(window.AudioContext||window.webkitAudioContext)();return audioCtx;}
+function beep(freq=880,dur=.15,vol=.25){
+  if(!soundOn)return;
+  try{const ac=getAC(),o=ac.createOscillator(),g=ac.createGain();
+    o.connect(g);g.connect(ac.destination);o.frequency.value=freq;o.type='sine';
+    g.gain.setValueAtTime(0,ac.currentTime);
+    g.gain.linearRampToValueAtTime(vol,ac.currentTime+.01);
+    g.gain.exponentialRampToValueAtTime(.001,ac.currentTime+dur);
+    o.start(ac.currentTime);o.stop(ac.currentTime+dur+.01);
+  }catch(e){}
 }
-function isWide(type) {
-  if (!type) return false;
-  const t = type.toUpperCase();
-  return ['A33','A34','A35','A38','B74','B77','B78','B76','IL9'].some(x => t.startsWith(x));
+function toggleSound(){
+  soundOn=!soundOn;localStorage.setItem('ohSound',soundOn);
+  $('soundBtn').classList.toggle('son',soundOn);
+  if(soundOn)beep(880,.08);
+  showToast(soundOn?'🔊 Sound on':'🔇 Sound off');
 }
-function isSmall(type) {
-  if (!type) return false;
-  const t = type.toUpperCase();
-  return ['C17','C90','PA2','SR2','P28','C17','C15','BE3','DA4'].some(x => t.startsWith(x));
+$('soundBtn').classList.toggle('son',soundOn);
+
+// ── TOAST ──────────────────────────────────────────────────────────────────
+let toastTO;
+function showToast(msg){
+  const el=$('toast');el.textContent=msg;el.classList.add('show');
+  clearTimeout(toastTO);toastTO=setTimeout(()=>el.classList.remove('show'),2200);
 }
+
+// ── FOLLOW MODE ────────────────────────────────────────────────────────────
+function toggleFollow(){
+  followMode=!followMode;
+  $('followBtn').classList.toggle('fol',followMode);
+  $('followFab').classList.toggle('fon',followMode);
+  showToast(followMode?'📍 Follow: On':'📍 Follow: Off');
+}
+
+// ── LABELS TOGGLE ──────────────────────────────────────────────────────────
+function toggleLabels(){
+  showLabels=!showLabels;
+  updateMarkers();
+  showToast(showLabels?'🏷 Labels: On':'🏷 Labels: Off');
+}
+
+// ── MAP THEME SWITCH ───────────────────────────────────────────────────────
+function cycleTheme(){
+  themeIdx=(themeIdx+1)%THEMES.length;
+  localStorage.setItem('ohTheme',themeIdx);
+  const t=THEMES[themeIdx];
+  applyTheme();
+  if(tileLayer)S.map.removeLayer(tileLayer);
+  tileLayer=L.tileLayer(t.url,{maxZoom:19,attribution:`Map © <a href="https://www.openstreetmap.org/copyright">OSM</a> | ${t.attr}`}).addTo(S.map);
+  showToast(t.icon+' '+t.name+' mode');
+}
+$('themeBtn').onclick=cycleTheme;
+
+// ── FAVS ───────────────────────────────────────────────────────────────────
+function saveFavs(){localStorage.setItem('ohFavs',JSON.stringify([...favs]));}
+function toggleFav(icao){
+  if(favs.has(icao))favs.delete(icao);else favs.add(icao);
+  saveFavs();
+  if(S.selIcao===icao)$('favBtn').classList.toggle('on',favs.has(icao));
+  updateMarkers();renderList();
+}
+
+// ── SHARE ──────────────────────────────────────────────────────────────────
+window.shareFlight=function(){
+  if(!S.selIcao)return;
+  const f=S.flights.get(S.selIcao);if(!f)return;
+  const cs=(f.callsign||f.icao24).replace(/[<>]/g,'');
+  const txt=`✈ ${cs} · ${f.type} · ${fmtA(f.baro_alt,f.on_ground)} · ${fmtS(f.velocity)} — via Overhead Radar`;
+  if(navigator.share)navigator.share({title:`Flight ${cs}`,text:txt}).catch(()=>{});
+  else if(navigator.clipboard)navigator.clipboard.writeText(txt).then(()=>showToast('📋 Copied!'));
+};
+
+// ── RINGS ──────────────────────────────────────────────────────────────────
+function toggleRings(){
+  ringsOn=!ringsOn;$('cRng').classList.toggle('on',ringsOn);
+  if(ringsOn){
+    const st={color:'#E5A93A',weight:1,opacity:.2,fillOpacity:.02,fillColor:'#E5A93A',dashArray:'6 8'};
+    [50,100,200].forEach(nm=>{
+      rings.push(L.circle([S.userLat,S.userLon],{radius:nm*1852,...st}).addTo(S.map));
+      const ic=L.divIcon({className:'',html:`<div style="font-size:10px;font-weight:700;color:rgba(229,169,58,.65);white-space:nowrap;">${nm} NM</div>`});
+      rings.push(L.marker([S.userLat+nm*1852/111320,S.userLon],{icon:ic,zIndexOffset:-1000}).addTo(S.map));
+    });
+  }else{
+    rings.forEach(r=>S.map.removeLayer(r));rings=[];
+  }
+}
+window.toggleRings=toggleRings;
 
 // ── HAVERSINE ──────────────────────────────────────────────────────────────
-const haversine = (l1,n1,l2,n2) => {
-  if (l1==null||n1==null||l2==null||n2==null) return 0;
-  const R=3440.065, p=Math.PI/180,
-        a=Math.sin((l2-l1)*p/2)**2 + Math.cos(l1*p)*Math.cos(l2*p)*Math.sin((n2-n1)*p/2)**2;
+const hav=(l1,n1,l2,n2)=>{
+  if(l1==null)return 0;
+  const R=3440.065,p=Math.PI/180;
+  const a=Math.sin((l2-l1)*p/2)**2+Math.cos(l1*p)*Math.cos(l2*p)*Math.sin((n2-n1)*p/2)**2;
   return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 };
-
-// ── TRIM CACHE ─────────────────────────────────────────────────────────────
-function trim(cache, max=200) {
-  while(cache.size > max) cache.delete(cache.keys().next().value);
-}
-
-// ── VISIBILITY API ─────────────────────────────────────────────────────────
-document.addEventListener('visibilitychange', () => {
-  state.animPaused = document.hidden;
-  if (!document.hidden) state.aL = null;
-});
-
-// ── FETCH WITH TIMEOUT ─────────────────────────────────────────────────────
-async function fetchT(url, ms=8000) {
-  const ctrl = new AbortController();
-  const id = setTimeout(() => ctrl.abort(), ms);
-  try { const r = await fetch(url, {signal:ctrl.signal}); clearTimeout(id); return r; }
-  catch(e) { clearTimeout(id); throw e; }
-}
-
-// ── FAVOURITES ─────────────────────────────────────────────────────────────
-function saveFavs() {
-  localStorage.setItem('overhead_favs', JSON.stringify([...favorites]));
-}
-function toggleFav(icao) {
-  if (favorites.has(icao)) favorites.delete(icao); else favorites.add(icao);
-  saveFavs();
-  // Update fab button
-  if (state.selectedIcao === icao) {
-    $('favBtn').classList.toggle('active', favorites.has(icao));
-  }
-  updateMarkers();
-  renderList();
-}
-
-// ── SHARE FLIGHT ───────────────────────────────────────────────────────────
-function shareCurrentFlight() {
-  if (!state.selectedIcao) return;
-  const f = state.flights.get(state.selectedIcao);
-  if (!f) return;
-  const cs = (f.callsign || f.icao24).replace(/[<>]/g,'');
-  const text = `✈ ${cs} · ${f.type} · ${fmtAlt(f.baro_alt, f.on_ground)} · ${fmtSpd(f.velocity)} — tracked via Overhead Radar`;
-  if (navigator.share) {
-    navigator.share({ title: `Flight ${cs}`, text }).catch(()=>{});
-  } else if (navigator.clipboard) {
-    navigator.clipboard.writeText(text).then(() => {
-      const btn = $('shareCard');
-      const orig = btn.querySelector('.share-hint').textContent;
-      btn.querySelector('.share-hint').textContent = 'Copied!';
-      setTimeout(() => btn.querySelector('.share-hint').textContent = orig, 2000);
-    });
-  }
-}
-window.shareCurrentFlight = shareCurrentFlight;
-
-// ── DISTANCE RINGS ─────────────────────────────────────────────────────────
-function toggleRings() {
-  ringsOn = !ringsOn;
-  const chip = $('chipRings');
-  chip.classList.toggle('active', ringsOn);
-  if (ringsOn) {
-    const style = { color:'#E5A93A', weight:1, opacity:0.25, fillOpacity:0.03, fillColor:'#E5A93A', dashArray:'6 8' };
-    [50,100,200].forEach(nm => {
-      const r = L.circle([state.userLat,state.userLon], {radius:nm*1852, ...style}).addTo(state.map);
-      const label = L.divIcon({ className:'', html:`<div style="font-size:10px;font-weight:700;color:rgba(229,169,58,0.7);white-space:nowrap;">${nm} NM</div>` });
-      L.marker([state.userLat + nm*1852/111320, state.userLon], {icon:label, zIndexOffset:-1000}).addTo(state.map);
-      distRings.push(r);
-    });
-  } else {
-    distRings.forEach(r => state.map.removeLayer(r));
-    distRings = [];
-    // Remove ring labels (simplified: pan to force redraw)
-    state.map.eachLayer(l => { if (l instanceof L.Marker && l.options.zIndexOffset === -1000) state.map.removeLayer(l); });
-  }
-}
-window.toggleRings = toggleRings;
-
-// ── FILTER ─────────────────────────────────────────────────────────────────
-let activeTabFilter = 'all';
-window.setFilter = function(v) {
-  ['chipAll','chipAir','chipFav'].forEach(id => $(id).classList.remove('active'));
-  $({all:'chipAll',air:'chipAir',fav:'chipFav'}[v]).classList.add('active');
-  activeTabFilter = v;
-  renderList();
-};
-window.setTabFilter = function(v) {
-  activeTabFilter = v;
-  ['tabAll','tabAir','tabGnd','tabFavs'].forEach(id => $(id).classList.remove('on'));
-  $({all:'tabAll',air:'tabAir',gnd:'tabGnd',fav:'tabFavs'}[v]).classList.add('on');
-  renderList();
-};
-
-// ── ROUTE FETCH ────────────────────────────────────────────────────────────
-async function fetchRoute(cs) {
-  if (!cs || cs.length < 3) return null;
-  const cc = cs.replace(/[<>]/g,'').trim();
-  if (state.routeCache.has(cc)) return state.routeCache.get(cc);
-  try {
-    const r = await fetchT(`https://api.adsbdb.com/v0/callsign/${cc}`, 6000);
-    if (r.ok) {
-      const d = (await r.json())?.response?.flightroute;
-      if (d) {
-        const res = {
-          dep:d.origin?.iata_code||d.origin?.icao_code||'N/A',
-          depName:d.origin?.municipality||'Unknown',
-          depFull:d.origin?.name||d.origin?.municipality||'Unknown',
-          depLat:d.origin?.latitude, depLon:d.origin?.longitude,
-          arr:d.destination?.iata_code||d.destination?.icao_code||'N/A',
-          arrName:d.destination?.municipality||'Unknown',
-          arrFull:d.destination?.name||d.destination?.municipality||'Unknown',
-          arrLat:d.destination?.latitude, arrLon:d.destination?.longitude,
-        };
-        state.routeCache.set(cc, res);
-        trim(state.routeCache);
-        return res;
-      }
-    }
-  } catch(e) {}
-  return null;
-}
-
-// ── DRAW TRAIL ─────────────────────────────────────────────────────────────
-function drawTrail(icao) {
-  if (trailLine) { state.map.removeLayer(trailLine); trailLine = null; }
-  const hist = posHistory.get(icao);
-  if (!hist || hist.length < 2) return;
-  const pts = hist.map(p => [p.lat, p.lon]);
-  trailLine = L.polyline(pts, {
-    color: '#E5A93A', weight: 2.5, opacity: 0.7,
-    dashArray: '4 6', lineCap: 'round', lineJoin: 'round'
-  }).addTo(state.map);
-}
-
-// ── DRAW ROUTE LINE ────────────────────────────────────────────────────────
-function drawRouteLine(route) {
-  if (routeLine) { state.map.removeLayer(routeLine); routeLine = null; }
-  if (!route?.depLat || !route?.arrLat) return;
-  routeLine = L.polyline(
-    [[route.depLat, route.depLon], [route.arrLat, route.arrLon]],
-    { color:'rgba(229,169,58,0.35)', weight:2, dashArray:'6 8', lineCap:'round' }
-  ).addTo(state.map);
-}
-
-// ── OVERHEAD CHECK ─────────────────────────────────────────────────────────
-let activeOverhead = null;
-function checkOverhead() {
-  let ov = null;
-  for (const f of state.flights.values()) {
-    if (!f.on_ground && f.dist != null && f.baro_alt) {
-      if (f.dist < f.baro_alt/6076 && f.baro_alt > 1500) { ov = f; break; }
-    }
-  }
-  const el = $('overheadAlert');
-  if (ov) {
-    if (activeOverhead !== ov.icao24) {
-      activeOverhead = ov.icao24;
-      $('oaCall').textContent = (ov.callsign||ov.reg||'Unknown').replace(/[<>]/g,'');
-      $('oaSub').textContent = `${ov.type} · ${nf.format(ov.baro_alt)} ft`;
-      el.classList.add('show');
-      el.onclick = () => openUI(ov.icao24);
-    }
-  } else if (activeOverhead) {
-    el.classList.remove('show');
-    activeOverhead = null;
-  }
-}
-
-// ── AR ─────────────────────────────────────────────────────────────────────
-let arActive = false, devH = 0, devP = 0, vidStream = null;
-async function startAR() {
-  arActive = true; $('arOverlay').classList.add('open');
-  if (window.DeviceOrientationEvent?.requestPermission) {
-    try { const p = await DeviceOrientationEvent.requestPermission(); if (p!=='granted') alert('AR needs compass.'); } catch(e){}
-  }
-  window.addEventListener('deviceorientation', onOrient);
-  try {
-    vidStream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
-    $('arVideo').srcObject = vidStream;
-  } catch(e) {}
-}
-function stopAR() {
-  arActive = false; $('arOverlay').classList.remove('open');
-  window.removeEventListener('deviceorientation', onOrient);
-  if (vidStream) { vidStream.getTracks().forEach(t=>t.stop()); vidStream = null; }
-  $('arContainer').innerHTML = '';
-}
-function onOrient(e) {
-  devH = e.webkitCompassHeading ? e.webkitCompassHeading : (360-e.alpha)%360;
-  devP = e.beta;
-}
-function bearing(la1,lo1,la2,lo2) {
-  const r=Math.PI/180,d=Math.PI*2/360*-1;
+function bearing(la1,lo1,la2,lo2){
+  const r=Math.PI/180;
   const y=Math.sin((lo2-lo1)*r)*Math.cos(la2*r);
   const x=Math.cos(la1*r)*Math.sin(la2*r)-Math.sin(la1*r)*Math.cos(la2*r)*Math.cos((lo2-lo1)*r);
-  return (Math.atan2(y,x)/r+360)%360;
+  return(Math.atan2(y,x)/r+360)%360;
 }
 
-$('arBtn').addEventListener('click', startAR);
-$('arClose').addEventListener('click', stopAR);
+// ── TRIM CACHE ─────────────────────────────────────────────────────────────
+function trim(m,max=200){while(m.size>max)m.delete(m.keys().next().value);}
 
-// ── PHOTO FETCH ────────────────────────────────────────────────────────────
-async function fetchPhoto(icao) {
-  if (state.photoCache.has(icao)) return state.photoCache.get(icao);
-  state.photoCache.set(icao, 'loading');
-  try {
-    const r = await fetchT(`https://api.planespotters.net/pub/photos/hex/${icao}`, 6000);
-    if (r.ok) {
-      const d = await r.json();
-      if (d.photos?.length) {
-        const p = {url:d.photos[0].thumbnail_large.src, author:d.photos[0].photographer};
-        state.photoCache.set(icao, p); trim(state.photoCache);
-        if (state.selectedIcao === icao) applyPhoto(p);
-        return p;
-      }
+// ── VISIBILITY ────────────────────────────────────────────────────────────
+document.addEventListener('visibilitychange',()=>{S.animPaused=document.hidden;if(!document.hidden)S.aL=null;});
+
+// ── FETCH ─────────────────────────────────────────────────────────────────
+async function fetchT(url,ms=8000){
+  const c=new AbortController(),id=setTimeout(()=>c.abort(),ms);
+  try{const r=await fetch(url,{signal:c.signal});clearTimeout(id);return r;}
+  catch(e){clearTimeout(id);throw e;}
+}
+
+// ── PHOTO ─────────────────────────────────────────────────────────────────
+async function fetchPhoto(icao){
+  if(S.photoCache.has(icao))return S.photoCache.get(icao);
+  S.photoCache.set(icao,'loading');
+  try{
+    const r=await fetchT(`https://api.planespotters.net/pub/photos/hex/${icao}`,6000);
+    if(r.ok){const d=await r.json();if(d.photos?.length){const p={url:d.photos[0].thumbnail_large.src,author:d.photos[0].photographer};S.photoCache.set(icao,p);trim(S.photoCache);if(S.selIcao===icao)applyPhoto(p);return p;}}
+  }catch(e){}return null;
+}
+function applyPhoto(p){const img=$('wImg');if(img){img.src=p.url;img.onload=()=>img.style.opacity='1';$('wAt').textContent='© '+p.author;$('wpi').style.display='block';}}
+
+// ── ROUTE FETCH ────────────────────────────────────────────────────────────
+async function fetchRoute(cs){
+  if(!cs||cs.length<3)return null;
+  const cc=cs.replace(/[<>]/g,'').trim();
+  if(S.routeCache.has(cc))return S.routeCache.get(cc);
+  try{
+    const r=await fetchT(`https://api.adsbdb.com/v0/callsign/${cc}`,6000);
+    if(r.ok){
+      const d=(await r.json())?.response?.flightroute;
+      if(d){const res={dep:d.origin?.iata_code||d.origin?.icao_code||'N/A',depName:d.origin?.municipality||'Unknown',depFull:d.origin?.name||d.origin?.municipality||'Unknown',depLat:d.origin?.latitude,depLon:d.origin?.longitude,arr:d.destination?.iata_code||d.destination?.icao_code||'N/A',arrName:d.destination?.municipality||'Unknown',arrFull:d.destination?.name||d.destination?.municipality||'Unknown',arrLat:d.destination?.latitude,arrLon:d.destination?.longitude};S.routeCache.set(cc,res);trim(S.routeCache);return res;}
     }
-  } catch(e) {}
-  return null;
+  }catch(e){}return null;
 }
-function applyPhoto(p) {
-  const img = $('wPlaneImg');
-  if (img) { img.src=p.url; img.onload=()=>img.style.opacity='1'; $('wPlaneAttr').textContent='© '+p.author; $('wPlaneWrap').style.display='block'; }
+
+// ── GRADIENT TRAIL ─────────────────────────────────────────────────────────
+function drawTrail(icao){
+  trailSegs.forEach(l=>S.map.removeLayer(l));trailSegs=[];
+  const hist=posHist.get(icao);if(!hist||hist.length<2)return;
+  const n=hist.length;
+  for(let i=1;i<n;i++){
+    const p=i/n;
+    const l=L.polyline([[hist[i-1].lat,hist[i-1].lon],[hist[i].lat,hist[i].lon]],
+      {color:'#E5A93A',weight:.8+p*2.2,opacity:p*.75,lineCap:'round'}).addTo(S.map);
+    trailSegs.push(l);
+  }
+}
+
+// ── ROUTE LINE ─────────────────────────────────────────────────────────────
+function drawRouteLine(rt){
+  if(routeLine){S.map.removeLayer(routeLine);routeLine=null;}
+  if(!rt?.depLat||!rt?.arrLat)return;
+  routeLine=L.polyline([[rt.depLat,rt.depLon],[rt.arrLat,rt.arrLon]],
+    {color:'rgba(229,169,58,.3)',weight:2,dashArray:'5 8',lineCap:'round'}).addTo(S.map);
 }
 
 // ── MAP INIT ───────────────────────────────────────────────────────────────
-function initMap() {
-  state.map = L.map('map', {zoomControl:false, attributionControl:true})
-    .setView([state.userLat, state.userLon], 6);
-  L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
-    maxZoom:17,
-    attribution:'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (CC-BY-SA)',
-  }).addTo(state.map);
-  state.userMarker = L.circleMarker([state.userLat, state.userLon], {
-    radius:9, color:'#fff', weight:3, fillColor:cGold, fillOpacity:1
-  }).addTo(state.map);
-  state.map.on('zoomend', updateMarkers);
+function initMap(){
+  S.map=L.map('map',{zoomControl:false,attributionControl:true}).setView([S.userLat,S.userLon],6);
+  const t=THEMES[themeIdx];
+  tileLayer=L.tileLayer(t.url,{maxZoom:19,attribution:`Map data © <a href="https://www.openstreetmap.org/copyright">OSM</a> | ${t.attr}`}).addTo(S.map);
+  S.userMk=L.circleMarker([S.userLat,S.userLon],{radius:9,color:'#fff',weight:3,fillColor:cGold,fillOpacity:1}).addTo(S.map);
+  S.map.on('zoomend',updateMarkers);
 }
 
 // ── MARKER UPDATE ──────────────────────────────────────────────────────────
-function updateMarkers() {
-  if (!state.map) return;
-  const sorted = [...state.flights.values()].sort((a,b)=>a.dist-b.dist).slice(0,300);
-  const alive = new Set(sorted.map(f=>f.icao24));
-  for (const [i,m] of state.markers.entries()) {
-    if (!alive.has(i)) { state.map.removeLayer(m); state.markers.delete(i); }
-  }
-  for (const f of sorted) {
-    const sel = f.icao24 === state.selectedIcao;
-    const col = sel ? cGold : getAltColor(f.baro_alt, f.on_ground);
-    const sz  = sel ? '' : (isWide(f.type) ? 'wide' : isSmall(f.type) ? 'small' : '');
-    const fav = favorites.has(f.icao24);
-    const pulse = sel ? `<div class="plane-pulse" style="width:52px;height:52px;border:2px solid ${cGold};background:rgba(229,169,58,0.15);"></div>` : '';
-    const svgHtml = getPlaneSvg(col, '#5C4D3C', sz);
-    const html = `<div class="plane-wrapper ${sel?'sel':sz} ${fav?'fav-marker':''}">${pulse}<div class="svg-container" style="transform:rotate(${f.track||0}deg)">${svgHtml}</div></div>`;
-    let m = state.markers.get(f.icao24);
-    if (!m) {
-      const ic = L.divIcon({className:'', html, iconSize:[0,0]});
-      m = L.marker([f.curLat, f.curLon], {icon:ic, zIndexOffset:sel?1000:fav?600:0}).addTo(state.map);
-      m.on('click', () => openUI(f.icao24));
-      state.markers.set(f.icao24, m);
-    } else {
-      m.setLatLng([f.curLat, f.curLon]);
-      const el = m.getElement();
-      if (el) {
-        const w = el.querySelector('.plane-wrapper');
-        const c = el.querySelector('.svg-container');
-        if (w && c) {
-          c.style.transform = `rotate(${f.track||0}deg)`;
-          const nowSel = w.classList.contains('sel');
-          if (sel !== nowSel || c.dataset.col !== col) {
-            c.dataset.col = col;
-            w.className = `plane-wrapper ${sel?'sel':sz} ${fav?'fav-marker':''}`;
-            if (sel && !el.querySelector('.plane-pulse')) {
-              w.insertAdjacentHTML('afterbegin', pulse);
-            } else if (!sel) {
-              el.querySelector('.plane-pulse')?.remove();
-            }
-            c.innerHTML = getPlaneSvg(col, '#5C4D3C', sz);
+function updateMarkers(){
+  if(!S.map)return;
+  const zoom=S.map.getZoom();
+  const sorted=[...S.flights.values()].sort((a,b)=>a.dist-b.dist).slice(0,300);
+  const alive=new Set(sorted.map(f=>f.icao24));
+  for(const[i,m]of S.markers.entries()){if(!alive.has(i)){S.map.removeLayer(m);S.markers.delete(i);}}
+  for(const f of sorted){
+    const sel=f.icao24===S.selIcao;
+    const col=sel?cGold:altCol(f.baro_alt,f.on_ground);
+    const typ=acType(f.type);
+    const sz=sel?'sel':(isWide(f.type)?'w':(isSmall(f.type)?'s':(typ==='heli'?'h':'')));
+    const fav=favs.has(f.icao24);
+    const pulse=sel?`<div class="pls" style="width:52px;height:52px;border:2px solid ${cGold};background:rgba(229,169,58,.12);"></div>`:'';
+    const labelHtml=(showLabels&&zoom>=10)?`<div class="cs-label">${(f.callsign||f.icao24).replace(/[<>]/g,'').trim()}</div>`:'';
+    const svgHtml=getIconSvg(typ,col,'#4A3B2C',sz);
+    const html=`<div class="pw ${sel?'sel':sz} ${fav?'fav':''}">${pulse}<div class="rot" style="transform:rotate(${f.track||0}deg)">${svgHtml}</div>${labelHtml}</div>`;
+    let m=S.markers.get(f.icao24);
+    if(!m){
+      const ic=L.divIcon({className:'',html,iconSize:[0,0]});
+      m=L.marker([f.curLat,f.curLon],{icon:ic,zIndexOffset:sel?1000:fav?600:0}).addTo(S.map);
+      m.on('click',()=>openUI(f.icao24));
+      S.markers.set(f.icao24,m);
+    }else{
+      m.setLatLng([f.curLat,f.curLon]);
+      const el=m.getElement();
+      if(el){
+        const w=el.querySelector('.pw'),r=el.querySelector('.rot');
+        if(w&&r){
+          r.style.transform=`rotate(${f.track||0}deg)`;
+          const nowSel=w.classList.contains('sel');
+          if(sel!==nowSel||r.dataset.col!==col||r.dataset.lbl!==(showLabels&&zoom>=10?'1':'0')){
+            r.dataset.col=col;r.dataset.lbl=showLabels&&zoom>=10?'1':'0';
+            w.className=`pw ${sel?'sel':sz} ${fav?'fav':''}`;
+            const existing=el.querySelector('.pls');
+            if(sel&&!existing)w.insertAdjacentHTML('afterbegin',pulse);
+            else if(!sel&&existing)existing.remove();
+            r.innerHTML=svgHtml;
+            const existLbl=w.querySelector('.cs-label');
+            if(existLbl)existLbl.remove();
+            if(showLabels&&zoom>=10){const ld=document.createElement('div');ld.className='cs-label';ld.textContent=(f.callsign||f.icao24).replace(/[<>]/g,'').trim();w.appendChild(ld);}
           }
         }
       }
@@ -1322,269 +1020,241 @@ function updateMarkers() {
   }
 }
 
-// ── SPARKLINE DRAW ─────────────────────────────────────────────────────────
-function drawSparkline(icao) {
-  const canvas = $('sparkCanvas');
-  if (!canvas) return;
-  canvas.width = canvas.offsetWidth * (window.devicePixelRatio||1);
-  canvas.height = 70 * (window.devicePixelRatio||1);
-  const ctx = canvas.getContext('2d');
-  const dpr = window.devicePixelRatio || 1;
-  ctx.scale(dpr, dpr);
-  const W = canvas.offsetWidth, H = 70;
-  ctx.clearRect(0, 0, W, H);
-  const hist = flightHistory.get(icao);
-  if (!hist || hist.length < 2) return;
-  const maxA = Math.max(...hist.map(d=>d.alt||0), 5000);
-  const maxS = Math.max(...hist.map(d=>d.spd||0), 100);
-  const n = hist.length;
-  const pad = 8;
-  // Altitude fill
-  ctx.beginPath();
-  hist.forEach((d,i) => {
-    const x = pad + (i/(n-1))*(W-2*pad);
-    const y = H - pad - ((d.alt||0)/maxA)*(H-2*pad);
-    i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
-  });
-  const lx = pad+(W-2*pad);
-  const ly = H-pad;
-  ctx.lineTo(lx, ly); ctx.lineTo(pad, ly);
-  ctx.closePath();
-  ctx.fillStyle = 'rgba(90,200,250,0.12)';
-  ctx.fill();
-  // Altitude line
-  ctx.beginPath();
-  hist.forEach((d,i) => {
-    const x = pad + (i/(n-1))*(W-2*pad);
-    const y = H - pad - ((d.alt||0)/maxA)*(H-2*pad);
-    i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
-  });
-  ctx.strokeStyle = '#5AC8FA'; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-  ctx.stroke();
-  // Speed line
-  ctx.beginPath();
-  hist.forEach((d,i) => {
-    const x = pad + (i/(n-1))*(W-2*pad);
-    const y = H - pad - ((d.spd||0)/maxS)*(H-2*pad);
-    i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
-  });
-  ctx.strokeStyle = 'rgba(255,214,10,0.8)'; ctx.lineWidth = 1.5;
-  ctx.stroke();
+// ── SPARKLINE ──────────────────────────────────────────────────────────────
+function drawSpark(icao){
+  const c=$('spkC');if(!c)return;
+  c.width=c.offsetWidth*(window.devicePixelRatio||1);c.height=70*(window.devicePixelRatio||1);
+  const ctx=c.getContext('2d'),dpr=window.devicePixelRatio||1;
+  ctx.scale(dpr,dpr);const W=c.offsetWidth,H=70;ctx.clearRect(0,0,W,H);
+  const hist=fltHist.get(icao);if(!hist||hist.length<2)return;
+  const mA=Math.max(...hist.map(d=>d.alt||0),5000),mS=Math.max(...hist.map(d=>d.spd||0),100);
+  const n=hist.length,pad=8;
+  ctx.beginPath();hist.forEach((d,i)=>{const x=pad+(i/(n-1))*(W-2*pad),y=H-pad-((d.alt||0)/mA)*(H-2*pad);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+  ctx.lineTo(pad+(W-2*pad),H-pad);ctx.lineTo(pad,H-pad);ctx.closePath();
+  ctx.fillStyle='rgba(90,200,250,.1)';ctx.fill();
+  ctx.beginPath();hist.forEach((d,i)=>{const x=pad+(i/(n-1))*(W-2*pad),y=H-pad-((d.alt||0)/mA)*(H-2*pad);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+  ctx.strokeStyle='#5AC8FA';ctx.lineWidth=2;ctx.lineJoin='round';ctx.lineCap='round';ctx.stroke();
+  ctx.beginPath();hist.forEach((d,i)=>{const x=pad+(i/(n-1))*(W-2*pad),y=H-pad-((d.spd||0)/mS)*(H-2*pad);i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+  ctx.strokeStyle='rgba(255,214,10,.8)';ctx.lineWidth=1.5;ctx.stroke();
 }
 
-// ── FLIGHT FETCH ───────────────────────────────────────────────────────────
-async function fetchFlights() {
-  try {
-    const c = state.map ? state.map.getCenter() : {lat:state.userLat, lng:state.userLon};
-    const z = state.map ? state.map.getZoom() : 6;
-    const res = await fetchT(`https://api.airplanes.live/v2/point/${c.lat.toFixed(3)}/${c.lng.toFixed(3)}/${z<=5?500:250}`, 10000);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const j = await res.json();
-    const raw = (j.ac||[]).filter(x=>x.lat!=null).map(x=>({
-      icao24:x.hex, callsign:(x.flight||'').trim(), type:x.t||'Unknown',
-      desc:x.desc||'', reg:x.r||'—', lon:x.lon, lat:x.lat,
-      baro_alt: x.alt_baro==='ground' ? 0 : (x.alt_baro||null),
-      alt_geom: x.alt_geom||null, on_ground: x.alt_baro==='ground',
-      velocity:x.gs||null, tas:x.tas||null, ias:x.ias||null, mach:x.mach||null,
-      track:x.track||null, mag_heading:x.mag_heading||null, vertical_rate:x.baro_rate||null,
-      squawk:x.squawk||null, curLat:x.lat, curLon:x.lon,
-      dist: haversine(state.userLat, state.userLon, x.lat, x.lon),
-      seen: x.seen_pos||x.seen||null,
-    }));
-    const alive = new Set();
-    for (const nf of raw) {
-      alive.add(nf.icao24);
-      const o = state.flights.get(nf.icao24);
-      if (o) Object.assign(o, nf); else state.flights.set(nf.icao24, nf);
-      // Record position history
-      if (!posHistory.has(nf.icao24)) posHistory.set(nf.icao24, []);
-      const ph = posHistory.get(nf.icao24);
-      ph.push({lat:nf.lat, lon:nf.lon, alt:nf.baro_alt, ts:Date.now()});
-      if (ph.length > 40) ph.shift();
-      // Keep pos history trimmed globally
-      if (posHistory.size > 400) posHistory.delete(posHistory.keys().next().value);
+// ── OVERHEAD CHECK ─────────────────────────────────────────────────────────
+function checkOH(){
+  let ov=null;
+  for(const f of S.flights.values()){
+    if(!f.on_ground&&f.dist!=null&&f.baro_alt){
+      if(f.dist<f.baro_alt/6076&&f.baro_alt>1500){ov=f;break;}
     }
-    for (const i of state.flights.keys()) { if (!alive.has(i)) state.flights.delete(i); }
-    $('mapStatusText').textContent = `${state.flights.size} Live`;
-    $('dotStatus').style.cssText = '';
-    state.fetchRetries = 0;
-  } catch(e) {
-    state.fetchRetries++;
-    const n = state.fetchRetries;
-    $('mapStatusText').textContent = n<=3 ? `Retry ${n}/3…` : 'Offline';
-    $('dotStatus').style.background = n<=3 ? '#FF9500' : '#FF3B30';
-    $('dotStatus').style.boxShadow  = n<=3 ? '0 0 8px #FF9500' : '0 0 8px #FF3B30';
-  } finally {
-    renderList(); updateMarkers(); updateStats(); checkOverhead();
-    if (state.selectedIcao) { drawTrail(state.selectedIcao); drawSparkline(state.selectedIcao); }
-    setTimeout(fetchFlights, state.fetchRetries>0 ? Math.min(3000*state.fetchRetries,30000) : 10000);
+  }
+  const el=$('oa');
+  if(ov){
+    if(activeOH!==ov.icao24){
+      activeOH=ov.icao24;
+      $('oaCall').textContent=(ov.callsign||ov.reg||'Unknown').replace(/[<>]/g,'');
+      $('oaSub').textContent=`${ov.type} · ${nf.format(ov.baro_alt)} ft`;
+      el.classList.add('show');el.onclick=()=>openUI(ov.icao24);
+      beep(660,.08);beep(880,.12);
+      if(navigator.vibrate)navigator.vibrate([80,40,80]);
+    }
+  }else if(activeOH){el.classList.remove('show');activeOH=null;}
+}
+
+// ── AR ─────────────────────────────────────────────────────────────────────
+let arActive=false,devH=0,devP=0,vidStream=null;
+async function startAR(){
+  arActive=true;$('aro').classList.add('open');
+  if(window.DeviceOrientationEvent?.requestPermission){try{await DeviceOrientationEvent.requestPermission();}catch(e){}}
+  window.addEventListener('deviceorientation',onOrient);
+  try{vidStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});$('arVid').srcObject=vidStream;}catch(e){}
+}
+function stopAR(){arActive=false;$('aro').classList.remove('open');window.removeEventListener('deviceorientation',onOrient);if(vidStream){vidStream.getTracks().forEach(t=>t.stop());vidStream=null;}$('arCont').innerHTML='';}
+function onOrient(e){devH=e.webkitCompassHeading?(e.webkitCompassHeading):(360-e.alpha)%360;devP=e.beta;}
+$('arBtn').onclick=startAR;$('arClose').onclick=stopAR;
+
+// ── FETCH FLIGHTS ──────────────────────────────────────────────────────────
+async function fetchFlights(){
+  try{
+    const c=S.map?S.map.getCenter():{lat:S.userLat,lng:S.userLon};
+    const z=S.map?S.map.getZoom():6;
+    const res=await fetchT(`https://api.airplanes.live/v2/point/${c.lat.toFixed(3)}/${c.lng.toFixed(3)}/${z<=5?500:250}`,10000);
+    if(!res.ok)throw new Error(`HTTP ${res.status}`);
+    const j=await res.json();
+    const raw=(j.ac||[]).filter(x=>x.lat!=null).map(x=>({
+      icao24:x.hex,callsign:(x.flight||'').trim(),type:x.t||'Unknown',desc:x.desc||'',reg:x.r||'—',
+      lon:x.lon,lat:x.lat,baro_alt:x.alt_baro==='ground'?0:(x.alt_baro||null),alt_geom:x.alt_geom||null,
+      on_ground:x.alt_baro==='ground',velocity:x.gs||null,tas:x.tas||null,ias:x.ias||null,mach:x.mach||null,
+      track:x.track||null,mag_heading:x.mag_heading||null,vertical_rate:x.baro_rate||null,
+      squawk:x.squawk||null,curLat:x.lat,curLon:x.lon,seen:x.seen_pos||x.seen||null,
+      dist:hav(S.userLat,S.userLon,x.lat,x.lon),
+    }));
+    const alive=new Set();
+    for(const nf of raw){
+      alive.add(nf.icao24);
+      const o=S.flights.get(nf.icao24);
+      if(o)Object.assign(o,nf);else S.flights.set(nf.icao24,nf);
+      if(!posHist.has(nf.icao24))posHist.set(nf.icao24,[]);
+      const ph=posHist.get(nf.icao24);
+      ph.push({lat:nf.lat,lon:nf.lon,alt:nf.baro_alt,ts:Date.now()});
+      if(ph.length>45)ph.shift();
+      if(posHist.size>400)posHist.delete(posHist.keys().next().value);
+    }
+    for(const i of S.flights.keys())if(!alive.has(i))S.flights.delete(i);
+    $('msT').textContent=`${S.flights.size} Live`;
+    $('msDot').style.cssText='';S.retries=0;
+  }catch(e){
+    S.retries++;const n=S.retries;
+    $('msT').textContent=n<=3?`Retry ${n}/3…`:'Offline';
+    $('msDot').style.background=n<=3?'#FF9500':'#FF3B30';
+    $('msDot').style.boxShadow=n<=3?'0 0 8px #FF9500':'0 0 8px #FF3B30';
+  }finally{
+    renderList();updateMarkers();updateStats();checkOH();
+    if(S.selIcao){drawTrail(S.selIcao);drawSpark(S.selIcao);}
+    setTimeout(fetchFlights,S.retries>0?Math.min(3000*S.retries,30000):5000);
   }
 }
 
-// ── STATS UPDATE ───────────────────────────────────────────────────────────
-function updateStats() {
-  const all = [...state.flights.values()];
-  const air = all.filter(f => !f.on_ground && f.baro_alt > 0);
-  const gnd = all.filter(f => f.on_ground);
-  const avgAlt = air.length ? Math.round(air.reduce((s,f)=>s+(f.baro_alt||0),0)/air.length) : 0;
-  $('statTotal').textContent = all.length;
-  $('statAir').textContent = air.length;
-  $('statGnd').textContent = gnd.length;
-  $('statAvgAlt').textContent = avgAlt ? `${nf.format(avgAlt)}` : '—';
-  $('sheetSub').textContent = `${all.length} Aircraft`;
+// ── STATS ──────────────────────────────────────────────────────────────────
+function updateStats(){
+  const all=[...S.flights.values()];
+  const air=all.filter(f=>!f.on_ground&&f.baro_alt>0);
+  const gnd=all.filter(f=>f.on_ground);
+  const avg=air.length?Math.round(air.reduce((s,f)=>s+(f.baro_alt||0),0)/air.length):0;
+  $('stTot').textContent=all.length;$('stAir').textContent=air.length;$('stGnd').textContent=gnd.length;
+  $('stAvg').textContent=avg?nf.format(avg):'—';$('shCn').textContent=`${all.length} Aircraft`;
+  // Type breakdown
+  const counts={heavy:0,wide:0,narrow:0,prop:0,heli:0,biz:0};
+  all.forEach(f=>{const t=acType(f.type);if(counts[t]!==undefined)counts[t]++;else counts.narrow++;});
+  const total=all.length||1;
+  const bar=$('tybar'),leg=$('tyleg');
+  bar.innerHTML='';leg.innerHTML='';
+  Object.entries(counts).forEach(([k,v])=>{
+    if(!v)return;
+    const seg=document.createElement('div');seg.className='tbs';
+    seg.style.cssText=`flex:${v};background:${TYPE_COLORS[k]};`;
+    bar.appendChild(seg);
+    const li=document.createElement('div');li.className='tyli';
+    li.innerHTML=`<div class="tydot" style="background:${TYPE_COLORS[k]}"></div>${TYPE_LABELS[k]}: ${v}`;
+    leg.appendChild(li);
+  });
 }
 
 // ── ANIMATION LOOP ─────────────────────────────────────────────────────────
-function startAnim() {
-  setInterval(updateMarkers, 800);
-  const tick = (tm) => {
+function startAnim(){
+  setInterval(updateMarkers,900);
+  const tick=tm=>{
     requestAnimationFrame(tick);
-    if (state.animPaused) return;
-    if (!state.aL) { state.aL = tm; return; }
-    const dt = Math.min((tm - state.aL)/1000, 0.1);
-    state.aL = tm;
-    // Interpolate positions
-    for (const f of state.flights.values()) {
-      if (f.velocity && !f.on_ground) {
-        const rad = (f.track||0)*Math.PI/180, d = f.velocity*0.514444*dt;
-        f.curLat += (d*Math.cos(rad))/111320;
-        f.curLon += (d*Math.sin(rad))/(111320*Math.max(0.2, Math.cos(f.lat*Math.PI/180)));
-        if (state.selectedIcao === f.icao24) {
-          state.markers.get(f.icao24)?.setLatLng([f.curLat, f.curLon]);
-        }
+    if(S.animPaused)return;
+    if(!S.aL){S.aL=tm;return;}
+    const dt=Math.min((tm-S.aL)/1000,.1);S.aL=tm;
+    for(const f of S.flights.values()){
+      if(f.velocity&&!f.on_ground){
+        const rad=(f.track||0)*Math.PI/180,d=f.velocity*.514444*dt;
+        f.curLat+=(d*Math.cos(rad))/111320;
+        f.curLon+=(d*Math.sin(rad))/(111320*Math.max(.2,Math.cos(f.lat*Math.PI/180)));
+        if(S.selIcao===f.icao24)S.markers.get(f.icao24)?.setLatLng([f.curLat,f.curLon]);
       }
     }
+    // Follow mode
+    if(followMode&&S.selIcao){
+      const f=S.flights.get(S.selIcao);
+      if(f)S.map.panTo([f.curLat,f.curLon],{animate:false,noMoveStart:true});
+    }
     // AR
-    if (arActive) {
-      let html='', w=window.innerWidth, h=window.innerHeight, ppd=w/60;
-      for (const f of state.flights.values()) {
-        if (f.dist<100 && !f.on_ground) {
-          const b = bearing(state.userLat, state.userLon, f.curLat, f.curLon);
-          const ele = Math.atan(f.baro_alt/(f.dist*6076.12))*(180/Math.PI);
-          let dB=b-devH; if(dB>180)dB-=360; else if(dB<-180)dB+=360;
-          const dE=ele-(devP-90);
-          if (Math.abs(dB)<45) {
-            const x=w/2+dB*ppd, y=h/2-dE*ppd;
-            html+=`<div class="ar-plane" style="left:${x}px;top:${y}px;"><svg class="ar-plane-icon" viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg><div class="ar-plane-label">${f.callsign||f.reg} · ${fmtAlt(f.baro_alt)}</div></div>`;
+    if(arActive){
+      let html='',w=window.innerWidth,h=window.innerHeight,ppd=w/60;
+      for(const f of S.flights.values()){
+        if(f.dist<100&&!f.on_ground){
+          const b=bearing(S.userLat,S.userLon,f.curLat,f.curLon);
+          const el2=Math.atan(f.baro_alt/(f.dist*6076.12))*(180/Math.PI);
+          let dB=b-devH;if(dB>180)dB-=360;else if(dB<-180)dB+=360;
+          const dE=el2-(devP-90);
+          if(Math.abs(dB)<45){
+            const x=w/2+dB*ppd,y=h/2-dE*ppd;
+            html+=`<div class="ar-pl" style="left:${x}px;top:${y}px;"><svg viewBox="0 0 24 24"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg><div class="ar-lbl">${f.callsign||f.reg} · ${fmtA(f.baro_alt)}</div></div>`;
           }
         }
       }
-      $('arContainer').innerHTML = html;
+      $('arCont').innerHTML=html;
     }
     // Selected flight live update
-    if (state.selectedIcao) {
-      const s = state.flights.get(state.selectedIcao);
-      if (s) {
-        s.dist = haversine(state.userLat, state.userLon, s.curLat, s.curLon);
-        // Record history
-        if (!flightHistory.has(s.icao24)) flightHistory.set(s.icao24, []);
-        const fh = flightHistory.get(s.icao24);
-        if (!fh.length || Date.now()-fh[fh.length-1].ts > 1000) {
-          fh.push({alt:s.baro_alt||0, spd:s.velocity||0, ts:Date.now()});
-          if (fh.length > 60) fh.shift();
-          drawSparkline(s.icao24);
+    if(S.selIcao){
+      const s=S.flights.get(S.selIcao);
+      if(s){
+        s.dist=hav(S.userLat,S.userLon,s.curLat,s.curLon);
+        if(!fltHist.has(s.icao24))fltHist.set(s.icao24,[]);
+        const fh=fltHist.get(s.icao24);
+        if(!fh.length||Date.now()-fh[fh.length-1].ts>1000){
+          fh.push({alt:s.baro_alt||0,spd:s.velocity||0,ts:Date.now()});
+          if(fh.length>60)fh.shift();drawSpark(s.icao24);
         }
-        // Telemetry
-        $('dAlt').textContent = fmtAlt(s.baro_alt, s.on_ground);
-        $('dAltGeom').textContent = s.alt_geom!=null ? fmtAlt(s.alt_geom, s.on_ground) : '—';
-        $('dSpd').textContent = fmtSpd(s.velocity);
-        $('dTas').textContent = s.tas!=null ? fmtSpd(s.tas) : '—';
-        $('dIas').textContent = s.ias!=null ? fmtSpd(s.ias) : '—';
-        $('dTrack').textContent = s.track!=null ? Math.round(s.track)+'°' : '—';
-        $('dMagHdg').textContent = s.mag_heading!=null ? Math.round(s.mag_heading)+'°' : '—';
-        $('dVRate').textContent = s.vertical_rate!=null ? (s.vertical_rate>0?'+':'')+s.vertical_rate+' ft/min' : '—';
-        $('dSquawk').textContent = s.squawk||'—';
-        $('dAge').textContent = s.seen!=null ? s.seen.toFixed(1)+' s' : '—';
-        // HUD
-        const hudCol = getAltColor(s.baro_alt, s.on_ground);
-        $('hudAlt').textContent = s.baro_alt ? `${nf.format(s.baro_alt)} FT` : '—';
-        $('hudSpd').textContent = s.velocity ? `${nf.format(s.velocity)} KT` : '—';
-        $('hudVs').textContent  = s.vertical_rate!=null ? (s.vertical_rate>0?'↑':'↓')+Math.abs(s.vertical_rate) : '—';
-        $('bpAlt').textContent = s.baro_alt ? `${nf.format(s.baro_alt)} FT` : '—';
-        $('bpSpd').textContent = s.velocity ? `${nf.format(s.velocity)} KT` : '—';
+        $('dAlt').textContent=fmtA(s.baro_alt,s.on_ground);
+        $('dAltG').textContent=s.alt_geom!=null?fmtA(s.alt_geom,s.on_ground):'—';
+        $('dSpd').textContent=fmtS(s.velocity);
+        $('dTAS').textContent=s.tas!=null?fmtS(s.tas):'—';
+        $('dIAS').textContent=s.ias!=null?fmtS(s.ias):'—';
+        $('dTrk').textContent=s.track!=null?Math.round(s.track)+'°':'—';
+        $('dMHd').textContent=s.mag_heading!=null?Math.round(s.mag_heading)+'°':'—';
+        $('dVR').textContent=s.vertical_rate!=null?(s.vertical_rate>0?'+':'')+s.vertical_rate+' ft/min':'—';
+        $('dSqk').textContent=s.squawk||'—';$('dAge').textContent=s.seen!=null?s.seen.toFixed(1)+' s':'—';
+        $('hAlt').textContent=s.baro_alt?`${nf.format(s.baro_alt)} FT`:'—';
+        $('hSpd').textContent=s.velocity?`${nf.format(s.velocity)} KT`:'—';
+        $('hVs').textContent=s.vertical_rate!=null?(s.vertical_rate>0?'↑':'↓')+Math.abs(s.vertical_rate):'—';
+        $('bpAlt').textContent=s.baro_alt?`${nf.format(s.baro_alt)} FT`:'—';
+        $('bpSpd').textContent=s.velocity?`${nf.format(s.velocity)} KT`:'—';
         // Passenger experience
-        let phase='Cruise', ann='"Sit back, relax, and enjoy the flight."';
-        let vr=s.vertical_rate||0, alt=s.baro_alt||0, g=1.0, seatbelt=false;
-        const landing = s.route?.arrLat && haversine(s.curLat,s.curLon,s.route.arrLat,s.route.arrLon)<20;
-        if (s.on_ground) {
-          phase=landing?'Taxi to Gate':'Boarding / Taxi';
-          ann=landing?'"Welcome to our destination. Please remain seated."':'"Cabin crew, arm doors. Welcome aboard!"';
-          seatbelt=true;
-        } else if (alt<10000) {
-          seatbelt=true;
-          if (vr<-200) { phase='Approach'; g=0.95; ann='"Cabin crew, prepare for landing."'; }
-          else { phase='Takeoff / Climb'; g=1.15; ann='"Cabin crew, prepare for takeoff."'; }
-        } else if (vr>1000) {
-          phase='Climbing'; g=1.05+vr/20000;
-          ann='"We are climbing to cruising altitude. Electronic devices may be used."';
-        } else if (vr<-1000) {
-          phase='Descending'; g=0.95-Math.abs(vr)/20000; seatbelt=true;
-          ann='"We have begun our descent. Please fasten your seatbelt."';
-        } else {
-          ann='"The captain has turned off the seatbelt sign. You may move about the cabin."';
-        }
-        let turb='Smooth', tc='turb-smooth', gw=0;
-        if (!s.on_ground) {
-          if (Math.abs(vr)>3500) { turb='Moderate'; tc='turb-mod'; gw=0.2; seatbelt=true; if(phase==='Cruising'||phase==='Climbing') ann='"The seatbelt sign is now on due to turbulence."'; }
-          else if (Math.abs(vr)>1500) { turb='Light'; tc='turb-light'; gw=0.05; }
-        } else { turb='None'; }
-        const gF = g + (Math.random()*gw - gw/2);
-        if (s.mach!=null) $('dMach').textContent='M '+s.mach.toFixed(3);
-        else if (s.velocity&&!s.on_ground&&alt>10000) $('dMach').textContent='M '+(s.velocity/(661-alt/1000)).toFixed(2);
+        let phase='Cruise',ann='"Sit back, relax, and enjoy the flight."';
+        let vr=s.vertical_rate||0,alt=s.baro_alt||0,g=1.0,seatbelt=false;
+        const landing=s.route?.arrLat&&hav(s.curLat,s.curLon,s.route.arrLat,s.route.arrLon)<20;
+        if(s.on_ground){phase=landing?'Taxi to Gate':'Boarding / Taxi';ann=landing?'"Welcome. Please remain seated."':'"Cabin crew, arm doors. Welcome aboard!"';seatbelt=true;}
+        else if(alt<10000){seatbelt=true;if(vr<-200){phase='Approach';g=.95;ann='"Cabin crew, prepare for landing."';}else{phase='Takeoff / Climb';g=1.15;ann='"Cabin crew, prepare for takeoff."';}}
+        else if(vr>1000){phase='Climbing';g=1.05+vr/20000;ann='"Climbing to cruising altitude."';}
+        else if(vr<-1000){phase='Descending';g=.95;seatbelt=true;ann='"We have begun our descent. Please fasten seatbelts."';}
+        else ann='"The seatbelt sign is off. You may move about the cabin."';
+        let turb='Smooth',tc='tcs',gw=0;
+        if(!s.on_ground){if(Math.abs(vr)>3500){turb='Moderate';tc='tcm';gw=.2;seatbelt=true;}else if(Math.abs(vr)>1500){turb='Light';tc='tcl';gw=.05;}}else turb='None';
+        const gF=g+(Math.random()*gw-gw/2);
+        if(s.mach!=null)$('dMach').textContent='M '+s.mach.toFixed(3);
+        else if(s.velocity&&!s.on_ground&&alt>10000)$('dMach').textContent='M '+(s.velocity/(661-alt/1000)).toFixed(2);
         else $('dMach').textContent='—';
-        $('dOAT').textContent = s.on_ground ? 'Ground' : (()=>{const t=Math.max(15-alt/1000*2,-56);return isMetric?`${t.toFixed(0)} °C`:`${(t*9/5+32).toFixed(0)} °F`;})();
-        $('dCabinAlt').textContent = alt>8000 ? (isMetric?`${(Math.min(8000*alt/40000,8000)*0.3048).toFixed(0)} m`:`${Math.min(8000*alt/40000,8000).toFixed(0)} ft`) : 'Ambient';
-        $('dWinds').textContent = !s.on_ground&&alt>15000 ? `${((s.track||0)+45)%360|0}° at ${(30+alt/1000*1.5).toFixed(0)} kt` : '—';
-        $('dPhaseSub').textContent = phase;
-        $('dForce').textContent = `${gF.toFixed(2)} G`;
-        $('dTurb').textContent = turb;
-        $('dTurbClass').className = `info pax-exp ${tc}`;
-        $('realSeatbelt').classList.toggle('on', seatbelt);
-        $('dAnnouncement').textContent = ann;
+        $('dOAT').textContent=s.on_ground?'Ground':(()=>{const t=Math.max(15-alt/1000*2,-56);return isM?`${t.toFixed(0)} °C`:`${(t*9/5+32).toFixed(0)} °F`;})();
+        $('dCab').textContent=alt>8000?(isM?`${(Math.min(8000*alt/40000,8000)*.3048).toFixed(0)} m`:`${Math.min(8000*alt/40000,8000).toFixed(0)} ft`):'Ambient';
+        $('dWind').textContent=!s.on_ground&&alt>15000?`${((s.track||0)+45)%360|0}° at ${(30+alt/1000*1.5).toFixed(0)} kt`:'—';
+        $('dPhase').textContent=phase;$('dG').textContent=`${gF.toFixed(2)} G`;$('dTurbV').textContent=turb;
+        $('dTurb').className=`info pex ${tc}`;$('opan').classList.toggle('on',seatbelt);$('dAnn').textContent=ann;
         // Progress
-        let pct = 50;
-        if (s.route?.depLat && s.route?.arrLat) {
-          const fd = haversine(s.route.depLat,s.route.depLon,s.curLat,s.curLon);
-          const rd = haversine(s.curLat,s.curLon,s.route.arrLat,s.route.arrLon);
-          pct = Math.min(100, Math.max(0, fd/(fd+rd)*100));
-          $('dRemainNM').textContent = fmtDist(rd);
-          $('bpTimeRemain').textContent = (pct>=100||(s.on_ground&&rd<50)) ? 'ARRIVED'
-            : tf.format(new Date(Date.now() + rd/Math.max(s.velocity||150,50)*3600000));
-        } else {
-          pct = s.on_ground ? 2 : 50;
-          $('dRemainNM').textContent = '—';
-          $('bpTimeRemain').textContent = 'LIVE';
-        }
-        $('bpTimeFlown').textContent = s.on_ground ? 'GROUND' : 'AIRBORNE';
-        s.vP = s.vP !== undefined ? s.vP + (pct-s.vP)*0.05 : pct;
-        updatePath(s.vP, s.baro_alt);
+        let pct=50;
+        if(s.route?.depLat&&s.route?.arrLat){
+          const fd=hav(s.route.depLat,s.route.depLon,s.curLat,s.curLon);
+          const rd=hav(s.curLat,s.curLon,s.route.arrLat,s.route.arrLon);
+          pct=Math.min(100,Math.max(0,fd/(fd+rd)*100));
+          $('bpRem').textContent=fmtD(rd);
+          $('bpTR').textContent=(pct>=100||(s.on_ground&&rd<50))?'ARRIVED':tf.format(new Date(Date.now()+rd/Math.max(s.velocity||150,50)*3600000));
+        }else{pct=s.on_ground?2:50;$('bpRem').textContent='—';$('bpTR').textContent='LIVE';}
+        $('bpTF').textContent=s.on_ground?'GROUND':'AIRBORNE';
+        s.vP=s.vP!==undefined?s.vP+(pct-s.vP)*.05:pct;
+        updatePath(s.vP,s.baro_alt);
       }
     }
   };
   requestAnimationFrame(tick);
 }
 
-// ── FLIGHT PATH ANIMATION ──────────────────────────────────────────────────
-function updatePath(pct, alt) {
-  const aR = Math.max(0, Math.min((alt||0)/35000, 1));
-  const pY = 40-30*aR;
-  const d = `M 10 40 C 30 40,40 ${pY},60 ${pY} L 140 ${pY} C 160 ${pY},170 40,190 40`;
-  $('pathBg').setAttribute('d', d);
-  $('pathFill').setAttribute('d', d);
-  const pN = $('pathFill'), l = pN.getTotalLength()||215;
-  pN.setAttribute('stroke-dasharray', l);
-  const p = Math.max(0, Math.min(pct,100))/100;
-  pN.setAttribute('stroke-dashoffset', l-l*p);
-  const pt = pN.getPointAtLength(l*p);
-  const la = Math.min(l, l*p+1), pa = pN.getPointAtLength(la);
-  let dx=pa.x-pt.x, dy=pa.y-pt.y;
-  if (la===l&&l>1){const pb=pN.getPointAtLength(l-1);dx=pt.x-pb.x;dy=pt.y-pb.y;}
-  const ag = Math.atan2(dy,dx)*(180/Math.PI);
-  const ic = $('bpProgressIcon');
-  ic.style.left = `${(pt.x/200)*100}%`;
-  ic.style.top  = `${(pt.y/50)*100}%`;
-  ic.style.transform = `translateZ(0) rotate(${90+ag}deg)`;
+// ── PATH ANIMATION ─────────────────────────────────────────────────────────
+function updatePath(pct,alt){
+  const aR=Math.max(0,Math.min((alt||0)/35000,1));const pY=40-30*aR;
+  const d=`M 10 40 C 30 40,40 ${pY},60 ${pY} L 140 ${pY} C 160 ${pY},170 40,190 40`;
+  $('pBg').setAttribute('d',d);$('pFl').setAttribute('d',d);
+  const pN=$('pFl'),l=pN.getTotalLength()||215;
+  pN.setAttribute('stroke-dasharray',l);const p=Math.max(0,Math.min(pct,100))/100;
+  pN.setAttribute('stroke-dashoffset',l-l*p);
+  const pt=pN.getPointAtLength(l*p);const la=Math.min(l,l*p+1),pa=pN.getPointAtLength(la);
+  let dx=pa.x-pt.x,dy=pa.y-pt.y;
+  if(la===l&&l>1){const pb=pN.getPointAtLength(l-1);dx=pt.x-pb.x;dy=pt.y-pb.y;}
+  const ag=Math.atan2(dy,dx)*(180/Math.PI);
+  const ic=$('bpIco');ic.style.left=`${(pt.x/200)*100}%`;ic.style.top=`${(pt.y/50)*100}%`;
+  ic.style.transform=`translateZ(0) rotate(${90+ag}deg)`;
 }
+
 
 // ── RENDER LIST ────────────────────────────────────────────────────────────
 let renderTimeout;
