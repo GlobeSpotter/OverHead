@@ -1,253 +1,250 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="fi">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Trustline — Suojattu maksu digitaalisille toimituksille</title>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Trustline — Maksu varataan, vapautuu kun hyväksyt</title>
+<meta name="description" content="Trustline pitää maksun varattuna kortillasi, kunnes hyväksyt toimituksen. Suunniteltu freelance-toimituksille." />
 <style>
-  :root {
-    --bg: #FAFAFA;
-    --ink: #111111;
-    --muted: #6B6B6B;
-    --border: #E5E5E5;
-    --accent: #2563EB;
-    --held: #B45309;
-    --held-bg: #FEF3C7;
-    --released: #15803D;
-    --released-bg: #DCFCE7;
+  :root{
+    --bg: #0b0f14;
+    --bg-elev: #121822;
+    --bg-card: #161d29;
+    --border: #232c3a;
+    --text: #e9edf3;
+    --text-dim: #9aa7ba;
+    --brand: #4f8cff;
+    --brand-dim: #2f4d80;
+    --accent: #33c9a5;
+    --warn: #e0a63a;
     --radius: 14px;
+    --radius-sm: 8px;
+    --shadow: 0 10px 30px rgba(0,0,0,.35);
+    --maxw: 1080px;
+    font-size: 16px;
   }
-  * { box-sizing: border-box; }
-  body {
-    margin: 0;
-    background: var(--bg);
-    color: var(--ink);
-    font-family: -apple-system, "SF Pro Text", "Inter", Helvetica, Arial, sans-serif;
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background: radial-gradient(1200px 600px at 80% -10%, #16233a 0%, var(--bg) 55%) fixed;
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.5;
     -webkit-font-smoothing: antialiased;
   }
-  header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 24px 48px;
-    max-width: 1100px;
-    margin: 0 auto;
-  }
-  .logo { font-weight: 600; font-size: 18px; letter-spacing: -0.02em; }
-  nav a {
-    color: var(--muted);
-    text-decoration: none;
-    font-size: 14px;
-    margin-left: 28px;
-  }
-  nav a:hover { color: var(--ink); }
-  .cta {
-    background: var(--ink);
-    color: #fff;
-    padding: 10px 18px;
-    border-radius: 8px;
-    font-size: 14px;
-    text-decoration: none;
-  }
-  main { max-width: 720px; margin: 0 auto; padding: 90px 24px 60px; text-align: center; }
-  h1 {
-    font-size: 44px;
-    line-height: 1.15;
-    letter-spacing: -0.02em;
-    margin: 0 0 18px;
-  }
-  .lead {
-    font-size: 18px;
-    color: var(--muted);
-    line-height: 1.5;
-    margin: 0 0 36px;
-  }
-  .actions { display: flex; justify-content: center; gap: 12px; margin-bottom: 90px; }
-  .btn-primary {
-    background: var(--accent);
-    color: #fff;
-    padding: 13px 26px;
-    border-radius: 10px;
-    font-size: 15px;
-    font-weight: 500;
-    text-decoration: none;
-  }
-  .btn-secondary {
-    background: transparent;
-    color: var(--ink);
-    padding: 13px 26px;
-    border-radius: 10px;
-    font-size: 15px;
-    text-decoration: none;
-    border: 1px solid var(--border);
-  }
+  a{color: var(--brand); text-decoration: none;}
+  a:hover{text-decoration: underline;}
+  .wrap{max-width: var(--maxw); margin: 0 auto; padding: 0 24px;}
 
-  .flow {
-    max-width: 960px;
-    margin: 0 auto 100px;
-    padding: 0 24px;
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-  }
-  .step {
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 24px 18px;
-    text-align: left;
-  }
-  .step .num {
-    font-size: 13px;
-    color: var(--muted);
-    margin-bottom: 10px;
-  }
-  .step h3 { font-size: 16px; margin: 0 0 8px; }
-  .step p { font-size: 14px; color: var(--muted); line-height: 1.5; margin: 0; }
-
-  .status-demo {
-    max-width: 560px;
-    margin: 0 auto 110px;
-    padding: 28px;
-    background: #fff;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    text-align: left;
-  }
-  .status-demo h3 { font-size: 15px; margin: 0 0 18px; color: var(--muted); font-weight: 500; }
-  .status-row {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding: 10px 0;
+  header.site{
+    position: sticky; top: 0; z-index: 20;
+    backdrop-filter: saturate(140%) blur(10px);
+    background: rgba(11,15,20,.7);
     border-bottom: 1px solid var(--border);
   }
-  .status-row:last-child { border-bottom: none; }
-  .badge {
-    font-size: 12px;
-    font-weight: 600;
-    padding: 4px 10px;
-    border-radius: 999px;
-    white-space: nowrap;
+  .nav{
+    display:flex; align-items:center; justify-content:space-between;
+    padding: 16px 0;
   }
-  .badge.held { background: var(--held-bg); color: var(--held); }
-  .badge.released { background: var(--released-bg); color: var(--released); }
-  .status-row .label { font-size: 14px; }
-  .status-row .time { margin-left: auto; font-size: 13px; color: var(--muted); }
+  .brand{display:flex; align-items:center; gap:10px; font-weight:700; font-size:18px; color:var(--text);}
+  .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent); box-shadow:0 0 12px var(--accent);}
+  .nav-links{display:flex; gap:24px; font-size:14px; color:var(--text-dim);}
+  .nav-links a{color:var(--text-dim);}
+  .nav-links a:hover{color:var(--text);}
+  .nav-cta{display:flex; gap:10px;}
 
-  .trust-section {
-    max-width: 720px;
-    margin: 0 auto 110px;
-    padding: 0 24px;
-    text-align: center;
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    padding:10px 18px; border-radius: var(--radius-sm);
+    font-size:14px; font-weight:600; border:1px solid transparent; cursor:pointer;
+    transition: transform .05s ease, filter .15s ease;
   }
-  .trust-section h2 { font-size: 26px; margin-bottom: 14px; letter-spacing: -0.01em; }
-  .trust-section p { color: var(--muted); font-size: 15px; line-height: 1.6; }
+  .btn:hover{filter:brightness(1.08);}
+  .btn:active{transform: translateY(1px);}
+  .btn-primary{background: linear-gradient(180deg, #5a97ff, #3f78e0); color:#fff;}
+  .btn-ghost{background: transparent; color:var(--text); border-color: var(--border);}
+  .btn-ghost:hover{border-color:#3a465a;}
 
-  footer {
-    border-top: 1px solid var(--border);
-    padding: 40px 24px 60px;
+  main{padding-bottom: 80px;}
+
+  .hero{padding: 96px 0 64px; text-align:center;}
+  .badge{
+    display:inline-flex; align-items:center; gap:8px;
+    font-size:13px; color: var(--accent); background: rgba(51,201,165,.1);
+    border:1px solid rgba(51,201,165,.3); padding:6px 12px; border-radius: 999px;
+    margin-bottom: 20px;
   }
-  .disclaimer {
-    max-width: 640px;
-    margin: 0 auto;
-    font-size: 12.5px;
-    line-height: 1.7;
-    color: var(--muted);
-    text-align: center;
+  h1{font-size: clamp(32px, 5vw, 52px); line-height:1.1; margin:0 0 18px; letter-spacing:-0.02em;}
+  h1 .accent{color: var(--brand);}
+  .lede{font-size: 18px; color: var(--text-dim); max-width: 620px; margin: 0 auto 32px;}
+  .hero-cta{display:flex; gap:12px; justify-content:center; flex-wrap:wrap;}
+  .hero-note{margin-top:16px; font-size:13px; color: var(--text-dim);}
+
+  section{padding: 64px 0;}
+  .section-title{font-size: 28px; margin: 0 0 8px; text-align:center;}
+  .section-sub{color:var(--text-dim); text-align:center; max-width:560px; margin: 0 auto 40px;}
+
+  .steps{
+    display:grid; grid-template-columns: repeat(4, 1fr); gap:16px;
+  }
+  .step{
+    background: var(--bg-card); border:1px solid var(--border); border-radius: var(--radius);
+    padding: 22px; position:relative;
+  }
+  .step .num{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:28px; height:28px; border-radius:50%; background: var(--brand-dim); color:#dbe6ff;
+    font-size:13px; font-weight:700; margin-bottom:14px;
+  }
+  .step h3{font-size:16px; margin: 0 0 8px;}
+  .step p{font-size:14px; color: var(--text-dim); margin:0;}
+
+  .cards{display:grid; grid-template-columns: repeat(3, 1fr); gap:16px;}
+  .card{
+    background: var(--bg-card); border:1px solid var(--border); border-radius: var(--radius);
+    padding: 24px; box-shadow: var(--shadow);
+  }
+  .card .icon{
+    width:40px; height:40px; border-radius: 10px; background: rgba(79,140,255,.12);
+    display:flex; align-items:center; justify-content:center; margin-bottom:14px; font-size:20px;
+  }
+  .card h3{font-size:16px; margin:0 0 8px;}
+  .card p{font-size:14px; color:var(--text-dim); margin:0;}
+
+  .trust{
+    background: var(--bg-elev); border:1px solid var(--border); border-radius: var(--radius);
+    padding: 32px; display:flex; gap:28px; align-items:flex-start; flex-wrap:wrap;
+  }
+  .trust .callout{flex:1; min-width:260px;}
+  .trust h3{margin:0 0 10px; font-size:18px;}
+  .trust p{color:var(--text-dim); font-size:14px; margin:0 0 8px;}
+  .trust code{
+    background: rgba(255,255,255,.06); padding:2px 6px; border-radius:6px; font-size:13px;
   }
 
-  @media (max-width: 720px) {
-    .flow { grid-template-columns: 1fr 1fr; }
-    h1 { font-size: 32px; }
+  .faq{max-width: 720px; margin: 0 auto;}
+  details{
+    border-bottom: 1px solid var(--border); padding: 18px 0;
+  }
+  summary{cursor:pointer; font-weight:600; font-size:15px; list-style:none; display:flex; justify-content:space-between; align-items:center;}
+  summary::-webkit-details-marker{display:none;}
+  summary::after{content:"+"; color: var(--text-dim); font-size:20px; font-weight:400;}
+  details[open] summary::after{content:"−";}
+  details p{color: var(--text-dim); font-size:14px; margin: 12px 0 0;}
+
+  .cta-band{
+    text-align:center; padding: 64px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border);
+    background: linear-gradient(180deg, rgba(79,140,255,.06), transparent);
+  }
+  .cta-band h2{font-size: 28px; margin:0 0 12px;}
+  .cta-band p{color:var(--text-dim); margin:0 0 24px;}
+
+  footer{padding: 40px 0; color: var(--text-dim); font-size: 13px;}
+  .footer-grid{display:flex; justify-content:space-between; flex-wrap:wrap; gap:20px;}
+  .footer-links{display:flex; gap:20px;}
+  .footer-links a{color:var(--text-dim);}
+
+  @media (max-width: 900px){
+    .steps{grid-template-columns: repeat(2,1fr);}
+    .cards{grid-template-columns: 1fr;}
+  }
+  @media (max-width: 600px){
+    .nav-links{display:none;}
+    .steps{grid-template-columns: 1fr;}
   }
 </style>
 </head>
 <body>
 
-<header>
-  <div class="logo">Trustline</div>
-  <nav>
-    <a href="#miten">Miten toimii</a>
-    <a href="#luottamus">Luottamus</a>
-    <a class="cta" href="#aloita">Aloita</a>
-  </nav>
+<header class="site">
+  <div class="wrap nav">
+    <div class="brand"><span class="dot"></span> Trustline</div>
+    <nav class="nav-links">
+      <a href="#miten">Miten toimii</a>
+      <a href="#turva">Turvallisuus</a>
+      <a href="#ukk">UKK</a>
+    </nav>
+    <div class="nav-cta">
+      <button class="btn btn-ghost">Kirjaudu</button>
+      <button class="btn btn-primary">Luo tilaus</button>
+    </div>
+  </div>
 </header>
 
 <main>
-  <h1>Maksa vasta kun saat sen,<br>mitä tilasit.</h1>
-  <p class="lead">
-    Trustline pitää maksun turvassa siihen asti, kunnes hyväksyt toimituksen.
-    Myyjä näkee, että raha on varmistettu. Sinä näet toimituksen ennen kuin se vapautuu.
-  </p>
-  <div class="actions">
-    <a class="btn-primary" href="#aloita">Luo suojattu tilaus</a>
-    <a class="btn-secondary" href="#miten">Katso miten toimii</a>
-  </div>
-</main>
+  <section class="hero wrap">
+    <span class="badge">● Kortin varaus, ei ennakkomaksu</span>
+    <h1>Maksu varataan kortiltasi.<br /><span class="accent">Veloitus vasta, kun hyväksyt toimituksen.</span></h1>
+    <p class="lede">
+      Trustline yhdistää ostajan ja myyjän digitaalisen toimituksen ympärille.
+      Raha varataan ostajan kortilta tilauksen alussa ja veloitetaan Stripen
+      kautta vasta, kun ostaja hyväksyy valmiin työn — tai kun tarkastusaika
+      päättyy.
+    </p>
+    <div class="hero-cta">
+      <button class="btn btn-primary">Aloita myyjänä</button>
+      <button class="btn btn-ghost">Katso esimerkkitilaus</button>
+    </div>
+    <div class="hero-note">Ei kuukausimaksuja. Trustline veloittaa pienen palkkion vain onnistuneesta tilauksesta.</div>
+  </section>
 
-<section class="flow" id="miten">
-  <div class="step">
-    <div class="num">01</div>
-    <h3>Maksu varmistetaan</h3>
-    <p>Maksu varataan Stripen kautta, mutta ei siirry myyjälle vielä.</p>
-  </div>
-  <div class="step">
-    <div class="num">02</div>
-    <h3>Toimitus esikatseluun</h3>
-    <p>Näet suojatun esikatselun ennen kuin alkuperäinen tiedosto vapautuu.</p>
-  </div>
-  <div class="step">
-    <div class="num">03</div>
-    <h3>Hyväksyt</h3>
-    <p>Kun olet tyytyväinen, hyväksyt toimituksen yhdellä painikkeella.</p>
-  </div>
-  <div class="step">
-    <div class="num">04</div>
-    <h3>Maksu vapautuu</h3>
-    <p>Myyjä saa maksun. Ellet reagoi 7 vrk kuluessa, varaus raukeaa automaattisesti.</p>
-  </div>
-</section>
+  <section id="miten" class="wrap">
+    <h2 class="section-title">Neljä vaihetta</h2>
+    <p class="section-sub">Kello käynnistyy maksun varaamisesta, ei toimituksesta.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="num">1</div>
+        <h3>Tilaus ja varaus</h3>
+        <p>Myyjä luo tilauksen ja jakaa maksulinkin. Ostajan kortille tehdään varaus — rahaa ei veloiteta.</p>
+      </div>
+      <div class="step">
+        <div class="num">2</div>
+        <h3>Toimitus</h3>
+        <p>Myyjä lataa tiedoston. Ostaja näkee vesileimatun esikatselun ennen hyväksymistä.</p>
+      </div>
+      <div class="step">
+        <div class="num">3</div>
+        <h3>Tarkastus</h3>
+        <p>Ostajalla on vähintään 48 tuntia aikaa hyväksyä tai pyytää muutoksia — ei kiirettä viime hetkellä.</p>
+      </div>
+      <div class="step">
+        <div class="num">4</div>
+        <h3>Veloitus ja lataus</h3>
+        <p>Hyväksynnän myötä varaus veloitetaan ja alkuperäinen tiedosto vapautuu latausta varten.</p>
+      </div>
+    </div>
+  </section>
 
-<section class="status-demo">
-  <h3>Tilauksen tila reaaliajassa</h3>
-  <div class="status-row">
-    <span class="badge held">SUOJATTU</span>
-    <span class="label">Maksu varmistettu, odottaa toimitusta</span>
-    <span class="time">2 pv sitten</span>
-  </div>
-  <div class="status-row">
-    <span class="badge held">ESIKATSELUSSA</span>
-    <span class="label">Versio 2 ladattu, odottaa hyväksyntää</span>
-    <span class="time">tänään</span>
-  </div>
-  <div class="status-row">
-    <span class="badge released">VAPAUTETTU</span>
-    <span class="label">Toimitus hyväksytty, maksu siirretty</span>
-    <span class="time">—</span>
-  </div>
-</section>
+  <section id="turva" class="wrap">
+    <h2 class="section-title">Rehellisesti siitä, missä raha on</h2>
+    <p class="section-sub">Emme väitä pitävämme rahojasi hallussamme — kortin varaus on Stripen, ei Trustlinen.</p>
+    <div class="trust">
+      <div class="callout">
+        <h3>Varaus näkyy pankissasi, ei tilillämme</h3>
+        <p>Maksu kulkee suoraan myyjän Stripe-tilille. Trustline ei koskaan säilytä rahaa itsellään — se on kortin varaus, jonka Stripe vapauttaa tai veloittaa hyväksyntäsi mukaan.</p>
+        <p>Varaus on voimassa korkeintaan noin <code>7 vrk</code>. Jos tarkastus jatkuu pidempään, ilmoitamme siitä ajoissa.</p>
+      </div>
+      <div class="callout">
+        <h3>Mitä tapahtuu poikkeustilanteissa</h3>
+        <p>Kaikki tilan muutokset — myös ne, jotka tapahtuvat suoraan Stripen puolella — kirjataan tilaushistoriaan, ja sinulle ilmoitetaan.</p>
+        <p>Jos varaus ehtii vanhentua ennen hyväksyntää, tilaus raukeaa eikä rahaa veloiteta.</p>
+      </div>
+    </div>
+  </section>
 
-<section class="trust-section" id="luottamus">
-  <h2>Ei valtaa kummankaan puolelle</h2>
-  <p>
-    Trustline ei ole kaupan osapuoli. Rahat kulkevat suoraan Stripen kautta myyjän
-    omalle tilille, ja Trustline vain varmistaa, että maksu vapautuu ehtojen täytyttyä.
-    Emme säilytä varoja itsellämme emmekä tee päätöksiä toimituksen sisällöstä.
-  </p>
-</section>
-
-<footer>
-  <p class="disclaimer">
-    Trustline on tekninen väline maksujen ajoittamiseen — ei maksunvälittäjä, pankki
-    tai kaupan osapuoli. Maksut käsittelee Stripe, joka vastaa myyjän tunnistamisesta
-    ja tilin ylläpidosta. Ostajan ja myyjän väliset erimielisyydet, mukaan lukien
-    tuotteen laatua koskevat väitteet ja maksunpalautukset, ratkaistaan osapuolten
-    kesken tai heidän Stripe-tilinsä kautta. Trustline ei takaa tuotteiden laatua,
-    lainmukaisuutta tai soveltuvuutta eikä ole vastuussa osapuolten välisistä
-    sopimusrikkomuksista.
-  </p>
-</footer>
-
-</body>
-</html>
+  <section class="wrap">
+    <h2 class="section-title">Kenelle Trustline on tehty</h2>
+    <div class="cards">
+      <div class="card">
+        <div class="icon">🎨</div>
+        <h3>Freelance-suunnittelijat</h3>
+        <p>CAD-mallit, kuvat ja muut tiedostotoimitukset, joissa asiakas haluaa nähdä työn ennen maksun veloittamista.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🧩</div>
+        <h3>Pienet toimeksiannot</h3>
+        <p>Kertaluonteiset työt, joissa ei kannata rakentaa erillistä laskutusta tai sopimusta.</p>
+      </div>
+      <div class="card">
+        <div class="icon">🔒</div>
+        <h3>Molemminpuo
