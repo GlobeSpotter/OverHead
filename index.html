@@ -3,248 +3,210 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Trustline — Maksu varataan, vapautuu kun hyväksyt</title>
-<meta name="description" content="Trustline pitää maksun varattuna kortillasi, kunnes hyväksyt toimituksen. Suunniteltu freelance-toimituksille." />
+<title>Trustline — Digitaalisten tuotteiden markkinapaikka, suojattu maksu</title>
+<meta name="description" content="Trustline on markkinapaikka digitaalisille tuotteille — 3D-malleille, CAD-tiedostoille, mallipohjille ja grafiikalle. Maksu varataan, veloitus vasta kun hyväksyt toimituksen." />
 <style>
   :root{
-    --bg: #0b0f14;
-    --bg-elev: #121822;
-    --bg-card: #161d29;
-    --border: #232c3a;
-    --text: #e9edf3;
-    --text-dim: #9aa7ba;
-    --brand: #4f8cff;
-    --brand-dim: #2f4d80;
-    --accent: #33c9a5;
-    --warn: #e0a63a;
-    --radius: 14px;
-    --radius-sm: 8px;
-    --shadow: 0 10px 30px rgba(0,0,0,.35);
-    --maxw: 1080px;
-    font-size: 16px;
+    --bg: #fbfbfd;
+    --bg-alt: #f5f5f7;
+    --ink: #1d1d1f;
+    --ink-dim: #6e6e73;
+    --ink-faint: #86868b;
+    --line: #e6e6e8;
+    --blue: #0071e3;
+    --blue-dim: #147ce5;
+    --green: #1c8a5c;
+    --green-bg: #e6f6ee;
+    --card: #ffffff;
+    --radius-xl: 28px;
+    --radius-lg: 20px;
+    --radius-md: 14px;
+    --radius-sm: 10px;
+    --maxw: 1180px;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.04), 0 2px 8px rgba(0,0,0,.04);
+    --shadow-md: 0 8px 30px rgba(0,0,0,.08);
+    --shadow-lg: 0 20px 60px rgba(0,0,0,.12);
   }
   *{box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
   html,body{margin:0;padding:0;}
   body{
-    background: radial-gradient(1200px 600px at 80% -10%, #16233a 0%, var(--bg) 55%) fixed;
-    color: var(--text);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, Helvetica, Arial, sans-serif;
-    line-height: 1.5;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Inter, Helvetica, Arial, sans-serif;
+    line-height: 1.47;
     -webkit-font-smoothing: antialiased;
+    font-size: 17px;
   }
-  a{color: var(--brand); text-decoration: none;}
-  a:hover{text-decoration: underline;}
+  a{color:inherit; text-decoration:none;}
+  img,svg{display:block; max-width:100%;}
   .wrap{max-width: var(--maxw); margin: 0 auto; padding: 0 24px;}
+  .center{text-align:center;}
+  ::selection{background: rgba(0,113,227,.18);}
 
+  /* ---------- Nav ---------- */
   header.site{
-    position: sticky; top: 0; z-index: 20;
-    backdrop-filter: saturate(140%) blur(10px);
-    background: rgba(11,15,20,.7);
-    border-bottom: 1px solid var(--border);
+    position: sticky; top:0; z-index: 50;
+    background: rgba(251,251,253,.8);
+    backdrop-filter: saturate(180%) blur(20px);
+    border-bottom: 1px solid var(--line);
   }
-  .nav{
-    display:flex; align-items:center; justify-content:space-between;
-    padding: 16px 0;
+  .nav{display:flex; align-items:center; gap:28px; padding: 14px 0;}
+  .brand{display:flex; align-items:center; gap:8px; font-weight:600; font-size:17px; letter-spacing:-.01em; white-space:nowrap;}
+  .brand svg{width:22px; height:22px;}
+  .search-bar{
+    flex:1; display:flex; align-items:center; gap:10px;
+    background: var(--bg-alt); border:1px solid var(--line); border-radius: 980px;
+    padding: 9px 16px; color: var(--ink-faint); font-size:14px; max-width:480px;
   }
-  .brand{display:flex; align-items:center; gap:10px; font-weight:700; font-size:18px; color:var(--text);}
-  .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent); box-shadow:0 0 12px var(--accent);}
-  .nav-links{display:flex; gap:24px; font-size:14px; color:var(--text-dim);}
-  .nav-links a{color:var(--text-dim);}
-  .nav-links a:hover{color:var(--text);}
-  .nav-cta{display:flex; gap:10px;}
+  .search-bar svg{width:16px; height:16px; opacity:.6; flex-shrink:0;}
+  .search-bar input{border:none; background:none; outline:none; font-size:14px; width:100%; font-family:inherit; color:var(--ink);}
+  .nav-links{display:flex; gap:22px; font-size:13.5px; color: var(--ink-dim); white-space:nowrap;}
+  .nav-links a:hover{color:var(--ink);}
+  .nav-cta{display:flex; gap:10px; align-items:center; white-space:nowrap;}
 
   .btn{
-    display:inline-flex; align-items:center; justify-content:center; gap:8px;
-    padding:10px 18px; border-radius: var(--radius-sm);
-    font-size:14px; font-weight:600; border:1px solid transparent; cursor:pointer;
-    transition: transform .05s ease, filter .15s ease;
+    display:inline-flex; align-items:center; justify-content:center; gap:6px;
+    padding: 10px 20px; border-radius: 980px; font-size: 14px; font-weight: 500;
+    border: 1px solid transparent; cursor:pointer; transition: all .18s ease; font-family:inherit;
   }
-  .btn:hover{filter:brightness(1.08);}
-  .btn:active{transform: translateY(1px);}
-  .btn-primary{background: linear-gradient(180deg, #5a97ff, #3f78e0); color:#fff;}
-  .btn-ghost{background: transparent; color:var(--text); border-color: var(--border);}
-  .btn-ghost:hover{border-color:#3a465a;}
+  .btn-primary{background: var(--ink); color:#fff;}
+  .btn-primary:hover{background:#000;}
+  .btn-blue{background: var(--blue); color:#fff;}
+  .btn-blue:hover{background: var(--blue-dim);}
+  .btn-ghost{background: transparent; color: var(--ink); border-color: var(--line);}
+  .btn-ghost:hover{border-color:#c7c7cc; background: var(--bg-alt);}
+  .btn-sm{padding:7px 14px; font-size:13px;}
 
-  main{padding-bottom: 80px;}
-
-  .hero{padding: 96px 0 64px; text-align:center;}
-  .badge{
-    display:inline-flex; align-items:center; gap:8px;
-    font-size:13px; color: var(--accent); background: rgba(51,201,165,.1);
-    border:1px solid rgba(51,201,165,.3); padding:6px 12px; border-radius: 999px;
-    margin-bottom: 20px;
+  /* ---------- Hero ---------- */
+  .hero{
+    padding: 100px 0 70px; text-align:center;
+    background: radial-gradient(900px 500px at 50% -20%, #eef4ff 0%, var(--bg) 60%);
   }
-  h1{font-size: clamp(32px, 5vw, 52px); line-height:1.1; margin:0 0 18px; letter-spacing:-0.02em;}
-  h1 .accent{color: var(--brand);}
-  .lede{font-size: 18px; color: var(--text-dim); max-width: 620px; margin: 0 auto 32px;}
-  .hero-cta{display:flex; gap:12px; justify-content:center; flex-wrap:wrap;}
-  .hero-note{margin-top:16px; font-size:13px; color: var(--text-dim);}
-
-  section{padding: 64px 0;}
-  .section-title{font-size: 28px; margin: 0 0 8px; text-align:center;}
-  .section-sub{color:var(--text-dim); text-align:center; max-width:560px; margin: 0 auto 40px;}
-
-  .steps{
-    display:grid; grid-template-columns: repeat(4, 1fr); gap:16px;
+  .eyebrow{
+    font-size:13px; font-weight:600; color: var(--blue); text-transform:uppercase; letter-spacing:.04em;
+    margin-bottom:14px;
   }
-  .step{
-    background: var(--bg-card); border:1px solid var(--border); border-radius: var(--radius);
-    padding: 22px; position:relative;
+  h1{
+    font-size: clamp(38px, 6vw, 68px); font-weight: 600; letter-spacing:-0.03em;
+    margin: 0 0 20px; line-height:1.05; color: var(--ink);
   }
-  .step .num{
-    display:inline-flex; align-items:center; justify-content:center;
-    width:28px; height:28px; border-radius:50%; background: var(--brand-dim); color:#dbe6ff;
-    font-size:13px; font-weight:700; margin-bottom:14px;
+  h1 .grad{
+    background: linear-gradient(90deg, #0071e3, #7b3fe4);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
   }
-  .step h3{font-size:16px; margin: 0 0 8px;}
-  .step p{font-size:14px; color: var(--text-dim); margin:0;}
-
-  .cards{display:grid; grid-template-columns: repeat(3, 1fr); gap:16px;}
-  .card{
-    background: var(--bg-card); border:1px solid var(--border); border-radius: var(--radius);
-    padding: 24px; box-shadow: var(--shadow);
+  .lede{
+    font-size: 21px; color: var(--ink-dim); max-width: 640px; margin: 0 auto 36px; font-weight:400;
   }
-  .card .icon{
-    width:40px; height:40px; border-radius: 10px; background: rgba(79,140,255,.12);
-    display:flex; align-items:center; justify-content:center; margin-bottom:14px; font-size:20px;
+  .hero-cta{display:flex; gap:12px; justify-content:center; flex-wrap:wrap; margin-bottom:28px;}
+  .trust-strip{
+    display:flex; gap:28px; justify-content:center; flex-wrap:wrap; margin-top: 40px;
+    color: var(--ink-faint); font-size: 13px;
   }
-  .card h3{font-size:16px; margin:0 0 8px;}
-  .card p{font-size:14px; color:var(--text-dim); margin:0;}
+  .trust-strip span{display:flex; align-items:center; gap:6px;}
+  .trust-strip svg{width:15px; height:15px; opacity:.55;}
 
-  .trust{
-    background: var(--bg-elev); border:1px solid var(--border); border-radius: var(--radius);
-    padding: 32px; display:flex; gap:28px; align-items:flex-start; flex-wrap:wrap;
+  /* ---------- Category chips ---------- */
+  .chips{
+    display:flex; gap:10px; overflow-x:auto; padding: 28px 0 8px; scrollbar-width:none;
   }
-  .trust .callout{flex:1; min-width:260px;}
-  .trust h3{margin:0 0 10px; font-size:18px;}
-  .trust p{color:var(--text-dim); font-size:14px; margin:0 0 8px;}
-  .trust code{
-    background: rgba(255,255,255,.06); padding:2px 6px; border-radius:6px; font-size:13px;
+  .chips::-webkit-scrollbar{display:none;}
+  .chip{
+    flex-shrink:0; padding: 9px 18px; border-radius: 980px; background: var(--bg-alt);
+    border: 1px solid var(--line); font-size: 14px; font-weight:500; color: var(--ink-dim);
+    display:flex; align-items:center; gap:7px; cursor:pointer; transition: all .15s ease;
   }
+  .chip:hover{border-color:#c7c7cc; color:var(--ink);}
+  .chip.active{background: var(--ink); color:#fff; border-color: var(--ink);}
 
-  .faq{max-width: 720px; margin: 0 auto;}
-  details{
-    border-bottom: 1px solid var(--border); padding: 18px 0;
+  section{padding: 72px 0;}
+  .section-head{display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:32px; gap:16px; flex-wrap:wrap;}
+  .section-head h2{font-size: 32px; font-weight:600; letter-spacing:-.02em; margin:0 0 6px;}
+  .section-head p{color: var(--ink-dim); margin:0; font-size:15px;}
+  .see-all{font-size:14px; font-weight:500; color:var(--blue); white-space:nowrap;}
+
+  /* ---------- Product grid ---------- */
+  .grid{display:grid; grid-template-columns: repeat(4, 1fr); gap:20px;}
+  .product{
+    background: var(--card); border:1px solid var(--line); border-radius: var(--radius-lg);
+    overflow:hidden; cursor:pointer; transition: transform .2s ease, box-shadow .2s ease;
   }
-  summary{cursor:pointer; font-weight:600; font-size:15px; list-style:none; display:flex; justify-content:space-between; align-items:center;}
-  summary::-webkit-details-marker{display:none;}
-  summary::after{content:"+"; color: var(--text-dim); font-size:20px; font-weight:400;}
-  details[open] summary::after{content:"−";}
-  details p{color: var(--text-dim); font-size:14px; margin: 12px 0 0;}
-
-  .cta-band{
-    text-align:center; padding: 64px 0; border-top:1px solid var(--border); border-bottom:1px solid var(--border);
-    background: linear-gradient(180deg, rgba(79,140,255,.06), transparent);
+  .product:hover{transform: translateY(-4px); box-shadow: var(--shadow-md);}
+  .thumb{
+    aspect-ratio: 4/3; position:relative; display:flex; align-items:center; justify-content:center;
+    font-size: 46px;
   }
-  .cta-band h2{font-size: 28px; margin:0 0 12px;}
-  .cta-band p{color:var(--text-dim); margin:0 0 24px;}
-
-  footer{padding: 40px 0; color: var(--text-dim); font-size: 13px;}
-  .footer-grid{display:flex; justify-content:space-between; flex-wrap:wrap; gap:20px;}
-  .footer-links{display:flex; gap:20px;}
-  .footer-links a{color:var(--text-dim);}
-
-  @media (max-width: 900px){
-    .steps{grid-template-columns: repeat(2,1fr);}
-    .cards{grid-template-columns: 1fr;}
+  .thumb.g1{background: linear-gradient(135deg,#e8f0ff,#d7e6ff);}
+  .thumb.g2{background: linear-gradient(135deg,#fdeee6,#fbe0d3);}
+  .thumb.g3{background: linear-gradient(135deg,#e9f7ef,#d5f0e2);}
+  .thumb.g4{background: linear-gradient(135deg,#f3ecff,#e6d9ff);}
+  .thumb.g5{background: linear-gradient(135deg,#fff4e0,#ffe8bf);}
+  .thumb.g6{background: linear-gradient(135deg,#e6f5ff,#d0ecff);}
+  .thumb.g7{background: linear-gradient(135deg,#fbe9ef,#f7d3df);}
+  .thumb.g8{background: linear-gradient(135deg,#eaf2e6,#d8ecd0);}
+  .badge-format{
+    position:absolute; top:10px; left:10px; background: rgba(255,255,255,.85);
+    backdrop-filter: blur(6px); font-size:11px; font-weight:600; padding:4px 9px; border-radius:8px;
+    color: var(--ink-dim);
   }
-  @media (max-width: 600px){
-    .nav-links{display:none;}
-    .steps{grid-template-columns: 1fr;}
+  .badge-escrow{
+    position:absolute; top:10px; right:10px; background: var(--green-bg); color: var(--green);
+    font-size:11px; font-weight:600; padding:4px 9px; border-radius:8px; display:flex; align-items:center; gap:4px;
   }
-</style>
-</head>
-<body>
+  .badge-escrow svg{width:11px;height:11px;}
+  .p-body{padding: 14px 16px 16px;}
+  .p-title{font-size:14.5px; font-weight:600; margin:0 0 4px; letter-spacing:-.005em;}
+  .p-seller{font-size:12.5px; color: var(--ink-faint); margin:0 0 10px; display:flex; align-items:center; gap:5px;}
+  .avatar{width:16px;height:16px;border-radius:50%; background: linear-gradient(135deg,#c7c7cc,#a1a1a6); flex-shrink:0;}
+  .p-foot{display:flex; justify-content:space-between; align-items:center;}
+  .price{font-size:15px; font-weight:700;}
+  .rating{font-size:12px; color: var(--ink-faint); display:flex; align-items:center; gap:3px;}
 
-<header class="site">
-  <div class="wrap nav">
-    <div class="brand"><span class="dot"></span> Trustline</div>
-    <nav class="nav-links">
-      <a href="#miten">Miten toimii</a>
-      <a href="#turva">Turvallisuus</a>
-      <a href="#ukk">UKK</a>
-    </nav>
-    <div class="nav-cta">
-      <button class="btn btn-ghost">Kirjaudu</button>
-      <button class="btn btn-primary">Luo tilaus</button>
-    </div>
-  </div>
-</header>
+  /* ---------- How it works ---------- */
+  .how{background: var(--bg-alt); border-radius: var(--radius-xl); padding: 56px 40px;}
+  .how-grid{display:grid; grid-template-columns: repeat(4,1fr); gap:28px; margin-top: 36px;}
+  .how-step{position:relative;}
+  .how-num{
+    font-size: 46px; font-weight: 700; color: rgba(0,0,0,.08); position:absolute; top:-6px; right:0;
+  }
+  .how-icon{
+    width:44px; height:44px; border-radius:12px; background:#fff; box-shadow: var(--shadow-sm);
+    display:flex; align-items:center; justify-content:center; font-size:20px; margin-bottom:16px;
+  }
+  .how-step h3{font-size:16px; margin:0 0 8px;}
+  .how-step p{font-size:14px; color: var(--ink-dim); margin:0;}
 
-<main>
-  <section class="hero wrap">
-    <span class="badge">● Kortin varaus, ei ennakkomaksu</span>
-    <h1>Maksu varataan kortiltasi.<br /><span class="accent">Veloitus vasta, kun hyväksyt toimituksen.</span></h1>
-    <p class="lede">
-      Trustline yhdistää ostajan ja myyjän digitaalisen toimituksen ympärille.
-      Raha varataan ostajan kortilta tilauksen alussa ja veloitetaan Stripen
-      kautta vasta, kun ostaja hyväksyy valmiin työn — tai kun tarkastusaika
-      päättyy.
-    </p>
-    <div class="hero-cta">
-      <button class="btn btn-primary">Aloita myyjänä</button>
-      <button class="btn btn-ghost">Katso esimerkkitilaus</button>
-    </div>
-    <div class="hero-note">Ei kuukausimaksuja. Trustline veloittaa pienen palkkion vain onnistuneesta tilauksesta.</div>
-  </section>
+  /* ---------- Trust band ---------- */
+  .trust-band{
+    display:grid; grid-template-columns: 1.1fr 1fr; gap: 48px; align-items:center;
+  }
+  .trust-copy .eyebrow{margin-bottom:12px;}
+  .trust-copy h2{font-size: 34px; font-weight:600; letter-spacing:-.02em; margin: 0 0 16px;}
+  .trust-copy p{color: var(--ink-dim); font-size:16px; margin: 0 0 24px;}
+  .trust-list{list-style:none; padding:0; margin:0; display:flex; flex-direction:column; gap:16px;}
+  .trust-list li{display:flex; gap:12px; align-items:flex-start; font-size:14.5px; color: var(--ink);}
+  .trust-list svg{width:20px; height:20px; flex-shrink:0; color: var(--green); margin-top:1px;}
+  .trust-visual{
+    background: linear-gradient(160deg, #ffffff, #f2f6ff);
+    border: 1px solid var(--line); border-radius: var(--radius-xl);
+    padding: 32px; box-shadow: var(--shadow-lg);
+  }
+  .status-row{display:flex; justify-content:space-between; align-items:center; padding: 12px 0; border-bottom: 1px solid var(--line); font-size:13.5px;}
+  .status-row:last-child{border-bottom:none;}
+  .status-pill{font-size:11.5px; font-weight:600; padding:4px 10px; border-radius:8px;}
+  .status-pill.hold{background:#fff3d6; color:#946200;}
+  .status-pill.review{background:#e6f0ff; color:#0058c7;}
+  .status-pill.done{background: var(--green-bg); color: var(--green);}
 
-  <section id="miten" class="wrap">
-    <h2 class="section-title">Neljä vaihetta</h2>
-    <p class="section-sub">Kello käynnistyy maksun varaamisesta, ei toimituksesta.</p>
-    <div class="steps">
-      <div class="step">
-        <div class="num">1</div>
-        <h3>Tilaus ja varaus</h3>
-        <p>Myyjä luo tilauksen ja jakaa maksulinkin. Ostajan kortille tehdään varaus — rahaa ei veloiteta.</p>
-      </div>
-      <div class="step">
-        <div class="num">2</div>
-        <h3>Toimitus</h3>
-        <p>Myyjä lataa tiedoston. Ostaja näkee vesileimatun esikatselun ennen hyväksymistä.</p>
-      </div>
-      <div class="step">
-        <div class="num">3</div>
-        <h3>Tarkastus</h3>
-        <p>Ostajalla on vähintään 48 tuntia aikaa hyväksyä tai pyytää muutoksia — ei kiirettä viime hetkellä.</p>
-      </div>
-      <div class="step">
-        <div class="num">4</div>
-        <h3>Veloitus ja lataus</h3>
-        <p>Hyväksynnän myötä varaus veloitetaan ja alkuperäinen tiedosto vapautuu latausta varten.</p>
-      </div>
-    </div>
-  </section>
+  /* ---------- Sellers ---------- */
+  .seller-cta{
+    background: linear-gradient(135deg, #1d1d1f, #2c2c2e);
+    border-radius: var(--radius-xl); padding: 64px 48px; text-align:center; color:#fff;
+  }
+  .seller-cta h2{font-size: 34px; font-weight:600; letter-spacing:-.02em; margin: 0 0 14px;}
+  .seller-cta p{color: rgba(255,255,255,.7); max-width:520px; margin: 0 auto 30px; font-size:16px;}
+  .seller-stats{display:flex; justify-content:center; gap:48px; margin-top:44px; flex-wrap:wrap;}
+  .seller-stat b{display:block; font-size:28px; font-weight:700;}
+  .seller-stat span{font-size:13px; color: rgba(255,255,255,.55);}
 
-  <section id="turva" class="wrap">
-    <h2 class="section-title">Rehellisesti siitä, missä raha on</h2>
-    <p class="section-sub">Emme väitä pitävämme rahojasi hallussamme — kortin varaus on Stripen, ei Trustlinen.</p>
-    <div class="trust">
-      <div class="callout">
-        <h3>Varaus näkyy pankissasi, ei tilillämme</h3>
-        <p>Maksu kulkee suoraan myyjän Stripe-tilille. Trustline ei koskaan säilytä rahaa itsellään — se on kortin varaus, jonka Stripe vapauttaa tai veloittaa hyväksyntäsi mukaan.</p>
-        <p>Varaus on voimassa korkeintaan noin <code>7 vrk</code>. Jos tarkastus jatkuu pidempään, ilmoitamme siitä ajoissa.</p>
-      </div>
-      <div class="callout">
-        <h3>Mitä tapahtuu poikkeustilanteissa</h3>
-        <p>Kaikki tilan muutokset — myös ne, jotka tapahtuvat suoraan Stripen puolella — kirjataan tilaushistoriaan, ja sinulle ilmoitetaan.</p>
-        <p>Jos varaus ehtii vanhentua ennen hyväksyntää, tilaus raukeaa eikä rahaa veloiteta.</p>
-      </div>
-    </div>
-  </section>
-
-  <section class="wrap">
-    <h2 class="section-title">Kenelle Trustline on tehty</h2>
-    <div class="cards">
-      <div class="card">
-        <div class="icon">🎨</div>
-        <h3>Freelance-suunnittelijat</h3>
-        <p>CAD-mallit, kuvat ja muut tiedostotoimitukset, joissa asiakas haluaa nähdä työn ennen maksun veloittamista.</p>
-      </div>
-      <div class="card">
-        <div class="icon">🧩</div>
-        <h3>Pienet toimeksiannot</h3>
-        <p>Kertaluonteiset työt, joissa ei kannata rakentaa erillistä laskutusta tai sopimusta.</p>
-      </div>
-      <div class="card">
-        <div class="icon">🔒</div>
-        <h3>Molemminpuo
+  /*
