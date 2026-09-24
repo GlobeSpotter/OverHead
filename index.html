@@ -209,4 +209,402 @@
   .seller-stat b{display:block; font-size:28px; font-weight:700;}
   .seller-stat span{font-size:13px; color: rgba(255,255,255,.55);}
 
-  /*
+  /* ---------- Testimonials ---------- */
+  .testi-grid{display:grid; grid-template-columns: repeat(3,1fr); gap:20px;}
+  .testi{
+    background: var(--card); border:1px solid var(--line); border-radius: var(--radius-lg); padding: 26px;
+  }
+  .stars{color:#ff9f0a; font-size:14px; margin-bottom:12px; letter-spacing:2px;}
+  .testi p{font-size:14.5px; color: var(--ink); margin: 0 0 16px;}
+  .testi-who{display:flex; align-items:center; gap:10px;}
+  .testi-who .avatar{width:32px; height:32px;}
+  .testi-who b{font-size:13.5px; display:block;}
+  .testi-who span{font-size:12px; color:var(--ink-faint);}
+
+  /* ---------- FAQ ---------- */
+  .faq{max-width: 720px; margin: 0 auto;}
+  details{border-bottom:1px solid var(--line); padding: 20px 0;}
+  summary{cursor:pointer; font-weight:500; font-size:16px; list-style:none; display:flex; justify-content:space-between; align-items:center;}
+  summary::-webkit-details-marker{display:none;}
+  summary::after{content:"＋"; color: var(--ink-faint); font-size:16px; font-weight:300;}
+  details[open] summary::after{content:"−";}
+  details p{color: var(--ink-dim); font-size:14.5px; margin: 12px 0 0;}
+
+  /* ---------- Final CTA ---------- */
+  .final-cta{text-align:center; padding: 90px 0;}
+  .final-cta h2{font-size: 40px; font-weight:600; letter-spacing:-.02em; margin:0 0 16px;}
+  .final-cta p{color: var(--ink-dim); font-size:17px; margin: 0 0 30px;}
+
+  /* ---------- Footer ---------- */
+  footer{background: var(--bg-alt); border-top:1px solid var(--line); padding: 56px 0 28px; font-size:13px; color: var(--ink-faint);}
+  .foot-grid{display:grid; grid-template-columns: 1.4fr 1fr 1fr 1fr 1fr; gap: 24px; margin-bottom:40px;}
+  .foot-col h4{font-size:13px; color: var(--ink); margin: 0 0 14px;}
+  .foot-col a{display:block; margin-bottom:10px; color: var(--ink-faint);}
+  .foot-col a:hover{color: var(--ink);}
+  .foot-bottom{display:flex; justify-content:space-between; align-items:center; border-top:1px solid var(--line); padding-top:20px; flex-wrap:wrap; gap:12px;}
+
+  @media (max-width: 980px){
+    .grid{grid-template-columns: repeat(2,1fr);}
+    .how-grid{grid-template-columns: repeat(2,1fr);}
+    .trust-band{grid-template-columns:1fr;}
+    .testi-grid{grid-template-columns:1fr;}
+    .foot-grid{grid-template-columns: 1fr 1fr;}
+  }
+  @media (max-width: 700px){
+    .nav-links{display:none;}
+    .search-bar{display:none;}
+    .grid{grid-template-columns: 1fr 1fr;}
+  }
+</style>
+</head>
+<body>
+
+<header class="site">
+  <div class="wrap nav">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 2 3 6v6c0 5 4 8 9 10 5-2 9-5 9-10V6l-9-4z" fill="#0071e3"/></svg>
+      Trustline
+    </div>
+    <div class="search-bar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input type="text" placeholder="Hae 3D-malleja, CAD-tiedostoja, mallipohjia…" />
+    </div>
+    <nav class="nav-links">
+      <a href="#tuotteet">Tuotteet</a>
+      <a href="#miten">Miten toimii</a>
+      <a href="#turva">Turva</a>
+      <a href="#myyjille">Myy tuotteita</a>
+    </nav>
+    <div class="nav-cta">
+      <button class="btn btn-ghost btn-sm">Kirjaudu</button>
+      <button class="btn btn-primary btn-sm">Myy nyt</button>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="hero wrap">
+    <div class="eyebrow">Digitaalisten tuotteiden markkinapaikka</div>
+    <h1>Osta ja myy digitaalisia<br /><span class="grad">tuotteita luottamuksella.</span></h1>
+    <p class="lede">
+      3D-mallit, CAD-tiedostot, mallipohjat ja grafiikka — yhdellä alustalla,
+      jossa maksu on aina varattuna, kunnes hyväksyt sen mitä saat.
+      Vähän kuin tuttu käytettyjen tuotteiden markkinapaikka, mutta tiedostoille.
+    </p>
+    <div class="hero-cta">
+      <button class="btn btn-blue">Selaa tuotteita</button>
+      <button class="btn btn-ghost">Myy ensimmäinen tuotteesi</button>
+    </div>
+    <div class="trust-strip">
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2 3 6v6c0 5 4 8 9 10 5-2 9-5 9-10V6l-9-4z"/></svg> Maksu varataan, ei ennakkoveloitusta</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg> Vähintään 48 h tarkastusaika</span>
+      <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg> Stripe-suojattu maksu</span>
+    </div>
+  </section>
+
+  <div class="wrap">
+    <div class="chips">
+      <div class="chip active">Kaikki</div>
+      <div class="chip">🧊 3D-mallit</div>
+      <div class="chip">⚙️ CAD-tiedostot</div>
+      <div class="chip">🎨 Grafiikka</div>
+      <div class="chip">📄 Mallipohjat</div>
+      <div class="chip">💻 Koodi &amp; skriptit</div>
+      <div class="chip">📷 Valokuvat</div>
+      <div class="chip">🎧 Äänet</div>
+    </div>
+  </div>
+
+  <section id="tuotteet" class="wrap">
+    <div class="section-head">
+      <div>
+        <h2>Suositut tuotteet</h2>
+        <p>Käsin valittuja myyjiä ja uusimpia julkaisuja</p>
+      </div>
+      <a class="see-all" href="#">Näytä kaikki →</a>
+    </div>
+    <div class="grid">
+
+      <div class="product">
+        <div class="thumb g1">🧊
+          <span class="badge-format">STL · STEP</span>
+          <span class="badge-escrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>Suojattu</span>
+        </div>
+        <div class="p-body">
+          <p class="p-title">Polkupyörän ohjaustangon kiinnike</p>
+          <p class="p-seller"><span class="avatar"></span> @makkeli_makes</p>
+          <div class="p-foot"><span class="price">18,00 €</span><span class="rating">★ 4.9 (61)</span></div>
+        </div>
+      </div>
+
+      <div class="product">
+        <div class="thumb g4">⚙️
+          <span class="badge-format">STEP · IGES</span>
+          <span class="badge-escrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>Suojattu</span>
+        </div>
+        <div class="p-body">
+          <p class="p-title">Parametrinen laakeripesän malli</p>
+          <p class="p-seller"><span class="avatar"></span> @cad.eino</p>
+          <div class="p-foot"><span class="price">32,00 €</span><span class="rating">★ 5.0 (24)</span></div>
+        </div>
+      </div>
+
+      <div class="product">
+        <div class="thumb g6">📄
+          <span class="badge-format">FIGMA</span>
+          <span class="badge-escrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>Suojattu</span>
+        </div>
+        <div class="p-body">
+          <p class="p-title">SaaS-aloitussivun mallipohja</p>
+          <p class="p-seller"><span class="avatar"></span> @studio_lumi</p>
+          <div class="p-foot"><span class="price">45,00 €</span><span class="rating">★ 4.8 (112)</span></div>
+        </div>
+      </div>
+
+      <div class="product">
+        <div class="thumb g3">💻
+          <span class="badge-format">PYTHON</span>
+          <span class="badge-escrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>Suojattu</span>
+        </div>
+        <div class="p-body">
+          <p class="p-title">Lentoreitin telemetria-analysaattori</p>
+          <p class="p-seller"><span class="avatar"></span> @avio_dev</p>
+          <div class="p-foot"><span class="price">29,00 €</span><span class="rating">★ 4.7 (18)</span></div>
+        </div>
+      </div>
+
+      <div class="product">
+        <div class="thumb g5">🎨
+          <span class="badge-format">AI · SVG</span>
+          <span class="badge-escrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>Suojattu</span>
+        </div>
+        <div class="p-body">
+          <p class="p-title">Ikonisetti tekniselle dokumentaatiolle</p>
+          <p class="p-seller"><span class="avatar"></span> @iconworks</p>
+          <div class="p-foot"><span class="price">15,00 €</span><span class="rating">★ 4.9 (203)</span></div>
+        </div>
+      </div>
+
+      <div class="product">
+        <div class="thumb g2">🧊
+          <span class="badge-format">STL</span>
+          <span class="badge-escrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>Suojattu</span>
+        </div>
+        <div class="p-body">
+          <p class="p-title">Modulaarinen drone-runko, 5"</p>
+          <p class="p-seller"><span class="avatar"></span> @dronelab_fi</p>
+          <div class="p-foot"><span class="price">22,00 €</span><span class="rating">★ 4.6 (37)</span></div>
+        </div>
+      </div>
+
+      <div class="product">
+        <div class="thumb g7">📷
+          <span class="badge-format">RAW · JPG</span>
+          <span class="badge-escrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>Suojattu</span>
+        </div>
+        <div class="p-body">
+          <p class="p-title">Ilmakuvasarja: Saimaan saaristo</p>
+          <p class="p-seller"><span class="avatar"></span> @ilmakuvaaja</p>
+          <div class="p-foot"><span class="price">12,00 €</span><span class="rating">★ 5.0 (9)</span></div>
+        </div>
+      </div>
+
+      <div class="product">
+        <div class="thumb g8">⚙️
+          <span class="badge-format">SLDPRT</span>
+          <span class="badge-escrow"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M20 6 9 17l-5-5"/></svg>Suojattu</span>
+        </div>
+        <div class="p-body">
+          <p class="p-title">Voimansiirron hammaspyöräsarja</p>
+          <p class="p-seller"><span class="avatar"></span> @gearhead.design</p>
+          <div class="p-foot"><span class="price">39,00 €</span><span class="rating">★ 4.9 (55)</span></div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section id="miten" class="wrap">
+    <div class="how">
+      <div class="section-head" style="margin-bottom:0;">
+        <div>
+          <h2>Miten Trustline toimii</h2>
+          <p>Neljä vaihetta ostamisesta lataukseen</p>
+        </div>
+      </div>
+      <div class="how-grid">
+        <div class="how-step">
+          <div class="how-num">01</div>
+          <div class="how-icon">🛒</div>
+          <h3>Valitse tuote</h3>
+          <p>Selaa tai etsi tarkalla haulla. Näet myyjän arviot ja aiemmat toimitukset ennen ostoa.</p>
+        </div>
+        <div class="how-step">
+          <div class="how-num">02</div>
+          <div class="how-icon">🔒</div>
+          <h3>Maksu varataan</h3>
+          <p>Kortiltasi varataan summa — rahaa ei veloiteta ennen kuin hyväksyt toimituksen.</p>
+        </div>
+        <div class="how-step">
+          <div class="how-num">03</div>
+          <div class="how-icon">👀</div>
+          <h3>Tarkista esikatselu</h3>
+          <p>Näet vesileimatun esikatselun ja voit pyytää muutoksia ennen hyväksyntää.</p>
+        </div>
+        <div class="how-step">
+          <div class="how-num">04</div>
+          <div class="how-icon">⬇️</div>
+          <h3>Hyväksy ja lataa</h3>
+          <p>Veloitus tapahtuu vasta hyväksynnän myötä, ja alkuperäinen tiedosto vapautuu latausta varten.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="turva" class="wrap">
+    <div class="trust-band">
+      <div class="trust-copy">
+        <div class="eyebrow">Turvallisuus</div>
+        <h2>Rehellisesti siitä, missä rahasi on.</h2>
+        <p>Emme väitä säilyttävämme rahojasi. Kortin varaus tehdään Stripen kautta suoraan myyjän tilille — Trustline ei koskaan pidä varoja hallussaan.</p>
+        <ul class="trust-list">
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Kortin varaus vahvistetaan ennen kuin myyjä alkaa tehdä työtä</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Vähintään 48 h tarkastusaika viimeisestä toimituksesta</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Kaikki tilan muutokset kirjataan tilaushistoriaan, myös poikkeukset</li>
+          <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 6 9 17l-5-5"/></svg> Latauslinkki on kertakäyttöinen ja voimassa vain lyhyen aikaa</li>
+        </ul>
+      </div>
+      <div class="trust-visual">
+        <div class="status-row"><span>Tilaus #TL-2841</span><span class="status-pill hold">Varattu</span></div>
+        <div class="status-row"><span>Toimitus vastaanotettu</span><span class="status-pill review">Tarkastuksessa</span></div>
+        <div class="status-row"><span>Tarkastusaikaa jäljellä</span><span>46 h 12 min</span></div>
+        <div class="status-row"><span>Hyväksynnän jälkeen</span><span class="status-pill done">Veloitus &amp; lataus</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="myyjille" class="wrap">
+    <div class="seller-cta">
+      <h2>Myy omat tiedostosi turvallisesti</h2>
+      <p>Lataa tuote, aseta hinta ja jaa linkki. Trustline hoitaa maksun varauksen, esikatselun ja veloituksen puolestasi.</p>
+      <button class="btn btn-blue">Aloita myyjänä</button>
+      <div class="seller-stats">
+        <div class="seller-stat"><b>0 €</b><span>Kuukausimaksu</span></div>
+        <div class="seller-stat"><b>&lt; 5 min</b><span>Ensimmäiseen tilaukseen</span></div>
+        <div class="seller-stat"><b>EUR</b><span>Suoraan tilillesi</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap">
+    <div class="section-head center" style="flex-direction:column; align-items:center;">
+      <h2>Ostajat ja myyjät luottavat Trustlineen</h2>
+      <p>Poimittuja arvioita yhteisöltä</p>
+    </div>
+    <div class="testi-grid">
+      <div class="testi">
+        <div class="stars">★★★★★</div>
+        <p>"Näin esikatselun ennen maksun veloitusta ja pystyin pyytämään pienen korjauksen. Ei stressiä siitä, katoaako raha."</p>
+        <div class="testi-who"><span class="avatar"></span><div><b>Elina R.</b><span>Ostaja, CAD-tiedosto</span></div></div>
+      </div>
+      <div class="testi">
+        <div class="stars">★★★★★</div>
+        <p>"Myyjänä tiedän aina, että maksu on jo varattu ennen kuin aloitan mallinnuksen. Selkeämpi kuin sähköpostilla sopiminen."</p>
+        <div class="testi-who"><span class="avatar"></span><div><b>Tomi K.</b><span>Myyjä, 3D-mallit</span></div></div>
+      </div>
+      <div class="testi">
+        <div class="stars">★★★★★</div>
+        <p>"Latauslinkki toimi juuri niin kuin luvattiin — kertakäyttöinen ja nopea. Tuntui turvallisemmalta kuin suora tiedostosiirto."</p>
+        <div class="testi-who"><span class="avatar"></span><div><b>Sofia L.</b><span>Ostaja, mallipohja</span></div></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="wrap">
+    <div class="section-head center" style="flex-direction:column; align-items:center;">
+      <h2>Usein kysytyt kysymykset</h2>
+    </div>
+    <div class="faq">
+      <details open>
+        <summary>Pitääkö Trustline rahani hallussaan?</summary>
+        <p>Ei. Maksu varataan kortiltasi Stripen kautta ja veloitetaan vasta, kun hyväksyt toimituksen. Trustline ei koskaan säilytä varoja itsellään.</p>
+      </details>
+      <details>
+        <summary>Millaisia tiedostoja voin ostaa tai myydä?</summary>
+        <p>3D-malleja (STL, STEP), CAD-tiedostoja, mallipohjia, grafiikkaa, koodia ja muita digitaalisia toimituksia. Suoritettavia tiedostoja ei sallita.</p>
+      </details>
+      <details>
+        <summary>Kuinka pitkä tarkastusaika minulla on ostajana?</summary>
+        <p>Vähintään 48 tuntia viimeisestä toimituksesta. Saat muistutukset 48 h ja 24 h ennen määräaikaa.</p>
+      </details>
+      <details>
+        <summary>Mitä jos en ehdi hyväksyä ajoissa?</summary>
+        <p>Tilaus hyväksytään automaattisesti ja varaus veloitetaan, jos toimitus on tehty ja et reagoi määräaikaan mennessä.</p>
+      </details>
+      <details>
+        <summary>Onko myyminen ilmaista?</summary>
+        <p>Tilin luonti on ilmaista. Trustline veloittaa pienen palkkion vain onnistuneesta, veloitetusta tilauksesta.</p>
+      </details>
+    </div>
+  </section>
+
+  <section class="wrap final-cta">
+    <h2>Aloita luottamuksella tänään.</h2>
+    <p>Liity ostajana tai myyjänä — ensimmäinen tilaus onnistuu muutamassa minuutissa.</p>
+    <div class="hero-cta">
+      <button class="btn btn-blue">Selaa tuotteita</button>
+      <button class="btn btn-ghost">Myy ensimmäinen tuotteesi</button>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-col">
+        <h4>Trustline</h4>
+        <p style="color:var(--ink-faint); font-size:13px; max-width:220px;">Markkinapaikka digitaalisille tuotteille, jossa maksu on aina suojattu hyväksyntään asti.</p>
+      </div>
+      <div class="foot-col">
+        <h4>Selaa</h4>
+        <a href="#">3D-mallit</a>
+        <a href="#">CAD-tiedostot</a>
+        <a href="#">Mallipohjat</a>
+        <a href="#">Grafiikka</a>
+      </div>
+      <div class="foot-col">
+        <h4>Myyjille</h4>
+        <a href="#">Aloita myyminen</a>
+        <a href="#">Palkkiot</a>
+        <a href="#">Myyjän oppaat</a>
+      </div>
+      <div class="foot-col">
+        <h4>Turva</h4>
+        <a href="#">Miten maksu toimii</a>
+        <a href="#">Riitatilanteet</a>
+        <a href="/legal/terms">Käyttöehdot</a>
+      </div>
+      <div class="foot-col">
+        <h4>Tuki</h4>
+        <a href="mailto:tuki@trustline.example">Ota yhteyttä</a>
+        <a href="/legal/privacy">Tietosuoja</a>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Trustline. Kaikki oikeudet pidätetään.</span>
+      <span>Maksut käsittelee Stripe.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  document.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+      document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+    });
+  });
+</script>
+
+</body>
+</html>
